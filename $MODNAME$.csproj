@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net452</TargetFrameworks>
+    <AssemblyName>$MODNAME$</AssemblyName>
+    <RootNamespace>Celeste.Mod.$MODNAME$</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <CelesteGamePath Condition="'$(CELESTEGAMEPATH)' == ''">..\..</CelesteGamePath>
+  </PropertyGroup>
+
+  <!--Disable "Copy Local" for all references-->
+  <ItemDefinitionGroup>
+    <PackageReference PrivateAssets="all" ExcludeAssets="runtime" />
+    <Reference Private="false" />
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoMod" Version="21.08.19.01" />
+    <PackageReference Include="MonoMod.RuntimeDetour" Version="21.08.19.01" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Celeste" HintPath="$(CELESTEGAMEPATH)\Celeste.exe" />
+    <Reference Include="MMHOOK_Celeste" HintPath="$(CELESTEGAMEPATH)\MMHOOK_Celeste.dll" />
+    <Reference Include="YamlDotNet" HintPath="$(CELESTEGAMEPATH)\YamlDotNet.dll" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(OS)' != 'Windows_NT' Or Exists('$(CELESTEGAMEPATH)\FNA.dll')">
+      <ItemGroup>
+        <Reference Include="FNA" HintPath="$(CELESTEGAMEPATH)\FNA.dll" />
+      </ItemGroup>
+    </When>
+
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Microsoft.Xna.Framework" HintPath="$(WINDIR)\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.dll" />
+        <Reference Include="Microsoft.Xna.Framework.Game" HintPath="$(WINDIR)\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Game\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Game.dll" />
+        <Reference Include="Microsoft.Xna.Framework.Graphics" HintPath="$(WINDIR)\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Graphics\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Graphics.dll" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  
+</Project>
