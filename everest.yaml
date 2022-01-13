@@ -1,6 +1,6 @@
-﻿- Name: $MODNAME$
+﻿- Name: ConsistencyTracker
   Version: 1.0.0
-  DLL: bin/Debug/net452/$MODNAME$.dll
+  DLL: bin/Debug/net452/ConsistencyTracker.dll
   Dependencies:
     - Name: Everest
       Version: 1.3164.0

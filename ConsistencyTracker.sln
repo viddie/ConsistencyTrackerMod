@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30709.64
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "$MODNAME$", "$MODNAME$.csproj", "{9E15486D-CB17-42FA-9E89-FDEB88982106}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsistencyTracker", "ConsistencyTracker.csproj", "{9E15486D-CB17-42FA-9E89-FDEB88982106}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,9 @@
+{
+    "text-format": "Room '{name}': {rateMax}% ({successesMax}/{attemptsMax})",
+    "text-nan-replacement": "-",
+    "color": "white",
+    "font-size": "80px",
+    "outline-size": "10px",
+    "outline-color": "black",
+    "refresh-time-ms": 1000
+}

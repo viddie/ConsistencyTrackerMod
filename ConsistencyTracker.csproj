@@ -3,8 +3,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net452</TargetFrameworks>
-    <AssemblyName>$MODNAME$</AssemblyName>
-    <RootNamespace>Celeste.Mod.$MODNAME$</RootNamespace>
+    <AssemblyName>ConsistencyTracker</AssemblyName>
+    <RootNamespace>Celeste.Mod.ConsistencyTracker</RootNamespace>
     <LangVersion>7.3</LangVersion>
     <CelesteGamePath Condition="'$(CELESTEGAMEPATH)' == ''">..\..</CelesteGamePath>
   </PropertyGroup>
@@ -21,9 +21,27 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Celeste" HintPath="$(CELESTEGAMEPATH)\Celeste.exe" />
-    <Reference Include="MMHOOK_Celeste" HintPath="$(CELESTEGAMEPATH)\MMHOOK_Celeste.dll" />
-    <Reference Include="YamlDotNet" HintPath="$(CELESTEGAMEPATH)\YamlDotNet.dll" />
+    <Reference Include="Celeste">
+      <HintPath>..\..\Celeste.exe</HintPath>
+    </Reference>
+    <Reference Include="MMHOOK_Celeste">
+      <HintPath>F:\SteamLibrary\steamapps\common\Celeste\MMHOOK_Celeste.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod">
+      <HintPath>..\..\MonoMod.exe</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>..\..\MonoMod.RuntimeDetour.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\..\MonoMod.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="YamlDotNet">
+      <HintPath>F:\SteamLibrary\steamapps\common\Celeste\YamlDotNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Choose>
