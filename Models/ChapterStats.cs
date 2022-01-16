@@ -45,7 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public string ToCurrentRoomString() {
-            return $"{CurrentRoom}\n";
+            return $"{CurrentRoom}\n{ChapterName}\n";
         }
 
         public string ToChapterStatsString() {
@@ -118,10 +118,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public static RoomStats ParseString(string line) {
-            ChapterStats.LogCallback($"RoomStats -> Parsing line '{line}'");
+            //ChapterStats.LogCallback($"RoomStats -> Parsing line '{line}'");
 
             List<string> lines = line.Split(new string[] { ";" }, StringSplitOptions.None).ToList();
-            ChapterStats.LogCallback($"\tlines.Count = {lines.Count}");
+            //ChapterStats.LogCallback($"\tlines.Count = {lines.Count}");
             string name = lines[0];
             //ChapterStats.LogCallback($"RoomStats -> Read debug name: '{name}'");
             string attemptListString = lines[5];
@@ -129,7 +129,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             List<bool> attemptList = new List<bool>();
             foreach (string boolStr in attemptListString.Split(new char[] { ',' })) {
-                ChapterStats.LogCallback($"\tIn loop -> {boolStr}");
+                //ChapterStats.LogCallback($"\tIn loop -> {boolStr}");
                 if (boolStr.Trim() == "") continue;
 
                 bool value = bool.Parse(boolStr);

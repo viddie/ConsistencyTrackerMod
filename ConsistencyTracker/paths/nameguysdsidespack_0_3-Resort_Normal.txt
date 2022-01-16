@@ -1,0 +1,4 @@
+Start;ST;7;a-00,a-01,a-02,a-03,a-04,a-05,a-06
+Spring Cleaning;SC;10;b-00,b-03a,b-03b,b-03c,b-02a,b-02b,b-02c,b-01a,b-01b,b-01c
+Elevator Hall;EH;8;c-01,c-02,c-03,c-04,c-05,c-06,c-07,c-08
+Ruin;RU;9;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08

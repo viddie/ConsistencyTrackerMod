@@ -18,16 +18,15 @@ namespace Celeste.Mod.ConsistencyTracker {
         private string CurrentRoomName;
 
         private string DisabledInRoomName;
+        private bool DidRestart = false;
 
         public bool DoRecordPath {
             get => _DoRecordPath;
             set {
                 if (value) {
                     if (DisabledInRoomName != CurrentRoomName) {
-                        RoomPath.Clear();
-                        RoomPath.Add(CurrentRoomName);
-                        RoomPathDuplicates.Clear();
-                        RoomPathDuplicates.Add(CurrentRoomName);
+                        Path = new PathRecorder();
+                        Path.AddRoom(CurrentRoomName);
                     }
                 } else {
                     SaveRoomPath();
@@ -37,8 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
         private bool _DoRecordPath = false;
-        List<string> RoomPath = new List<string>();
-        List<string> RoomPathDuplicates = new List<string>();
+        private PathRecorder Path;
 
         private ChapterStats CurrentChapterStats;
 
@@ -56,23 +54,80 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChapterStats.LogCallback = TestLog;
 
             Everest.Events.Level.OnEnter += Level_OnEnter;
+            Everest.Events.Level.OnExit += Level_OnExit;
+            Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
             Everest.Events.Player.OnDie += Player_OnDie;
+            Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
+            On.Celeste.Level.TeleportTo += Level_TeleportTo;
+            On.Celeste.Checkpoint.TurnOn += Checkpoint_TurnOn;
+
+
+            //On.Celeste.Strawberry.Added += Strawberry_Added;
+        }
+
+        //private void Strawberry_Added(On.Celeste.Strawberry.orig_Added orig, Strawberry berry, Monocle.Scene scene) { //Triggered when dying with the golden berry
+        //    orig(berry, scene);
+        //    TestLog($"Strawberry.Added -> berry.Golden={berry.Golden}, berry.ReturnHomeWhenLost={berry.ReturnHomeWhenLost}");
+        //}
+
+        private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
+            orig(cp, animate);
+            TestLog($"Checkpoint.TurnOn -> cp.Position={cp.Position}");
+            if (ModSettings.Enabled && DoRecordPath) {
+                Path.AddCheckpoint();
+            }
+        }
+
+        //Not triggered when teleporting via debug map
+        private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
+            orig(level, player, nextLevel, introType, nearestSpawn);
+            TestLog($"Level.TeleportTo -> level.Session.LevelData.Name={level.Session.LevelData.Name}");
+        }
+
+        private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
+            TestLog($"Level.OnLoadLevel -> level.Session.LevelData.Name={level.Session.LevelData.Name}, playerIntro={playerIntro}");
+            if (playerIntro == Player.IntroTypes.Respawn) { //Changing room via golden berry death or debug map teleport
+                if (PreviousRoomName != null && PreviousRoomName != CurrentRoomName) {
+                    SetNewRoom(level.Session.LevelData.Name, false);
+                }
+            }
+
+            if (DidRestart) {
+                DidRestart = false;
+                SetNewRoom(level.Session.LevelData.Name, false);
+                PreviousRoomName = null;
+            }
+        }
+
+        private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
+            TestLog($"Level.OnExit -> mode={mode}, snow={snow}");
+            if (mode == LevelExit.Mode.Restart) {
+                DidRestart = true;
+            }
+        }
+
+        private void Level_OnComplete(Level level) {
+            TestLog($"Level.OnComplete -> Incrementing {CurrentChapterStats.CurrentRoom.DebugRoomName}");
+            if(!ModSettings.PauseDeathTracking)
+                CurrentChapterStats.AddAttempt(true);
+            SaveChapterStats();
         }
 
         private void Level_OnEnter(Session session, bool fromSaveData) {
-            TestLog($"Level.OnEnter: Level->{session.Level} [fromSaveData({fromSaveData})]");
+            TestLog($"Level.OnEnter: Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
 
-            CurrentChapterName = session.MapData.Data.Name.Replace("/", "_");
+            CurrentChapterName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");
+            
 
-            PreviousRoomName = CurrentRoomName;
+            PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
             CurrentChapterStats = GetCurrentChapterStats();
             string read = CurrentChapterStats == null ? "null" : CurrentChapterStats.ToCurrentRoomString();
-            TestLog($"Read stats from file:\n{read}\n\n");
+            //TestLog($"Read stats from file:\n{read}\n");
 
-            SetNewRoom(CurrentRoomName);
+            SetNewRoom(CurrentRoomName, false);
 
             if (!DoRecordPath && ModSettings.RecordPath) {
                 DoRecordPath = true;
@@ -105,15 +160,15 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
-            TestLog($"Level.OnTransitionTo: LevelData.Name->{levelDataNext.Name}, Level.Completed->{level.Completed}, Level.NewLevel->{level.NewLevel} [direction({direction})]");
+            TestLog($"Level.OnTransitionTo: levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
             SetNewRoom(levelDataNext.Name);
         }
 
         private void Player_OnDie(Player player) {
             TestLog("Player died.");
             if (ModSettings.Enabled) {
-                CurrentChapterStats.AddAttempt(false);
-                TestLog($"Current Room Stats: {CurrentChapterStats.CurrentRoom}");
+                if(!ModSettings.PauseDeathTracking)
+                    CurrentChapterStats.AddAttempt(false);
                 SaveChapterStats();
             }
         }
@@ -121,7 +176,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Unload() {
         }
 
-        public void SetNewRoom(string newRoomName) {
+        public void SetNewRoom(string newRoomName, bool countDeath=true) {
             if (PreviousRoomName == newRoomName) { //Entering previous room
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
@@ -134,14 +189,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentRoomName = newRoomName;
 
             if (DoRecordPath) {
-                if (!RoomPath.Contains(newRoomName)) {
-                    RoomPath.Add(newRoomName);
-                }
-                RoomPathDuplicates.Add(newRoomName);
+                Path.AddRoom(newRoomName);
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
-                CurrentChapterStats.AddAttempt(true);
+                if (countDeath && !ModSettings.PauseDeathTracking) {
+                    CurrentChapterStats.AddAttempt(true);
+                }
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
             }
@@ -178,7 +232,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if (File.Exists(path)) { //Parse File
                 string content = File.ReadAllText(path);
-                return ChapterStats.ParseString(content);
+                ChapterStats toRet = ChapterStats.ParseString(content);
+                toRet.ChapterName = CurrentChapterName;
+                return toRet;
 
             } else { //Create new
                 ChapterStats toRet = new ChapterStats() {
@@ -220,30 +276,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void SaveRoomPath() {
             DisabledInRoomName = CurrentRoomName;
-            PathInfo roomPathInfo = GetPathInputInfo();
             string relativeOutPath = $"paths/{CurrentChapterName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
-
-            if (roomPathInfo.Checkpoints.Count == 0) {
-                File.WriteAllLines(outPath, RoomPathDuplicates);
-                TestLog($"Wrote simplified path data to '{relativeOutPath}'");
-
-            } else {
-                int roomPathIndex = 0;
-                try {
-                    foreach (CheckpointInfo cpInfo in roomPathInfo.Checkpoints) {
-                        for (int cpRoomIndex = 0; cpRoomIndex < cpInfo.RoomCount; cpRoomIndex++) {
-                            cpInfo.Rooms.Add(new RoomInfo() { DebugRoomName = RoomPath[roomPathIndex] });
-                            roomPathIndex++;
-                        }
-                    }
-                } catch (Exception ex) {
-                    TestLog($"Mismatch between path input/output: {ex.ToString()}");
-                    roomPathInfo.ParseError = ex.ToString();
-                }
-                File.WriteAllText(outPath, roomPathInfo.ToString());
-                TestLog($"Wrote path data to '{relativeOutPath}'");
-            }
+            File.WriteAllText(outPath, Path.ToString());
+            TestLog($"Wrote path data to '{relativeOutPath}'");
         }
 
         public void TestLog(string log) {
@@ -253,6 +289,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public class ConsistencyTrackerSettings : EverestModuleSettings {
             public bool Enabled { get; set; } = false;
+            public bool PauseDeathTracking { get; set; } = false;
             public bool RecordPath { get; set; } = false;
             public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
                 if (!inGame) return;

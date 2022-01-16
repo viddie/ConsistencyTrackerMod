@@ -1,0 +1,13 @@
+{
+    "rate": "20",
+    "text-format": "{rate}% ({successes}/{attempts}) | Total: {overallRate}% | DPR: {dpr}",
+    "text-nan-replacement": "-",
+    "color": "white",
+    "font-size": "70px",
+    "outline-size": "2px",
+    "outline-color": "black",
+    "refresh-time-ms": 1000,
+    "green-cutoff": 0.8,
+    "yellow-cutoff": 0.5,
+    "hide-chapter-bar": false
+}

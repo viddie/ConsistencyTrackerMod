@@ -1,5 +1,6 @@
 {
-    "text-format": "Room '{name}': {rateMax}% ({successesMax}/{attemptsMax})",
+    "rate": "max",
+    "text-format": "Room '{room}': {rate}% ({successes}/{attempts})",
     "text-nan-replacement": "-",
     "color": "white",
     "font-size": "80px",
