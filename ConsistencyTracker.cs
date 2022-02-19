@@ -100,6 +100,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (DidRestart) {
+                Log($"\tRequested reset of PreviousRoomName to null");
                 DidRestart = false;
                 SetNewRoom(level.Session.LevelData.Name, false);
                 PreviousRoomName = null;
@@ -111,6 +112,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (mode == LevelExit.Mode.Restart) {
                 DidRestart = true;
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
+                DidRestart = true;
                 CurrentChapterStats.AddGoldenBerryDeath();
             }
         }
