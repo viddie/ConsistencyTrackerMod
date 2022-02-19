@@ -9,19 +9,25 @@ function getSettingValueOrDefault(settingName){
     }
 }
 
-function parseRoomData(roomString, hasChapterName, targetLogId){
-    //Example roomString: "name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName"
+function parseRoomData(roomString, hasState, targetLogId){
+    //Example roomString: "name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled"
 
     bodyLog("Parsing room data...", targetLogId);
 
     var roomLine = null;
     var roomObj = {};
 
-    if(hasChapterName){
+    if(hasState){
         var splitData = roomString.split("\n");
         roomLine = splitData[0];
-        var chapterName = splitData[1];
-        roomObj.chapterName = chapterName;
+        var state = splitData[1].trim();
+        roomObj.state = {};
+
+        var stateSplit = state.split(";");
+        roomObj.state.chapterName = stateSplit[0];
+        roomObj.state.isTrackingPaused = stateSplit[1] == "True";
+        roomObj.state.isRecordingEnabled = stateSplit[2] == "True";
+
     } else {
         roomLine = roomString;
     }
@@ -29,15 +35,19 @@ function parseRoomData(roomString, hasChapterName, targetLogId){
     var roomData = roomLine.split(";");
 
     var roomName = roomData[0];
-    var roomRate5 = roomData[1];
-    var roomRate10 = roomData[2];
-    var roomRate20 = roomData[3];
-    var roomRateMax = roomData[4];
-    var roomAttempts = roomData[5].split(",");
+    var gbDeaths = roomData[1];
+    var gbDeathsSession = roomData[2];
+    var roomRate5 = roomData[3];
+    var roomRate10 = roomData[4];
+    var roomRate20 = roomData[5];
+    var roomRateMax = roomData[6];
+    var roomAttempts = roomData[7].split(",");
 
     bodyLog("Base fields done", targetLogId);
 
     roomObj.name = roomName;
+    roomObj.goldenBerryDeaths = parseInt(gbDeaths);
+    roomObj.goldenBerryDeathsSession = parseInt(gbDeathsSession);
     roomObj.rate5 = parseFloat(roomRate5);
     roomObj.rate10 = parseFloat(roomRate10);
     roomObj.rate20 = parseFloat(roomRate20);
