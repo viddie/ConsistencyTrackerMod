@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +30,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CurrentRoom.AddAttempt(success);
         }
 
+        public void AddGoldenBerryDeath() {
+            CurrentRoom.GoldenBerryDeaths++;
+            CurrentRoom.GoldenBerryDeathsThisSession++;
+        }
+
         public void SetCurrentRoom(string debugRoomName) {
             RoomStats targetRoom = GetRoom(debugRoomName);
             CurrentRoom = targetRoom;
@@ -44,8 +51,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return targetRoom;
         }
 
-        public string ToCurrentRoomString() {
-            return $"{CurrentRoom}\n{ChapterName}\n";
+        public void ResetCurrentSession() {
+            foreach (string name in Rooms.Keys) {
+                RoomStats room = Rooms[name];
+                room.GoldenBerryDeathsThisSession = 0;
+            }
         }
 
         public string ToChapterStatsString() {
@@ -79,15 +89,189 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return stats;
         }
+
+        public void OutputSummary(string outPath, PathInfo info, int attemptCount) {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Tracker summary for chapter '{ChapterName}'");
+            sb.AppendLine($"");
+            sb.AppendLine($"--- Golden Berry Deaths ---"); //Room->Checkpoint->Chapter + 1
+
+            int chapterDeaths = 0;
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                    chapterDeaths += rStats.GoldenBerryDeaths;
+                }
+            }
+
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                int checkpointDeaths = 0;
+
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                    checkpointDeaths += rStats.GoldenBerryDeaths;
+                }
+
+
+                string percentStr = (checkpointDeaths / (double)chapterDeaths).ToString("P2", CultureInfo.InvariantCulture);
+                sb.AppendLine($"{cpInfo.Name}: {checkpointDeaths} ({percentStr})");
+
+                int roomNumber = 0;
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    roomNumber++;
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                    rStats.RoomNumber = roomNumber;
+                    sb.AppendLine($"\t{cpInfo.Abbreviation}-{roomNumber}: {rStats.GoldenBerryDeaths}");
+                }
+            }
+            sb.AppendLine($"Total Golden Berry Deaths: {chapterDeaths}");
+
+
+            sb.AppendLine($"");
+            sb.AppendLine($"");
+
+
+            sb.AppendLine($"--- Consistency Stats ---");
+            sb.AppendLine($"- Success Rate"); //Room->Checkpoint->Chapter
+
+            double chapterSuccessRateSum = 0f;
+            int chapterRoomCount = 0;
+            int chapterSuccesses = 0;
+            int chapterAttempts = 0;
+            double chapterGoldenChance = 1;
+
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                double checkpointSuccessRateSum = 0f;
+                int checkpointRoomCount = 0;
+                int checkpointSuccesses = 0;
+                int checkpointAttempts = 0;
+
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                    float rRate = rStats.AverageSuccessOverN(attemptCount);
+
+                    checkpointSuccessRateSum += rRate;
+                    checkpointRoomCount++;
+
+                    chapterSuccessRateSum += rRate;
+                    chapterRoomCount++;
+
+                    int rSuccesses = rStats.SuccessesOverN(attemptCount);
+                    int rAttempts = rStats.AttemptsOverN(attemptCount);
+
+                    checkpointSuccesses += rSuccesses;
+                    checkpointAttempts += rAttempts;
+
+                    chapterSuccesses += rSuccesses;
+                    chapterAttempts += rAttempts;
+
+                    cpInfo.GoldenChance *= rRate;
+                    chapterGoldenChance *= rRate;
+                }
+
+                string cpPercentStr = (checkpointSuccessRateSum / checkpointRoomCount).ToString("P2", CultureInfo.InvariantCulture);
+                sb.AppendLine($"{cpInfo.Name}: {cpPercentStr} ({checkpointSuccesses} successes / {checkpointAttempts} attempts)");
+
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                    string rPercentStr = rStats.AverageSuccessOverN(attemptCount).ToString("P2", CultureInfo.InvariantCulture);
+                    sb.AppendLine($"\t{cpInfo.Abbreviation}-{rStats.RoomNumber}: {rPercentStr} ({rStats.SuccessesOverN(attemptCount)} / {rStats.AttemptsOverN(attemptCount)})");
+                }
+            }
+            string cPercentStr = (chapterSuccessRateSum / chapterRoomCount).ToString("P2", CultureInfo.InvariantCulture);
+            sb.AppendLine($"Total Success Rate: {cPercentStr} ({chapterSuccesses} successes / {chapterAttempts} attempts)");
+
+
+            sb.AppendLine($"");
+
+
+            sb.AppendLine($"- Golden Chance"); //Checkpoint->Chapter
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                string cpPercentStr = cpInfo.GoldenChance.ToString("P2", CultureInfo.InvariantCulture);
+                sb.AppendLine($"{cpInfo.Name}: {cpPercentStr}");
+            }
+            cPercentStr = chapterGoldenChance.ToString("P2", CultureInfo.InvariantCulture);
+            sb.AppendLine($"Total Golden Chance: {cPercentStr}");
+
+
+            sb.AppendLine($"");
+
+            StringBuilder sbGoldenRun = new StringBuilder();
+            sbGoldenRun.AppendLine($"Room #,Room Name,Start->Room,Room->End");
+            int roomIndexNumber = 0;
+
+            sb.AppendLine($"- Golden Chance Over A Run"); //Room-wise from start to room / room to end
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
+
+                    roomIndexNumber++;
+                    double gcToRoom = 1;
+                    double gcFromRoom = 1;
+
+                    bool hasReachedRoom = false;
+                    foreach (CheckpointInfo innerCpInfo in info.Checkpoints) {
+                        foreach (RoomInfo innerRInfo in innerCpInfo.Rooms) {
+                            RoomStats innerRStats = Rooms[innerRInfo.DebugRoomName];
+
+                            if (innerRStats == rStats) hasReachedRoom = true;
+
+                            if (hasReachedRoom) {
+                                gcFromRoom *= innerRStats.AverageSuccessOverN(attemptCount);
+                            } else {
+                                gcToRoom *= innerRStats.AverageSuccessOverN(attemptCount);
+                            }
+                        }
+                    }
+
+                    string gcToPercent = gcToRoom.ToString("P2", CultureInfo.InvariantCulture);
+                    string gcFromPercent = gcFromRoom.ToString("P2", CultureInfo.InvariantCulture);
+                    sb.AppendLine($"\t{cpInfo.Abbreviation}-{rStats.RoomNumber}:\tStart -> Room: '{gcToPercent}',\tRoom -> End '{gcFromPercent}'");
+                    sbGoldenRun.AppendLine($"{roomIndexNumber},{cpInfo.Abbreviation}-{rStats.RoomNumber},{gcToRoom},{gcFromRoom}");
+                }
+            }
+            sb.AppendLine($"- Golden Chance Over A Run (Google Sheets pastable values)"); //Room-wise from start to room / room to end
+            sb.AppendLine(sbGoldenRun.ToString());
+
+            sb.AppendLine($"");
+
+
+            File.WriteAllText(outPath, sb.ToString());
+        }
+
+
+
+
+        /*
+         Format for Sankey Diagram (https://sankeymatic.com/build/)
+0m [481] Death //cp1
+0m [508] 500m //totalDeaths - cp1 + 1
+500m [172] Death //cp2
+500m [336] 1000m //totalDeaths - (cp1+cp2) + 1
+1000m [136] Death //...
+1000m [200] 1500m
+1500m [65] Death
+1500m [135] 2000m
+2000m [48] Death
+2000m [87] 2500m
+2500m [41] Death
+2500m [46] 3000m
+3000m [45] Death
+3000m [1] Golden Berry
+         */
     }
 
     public class RoomStats {
         public string DebugRoomName { get; set; }
+        public int GoldenBerryDeaths { get; set; } = 0;
+        public int GoldenBerryDeathsThisSession { get; set; } = 0;
         public List<bool> PreviousAttempts { get; set; } = new List<bool>();
         public float LastFiveRate { get => AverageSuccessOverN(5); }
         public float LastTenRate { get => AverageSuccessOverN(10); }
         public float LastTwentyRate { get => AverageSuccessOverN(20); }
         public float MaxRate { get => AverageSuccessOverN(ChapterStats.MAX_ATTEMPT_COUNT); }
+
+        public int RoomNumber { get; set; }
 
         public float AverageSuccessOverN(int n) {
             int countSucceeded = 0;
@@ -104,6 +288,26 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return (float)countSucceeded / countTotal;
         }
 
+
+        public int SuccessesOverN(int n) {
+            int countSucceeded = 0;
+            for (int i = 0; i < n; i++) {
+                int neededIndex = PreviousAttempts.Count - 1 - i;
+                if (neededIndex < 0) break;
+                if (PreviousAttempts[neededIndex]) countSucceeded++;
+            }
+            return countSucceeded;
+        }
+        public int AttemptsOverN(int n) {
+            int countTotal = 0;
+            for (int i = 0; i < n; i++) {
+                int neededIndex = PreviousAttempts.Count - 1 - i;
+                if (neededIndex < 0) break;
+                countTotal++;
+            }
+            return countTotal;
+        }
+
         public void AddAttempt(bool success) {
             if (PreviousAttempts.Count >= ChapterStats.MAX_ATTEMPT_COUNT) {
                 PreviousAttempts.RemoveAt(0);
@@ -114,7 +318,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public override string ToString() {
             string attemptList = string.Join(",", PreviousAttempts);
-            return $"{DebugRoomName};{LastFiveRate};{LastTenRate};{LastTwentyRate};{MaxRate};{attemptList}";
+            return $"{DebugRoomName};{GoldenBerryDeaths};{GoldenBerryDeathsThisSession};{LastFiveRate};{LastTenRate};{LastTwentyRate};{MaxRate};{attemptList}";
         }
 
         public static RoomStats ParseString(string line) {
@@ -123,9 +327,29 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             List<string> lines = line.Split(new string[] { ";" }, StringSplitOptions.None).ToList();
             //ChapterStats.LogCallback($"\tlines.Count = {lines.Count}");
             string name = lines[0];
-            //ChapterStats.LogCallback($"RoomStats -> Read debug name: '{name}'");
-            string attemptListString = lines[5];
-            //ChapterStats.LogCallback($"RoomStats -> Read attempts as string: '{attemptListString}'");
+            int gbDeaths = 0;
+            int gbDeathsSession = 0;
+            string attemptListString;
+
+            try {
+                attemptListString = lines[7];
+                gbDeaths = int.Parse(lines[1]);
+                gbDeathsSession = int.Parse(lines[2]);
+            } catch (Exception) {
+                try {
+                    attemptListString = lines[6];
+                    gbDeaths = int.Parse(lines[1]);
+                } catch (Exception) {
+                    attemptListString = lines[5];
+                }
+            }
+
+            //if (name == "a-01") {
+            //    ChapterStats.LogCallback($"RoomStats.ParseString -> 'a-01': GB Deaths Session: {gbDeathsSession}");
+            //}
+
+            //int gbDeaths = int.Parse(lines[1]);
+            //string attemptListString = lines[6];
 
             List<bool> attemptList = new List<bool>();
             foreach (string boolStr in attemptListString.Split(new char[] { ',' })) {
@@ -139,6 +363,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return new RoomStats() {
                 DebugRoomName = name,
                 PreviousAttempts = attemptList,
+                GoldenBerryDeaths = gbDeaths,
+                GoldenBerryDeathsThisSession = gbDeathsSession,
             };
         }
     }

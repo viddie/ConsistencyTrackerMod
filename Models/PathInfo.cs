@@ -31,12 +31,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return string.Join("\n", lines);
         }
 
-        public static PathInfo ParseString(string content) {
+        public static PathInfo ParseString(string content, Action<string> logCallback) {
+            logCallback($"[PathInfo.ParseString] Parsing path info string");
             List<string> lines = content.Trim().Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
 
             PathInfo pathInfo = new PathInfo();
 
             foreach (string line in lines) {
+                logCallback($"\tParsing line '{line}'");
                 pathInfo.Checkpoints.Add(CheckpointInfo.ParseString(line));
             }
 
@@ -51,6 +53,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int RoomCount { get; set; }
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
+        public double GoldenChance { get; set; } = 1;
+
         public override string ToString() {
             string toRet = $"{Name};{Abbreviation};{RoomCount}";
             string debugNames = string.Join(",", Rooms);
@@ -62,10 +66,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string name = parts[0];
             string abbreviation = parts[1];
             int roomCount = int.Parse(parts[2]);
+
+            List<string> rooms = parts[3].Split(new string[] { "," }, StringSplitOptions.None).ToList();
+            List<RoomInfo> roomInfo = new List<RoomInfo>();
+
+            foreach (string room in rooms) {
+                roomInfo.Add(new RoomInfo() { DebugRoomName = room });
+            }
+
             return new CheckpointInfo() {
                 Name = name,
                 Abbreviation = abbreviation,
-                RoomCount = roomCount
+                RoomCount = roomCount,
+                Rooms = roomInfo,
             };
         }
     }
