@@ -1,18 +1,7 @@
 
 
-
-function getSettingValueOrDefault(settingName){
-    if(settings.hasOwnProperty(settingName)){
-        return settings[settingName];
-    } else {
-        return defaultSettings[settingName];
-    }
-}
-
 function parseRoomData(roomString, hasState, targetLogId){
     //Example roomString: "name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled"
-
-    bodyLog("Parsing room data...", targetLogId);
 
     var roomLine = null;
     var roomObj = {};
@@ -43,7 +32,7 @@ function parseRoomData(roomString, hasState, targetLogId){
     var roomRateMax = roomData[6];
     var roomAttempts = roomData[7].split(",");
 
-    bodyLog("Base fields done", targetLogId);
+    //Base fields done
 
     roomObj.name = roomName;
     roomObj.goldenBerryDeaths = parseInt(gbDeaths);
@@ -62,7 +51,7 @@ function parseRoomData(roomString, hasState, targetLogId){
     roomObj.totalAttempts20 = 0;
     roomObj.totalAttemptsMax = 0;
 
-    bodyLog("Parsed rates", targetLogId);
+    //Parsed rates
 
     roomObj.attempts = [];
     for(var i = roomAttempts.length-1; i >= 0; i--){
@@ -101,23 +90,7 @@ function parseRoomData(roomString, hasState, targetLogId){
     roomObj.failures10 = roomObj.totalAttempts10 - roomObj.successes10;
     roomObj.failures20 = roomObj.totalAttempts20 - roomObj.successes20;
     roomObj.failuresMax = roomObj.totalAttemptsMax - roomObj.successesMax;
-
-    bodyLog("Parsed room data: "+roomObj.name+" "+roomObj.rate5*100+"%", targetLogId);
     return roomObj;
-}
-
-function bodyLog(message, id, important){
-    if(important == undefined || important == false){
-        return;
-    }
-
-    if(id == undefined || id == null){
-        
-    } else  if(id == "body"){
-        document.body.innerText += "\n"+message;
-    } else {
-        document.getElementById(id).innerText += "\n"+message;
-    }
 }
 
 function areRoomsEqual(roomNew, roomOld) {
@@ -145,7 +118,6 @@ function parseChapterPath(fileContent){
     with the fields named:
     name;abbreviation;roomCount;rooms
     */
-    bodyLog("parsing chapter path", "stats-display");
     fileContent = fileContent.trim();
 
     var chapterPath = [];
@@ -172,8 +144,6 @@ function parseChapterPath(fileContent){
 
         chapterPath.push(chapterObj);
     }
-
-    bodyLog(JSON.stringify(chapterPath), "stats-display");
 
     return chapterPath;
 }

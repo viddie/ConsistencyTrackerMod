@@ -1,31 +1,94 @@
 let settings = {};
 let defaultSettings = {
-    "attempts": "20",
-    "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br>Total: {chapter:goldenDeaths}",
-    "text-format-center": "{checkpoint:name}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
-    "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}",
-    "text-nan-replacement": "-",
-    "color": "white",
-    "font-size-left": "32px",
-    "font-size-center": "40px",
-    "font-size-right": "25px",
-    "outline-size": "10px",
-    "outline-color": "black",
-    "refresh-time-ms": 1000,
-    "light-green-cutoff": 0.95,
-    "green-cutoff": 0.8,
-    "yellow-cutoff": 0.5,
-    "chapter-bar-enabled": true,
-    "font-family": "Renogare",
-    "golden-chance-decimals": 4,
-    "golden-share-display-enabled": true,
-    "golden-share-font-size": "28px",
-    "golden-share-style-percent": false,
-    "golden-share-show-current-session": true,
-    "room-attempts-display-enabled": true,
-    "room-attempts-font-size": "26px",
-    "room-attempts-circle-size": "23px",
-    "tracking-disabled-message-enabled": true
+    "base": {
+        "attempts": "20",
+        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br>Total: {chapter:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
+        "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
+        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Start➔Room: {run:startToRoomGoldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
+        "text-nan-replacement": "-",
+        "color": "white",
+        "font-size-left": "32px",
+        "font-size-center": "40px",
+        "font-size-right": "25px",
+        "outline-size": "10px",
+        "outline-color": "black",
+        "refresh-time-ms": 1000,
+        "light-green-cutoff": 0.95,
+        "green-cutoff": 0.8,
+        "yellow-cutoff": 0.5,
+        "chapter-bar-enabled": true,
+        "font-family": "Renogare",
+        "golden-chance-decimals": 4,
+        "golden-share-display-enabled": true,
+        "golden-share-font-size": "28px",
+        "golden-share-style-percent": false,
+        "golden-share-show-current-session": true,
+        "room-attempts-display-enabled": true,
+        "room-attempts-font-size": "26px",
+        "room-attempts-circle-size": "23px",
+        "room-attempts-new-text": "New ➔",
+        "room-attempts-old-text": "➔ Old",
+        "tracking-disabled-message-enabled": true
+    },
+    "selected-override": "golden-berry-tracking-full",
+    "overrides": {
+        "only-room-rate": {
+            "chapter-bar-enabled": false,
+            "golden-share-display-enabled": false,
+            "room-attempts-display-enabled": false,
+            "text-format-left": "",
+            "text-format-center": "{room:rate}% ({room:successes}/{room:attempts})",
+            "text-format-right": ""
+        },
+        "only-rates": {
+            "chapter-bar-enabled": false,
+            "golden-share-display-enabled": false,
+            "room-attempts-display-enabled": false,
+            "text-format-left": "",
+            "text-format-right": ""
+        },
+        "only-bar": {
+            "chapter-bar-enabled": true,
+            "golden-share-display-enabled": false,
+            "room-attempts-display-enabled": false,
+            "text-format-left": "",
+            "text-format-center": "",
+            "text-format-right": ""
+        },
+        "bar-and-rates": {
+            "chapter-bar-enabled": true,
+            "golden-share-display-enabled": false,
+            "room-attempts-display-enabled": false,
+            "text-format-left": "",
+            "text-format-right": ""
+        },
+        "some-grinding-info": {
+            "text-format-left": "GB Deaths Room: {room:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%",
+            "text-format-right": "",
+            "room-attempts-display-enabled": false,
+            "golden-share-show-current-session": false
+        },
+        "more-grinding-info": {
+            "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br><br>Room Choke Rate: {room:goldenChokeRate}%",
+            "room-attempts-new-text": "➔",
+            "room-attempts-old-text": "➔"
+        },
+        "golden-berry-tracking-simple": {
+            "text-format-left": "Total GB Deaths: {chapter:goldenDeaths}",
+            "text-format-center": "",
+            "text-format-right": "",
+            "room-attempts-display-enabled": false
+        },
+        "golden-berry-tracking-with-session": {
+            "text-format-left": "Total Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})",
+            "text-format-center": "Checkpoint: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})",
+            "text-format-right": "Room: {room:goldenDeaths} ({room:goldenDeathsSession})",
+            "room-attempts-display-enabled": false,
+            "font-size-left": "30px",
+            "font-size-center": "30px",
+            "font-size-right": "30px"
+        }
+    }
 }
 
 let intervalHandle = null;
@@ -56,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function applySettings(){
-    // bodyLog("Applying settings...");
     let hideBar = !getSettingValueOrDefault("chapter-bar-enabled");
     if(hideBar){
         document.getElementById("chapter-container").style.display = "none";
@@ -80,6 +142,10 @@ function applySettings(){
     document.body.style.fontFamily = getSettingValueOrDefault("font-family");
 }
 
+function hideGoldenShareDisplay(){
+    var goldenShareContainer = document.getElementById("golden-share-container");
+    goldenShareContainer.style.display = "none";
+}
 function applySettingsForGoldenShareDisplay(){
     var goldenShareContainer = document.getElementById("golden-share-container");
     var doShow = getSettingValueOrDefault("golden-share-display-enabled");
@@ -107,18 +173,15 @@ function applyToElement(id, color, fontSize, textShadow){
 
 
 function fetchSettings(){ //Called once per second
-    // bodyLog("Fetching settings...");
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', './ChapterOverlaySettings.json', true);
+    xhr.open('GET', './CCTOverlaySettings.json', true);
     xhr.onreadystatechange = function() {
         //Get content of file
         if (xhr.readyState == 4) {
             if(xhr.status === 404){
                 settings = defaultSettings;
             } else if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
-                bodyLog("State == 4, status == 200 || 0 -> "+xhr.responseText, "stats-display");
                 settings = JSON.parse(xhr.responseText);
-                bodyLog("Settings: "+JSON.stringify(settings), "stats-display");
             } else {
                 settings = defaultSettings;
             }
@@ -137,8 +200,6 @@ function fetchCurrentChapter(){ //Called once per second
         //Get content of file
         if (xhr.readyState == 4) {
             if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
-                bodyLog("./stats/modState.txt -> "+xhr.responseText);
-
                 previousRoomName = currentRoomName;
 
                 var newCurrentRoom = parseRoomData(xhr.responseText, true, "stats-display");
@@ -151,11 +212,16 @@ function fetchCurrentChapter(){ //Called once per second
                     previousRoomRaw = getCurrentRoom();
                 setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
 
-                var roomToDisplayStats = getCurrentRoom();
+                var roomToDisplayStats = null;
                 var isSelecting = false;
                 if(currentSelectedRoomName != null){
                     roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
                     isSelecting = true;
+                }
+
+                if(roomToDisplayStats == null || roomToDisplayStats == undefined){
+                    roomToDisplayStats = getCurrentRoom();
+                    isSelecting = false;
                 }
 
                 var textLeft = getSettingValueOrDefault("text-format-left");
@@ -196,46 +262,46 @@ function updateModState(){
 }
 
 function updateStatsText(targetId, text, room, isSelecting){
-    text = text.replace("{room:name}", room.name);
-    text = text.replace("{chapter:SID}", modState.chapterName);
-    text = text.replace("{state:trackingPaused}", modState.isTrackingPaused == true ? "Yes" : "No");
-    text = text.replace("{state:recordingPath}", modState.isRecordingEnabled == true ? "Yes" : "No");
+    text = text.replaceAll("{room:name}", room.name);
+    text = text.replaceAll("{chapter:SID}", modState.chapterName);
+    text = text.replaceAll("{state:trackingPaused}", modState.isTrackingPaused == true ? "Yes" : "No");
+    text = text.replaceAll("{state:recordingPath}", modState.isRecordingEnabled == true ? "Yes" : "No");
 
     var selectedRate = getSettingValueOrDefault("attempts");
     if(selectedRate == "5"){
-        text = text.replace("{room:rate}", (room.rate5*100).toFixed(2));
-        text = text.replace("{room:successes}", room.successes5);
-        text = text.replace("{room:attempts}", room.totalAttempts5);
-        text = text.replace("{room:failures}", room.failures5);
+        text = text.replaceAll("{room:rate}", (room.rate5*100).toFixed(2));
+        text = text.replaceAll("{room:successes}", room.successes5);
+        text = text.replaceAll("{room:attempts}", room.totalAttempts5);
+        text = text.replaceAll("{room:failures}", room.failures5);
     } else if(selectedRate == "10"){
-        text = text.replace("{room:rate}", (room.rate10*100).toFixed(2));
-        text = text.replace("{room:successes}", room.successes10);
-        text = text.replace("{room:attempts}", room.totalAttempts10);
-        text = text.replace("{room:failures}", room.failures10);
+        text = text.replaceAll("{room:rate}", (room.rate10*100).toFixed(2));
+        text = text.replaceAll("{room:successes}", room.successes10);
+        text = text.replaceAll("{room:attempts}", room.totalAttempts10);
+        text = text.replaceAll("{room:failures}", room.failures10);
     } else if(selectedRate == "20"){    
-        text = text.replace("{room:rate}", (room.rate20*100).toFixed(2));
-        text = text.replace("{room:successes}", room.successes20);
-        text = text.replace("{room:attempts}", room.totalAttempts20);
-        text = text.replace("{room:failures}", room.failures20);
+        text = text.replaceAll("{room:rate}", (room.rate20*100).toFixed(2));
+        text = text.replaceAll("{room:successes}", room.successes20);
+        text = text.replaceAll("{room:attempts}", room.totalAttempts20);
+        text = text.replaceAll("{room:failures}", room.failures20);
     } else {
-        text = text.replace("{room:rate}", (room.rateMax*100).toFixed(2));
-        text = text.replace("{room:successes}", room.successesMax);
-        text = text.replace("{room:attempts}", room.totalAttemptsMax);
-        text = text.replace("{room:failures}", room.failuresMax);
+        text = text.replaceAll("{room:rate}", (room.rateMax*100).toFixed(2));
+        text = text.replaceAll("{room:successes}", room.successesMax);
+        text = text.replaceAll("{room:attempts}", room.totalAttemptsMax);
+        text = text.replaceAll("{room:failures}", room.failuresMax);
     }
 
-    text = text.replace("{room:goldenDeaths}", room.goldenBerryDeaths);
-    text = text.replace("{room:goldenDeathsSession}", room.goldenBerryDeathsSession);
+    text = text.replaceAll("{room:goldenDeaths}", room.goldenBerryDeaths);
+    text = text.replaceAll("{room:goldenDeathsSession}", room.goldenBerryDeathsSession);
     
     var roomCP = currentChapterRoomCheckpoints[room.name];
     if(roomCP === undefined){
-        text = text.replace("{checkpoint:name}", "-");
-        text = text.replace("{checkpoint:abbreviation}", "-");
-        text = text.replace("{checkpoint:roomNumber}",  "-");
+        text = text.replaceAll("{checkpoint:name}", "-");
+        text = text.replaceAll("{checkpoint:abbreviation}", "-");
+        text = text.replaceAll("{checkpoint:roomNumber}",  "-");
     } else {
-        text = text.replace("{checkpoint:name}", roomCP.checkpoint.name);
-        text = text.replace("{checkpoint:abbreviation}", roomCP.checkpoint.abbreviation);
-        text = text.replace("{checkpoint:roomNumber}",  roomCP.roomIndex+1);
+        text = text.replaceAll("{checkpoint:name}", roomCP.checkpoint.name);
+        text = text.replaceAll("{checkpoint:abbreviation}", roomCP.checkpoint.abbreviation);
+        text = text.replaceAll("{checkpoint:roomNumber}",  roomCP.roomIndex+1);
     }
 
     if(roomCP !== undefined){
@@ -271,12 +337,13 @@ function updateStatsText(targetId, text, room, isSelecting){
             var roomsObj = currentChapterPath[checkpointIndex].rooms;
             for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
                 var roomName = roomsObj[roomIndex];
-                var roomObj = currentChapterRoomObjs[roomName];
 
-        // for(var key in currentChapterRoomObjs){
-        //     if(currentChapterRoomObjs.hasOwnProperty(key)){
-        //         var roomObj = currentChapterRoomObjs[key];
-                
+                //if roomName doesnt exist in currentChapterRoomObjs, continue
+                if(currentChapterRoomObjs[roomName] === undefined){
+                    continue;
+                }
+
+                var roomObj = currentChapterRoomObjs[roomName];
 
                 //Choke Rate
                 if(!foundRoom && roomObj.name == room.name){
@@ -348,58 +415,59 @@ function updateStatsText(targetId, text, room, isSelecting){
         var checkpointChokeRate = gbDeathsCheckpoint / (gbDeathsChapter - deathsBeforeCheckpoint);
         var checkpointChokeRateSession = gbDeathsCheckpointSession / (gbDeathsChapterSession - deathsBeforeCheckpointSession);
 
-        text = text.replace("{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
-        text = text.replace("{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
-        text = text.replace("{chapter:countRooms}", countRoomsChapter);
-        text = text.replace("{chapter:goldenDeaths}", gbDeathsChapter);
-        text = text.replace("{chapter:goldenDeathsSession}", gbDeathsChapterSession);
-        text = text.replace("{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replace("{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
+        text = text.replaceAll("{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
+        text = text.replaceAll("{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
+        text = text.replaceAll("{chapter:countRooms}", countRoomsChapter);
+        text = text.replaceAll("{chapter:goldenDeaths}", gbDeathsChapter);
+        text = text.replaceAll("{chapter:goldenDeathsSession}", gbDeathsChapterSession);
+        text = text.replaceAll("{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = text.replaceAll("{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
 
-        text = text.replace("{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
-        text = text.replace("{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
-        text = text.replace("{checkpoint:countRooms}", countRoomsCheckpoint);
-        text = text.replace("{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
-        text = text.replace("{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
-        text = text.replace("{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replace("{checkpoint:goldenEstimateAttempts}", checkpointGoldenEstimateAttempts.toFixed(0));
-        text = text.replace("{checkpoint:goldenChokeRate}", (checkpointChokeRate*100).toFixed(2));
-        text = text.replace("{checkpoint:goldenChokeRateSession}", (checkpointChokeRateSession*100).toFixed(2));
+        text = text.replaceAll("{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
+        text = text.replaceAll("{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
+        text = text.replaceAll("{checkpoint:countRooms}", countRoomsCheckpoint);
+        text = text.replaceAll("{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
+        text = text.replaceAll("{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
+        text = text.replaceAll("{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = text.replaceAll("{checkpoint:goldenEstimateAttempts}", checkpointGoldenEstimateAttempts.toFixed(0));
+        text = text.replaceAll("{checkpoint:goldenChokeRate}", (checkpointChokeRate*100).toFixed(2));
+        text = text.replaceAll("{checkpoint:goldenChokeRateSession}", (checkpointChokeRateSession*100).toFixed(2));
 
-        text = text.replace("{room:goldenChokeRate}", (roomChokeRate*100).toFixed(2));
-        text = text.replace("{room:goldenChokeRateSession}", (roomChokeRateSession*100).toFixed(2));
+        text = text.replaceAll("{room:goldenChokeRate}", (roomChokeRate*100).toFixed(2));
+        text = text.replaceAll("{room:goldenChokeRateSession}", (roomChokeRateSession*100).toFixed(2));
 
-        text = text.replace("{run:roomToEndGoldenChance}", (fromNowGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replace("{run:startToRoomGoldenChance}", (toNowGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = text.replaceAll("{run:roomToEndGoldenChance}", (fromNowGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = text.replaceAll("{run:startToRoomGoldenChance}", (toNowGoldenChance*100).toFixed(goldenChanceDecimals));
 
     } else {
         var loadingReplacement = "...";
-        text = text.replace("{chapter:rate}", loadingReplacement);
-        text = text.replace("{chapter:DPR}", loadingReplacement);
-        text = text.replace("{chapter:countRooms}", loadingReplacement);
-        text = text.replace("{chapter:goldenDeaths}", loadingReplacement);
-        text = text.replace("{chapter:goldenDeathsSession}", loadingReplacement);
-        text = text.replace("{chapter:goldenChance}", loadingReplacement);
-        text = text.replace("{chapter:goldenEstimateAttempts}", loadingReplacement);
+        text = text.replaceAll("{chapter:rate}", loadingReplacement);
+        text = text.replaceAll("{chapter:DPR}", loadingReplacement);
+        text = text.replaceAll("{chapter:countRooms}", loadingReplacement);
+        text = text.replaceAll("{chapter:goldenDeaths}", loadingReplacement);
+        text = text.replaceAll("{chapter:goldenDeathsSession}", loadingReplacement);
+        text = text.replaceAll("{chapter:goldenChance}", loadingReplacement);
+        text = text.replaceAll("{chapter:goldenEstimateAttempts}", loadingReplacement);
 
-        text = text.replace("{checkpoint:rate}", loadingReplacement);
-        text = text.replace("{checkpoint:DPR}", loadingReplacement);
-        text = text.replace("{checkpoint:countRooms}", loadingReplacement);
-        text = text.replace("{checkpoint:goldenDeaths}", loadingReplacement);
-        text = text.replace("{checkpoint:goldenChance}", loadingReplacement);
-        text = text.replace("{checkpoint:goldenEstimateAttempts}", loadingReplacement);
-        text = text.replace("{checkpoint:goldenChokeRate}", loadingReplacement);
-        text = text.replace("{checkpoint:goldenChokeRateSession}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:rate}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:DPR}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:countRooms}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenDeaths}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenDeathsSession}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenChance}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenEstimateAttempts}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenChokeRate}", loadingReplacement);
+        text = text.replaceAll("{checkpoint:goldenChokeRateSession}", loadingReplacement);
         
-        text = text.replace("{room:goldenChokeRate}", loadingReplacement);
-        text = text.replace("{room:goldenChokeRateSession}", loadingReplacement);
+        text = text.replaceAll("{room:goldenChokeRate}", loadingReplacement);
+        text = text.replaceAll("{room:goldenChokeRateSession}", loadingReplacement);
 
-        text = text.replace("{run:roomToEndGoldenChance}", loadingReplacement);
-        text = text.replace("{run:startToRoomGoldenChance}", loadingReplacement);
+        text = text.replaceAll("{run:roomToEndGoldenChance}", loadingReplacement);
+        text = text.replaceAll("{run:startToRoomGoldenChance}", loadingReplacement);
     }
 
-    text = text.replace("{test}", room.test);
-    text = text.replace("NaN", getSettingValueOrDefault("text-nan-replacement"));
+    text = text.replaceAll("{test}", room.test);
+    text = text.replaceAll("NaN", getSettingValueOrDefault("text-nan-replacement"));
     document.getElementById(targetId).innerHTML = text;
 }
 
@@ -422,7 +490,7 @@ function displayRoomAttempts(roomToDisplayStats){
     //Start element
     var startElement = document.createElement("div");
     startElement.className = "room-attempts-start-end";
-    startElement.innerHTML = "New ➔";
+    startElement.innerHTML = getSettingValueOrDefault("room-attempts-new-text");
     startElement.style.fontSize = fontSize;
     container.appendChild(startElement);
 
@@ -469,7 +537,7 @@ function displayRoomAttempts(roomToDisplayStats){
     //End element
     var endElement = document.createElement("div");
     endElement.className = "room-attempts-start-end";
-    endElement.innerHTML = "➔ Old";
+    endElement.innerHTML = getSettingValueOrDefault("room-attempts-old-text");
     endElement.style.fontSize = fontSize;
     container.appendChild(endElement);
 }
@@ -513,9 +581,11 @@ function getChapterPath(chapterName, roomObjects){ //Called once per second
                     currentCheckpointRoomIndex = null;
                     
                     document.getElementById("chapter-container").innerHTML = "Path info not found";
+                    hideGoldenShareDisplay();
                 } else {
                     currentChapterPath = parseChapterPath(xhr.responseText);
                     displayRoomObjects(roomObjects);
+                    applySettingsForGoldenShareDisplay();
                 }
             }
         }
@@ -666,14 +736,12 @@ function updateRoomInLayout(previousRoom, currentRoom){
 
 //Fetches the current chapter stats and calls an update with the room objects
 function updateChapterStats(chapterName){
-    bodyLog('Updating chapter stats');
     var xhr = new XMLHttpRequest();
     xhr.open('GET', './stats/'+chapterName+'.txt', true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
             if(xhr.status === 200 || xhr.status == 0)
             {
-                bodyLog('./stats/'+chapterName+'.txt -> '+xhr.responseText);
                 
                 var roomStrings = xhr.responseText.split("\n");
                 currentChapterRoomObjs = {};
@@ -811,6 +879,7 @@ function getRoomByNameOrDefault(roomObjs, roomDebugName){
     return {
         attempts: [],
         goldenBerryDeaths: 0,
+        goldenBerryDeathsSession: 0,
         rate5: NaN,
         rate10: NaN,
         rate20: NaN,
@@ -904,4 +973,31 @@ function calculateRemainingGoldenChance(roomToCalc, toNow=false){
     }
 
     return remainingGoldenChance;
+}
+
+
+
+let baseKey = "base";
+let selOverrideKey = "selected-override";
+let overridesKey = "overrides";
+function getSettingValueOrDefault(settingName){
+    var selectedOverride = settings[selOverrideKey];
+
+    if(selectedOverride !== "" && selectedOverride !== null){
+        var overrides = settings[overridesKey];
+        if(overrides[selectedOverride] !== undefined){
+            var override = overrides[selectedOverride];
+            if(override[settingName] !== undefined){
+                return override[settingName];
+            }
+        }
+    }
+
+    var baseSettings = settings[baseKey];
+
+    if(baseSettings.hasOwnProperty(settingName)){
+        return baseSettings[settingName];
+    } else {
+        return defaultSettings[baseKey][settingName];
+    }
 }

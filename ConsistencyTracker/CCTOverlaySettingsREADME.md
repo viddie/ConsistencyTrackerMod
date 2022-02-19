@@ -2,6 +2,8 @@
 
 The settings file is a JSON file containing all information you can edit to change the behaviour of the overlay. The `base` object defines the default values of the overlay. In the `overrides` object you can define new objects which will take precedence over the `base` settings, when the particular override object is selected through the `selected-override` value. This way you can easily check out a few premade settings by just changing the `selected-override` value to what you want to use and you can easily define your own settings. When you want to change a value for all settings, change the value in the `base` object. Leave the `selected-override` empty to only use the `base` values without overrides.
 
+After switching the theme by editing the `selected-override` value, a reload of the tracker is required (refresh page in browser or refresh cache of page in OBS)
+
 ```json
 {
     "base": {

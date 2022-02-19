@@ -64,9 +64,13 @@ The `Golden Chance` is the empirical probability of playing a checkpoint or the 
 
 The `Choke Rate` is calculated through the golden berry deaths. At any given room or checkpoint, the `Choke Rate` is the quotient of the golden berry deaths in the current room/checkpoint over all golden berry attempts that got to the current room/checkpoint. With this value rooms can be compared against each other and you can easily see to which room you lose a lot of runs, relative to the amount of attempts you get there.
 
+## Further Info
+
+- Through the ingame menu you can temporarily disable tracking of room attempts, wipe room/chapter data and start/end path recordings.
+- IMPORTANT: Currently the mod does not correctly reflect changing the room via save states of the Speedrun Tool.
+
 ## Useful Links
 
-- [Mod Download via Gamebanana]()
-- [Mod.zip Download via GitHub Release]()
-- [Overlay Download]()
-- [GitHub Repository]()
+- [Mod.zip Download via GitHub Release](https://github.com/viddie/ConsistencyTrackerMod/releases)
+- [Overlay Download](https://github.com/viddie/ConsistencyTrackerMod/releases)
+- [GitHub Repository](https://github.com/viddie/ConsistencyTrackerMod)

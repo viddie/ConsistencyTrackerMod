@@ -10,7 +10,7 @@ Just search for `Celeste Consistency Tracker` and install it.
 
 #### Manually
 
-- Download the mod from [here]() (add link)
+- Download the mod from [here](https://github.com/viddie/ConsistencyTrackerMod/releases)
 - Go into the Celeste installation folder, usually found in `C:\Program Files (x86)\Steam\steamapps\common\Celeste`
 - Place the `ConsistencyTrackerMod.zip` in the `Mods` folder of Celeste.
 
@@ -20,15 +20,16 @@ After the mod is installed:
 
 - Start Celeste
 - If it doesn't crash, you should see a new folder `ConsistencyTracker` in the root of the Celeste folder.
-- In that folder 3 new folders should appear: `logs`, `paths` and `stats`
+- In that folder 4 new folders should appear: `stats`, `paths`, `logs` and `summaries`
   - `stats` is where the mod will output the data to
   - `paths` is where all chapter's paths go (further explained in a later section)
   - `logs` just for my debugging logs, these self delete over time, so don't worry about those
+  - `summaries` is for the exported data if requested through the mod in the ingame menu
 - All done!
 
 ### Overlay
 
-- Download the overlay from [here]() (add link)
+- Download the overlay from [here](https://github.com/viddie/ConsistencyTrackerMod/releases)
 - Make sure you have started Celeste once with the mod installed!
 - Go into Celeste's root folder, usually found in `C:\Program Files (x86)\Steam\steamapps\common\Celeste`
 - Go into the newly created folder `ConsistencyTracker`
@@ -37,7 +38,7 @@ After the mod is installed:
 If everything is setup correctly, the folder structure should look something like this:
 
 ```
-.../Celeste/Mods/ConsistencyTracker.zip
+.../Celeste/Mods/ConsistencyTrackerMod.zip
 .../Celeste/ConsistencyTracker/paths/...
 .../Celeste/ConsistencyTracker/stats/
 .../Celeste/ConsistencyTracker/logs/
@@ -52,7 +53,7 @@ If everything is setup correctly, the folder structure should look something lik
 
 - Add the `ChapterOverlay.html` file as browser source
 - Set the width to 1920
-- Set the height based on how much info you display (usually somewhere around 200-300)
+- Set the height based on how much info you display (usually somewhere around 100-300)
 
 ### Browser
 
