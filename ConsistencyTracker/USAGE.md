@@ -1,6 +1,56 @@
-## Usage
+# Usage
 
-The stats display works immediately for the room, and always the current room only. In order to get data for the checkpoint or chapter, the path information for that chapter needs to be present in the `paths` folder. I have pre packaged a few paths: All base game A/B/C sides & Farewell, as well as a few D sides. The path info sadly can't be generated automatically, but I added a feature to make recording your own path easy. For the settings, consult the [Tracker Settings](/tracker-settings).
+## Examples
+
+Here are a few examples of how the tracker can be made to look through customizing the settings. All examples are available in the settings and can be used by setting the `selected-override` settings to the desired theme.  Depending on how much information you display, you will need to adjust the height of the Browser Source in OBS as the overlay will always try to fill in the available space.
+
+#### Base (no theme)
+
+The base is how the tracker looks when the `selected-override` setting is left empty. All base values will be used with no overrides.
+
+![Base Overlay](https://gbt.vi-home.de/src/img/tracker/base.png)
+
+#### only-room-rate
+
+This override only displays the rooms Success Rate with successes/attempts in parentheses.
+
+![](https://gbt.vi-home.de/src/img/tracker/only-room-rate.png)
+
+#### only-rates
+
+This override displays the rooms Success Rate with success/attempts in parentheses, as well as the average success rate.
+
+![](https://gbt.vi-home.de/src/img/tracker/only-rates.png)
+
+#### only-bar
+
+This override displays only the chapter bar. Nice for minimalistically displaying the consistency in the entire chapter.
+
+![](https://gbt.vi-home.de/src/img/tracker/only-bar-2.png)
+
+#### bar-and-rates
+
+Chapter bar + Success Rate stats.
+
+![](https://gbt.vi-home.de/src/img/tracker/bar-and-rates.png)
+
+#### golden-berry-tracking-simple
+
+An override if you are mostly interested in tracking your golden berry deaths in each checkpoint.
+
+![](https://gbt.vi-home.de/src/img/tracker/golden-berry-tracking-simple.png)
+
+#### golden-berry-tracking-with-session
+
+Extended version of the golden berry tracking override adding data of the current session, as well as room-wise data.
+
+![](https://gbt.vi-home.de/src/img/tracker/golden-berry-tracking-session.png)
+
+A better explanation for the "override" stuff can be found in the [Settings](/tracker-settings) page.
+
+## Paths
+
+Only most of the room specific stats work when no path is provided. In order to calculate and display data for the checkpoint or chapter, the path information for that chapter needs to be present in the `paths` folder. I have pre packaged a few paths: All base game A/B/C sides & Farewell, as well as a few D sides. The path info sadly can't be generated automatically, but I added a feature to make recording your own path easy.
 
 ### Record a path
 
@@ -14,8 +64,3 @@ Chasm;CH;6;9b,10a,11,12,12a,end
 ```
 
 With each line representing a checkpoint and the first part being the checkpoint's full name, the second the checkpoint abbreviation, the third the count of rooms and the last the debug names of the rooms visited throughout the path.
-
-## WIP Ideas
-- Room streaks
-  - How often in a row did you complete the room without dying?
-  - Two new fields: Current Streak and Highest Streak OR deduct it from the room attempts

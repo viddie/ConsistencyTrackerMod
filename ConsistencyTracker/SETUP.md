@@ -1,4 +1,4 @@
-# Tracker Setup
+# Setup
 
 ## Installation
 
