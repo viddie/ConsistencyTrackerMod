@@ -262,46 +262,46 @@ function updateModState(){
 }
 
 function updateStatsText(targetId, text, room, isSelecting){
-    text = text.replaceAll("{room:name}", room.name);
-    text = text.replaceAll("{chapter:SID}", modState.chapterName);
-    text = text.replaceAll("{state:trackingPaused}", modState.isTrackingPaused == true ? "Yes" : "No");
-    text = text.replaceAll("{state:recordingPath}", modState.isRecordingEnabled == true ? "Yes" : "No");
+    text = replaceAll(text, "{room:name}", room.name);
+    text = replaceAll(text, "{chapter:SID}", modState.chapterName);
+    text = replaceAll(text, "{state:trackingPaused}", modState.isTrackingPaused == true ? "Yes" : "No");
+    text = replaceAll(text, "{state:recordingPath}", modState.isRecordingEnabled == true ? "Yes" : "No");
 
     var selectedRate = getSettingValueOrDefault("attempts");
     if(selectedRate == "5"){
-        text = text.replaceAll("{room:rate}", (room.rate5*100).toFixed(2));
-        text = text.replaceAll("{room:successes}", room.successes5);
-        text = text.replaceAll("{room:attempts}", room.totalAttempts5);
-        text = text.replaceAll("{room:failures}", room.failures5);
+        text = replaceAll(text, "{room:rate}", (room.rate5*100).toFixed(2));
+        text = replaceAll(text, "{room:successes}", room.successes5);
+        text = replaceAll(text, "{room:attempts}", room.totalAttempts5);
+        text = replaceAll(text, "{room:failures}", room.failures5);
     } else if(selectedRate == "10"){
-        text = text.replaceAll("{room:rate}", (room.rate10*100).toFixed(2));
-        text = text.replaceAll("{room:successes}", room.successes10);
-        text = text.replaceAll("{room:attempts}", room.totalAttempts10);
-        text = text.replaceAll("{room:failures}", room.failures10);
+        text = replaceAll(text, "{room:rate}", (room.rate10*100).toFixed(2));
+        text = replaceAll(text, "{room:successes}", room.successes10);
+        text = replaceAll(text, "{room:attempts}", room.totalAttempts10);
+        text = replaceAll(text, "{room:failures}", room.failures10);
     } else if(selectedRate == "20"){    
-        text = text.replaceAll("{room:rate}", (room.rate20*100).toFixed(2));
-        text = text.replaceAll("{room:successes}", room.successes20);
-        text = text.replaceAll("{room:attempts}", room.totalAttempts20);
-        text = text.replaceAll("{room:failures}", room.failures20);
+        text = replaceAll(text, "{room:rate}", (room.rate20*100).toFixed(2));
+        text = replaceAll(text, "{room:successes}", room.successes20);
+        text = replaceAll(text, "{room:attempts}", room.totalAttempts20);
+        text = replaceAll(text, "{room:failures}", room.failures20);
     } else {
-        text = text.replaceAll("{room:rate}", (room.rateMax*100).toFixed(2));
-        text = text.replaceAll("{room:successes}", room.successesMax);
-        text = text.replaceAll("{room:attempts}", room.totalAttemptsMax);
-        text = text.replaceAll("{room:failures}", room.failuresMax);
+        text = replaceAll(text, "{room:rate}", (room.rateMax*100).toFixed(2));
+        text = replaceAll(text, "{room:successes}", room.successesMax);
+        text = replaceAll(text, "{room:attempts}", room.totalAttemptsMax);
+        text = replaceAll(text, "{room:failures}", room.failuresMax);
     }
 
-    text = text.replaceAll("{room:goldenDeaths}", room.goldenBerryDeaths);
-    text = text.replaceAll("{room:goldenDeathsSession}", room.goldenBerryDeathsSession);
+    text = replaceAll(text, "{room:goldenDeaths}", room.goldenBerryDeaths);
+    text = replaceAll(text, "{room:goldenDeathsSession}", room.goldenBerryDeathsSession);
     
     var roomCP = currentChapterRoomCheckpoints[room.name];
     if(roomCP === undefined){
-        text = text.replaceAll("{checkpoint:name}", "-");
-        text = text.replaceAll("{checkpoint:abbreviation}", "-");
-        text = text.replaceAll("{checkpoint:roomNumber}",  "-");
+        text = replaceAll(text, "{checkpoint:name}", "-");
+        text = replaceAll(text, "{checkpoint:abbreviation}", "-");
+        text = replaceAll(text, "{checkpoint:roomNumber}",  "-");
     } else {
-        text = text.replaceAll("{checkpoint:name}", roomCP.checkpoint.name);
-        text = text.replaceAll("{checkpoint:abbreviation}", roomCP.checkpoint.abbreviation);
-        text = text.replaceAll("{checkpoint:roomNumber}",  roomCP.roomIndex+1);
+        text = replaceAll(text, "{checkpoint:name}", roomCP.checkpoint.name);
+        text = replaceAll(text, "{checkpoint:abbreviation}", roomCP.checkpoint.abbreviation);
+        text = replaceAll(text, "{checkpoint:roomNumber}",  roomCP.roomIndex+1);
     }
 
     if(roomCP !== undefined){
@@ -415,59 +415,59 @@ function updateStatsText(targetId, text, room, isSelecting){
         var checkpointChokeRate = gbDeathsCheckpoint / (gbDeathsChapter - deathsBeforeCheckpoint);
         var checkpointChokeRateSession = gbDeathsCheckpointSession / (gbDeathsChapterSession - deathsBeforeCheckpointSession);
 
-        text = text.replaceAll("{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
-        text = text.replaceAll("{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
-        text = text.replaceAll("{chapter:countRooms}", countRoomsChapter);
-        text = text.replaceAll("{chapter:goldenDeaths}", gbDeathsChapter);
-        text = text.replaceAll("{chapter:goldenDeathsSession}", gbDeathsChapterSession);
-        text = text.replaceAll("{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replaceAll("{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
+        text = replaceAll(text, "{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
+        text = replaceAll(text, "{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
+        text = replaceAll(text, "{chapter:countRooms}", countRoomsChapter);
+        text = replaceAll(text, "{chapter:goldenDeaths}", gbDeathsChapter);
+        text = replaceAll(text, "{chapter:goldenDeathsSession}", gbDeathsChapterSession);
+        text = replaceAll(text, "{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = replaceAll(text, "{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
 
-        text = text.replaceAll("{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
-        text = text.replaceAll("{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
-        text = text.replaceAll("{checkpoint:countRooms}", countRoomsCheckpoint);
-        text = text.replaceAll("{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
-        text = text.replaceAll("{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
-        text = text.replaceAll("{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replaceAll("{checkpoint:goldenEstimateAttempts}", checkpointGoldenEstimateAttempts.toFixed(0));
-        text = text.replaceAll("{checkpoint:goldenChokeRate}", (checkpointChokeRate*100).toFixed(2));
-        text = text.replaceAll("{checkpoint:goldenChokeRateSession}", (checkpointChokeRateSession*100).toFixed(2));
+        text = replaceAll(text, "{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
+        text = replaceAll(text, "{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
+        text = replaceAll(text, "{checkpoint:countRooms}", countRoomsCheckpoint);
+        text = replaceAll(text, "{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
+        text = replaceAll(text, "{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
+        text = replaceAll(text, "{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = replaceAll(text, "{checkpoint:goldenEstimateAttempts}", checkpointGoldenEstimateAttempts.toFixed(0));
+        text = replaceAll(text, "{checkpoint:goldenChokeRate}", (checkpointChokeRate*100).toFixed(2));
+        text = replaceAll(text, "{checkpoint:goldenChokeRateSession}", (checkpointChokeRateSession*100).toFixed(2));
 
-        text = text.replaceAll("{room:goldenChokeRate}", (roomChokeRate*100).toFixed(2));
-        text = text.replaceAll("{room:goldenChokeRateSession}", (roomChokeRateSession*100).toFixed(2));
+        text = replaceAll(text, "{room:goldenChokeRate}", (roomChokeRate*100).toFixed(2));
+        text = replaceAll(text, "{room:goldenChokeRateSession}", (roomChokeRateSession*100).toFixed(2));
 
-        text = text.replaceAll("{run:roomToEndGoldenChance}", (fromNowGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = text.replaceAll("{run:startToRoomGoldenChance}", (toNowGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = replaceAll(text, "{run:roomToEndGoldenChance}", (fromNowGoldenChance*100).toFixed(goldenChanceDecimals));
+        text = replaceAll(text, "{run:startToRoomGoldenChance}", (toNowGoldenChance*100).toFixed(goldenChanceDecimals));
 
     } else {
         var loadingReplacement = "...";
-        text = text.replaceAll("{chapter:rate}", loadingReplacement);
-        text = text.replaceAll("{chapter:DPR}", loadingReplacement);
-        text = text.replaceAll("{chapter:countRooms}", loadingReplacement);
-        text = text.replaceAll("{chapter:goldenDeaths}", loadingReplacement);
-        text = text.replaceAll("{chapter:goldenDeathsSession}", loadingReplacement);
-        text = text.replaceAll("{chapter:goldenChance}", loadingReplacement);
-        text = text.replaceAll("{chapter:goldenEstimateAttempts}", loadingReplacement);
+        text = replaceAll(text, "{chapter:rate}", loadingReplacement);
+        text = replaceAll(text, "{chapter:DPR}", loadingReplacement);
+        text = replaceAll(text, "{chapter:countRooms}", loadingReplacement);
+        text = replaceAll(text, "{chapter:goldenDeaths}", loadingReplacement);
+        text = replaceAll(text, "{chapter:goldenDeathsSession}", loadingReplacement);
+        text = replaceAll(text, "{chapter:goldenChance}", loadingReplacement);
+        text = replaceAll(text, "{chapter:goldenEstimateAttempts}", loadingReplacement);
 
-        text = text.replaceAll("{checkpoint:rate}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:DPR}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:countRooms}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenDeaths}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenDeathsSession}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenChance}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenEstimateAttempts}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenChokeRate}", loadingReplacement);
-        text = text.replaceAll("{checkpoint:goldenChokeRateSession}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:rate}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:DPR}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:countRooms}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenDeaths}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenDeathsSession}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenChance}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenEstimateAttempts}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenChokeRate}", loadingReplacement);
+        text = replaceAll(text, "{checkpoint:goldenChokeRateSession}", loadingReplacement);
         
-        text = text.replaceAll("{room:goldenChokeRate}", loadingReplacement);
-        text = text.replaceAll("{room:goldenChokeRateSession}", loadingReplacement);
+        text = replaceAll(text, "{room:goldenChokeRate}", loadingReplacement);
+        text = replaceAll(text, "{room:goldenChokeRateSession}", loadingReplacement);
 
-        text = text.replaceAll("{run:roomToEndGoldenChance}", loadingReplacement);
-        text = text.replaceAll("{run:startToRoomGoldenChance}", loadingReplacement);
+        text = replaceAll(text, "{run:roomToEndGoldenChance}", loadingReplacement);
+        text = replaceAll(text, "{run:startToRoomGoldenChance}", loadingReplacement);
     }
 
-    text = text.replaceAll("{test}", room.test);
-    text = text.replaceAll("NaN", getSettingValueOrDefault("text-nan-replacement"));
+    text = replaceAll(text, "{test}", room.test);
+    text = replaceAll(text, "NaN", getSettingValueOrDefault("text-nan-replacement"));
     document.getElementById(targetId).innerHTML = text;
 }
 
