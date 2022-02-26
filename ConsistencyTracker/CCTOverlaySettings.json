@@ -1,9 +1,9 @@
 {
     "base": {
         "attempts": "20",
-        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br>Total: {chapter:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
+        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
         "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
-        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Start➔Room: {run:startToRoomGoldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
+        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
         "text-nan-replacement": "-",
         "color": "white",
         "font-size-left": "32px",
@@ -16,6 +16,7 @@
         "green-cutoff": 0.8,
         "yellow-cutoff": 0.5,
         "chapter-bar-enabled": true,
+        "chapter-bar-border-width-multiplier": 1,
         "font-family": "Renogare",
         "golden-chance-decimals": 4,
         "golden-share-display-enabled": true,
@@ -80,7 +81,7 @@
         },
         "golden-berry-tracking-with-session": {
             "text-format-left": "Total Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})",
-            "text-format-center": "Checkpoint: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})",
+            "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})",
             "text-format-right": "Room: {room:goldenDeaths} ({room:goldenDeathsSession})",
             "room-attempts-display-enabled": false,
             "font-size-left": "30px",

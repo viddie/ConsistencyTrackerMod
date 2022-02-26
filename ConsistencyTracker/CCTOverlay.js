@@ -599,6 +599,8 @@ function displayRoomObjects(roomObjs){
     var container = document.getElementById("chapter-container");
     container.innerHTML = "";
 
+    var borderMult = getSettingValueOrDefault("chapter-bar-border-width-multiplier");
+
     //Add the tracking paused element
     trackingPausedElement = document.createElement("div");
     trackingPausedElement.id = "tracking-paused";
@@ -616,6 +618,7 @@ function displayRoomObjects(roomObjs){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("checkpoint-element");
+            checkpointElement.style.flexGrow = (5 * borderMult) + "";
             container.appendChild(checkpointElement);
         }
         
@@ -658,6 +661,7 @@ function displayRoomObjects(roomObjs){
             if(roomIndex != roomsObj.length - 1){ //Skip border element for last room
                 var borderElement = document.createElement("div");
                 borderElement.classList.add("border-element");
+                borderElement.style.flexGrow = (3 * borderMult) + "";
                 container.appendChild(borderElement);
             }
         }
