@@ -58,7 +58,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"~~~===============~~~");
             ChapterStats.LogCallback = Log;
 
-            Everest.Events.Level.OnEnter += Level_OnEnter;
+            On.Celeste.Level.Begin += Level_Begin;
             Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
@@ -78,7 +78,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
-            Log($"Checkpoint.TurnOn -> cp.Position={cp.Position}");
+            Log($"[Checkpoint.TurnOn] cp.Position={cp.Position}");
             if (ModSettings.Enabled && DoRecordPath) {
                 Path.AddCheckpoint();
             }
@@ -87,12 +87,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Not triggered when teleporting via debug map
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
-            Log($"Level.TeleportTo -> level.Session.LevelData.Name={level.Session.LevelData.Name}");
+            Log($"[Level.TeleportTo] level.Session.LevelData.Name={level.Session.LevelData.Name}");
         }
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
             string newCurrentRoom = level.Session.LevelData.Name;
-            Log($"Level.OnLoadLevel -> level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
+            Log($"[Level.OnLoadLevel] level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
             if (playerIntro == Player.IntroTypes.Respawn) { //Changing room via golden berry death or debug map teleport
                 if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
                     SetNewRoom(newCurrentRoom, false);
@@ -108,34 +108,39 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
-            Log($"Level.OnExit -> mode={mode}, snow={snow}");
+            Log($"[Level.OnExit] mode={mode}, snow={snow}");
             if (mode == LevelExit.Mode.Restart) {
                 DidRestart = true;
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
-                CurrentChapterStats.AddGoldenBerryDeath();
+                CurrentChapterStats?.AddGoldenBerryDeath();
             }
         }
 
         private void Level_OnComplete(Level level) {
-            Log($"Level.OnComplete -> Incrementing {CurrentChapterStats.CurrentRoom.DebugRoomName}");
+            Log($"[Level.OnComplete] Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
             if(!ModSettings.PauseDeathTracking)
-                CurrentChapterStats.AddAttempt(true);
+                CurrentChapterStats?.AddAttempt(true);
             SaveChapterStats();
         }
 
-        private void Level_OnEnter(Session session, bool fromSaveData) {
-            Log($"Level.OnEnter: Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
+        private void Level_Begin(On.Celeste.Level.orig_Begin orig, Level level) {
+            Log($"[Level.Begin] Calling ChangeChapter with 'level.Session'");
+            ChangeChapter(level.Session);
+
+            orig(level);
+        }
+
+        private void ChangeChapter(Session session) {
+            Log($"[ChangeChapter] Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
 
             CurrentChapterName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");
-            
+
 
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
             CurrentChapterStats = GetCurrentChapterStats();
-            //string read = CurrentChapterStats == null ? "null" : CurrentChapterStats.ToCurrentRoomString();
-            //TestLog($"Read stats from file:\n{read}\n");
 
             SetNewRoom(CurrentRoomName, false);
 
@@ -170,7 +175,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
-            Log($"Level.OnTransitionTo: levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
+            Log($"[Level.OnTransitionTo] levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
             SetNewRoom(levelDataNext.Name);
         }
 
@@ -178,7 +183,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log("Player died.");
             if (ModSettings.Enabled) {
                 if(!ModSettings.PauseDeathTracking)
-                    CurrentChapterStats.AddAttempt(false);
+                    CurrentChapterStats?.AddAttempt(false);
                 SaveChapterStats();
             }
         }
@@ -188,15 +193,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void SetNewRoom(string newRoomName, bool countDeath=true) {
             if (PreviousRoomName == newRoomName) { //Entering previous room
-                Log($"SetNewRoom -> Entered previous room '{PreviousRoomName}'");
+                Log($"[SetNewRoom] Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
-                CurrentChapterStats.SetCurrentRoom(newRoomName);
+                CurrentChapterStats?.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
                 return;
             }
 
-            Log($"SetNewRoom -> Entered new room '{newRoomName}'");
+            Log($"[SetNewRoom] Entered new room '{newRoomName}'");
 
             PreviousRoomName = CurrentRoomName;
             CurrentRoomName = newRoomName;
@@ -255,7 +260,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterName);
             ChaptersThisSession.Add(CurrentChapterName);
-            Log($"GetCurrentChapterStats -> CurrentChapterName: '{CurrentChapterName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
+            Log($"[GetCurrentChapterStats] CurrentChapterName: '{CurrentChapterName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
             ChapterStats toRet;
 
@@ -282,6 +287,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void SaveChapterStats() {
+            if (CurrentChapterStats == null) {
+                Log($"[SaveChapterStats] Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+
             string path = GetPathToFile($"stats/{CurrentChapterName}.txt");
             File.WriteAllText(path, CurrentChapterStats.ToChapterStatsString());
 
@@ -292,6 +302,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void WipeChapterData() {
+            if (CurrentChapterStats == null) {
+                Log($"[WipeChapterData] Aborting wiping chapter data as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+
             RoomStats currentRoom = CurrentChapterStats.CurrentRoom;
             List<string> toRemove = new List<string>();
 
@@ -308,6 +323,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void WipeRoomData() {
+            if (CurrentChapterStats == null) {
+                Log($"[WipeRoomData] Aborting wiping room data as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+
             CurrentChapterStats.CurrentRoom.PreviousAttempts.Clear();
             SaveChapterStats();
         }
@@ -336,7 +356,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             PathInfo info = GetPathInputInfo();
-            CurrentChapterStats.OutputSummary(outPath, info, attemptCount);
+            CurrentChapterStats?.OutputSummary(outPath, info, attemptCount);
         }
 
 
