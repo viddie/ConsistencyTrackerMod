@@ -113,7 +113,10 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DidRestart = true;
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
-                CurrentChapterStats?.AddGoldenBerryDeath();
+
+                if (ModSettings.Enabled && !ModSettings.PauseDeathTracking) { //Only count golden berry deaths when enabled
+                    CurrentChapterStats?.AddGoldenBerryDeath();
+                }
             }
         }
 
