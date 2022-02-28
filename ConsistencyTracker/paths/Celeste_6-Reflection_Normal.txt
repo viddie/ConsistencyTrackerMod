@@ -1,4 +1,4 @@
-Lake;LK;5;start,01,02,03,02b
+Lake;LK;5;00,01,02,03,02b
 Hollows;HL;17;04,05,06,07,08b,09,10b,11,12b,13,14a,15,16b,17,18b,19,20
 Reflection;RF;5;b-00,b-01,b-02,b-02b,b-03
 Rock Bottom;RB;21;boss-00,boss-01,boss-02,boss-03,boss-04,boss-05,boss-06,boss-07,boss-08,boss-09,boss-10,boss-11,boss-12,boss-13,boss-14,boss-15,boss-16,boss-17,boss-18,boss-19,boss-20
