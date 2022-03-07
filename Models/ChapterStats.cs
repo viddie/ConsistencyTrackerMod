@@ -266,6 +266,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int GoldenBerryDeaths { get; set; } = 0;
         public int GoldenBerryDeathsThisSession { get; set; } = 0;
         public List<bool> PreviousAttempts { get; set; } = new List<bool>();
+        public bool LastAttempt { get => PreviousAttempts[PreviousAttempts.Count - 1]; }
         public float LastFiveRate { get => AverageSuccessOverN(5); }
         public float LastTenRate { get => AverageSuccessOverN(10); }
         public float LastTwentyRate { get => AverageSuccessOverN(20); }
@@ -314,6 +315,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             PreviousAttempts.Add(success);
+        }
+
+        public void RemoveLastAttempt() {
+            if (PreviousAttempts.Count <= 0) {
+                return;
+            }
+            PreviousAttempts.RemoveAt(PreviousAttempts.Count-1);
         }
 
         public override string ToString() {

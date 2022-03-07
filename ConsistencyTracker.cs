@@ -4,11 +4,14 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
         
         public static ConsistencyTrackerModule Instance;
+
+        public static readonly string ModVersion = "1.1.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -92,19 +95,35 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
             string newCurrentRoom = level.Session.LevelData.Name;
+            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+
             Log($"[Level.OnLoadLevel] level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
             if (playerIntro == Player.IntroTypes.Respawn) { //Changing room via golden berry death or debug map teleport
                 if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
-                    SetNewRoom(newCurrentRoom, false);
+                    SetNewRoom(newCurrentRoom, false, holdingGolden);
                 }
             }
 
             if (DidRestart) {
                 Log($"\tRequested reset of PreviousRoomName to null");
                 DidRestart = false;
-                SetNewRoom(level.Session.LevelData.Name, false);
+                SetNewRoom(level.Session.LevelData.Name, false, holdingGolden);
                 PreviousRoomName = null;
             }
+        }
+
+        private bool PlayerIsHoldingGoldenBerry(Player player) {
+            return player.Leader.Followers.Any((f) => {
+                if (!(f.Entity is Strawberry))
+                    return false;
+
+                Strawberry berry = (Strawberry)f.Entity;
+
+                if (!berry.Golden || berry.Winged)
+                    return false;
+
+                return true;
+            });
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
@@ -145,7 +164,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterStats = GetCurrentChapterStats();
 
-            SetNewRoom(CurrentRoomName, false);
+            SetNewRoom(CurrentRoomName, false, false);
 
             if (!DoRecordPath && ModSettings.RecordPath) {
                 DoRecordPath = true;
@@ -179,7 +198,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
             Log($"[Level.OnTransitionTo] levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
-            SetNewRoom(levelDataNext.Name);
+            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+            SetNewRoom(levelDataNext.Name, true, holdingGolden);
         }
 
         private void Player_OnDie(Player player) {
@@ -194,7 +214,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Unload() {
         }
 
-        public void SetNewRoom(string newRoomName, bool countDeath=true) {
+        public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
             if (PreviousRoomName == newRoomName) { //Entering previous room
                 Log($"[SetNewRoom] Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
@@ -204,7 +224,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"[SetNewRoom] Entered new room '{newRoomName}'");
+
+            Log($"[SetNewRoom] Entered new room '{newRoomName}' | Holding golden: '{holdingGolden}'");
 
             PreviousRoomName = CurrentRoomName;
             CurrentRoomName = newRoomName;
@@ -300,7 +321,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string modStatePath = GetPathToFile($"stats/modState.txt");
 
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath}\n";
+            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{ModVersion}\n";
             File.WriteAllText(modStatePath, content);
         }
 
@@ -309,6 +330,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"[WipeChapterData] Aborting wiping chapter data as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
+
+            Log($"[WipeChapterData] Wiping death data for chapter '{CurrentChapterName}'");
 
             RoomStats currentRoom = CurrentChapterStats.CurrentRoom;
             List<string> toRemove = new List<string>();
@@ -325,13 +348,44 @@ namespace Celeste.Mod.ConsistencyTracker {
             WipeRoomData();
         }
 
+        public void WipeChapterGoldenBerryDeaths() {
+            if (CurrentChapterStats == null) {
+                Log($"[WipeChapterGoldenBerryDeaths] Aborting wiping chapter data as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+
+            Log($"[WipeChapterGoldenBerryDeaths] Wiping golden berry death data for chapter '{CurrentChapterName}'");
+
+            foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
+                CurrentChapterStats.Rooms[debugName].GoldenBerryDeaths = 0;
+                CurrentChapterStats.Rooms[debugName].GoldenBerryDeathsThisSession = 0;
+            }
+
+            SaveChapterStats();
+        }
+
         public void WipeRoomData() {
             if (CurrentChapterStats == null) {
                 Log($"[WipeRoomData] Aborting wiping room data as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
+            Log($"[WipeRoomData] Wiping room data for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
 
             CurrentChapterStats.CurrentRoom.PreviousAttempts.Clear();
+            SaveChapterStats();
+        }
+
+        public void RemoveLastDeathStreak() {
+            if (CurrentChapterStats == null) {
+                Log($"[RemoveLastDeathStreak] Aborting removing death streak as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+            Log($"[RemoveLastDeathStreak] Removing death streak for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+
+            while (CurrentChapterStats.CurrentRoom.LastAttempt == false) {
+                CurrentChapterStats.CurrentRoom.RemoveLastAttempt();
+            }
+
             SaveChapterStats();
         }
 
@@ -432,6 +486,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
                 subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
 
+                var button0 = new TextMenu.Button("Remove Last Death Streak");
+                button0.OnPressed = () => {
+                    Instance.RemoveLastDeathStreak();
+                };
+                subMenu.Add(button0);
+
                 var button1 = new TextMenu.Button("Wipe Room Data");
                 button1.OnPressed = () => {
                     Instance.WipeRoomData();
@@ -443,6 +503,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                     Instance.WipeChapterData();
                 };
                 subMenu.Add(button2);
+
+                var button3 = new TextMenu.Button("Wipe Chapter Golden Berry Deaths");
+                button3.OnPressed = () => {
+                    Instance.WipeChapterGoldenBerryDeaths();
+                };
+                subMenu.Add(button3);
 
                 menu.Add(subMenu);
             }
