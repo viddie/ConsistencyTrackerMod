@@ -105,7 +105,10 @@ let currentChapterPath = null;
 let currentChapterOverallRate = null;
 let currentSelectedRoomName = null;
 let currentChapterRoomCheckpoints = {};
+
 let currentChapterGoldenShareCheckpointElements = {};
+let currentChapterGoldenPBElements = null;
+let currentChapterGoldenPBPreviousElement = null;
 
 let currentCheckpointObj = null;
 let currentCheckpointRoomIndex = null;
@@ -466,10 +469,65 @@ function updateStatsText(targetId, text, room, isSelecting){
         text = replaceAll(text, "{run:startToRoomGoldenChance}", loadingReplacement);
     }
 
+    text = updateGoldenPB(text);
+
     text = replaceAll(text, "{test}", room.test);
     text = replaceAll(text, "NaN", getSettingValueOrDefault("text-nan-replacement"));
     document.getElementById(targetId).innerHTML = text;
 }
+
+
+
+function updateChapterLayout(chapterName){ //Called once per second
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', './stats/'+chapterName+'.txt', true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if(xhr.status === 200 || xhr.status == 0)
+            {
+                var roomStrings = xhr.responseText.split("\n");
+                currentChapterRoomObjs = {};
+                currentChapterElements = {};
+                for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+                    if(roomStrings[i].trim() == "") continue;
+                    var room = parseRoomData(roomStrings[i], false);
+                    currentChapterRoomObjs[room.name] = room;
+                }
+                var currentRoom = parseRoomData(roomStrings[0], false);
+                setCurrentRoom(currentRoom, currentRoom.name);
+
+                getChapterPath(chapterName, currentChapterRoomObjs);
+            }
+        }
+    };
+    xhr.send();
+}
+
+function getChapterPath(chapterName, roomObjects){ //Called once per second
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', './paths/'+chapterName+'.txt', true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if(xhr.status === 200 || xhr.status == 0)
+            {
+                if(xhr.responseText == ""){ //File was not found or was empty
+                    currentChapterPath = null;
+                    currentCheckpointObj = null;
+                    currentCheckpointRoomIndex = null;
+                    
+                    document.getElementById("chapter-container").innerHTML = "Path info not found";
+                    hideGoldenShareDisplay();
+                } else {
+                    currentChapterPath = parseChapterPath(xhr.responseText);
+                    displayRoomObjects(roomObjects);
+                    applySettingsForGoldenShareDisplay();
+                }
+            }
+        }
+    };
+    xhr.send();
+}
+
 
 
 var roomAttemptsInitialized = false;
@@ -541,58 +599,6 @@ function displayRoomAttempts(roomToDisplayStats){
     endElement.style.fontSize = fontSize;
     container.appendChild(endElement);
 }
-
-
-function updateChapterLayout(chapterName){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './stats/'+chapterName+'.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if(xhr.status === 200 || xhr.status == 0)
-            {
-                var roomStrings = xhr.responseText.split("\n");
-                currentChapterRoomObjs = {};
-                currentChapterElements = {};
-                for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-                    if(roomStrings[i].trim() == "") continue;
-                    var room = parseRoomData(roomStrings[i], false);
-                    currentChapterRoomObjs[room.name] = room;
-                }
-                var currentRoom = parseRoomData(roomStrings[0], false);
-                setCurrentRoom(currentRoom, currentRoom.name);
-
-                getChapterPath(chapterName, currentChapterRoomObjs);
-            }
-        }
-    };
-    xhr.send();
-}
-
-function getChapterPath(chapterName, roomObjects){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './paths/'+chapterName+'.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if(xhr.status === 200 || xhr.status == 0)
-            {
-                if(xhr.responseText == ""){ //File was not found or was empty
-                    currentChapterPath = null;
-                    currentCheckpointObj = null;
-                    currentCheckpointRoomIndex = null;
-                    
-                    document.getElementById("chapter-container").innerHTML = "Path info not found";
-                    hideGoldenShareDisplay();
-                } else {
-                    currentChapterPath = parseChapterPath(xhr.responseText);
-                    displayRoomObjects(roomObjects);
-                    applySettingsForGoldenShareDisplay();
-                }
-            }
-        }
-    };
-    xhr.send();
-}
-
 
 //Creates HTML elements for all room objects and saves them in currentChapterElements
 function displayRoomObjects(roomObjs){
@@ -672,11 +678,87 @@ function displayRoomObjects(roomObjs){
     endElement.className = "start-end-element";
     container.appendChild(endElement);
 
-    displayGoldenShares();
+    displayGoldenPBs(borderMult);
+    displayGoldenShares(borderMult);
 }
 
 
-function displayGoldenShares(){
+function displayGoldenPBs(borderMult){
+    var container = document.getElementById("pb-container");
+    container.innerHTML = "";
+
+    currentChapterGoldenPBElements = {};
+
+    //Add the start element
+    var startElement = document.createElement("div");
+    startElement.className = "start-end-element pb";
+    container.appendChild(startElement);
+
+
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+        if(checkpointIndex != 0){ //Skip checkpoint element for first and last
+            var checkpointElement = document.createElement("div");
+            checkpointElement.classList.add("checkpoint-element");
+            checkpointElement.classList.add("pb");
+            checkpointElement.style.flexGrow = (5 * borderMult) + "";
+            container.appendChild(checkpointElement);
+        }
+        
+        var roomsObj = currentChapterPath[checkpointIndex].rooms;
+
+        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
+            var roomName = currentChapterPath[checkpointIndex].rooms[roomIndex];
+
+            var roomElementLeft = document.createElement("div");
+            roomElementLeft.classList.add("room-element");
+            roomElementLeft.classList.add("pb");
+            container.appendChild(roomElementLeft);
+
+            var roomElementMiddle = document.createElement("div");
+            roomElementMiddle.classList.add("berry-element");
+            roomElementMiddle.classList.add("pb");
+            roomElementMiddle.classList.add("hidden");
+            container.appendChild(roomElementMiddle);
+
+            var berryImageElement = document.createElement("img");
+            berryImageElement.src = "img/goldberry.gif";
+            berryImageElement.classList.add("berry-image");
+            roomElementMiddle.appendChild(berryImageElement);
+
+            var roomElementRight = document.createElement("div");
+            roomElementRight.classList.add("room-element");
+            roomElementRight.classList.add("pb");
+            container.appendChild(roomElementRight);
+
+            if(roomName == getCurrentRoom().name){
+                roomElementLeft.classList.add("selected");
+                roomElementRight.classList.add("selected");
+            }
+
+            currentChapterGoldenPBElements[roomName] = {
+                left: roomElementLeft,
+                middle: roomElementMiddle,
+                right: roomElementRight,
+            };
+
+            if(roomIndex != roomsObj.length - 1){ //Skip border element for last room
+                var borderElement = document.createElement("div");
+                borderElement.classList.add("border-element");
+                borderElement.classList.add("pb");
+                borderElement.style.flexGrow = (3 * borderMult) + "";
+                container.appendChild(borderElement);
+            }
+        }
+    }
+
+    //Add the end element
+    var endElement = document.createElement("div");
+    endElement.className = "start-end-element pb";
+    container.appendChild(endElement);
+}
+
+
+function displayGoldenShares(borderMult){
     currentChapterGoldenShareCheckpointElements = {};
 
     var container = document.getElementById("golden-share-container");
@@ -691,6 +773,7 @@ function displayGoldenShares(){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("golden-share-checkpoint-delim");
+            checkpointElement.style.flexGrow = (5 * borderMult) + "";
             container.appendChild(checkpointElement);
         }
         
@@ -698,7 +781,7 @@ function displayGoldenShares(){
 
         var checkpointElement = document.createElement("div");
         checkpointElement.classList.add("golden-share-checkpoint");
-        checkpointElement.style.flexGrow = checkpointObj.rooms.length * 50 + (checkpointObj.rooms.length-1) * 3;
+        checkpointElement.style.flexGrow = checkpointObj.rooms.length * 50 + (checkpointObj.rooms.length-1) * (3 * borderMult);
         container.appendChild(checkpointElement);
 
         var checkpointName = checkpointObj.name;
@@ -716,6 +799,69 @@ function displayGoldenShares(){
 }
 
 
+function updateGoldenPB(text){
+    if(currentChapterPath == null || currentChapterRoomObjs == null){
+        return text;
+    }
+
+    var pbRoomName = null;
+    var pbRoomNameSession = null;
+
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath[checkpointIndex];
+        var roomsObj = checkpointObj.rooms;
+
+        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
+            var roomName = roomsObj[roomIndex];
+            var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
+
+            if(room.goldenBerryDeaths != 0 || (modState.holdingGolden && roomName == currentRoomName)){
+                pbRoomName = roomName;
+            }
+            if(room.goldenBerryDeathsSession != 0 || (modState.holdingGolden && roomName == currentRoomName)){
+                pbRoomNameSession = roomName;
+            }
+        }
+    }
+
+    let foundPB = false;
+    
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath[checkpointIndex];
+        var roomsObj = checkpointObj.rooms;
+
+        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
+            var roomName = roomsObj[roomIndex];
+            var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
+
+            if(roomName == pbRoomName){ //At PB
+                foundPB = true;
+                currentChapterGoldenPBElements[roomName].left.classList.add("gold");
+                currentChapterGoldenPBElements[roomName].middle.classList.remove("hidden");
+                currentChapterGoldenPBElements[roomName].right.classList.remove("gold");
+                continue;
+            }
+
+            if(!foundPB){ //Before PB
+                currentChapterGoldenPBElements[roomName].left.classList.add("gold");
+                if(modState.holdingGolden && roomName == currentRoomName){
+                    currentChapterGoldenPBElements[roomName].middle.classList.remove("hidden");
+                } else {
+                    currentChapterGoldenPBElements[roomName].middle.classList.add("hidden");
+                }
+                currentChapterGoldenPBElements[roomName].right.classList.add("gold");
+
+            } else { //After PB
+                currentChapterGoldenPBElements[roomName].left.classList.remove("gold");
+                currentChapterGoldenPBElements[roomName].middle.classList.add("hidden");
+                currentChapterGoldenPBElements[roomName].right.classList.remove("gold");
+            }
+        }
+    }
+
+    return text;
+}
+
 
 function updateRoomInLayout(previousRoom, currentRoom){
     console.log("Updating room in layout: "+previousRoom.name+" -> "+currentRoom.name);
@@ -730,11 +876,23 @@ function updateRoomInLayout(previousRoom, currentRoom){
         } else {
             previousRoomElem.classList.remove("selected");
         }
+
+        if(currentChapterGoldenPBElements != null){
+            currentChapterGoldenPBElements[previousRoom.name].left.classList.remove("selected");
+            // currentChapterGoldenPBElements[previousRoom.name].middle.classList.remove("hidden");
+            currentChapterGoldenPBElements[previousRoom.name].right.classList.remove("selected");
+        }
+
         updateChapterStats(modState.chapterName);
     }
     
     if(currentRoomElem !== undefined){
         currentRoomElem.classList.add("selected");
+    }
+
+    if(currentChapterGoldenPBElements != null){
+        currentChapterGoldenPBElements[currentRoom.name].left.classList.add("selected");
+        currentChapterGoldenPBElements[currentRoom.name].right.classList.add("selected");
     }
 }
 

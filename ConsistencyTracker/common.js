@@ -1,7 +1,7 @@
 
 
 function parseRoomData(roomString, hasState, targetLogId){
-    //Example roomString: "name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled"
+    //Example roomString: "name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled;version;holdingGolden"
 
     var roomLine = null;
     var roomObj = {};
@@ -16,6 +16,16 @@ function parseRoomData(roomString, hasState, targetLogId){
         roomObj.state.chapterName = stateSplit[0];
         roomObj.state.isTrackingPaused = stateSplit[1] == "True";
         roomObj.state.isRecordingEnabled = stateSplit[2] == "True";
+
+        var modVersion = stateSplit[3];
+        roomObj.state.modVersion = {"version": modVersion};
+
+        var modVersionSplit = modVersion.split(".");
+        roomObj.state.modVersion.major = parseInt(modVersionSplit[0]);
+        roomObj.state.modVersion.minor = parseInt(modVersionSplit[1]);
+        roomObj.state.modVersion.patch = parseInt(modVersionSplit[2]);
+
+        roomObj.state.holdingGolden = stateSplit[4] == "True";
 
     } else {
         roomLine = roomString;

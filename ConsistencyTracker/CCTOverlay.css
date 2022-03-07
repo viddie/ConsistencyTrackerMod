@@ -10,17 +10,11 @@ body {
     /* background-color: black; */
 }
 
-
-#chapter-container {
-    width: 100%;
-    /* height: 100%; */
-    flex-grow: 1;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-end;
-    position: relative;
+.hidden {
+    display: none;
 }
+
+/* ===== TEXT STATS DISPLAY ===== */
 
 #stats-display {
     width: 100%;
@@ -52,6 +46,18 @@ body {
 }
 
 
+/* ===== CHAPTER BAR ===== */
+
+#chapter-container {
+    width: 100%;
+    /* height: 100%; */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+    position: relative;
+}
 .room-element {
     height: 55%;
     flex-grow: 50;
@@ -113,20 +119,7 @@ body {
 }
 
 
-.current-room-display {
-    position: relative;
-    /* top: -50%;
-    left: 0; */
-    width: 100%;
-    height: 100%;
-    /* display: flex; */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-size: 15px;
-    text-shadow: #000 0px 0px 2px,   #000 0px 0px 2px,   #000 0px 0px 2px,
-                 #000 0px 0px 2px,   #000 0px 0px 2px,   #000 0px 0px 2px;
-}
+/* ===== GOLDEN SHARE DISPLAY ===== */
 
 #golden-share-container {
     display: none; /* flex */
@@ -149,6 +142,8 @@ body {
     flex-grow: 5;
 }
 
+
+/* ===== ROOM ATTEMPTS DISPLAY ===== */
 
 #room-attempts-container {
     display: none; /* flex */
@@ -179,6 +174,9 @@ body {
     border-radius: 50%;
 }
 
+
+/* ===== TRACKING PAUSED SIGN ===== */
+
 #tracking-paused {
     position: absolute;
     left: 50%;
@@ -188,4 +186,63 @@ body {
     font-size: 2.5rem;
     text-shadow: #000 0px 0px 6px,   #000 0px 0px 6px,   #000 0px 0px 6px,
                  #000 0px 0px 6px,   #000 0px 0px 6px,   #000 0px 0px 6px;
+}
+
+
+/* ===== GOLDEN PB DISPLAY ===== */
+
+#pb-container {
+    width: 100%;
+    height: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+    position: relative;
+}
+.pb.room-element {
+    height: 100%;
+    flex-grow: 25;
+    transition: flex-grow .5s, background-color .5s, box-shadow .5s, height .5s;
+}
+.pb.berry-element {
+    height: 100%;
+    flex-grow: 0;
+    position: relative;
+}
+.berry-image {
+    position: absolute;
+    height: 50px;
+    width: 50px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.pb.border-element {
+    height: 100%;
+    flex-grow: 3;
+    background-color: rgb(235, 195, 18);
+}
+
+.gold {
+    background-color: rgb(235, 195, 18);
+}
+
+.pb.checkpoint-element {
+    height: 100%;
+    flex-grow: 5;
+    background-color: rgb(235, 195, 18);
+}
+
+.pb.start-end-element {
+    height: 100%;
+    flex-grow: 10;
+    background-color: white;
+}
+
+.pb.selected {
+    height: 100%;
+    flex-grow: 50;
+    box-shadow: unset;
 }
