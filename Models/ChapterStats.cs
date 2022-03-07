@@ -90,6 +90,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return stats;
         }
 
+
+        private Dictionary<string, int> UnvisitedRoomsToRoomNumber = new Dictionary<string, int>();
         public void OutputSummary(string outPath, PathInfo info, int attemptCount) {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Tracker summary for chapter '{ChapterName}'");
@@ -99,6 +101,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             int chapterDeaths = 0;
             foreach (CheckpointInfo cpInfo in info.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) continue; //Skip rooms the player has not yet visited.
+
                     RoomStats rStats = Rooms[rInfo.DebugRoomName];
                     chapterDeaths += rStats.GoldenBerryDeaths;
                 }
@@ -108,6 +112,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 int checkpointDeaths = 0;
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) continue; //Skip rooms the player has not yet visited.
+
                     RoomStats rStats = Rooms[rInfo.DebugRoomName];
                     checkpointDeaths += rStats.GoldenBerryDeaths;
                 }
@@ -119,9 +125,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 int roomNumber = 0;
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     roomNumber++;
-                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
-                    rStats.RoomNumber = roomNumber;
-                    sb.AppendLine($"\t{cpInfo.Abbreviation}-{roomNumber}: {rStats.GoldenBerryDeaths}");
+
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) {
+                        UnvisitedRoomsToRoomNumber.Add(rInfo.DebugRoomName, roomNumber);
+                        sb.AppendLine($"\t{cpInfo.Abbreviation}-{roomNumber}: 0");
+                    } else {
+                        RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                        rStats.RoomNumber = roomNumber;
+                        sb.AppendLine($"\t{cpInfo.Abbreviation}-{roomNumber}: {rStats.GoldenBerryDeaths}");
+                    }
                 }
             }
             sb.AppendLine($"Total Golden Berry Deaths: {chapterDeaths}");
@@ -147,6 +159,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 int checkpointAttempts = 0;
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) continue; //Skip rooms the player has not yet visited.
+
                     RoomStats rStats = Rooms[rInfo.DebugRoomName];
                     float rRate = rStats.AverageSuccessOverN(attemptCount);
 
@@ -173,9 +187,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 sb.AppendLine($"{cpInfo.Name}: {cpPercentStr} ({checkpointSuccesses} successes / {checkpointAttempts} attempts)");
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    RoomStats rStats = Rooms[rInfo.DebugRoomName];
-                    string rPercentStr = rStats.AverageSuccessOverN(attemptCount).ToString("P2", CultureInfo.InvariantCulture);
-                    sb.AppendLine($"\t{cpInfo.Abbreviation}-{rStats.RoomNumber}: {rPercentStr} ({rStats.SuccessesOverN(attemptCount)} / {rStats.AttemptsOverN(attemptCount)})");
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) {
+                        string rPercentStr = 0.ToString("P2", CultureInfo.InvariantCulture);
+                        sb.AppendLine($"\t{cpInfo.Abbreviation}-{UnvisitedRoomsToRoomNumber[rInfo.DebugRoomName]}: {rPercentStr} (0 / 0)");
+                    } else {
+                        RoomStats rStats = Rooms[rInfo.DebugRoomName];
+                        string rPercentStr = rStats.AverageSuccessOverN(attemptCount).ToString("P2", CultureInfo.InvariantCulture);
+                        sb.AppendLine($"\t{cpInfo.Abbreviation}-{rStats.RoomNumber}: {rPercentStr} ({rStats.SuccessesOverN(attemptCount)} / {rStats.AttemptsOverN(attemptCount)})");
+                    }
                 }
             }
             string cPercentStr = (chapterSuccessRateSum / chapterRoomCount).ToString("P2", CultureInfo.InvariantCulture);
@@ -203,23 +222,39 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             sb.AppendLine($"- Golden Chance Over A Run"); //Room-wise from start to room / room to end
             foreach (CheckpointInfo cpInfo in info.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    roomIndexNumber++;
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) {
+                        string gcToPercentI = 0.ToString("P2", CultureInfo.InvariantCulture);
+                        string gcFromPercentI = 0.ToString("P2", CultureInfo.InvariantCulture);
+                        sb.AppendLine($"\t{cpInfo.Abbreviation}-{UnvisitedRoomsToRoomNumber[rInfo.DebugRoomName]}:\tStart -> Room: '{gcToPercentI}',\tRoom -> End '{gcFromPercentI}'");
+                        sbGoldenRun.AppendLine($"{roomIndexNumber},{cpInfo.Abbreviation}-{UnvisitedRoomsToRoomNumber[rInfo.DebugRoomName]},{0},{0}");
+                        continue;
+                    }
+
                     RoomStats rStats = Rooms[rInfo.DebugRoomName];
 
-                    roomIndexNumber++;
                     double gcToRoom = 1;
                     double gcFromRoom = 1;
 
                     bool hasReachedRoom = false;
                     foreach (CheckpointInfo innerCpInfo in info.Checkpoints) {
                         foreach (RoomInfo innerRInfo in innerCpInfo.Rooms) {
-                            RoomStats innerRStats = Rooms[innerRInfo.DebugRoomName];
+                            if (innerRInfo.DebugRoomName == rInfo.DebugRoomName) hasReachedRoom = true;
 
-                            if (innerRStats == rStats) hasReachedRoom = true;
+                            if (!Rooms.ContainsKey(innerRInfo.DebugRoomName)) {
+                                if (hasReachedRoom) {
+                                    gcFromRoom *= 0;
+                                } else {
+                                    gcToRoom *= 0;
+                                }
 
-                            if (hasReachedRoom) {
-                                gcFromRoom *= innerRStats.AverageSuccessOverN(attemptCount);
                             } else {
-                                gcToRoom *= innerRStats.AverageSuccessOverN(attemptCount);
+                                RoomStats innerRStats = Rooms[innerRInfo.DebugRoomName];
+                                if (hasReachedRoom) {
+                                    gcFromRoom *= innerRStats.AverageSuccessOverN(attemptCount);
+                                } else {
+                                    gcToRoom *= innerRStats.AverageSuccessOverN(attemptCount);
+                                }
                             }
                         }
                     }

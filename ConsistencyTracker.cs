@@ -112,20 +112,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        private bool PlayerIsHoldingGoldenBerry(Player player) {
-            return player.Leader.Followers.Any((f) => {
-                if (!(f.Entity is Strawberry))
-                    return false;
-
-                Strawberry berry = (Strawberry)f.Entity;
-
-                if (!berry.Golden || berry.Winged)
-                    return false;
-
-                return true;
-            });
-        }
-
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
             Log($"[Level.OnExit] mode={mode}, snow={snow}");
             if (mode == LevelExit.Mode.Restart) {
@@ -219,7 +205,10 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Unload() {
         }
 
+        private bool _PlayerIsHoldingGolden = false;
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
+            _PlayerIsHoldingGolden = holdingGolden;
+
             if (PreviousRoomName == newRoomName) { //Entering previous room
                 Log($"[SetNewRoom] Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
@@ -326,7 +315,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string modStatePath = GetPathToFile($"stats/modState.txt");
 
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{ModVersion}\n";
+            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{ModVersion};{_PlayerIsHoldingGolden}\n";
             File.WriteAllText(modStatePath, content);
         }
 
@@ -430,6 +419,20 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             PathInfo info = GetPathInputInfo();
             CurrentChapterStats?.OutputSummary(outPath, info, attemptCount);
+        }
+
+        private bool PlayerIsHoldingGoldenBerry(Player player) {
+            return player.Leader.Followers.Any((f) => {
+                if (!(f.Entity is Strawberry))
+                    return false;
+
+                Strawberry berry = (Strawberry)f.Entity;
+
+                if (!berry.Golden || berry.Winged)
+                    return false;
+
+                return true;
+            });
         }
 
 
