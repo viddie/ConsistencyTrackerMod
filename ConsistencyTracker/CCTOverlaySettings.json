@@ -28,7 +28,8 @@
         "room-attempts-circle-size": "23px",
         "room-attempts-new-text": "New ➔",
         "room-attempts-old-text": "➔ Old",
-        "tracking-disabled-message-enabled": true
+        "tracking-disabled-message-enabled": true,
+        "golden-pb-display-enabled": true
     },
     "selected-override": "",
     "overrides": {

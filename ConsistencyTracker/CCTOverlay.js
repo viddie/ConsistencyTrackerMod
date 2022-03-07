@@ -2,9 +2,9 @@ let settings = {};
 let defaultSettings = {
     "base": {
         "attempts": "20",
-        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br>Total: {chapter:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
+        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
         "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
-        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Start➔Room: {run:startToRoomGoldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
+        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
         "text-nan-replacement": "-",
         "color": "white",
         "font-size-left": "32px",
@@ -17,6 +17,7 @@ let defaultSettings = {
         "green-cutoff": 0.8,
         "yellow-cutoff": 0.5,
         "chapter-bar-enabled": true,
+        "chapter-bar-border-width-multiplier": 1,
         "font-family": "Renogare",
         "golden-chance-decimals": 4,
         "golden-share-display-enabled": true,
@@ -28,12 +29,14 @@ let defaultSettings = {
         "room-attempts-circle-size": "23px",
         "room-attempts-new-text": "New ➔",
         "room-attempts-old-text": "➔ Old",
-        "tracking-disabled-message-enabled": true
+        "tracking-disabled-message-enabled": true,
+        "golden-pb-display-enabled": true
     },
-    "selected-override": "golden-berry-tracking-full",
+    "selected-override": "",
     "overrides": {
         "only-room-rate": {
             "chapter-bar-enabled": false,
+            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -42,6 +45,7 @@ let defaultSettings = {
         },
         "only-rates": {
             "chapter-bar-enabled": false,
+            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -49,6 +53,7 @@ let defaultSettings = {
         },
         "only-bar": {
             "chapter-bar-enabled": true,
+            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -57,6 +62,7 @@ let defaultSettings = {
         },
         "bar-and-rates": {
             "chapter-bar-enabled": true,
+            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -81,7 +87,7 @@ let defaultSettings = {
         },
         "golden-berry-tracking-with-session": {
             "text-format-left": "Total Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})",
-            "text-format-center": "Checkpoint: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})",
+            "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})",
             "text-format-right": "Room: {room:goldenDeaths} ({room:goldenDeathsSession})",
             "room-attempts-display-enabled": false,
             "font-size-left": "30px",
@@ -145,6 +151,7 @@ function applySettings(){
     document.body.style.fontFamily = getSettingValueOrDefault("font-family");
 }
 
+// hide/show GOLDEN SHARE DISPLAY
 function hideGoldenShareDisplay(){
     var goldenShareContainer = document.getElementById("golden-share-container");
     goldenShareContainer.style.display = "none";
@@ -160,11 +167,25 @@ function applySettingsForGoldenShareDisplay(){
 
     goldenShareContainer.style.fontSize = getSettingValueOrDefault("golden-share-font-size");
 }
+//===============================
 
+// show ATTEMPT DISPLAY
 function applySettingsForRoomAttemptDisplay(){
     if(getSettingValueOrDefault("room-attempts-display-enabled")){
         document.getElementById("room-attempts-container").style.display = "flex";
     }
+}
+//=====================
+
+// hide/show PB DISPLAY
+function applySettingsForGoldenPBDisplay(){
+    if(getSettingValueOrDefault("golden-pb-display-enabled")){
+        document.getElementById("pb-container").style.display = "flex";
+    }
+}
+function hideGoldenPBDisplay(){
+    var pbContainer = document.getElementById("pb-container");
+    pbContainer.style.display = "none";
 }
 
 function applyToElement(id, color, fontSize, textShadow){
@@ -173,6 +194,7 @@ function applyToElement(id, color, fontSize, textShadow){
     element.style.fontSize = fontSize;
     element.style.textShadow = textShadow;
 }
+//======================
 
 
 function fetchSettings(){ //Called once per second
@@ -517,10 +539,12 @@ function getChapterPath(chapterName, roomObjects){ //Called once per second
                     
                     document.getElementById("chapter-container").innerHTML = "Path info not found";
                     hideGoldenShareDisplay();
+                    hideGoldenPBDisplay();
                 } else {
                     currentChapterPath = parseChapterPath(xhr.responseText);
                     displayRoomObjects(roomObjects);
                     applySettingsForGoldenShareDisplay();
+                    applySettingsForGoldenPBDisplay();
                 }
             }
         }
@@ -815,10 +839,10 @@ function updateGoldenPB(text){
             var roomName = roomsObj[roomIndex];
             var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
 
-            if(room.goldenBerryDeaths != 0 || (modState.holdingGolden && roomName == currentRoomName)){
+            if(room.goldenBerryDeaths != 0 || (modState.holdingGolden && roomName == currentRoomName) || pbRoomName == null){
                 pbRoomName = roomName;
             }
-            if(room.goldenBerryDeathsSession != 0 || (modState.holdingGolden && roomName == currentRoomName)){
+            if(room.goldenBerryDeathsSession != 0 || (modState.holdingGolden && roomName == currentRoomName) || pbRoomNameSession == null){
                 pbRoomNameSession = roomName;
             }
         }
@@ -833,12 +857,24 @@ function updateGoldenPB(text){
         for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
             var roomName = roomsObj[roomIndex];
             var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
+            var roomCP = currentChapterRoomCheckpoints[roomName];
+
+            if(roomName == pbRoomNameSession){
+                text = replaceAll(text, "{pb:checkpointNameSession}", roomCP.checkpoint.name);
+                text = replaceAll(text, "{pb:checkpointAbbreviationSession}", roomCP.checkpoint.abbreviation);
+                text = replaceAll(text, "{pb:checkpointRoomNumberSession}",  roomCP.roomIndex+1);
+            }
 
             if(roomName == pbRoomName){ //At PB
                 foundPB = true;
                 currentChapterGoldenPBElements[roomName].left.classList.add("gold");
                 currentChapterGoldenPBElements[roomName].middle.classList.remove("hidden");
                 currentChapterGoldenPBElements[roomName].right.classList.remove("gold");
+
+                text = replaceAll(text, "{pb:checkpointName}", roomCP.checkpoint.name);
+                text = replaceAll(text, "{pb:checkpointAbbreviation}", roomCP.checkpoint.abbreviation);
+                text = replaceAll(text, "{pb:checkpointRoomNumber}",  roomCP.roomIndex+1);
+
                 continue;
             }
 
