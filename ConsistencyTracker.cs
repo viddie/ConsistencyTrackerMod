@@ -135,6 +135,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 if (ModSettings.Enabled && !ModSettings.PauseDeathTracking) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
+                    if (ModSettings.OnlyTrackWithGoldenBerry) {
+                        CurrentChapterStats.AddAttempt(false);
+                    }
                 }
             }
         }
@@ -203,9 +206,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Player_OnDie(Player player) {
-            Log("Player died.");
+            bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
+
+            Log($"[Player.OnDie] Player died. (holdingGolden: {holdingGolden})");
             if (ModSettings.Enabled) {
-                if(!ModSettings.PauseDeathTracking)
+                if(!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
                     CurrentChapterStats?.AddAttempt(false);
                 SaveChapterStats();
             }
@@ -235,7 +240,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
-                if (countDeath && !ModSettings.PauseDeathTracking) {
+                if (countDeath && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden)) {
                     CurrentChapterStats.AddAttempt(true);
                 }
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
@@ -389,6 +394,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
+        public void RemoveLastAttempt() {
+            if (CurrentChapterStats == null) {
+                Log($"[RemoveLastAttempt] Aborting removing death streak as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+            Log($"[RemoveLastAttempt] Removing last attempt for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+
+            CurrentChapterStats.CurrentRoom.RemoveLastAttempt();
+            SaveChapterStats();
+        }
+
         public void SaveRoomPath() {
             DisabledInRoomName = CurrentRoomName;
             string relativeOutPath = $"paths/{CurrentChapterName}.txt";
@@ -455,6 +471,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             private bool _PauseDeathTracking { get; set; } = false;
 
+            public bool OnlyTrackWithGoldenBerry { get; set; } = false;
+            public void CreateOnlyTrackWithGoldenBerryEntry(TextMenu menu, bool inGame) {
+                var toggle = new TextMenu.OnOff("Only Track Deaths With Golden Berry", this.OnlyTrackWithGoldenBerry);
+                toggle.OnValueChange = v => {
+                    this.OnlyTrackWithGoldenBerry = v;
+                };
+                menu.Add(toggle);
+            }
+
             public bool RecordPath { get; set; } = false;
             public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
                 if (!inGame) return;
@@ -486,12 +511,22 @@ namespace Celeste.Mod.ConsistencyTracker {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
                 subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
 
+
+                subMenu.Add(new TextMenu.SubHeader("Manage Last Attempts Of Current Room"));
+                var buttonLastAttempt = new TextMenu.Button("Remove Last Attempt");
+                buttonLastAttempt.OnPressed = () => {
+                    Instance.RemoveLastAttempt();
+                };
+                subMenu.Add(buttonLastAttempt);
+
                 var button0 = new TextMenu.Button("Remove Last Death Streak");
                 button0.OnPressed = () => {
                     Instance.RemoveLastDeathStreak();
                 };
                 subMenu.Add(button0);
 
+
+                subMenu.Add(new TextMenu.SubHeader("Wipe All Data"));
                 var button1 = new TextMenu.Button("Wipe Room Data");
                 button1.OnPressed = () => {
                     Instance.WipeRoomData();
