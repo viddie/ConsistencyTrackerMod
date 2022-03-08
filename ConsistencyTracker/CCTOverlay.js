@@ -99,6 +99,12 @@ let defaultSettings = {
 
 let intervalHandle = null;
 
+let overlayVersion = {
+    "version": "1.1.0",
+    "major": 1,
+    "minor": 1,
+    "patch": 0
+};
 let modState = null;
 
 let currentRoomName = null;
@@ -212,17 +218,18 @@ function fetchSettings(){ //Called once per second
             }
             
             applySettings();
-            intervalHandle = setInterval(fetchCurrentChapter, getSettingValueOrDefault("refresh-time-ms"));
+            intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
         }
     };
     xhr.send();
 }
 
-function fetchCurrentChapter(){ //Called once per second
+var checkedForUpdate = false; //Flag to prevent multiple update checks
+var updateSkipCounter = -1; //Counter to delay start of usual overlay stuff
+function fetchModState(){ //Called once per second
     var xhr = new XMLHttpRequest();
     xhr.open('GET', './stats/modState.txt', true);
     xhr.onreadystatechange = function() {
-        //Get content of file
         if (xhr.readyState == 4) {
             if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
                 previousRoomName = currentRoomName;
@@ -230,7 +237,19 @@ function fetchCurrentChapter(){ //Called once per second
                 var newCurrentRoom = parseRoomData(xhr.responseText, true, "stats-display");
                 modState = newCurrentRoom.state;
 
-                updateModState();
+                var hasUpdate = updateModState();
+                if(!checkedForUpdate && hasUpdate){
+                    checkedForUpdate = true;
+                    var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
+                    var timeToSkip = 5 * 1000;
+                    updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
+
+                    document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
+                }
+                if(updateSkipCounter > 0){
+                    updateSkipCounter--;
+                    return;
+                }
 
 
                 if(currentRoomName != null)
@@ -284,6 +303,25 @@ function updateModState(){
             trackingPausedElement.style.display = "none";
         }
     }
+
+    if(!checkedForUpdate){
+        var modVersionObj = modState.modVersion; //Obj with version and major/minor/patch numbers
+        //Check if overlay version is outdated compared to the mod version
+        var isOutdated = false;
+        if(modVersionObj.major > overlayVersion.major){
+            isOutdated = true;
+        }
+        if(modVersionObj.major == overlayVersion.major && modVersionObj.minor > overlayVersion.minor){
+            isOutdated = true;
+        }
+        if(modVersionObj.major == overlayVersion.major && modVersionObj.minor == overlayVersion.minor && modVersionObj.patch > overlayVersion.patch){
+            isOutdated = true;
+        }
+
+        return isOutdated;
+    }
+    
+    return false;
 }
 
 function updateStatsText(targetId, text, room, isSelecting){
@@ -489,6 +527,15 @@ function updateStatsText(targetId, text, room, isSelecting){
 
         text = replaceAll(text, "{run:roomToEndGoldenChance}", loadingReplacement);
         text = replaceAll(text, "{run:startToRoomGoldenChance}", loadingReplacement);
+
+        text = replaceAll(text, "{pb:checkpointName}", loadingReplacement);
+        text = replaceAll(text, "{pb:checkpointAbbreviation}", loadingReplacement);
+        text = replaceAll(text, "{pb:checkpointRoomNumber}", loadingReplacement);
+        text = replaceAll(text, "{pb:checkpointNameSession}", loadingReplacement);
+        text = replaceAll(text, "{pb:checkpointAbbreviationSession}", loadingReplacement);
+        text = replaceAll(text, "{pb:checkpointRoomNumberSession}", loadingReplacement);
+
+        
     }
 
     text = updateGoldenPB(text);
