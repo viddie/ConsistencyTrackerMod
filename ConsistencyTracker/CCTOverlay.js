@@ -2,24 +2,24 @@ let settings = {};
 let defaultSettings = {
     "base": {
         "attempts": "20",
-        "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})<br>Choke Rate: {room:goldenChokeRate}%<br>CP Choke Rate: {checkpoint:goldenChokeRate}%",
+        "refresh-time-ms": 1000,
+        "text-format-left": "GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Choke Rate: {room:goldenChokeRate}%<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})",
         "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
         "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
         "text-nan-replacement": "-",
         "color": "white",
+        "font-family": "Renogare",
         "font-size-left": "32px",
         "font-size-center": "40px",
         "font-size-right": "25px",
         "outline-size": "10px",
         "outline-color": "black",
-        "refresh-time-ms": 1000,
+        "golden-chance-decimals": 2,
+        "chapter-bar-enabled": true,
         "light-green-cutoff": 0.95,
         "green-cutoff": 0.8,
         "yellow-cutoff": 0.5,
-        "chapter-bar-enabled": true,
         "chapter-bar-border-width-multiplier": 1,
-        "font-family": "Renogare",
-        "golden-chance-decimals": 4,
         "golden-share-display-enabled": true,
         "golden-share-font-size": "28px",
         "golden-share-style-percent": false,
@@ -36,7 +36,6 @@ let defaultSettings = {
     "overrides": {
         "only-room-rate": {
             "chapter-bar-enabled": false,
-            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -45,7 +44,6 @@ let defaultSettings = {
         },
         "only-rates": {
             "chapter-bar-enabled": false,
-            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -53,7 +51,6 @@ let defaultSettings = {
         },
         "only-bar": {
             "chapter-bar-enabled": true,
-            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -62,7 +59,6 @@ let defaultSettings = {
         },
         "bar-and-rates": {
             "chapter-bar-enabled": true,
-            "golden-pb-display-enabled" : false,
             "golden-share-display-enabled": false,
             "room-attempts-display-enabled": false,
             "text-format-left": "",
@@ -75,20 +71,20 @@ let defaultSettings = {
             "golden-share-show-current-session": false
         },
         "more-grinding-info": {
-            "text-format-left": "GB Deaths<br>Room: {room:goldenDeaths}<br>Session: {chapter:goldenDeathsSession}<br><br>Room Choke Rate: {room:goldenChokeRate}%",
+            "text-format-left": "GB Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})<br>Room: {room:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%",
             "room-attempts-new-text": "➔",
             "room-attempts-old-text": "➔"
         },
         "golden-berry-tracking-simple": {
-            "text-format-left": "Total GB Deaths: {chapter:goldenDeaths}",
+            "text-format-left": "GB Deaths: {chapter:goldenDeaths}<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber}",
             "text-format-center": "",
             "text-format-right": "",
             "room-attempts-display-enabled": false
         },
         "golden-berry-tracking-with-session": {
-            "text-format-left": "Total Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})",
+            "text-format-left": "GB Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})",
             "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})",
-            "text-format-right": "Room: {room:goldenDeaths} ({room:goldenDeathsSession})",
+            "text-format-right": "",
             "room-attempts-display-enabled": false,
             "font-size-left": "30px",
             "font-size-center": "30px",
