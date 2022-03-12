@@ -11,7 +11,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         
         public static ConsistencyTrackerModule Instance;
 
-        public static readonly string ModVersion = "1.1.0";
+        public static readonly string OverlayVersion = "1.1.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -315,7 +315,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string modStatePath = GetPathToFile($"stats/modState.txt");
 
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{ModVersion};{_PlayerIsHoldingGolden}\n";
+            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{OverlayVersion};{_PlayerIsHoldingGolden}\n";
             File.WriteAllText(modStatePath, content);
         }
 
@@ -422,6 +422,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private bool PlayerIsHoldingGoldenBerry(Player player) {
+            if (player == null || player.Leader == null || player.Leader.Followers == null)
+                return false;
+
             return player.Leader.Followers.Any((f) => {
                 if (!(f.Entity is Strawberry))
                     return false;
