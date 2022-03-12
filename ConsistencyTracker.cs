@@ -11,7 +11,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         
         public static ConsistencyTrackerModule Instance;
 
-        public static readonly string OverlayVersion = "1.1.0";
+        public static readonly string OverlayVersion = "1.1.1";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;

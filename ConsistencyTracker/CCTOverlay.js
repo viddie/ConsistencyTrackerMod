@@ -96,10 +96,10 @@ let defaultSettings = {
 let intervalHandle = null;
 
 let overlayVersion = {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "major": 1,
     "minor": 1,
-    "patch": 0
+    "patch": 1
 };
 let modState = null;
 
