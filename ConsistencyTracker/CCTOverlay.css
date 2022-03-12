@@ -222,23 +222,30 @@ body {
 .pb.border-element {
     height: 100%;
     flex-grow: 3;
-    background-color: rgb(235, 195, 18);
+    /* background-color: white; */
+    background-color: unset;
+    transition: flex-grow .5s, background-color .5s, box-shadow .5s, height .5s;
+    /* background-color: rgb(235, 195, 18); */
 }
 
 .gold {
-    background-color: rgb(235, 195, 18);
+    background-color: rgb(235, 195, 18) !important;
 }
 
 .pb.checkpoint-element {
     height: 100%;
     flex-grow: 5;
-    background-color: rgb(235, 195, 18);
+    /* background-color: white; */
+    background-color: unset;
+    transition: flex-grow .5s, background-color .5s, box-shadow .5s, height .5s;
 }
 
 .pb.start-end-element {
     height: 100%;
     flex-grow: 10;
-    background-color: white;
+    /* background-color: white; */
+    background-color: unset;
+    transition: flex-grow .5s, background-color .5s, box-shadow .5s, height .5s;
 }
 
 .pb.selected {

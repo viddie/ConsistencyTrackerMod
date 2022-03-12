@@ -388,6 +388,7 @@ function updateStatsText(targetId, text, room, isSelecting){
         var deathsBeforeCheckpointSession = 0;
         var foundRoom = false;
         var foundCheckpoint = false;
+        var currentCheckpointObj = null;
 
         var rateNumber = getSelectedRateNumber();
 
@@ -414,6 +415,7 @@ function updateStatsText(targetId, text, room, isSelecting){
                     foundCheckpoint = true;
                     deathsBeforeCheckpoint = gbDeathsChapter;
                     deathsBeforeCheckpointSession = gbDeathsChapterSession;
+                    currentCheckpointObj = currentChapterPath[checkpointIndex];
                 }
 
 
@@ -476,7 +478,7 @@ function updateStatsText(targetId, text, room, isSelecting){
 
         text = replaceAll(text, "{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
         text = replaceAll(text, "{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
-        text = replaceAll(text, "{chapter:countRooms}", countRoomsChapter);
+        text = replaceAll(text, "{chapter:countRooms}", getChapterRoomCount());
         text = replaceAll(text, "{chapter:goldenDeaths}", gbDeathsChapter);
         text = replaceAll(text, "{chapter:goldenDeathsSession}", gbDeathsChapterSession);
         text = replaceAll(text, "{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
@@ -484,7 +486,9 @@ function updateStatsText(targetId, text, room, isSelecting){
 
         text = replaceAll(text, "{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
         text = replaceAll(text, "{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
-        text = replaceAll(text, "{checkpoint:countRooms}", countRoomsCheckpoint);
+        if(currentCheckpointObj != null){
+            text = replaceAll(text, "{checkpoint:countRooms}", currentCheckpointObj.rooms.length);
+        }
         text = replaceAll(text, "{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
         text = replaceAll(text, "{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
         text = replaceAll(text, "{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
@@ -763,8 +767,9 @@ function displayGoldenPBs(borderMult){
 
 
     for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+        var checkpointElement = null;
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
-            var checkpointElement = document.createElement("div");
+            checkpointElement = document.createElement("div");
             checkpointElement.classList.add("checkpoint-element");
             checkpointElement.classList.add("pb");
             checkpointElement.style.flexGrow = (5 * borderMult) + "";
@@ -774,6 +779,19 @@ function displayGoldenPBs(borderMult){
         var roomsObj = currentChapterPath[checkpointIndex].rooms;
 
         for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
+
+            var borderElementRef = null;
+            if(roomIndex != 0){ //Skip border element for first room
+                var borderElement = document.createElement("div");
+                borderElement.classList.add("border-element");
+                borderElement.classList.add("pb");
+                borderElement.style.flexGrow = (3 * borderMult) + "";
+                container.appendChild(borderElement);
+                borderElementRef = borderElement;
+            } else if(checkpointIndex != 0){
+                borderElementRef = checkpointElement;
+            }
+            
             var roomName = currentChapterPath[checkpointIndex].rooms[roomIndex];
 
             var roomElementLeft = document.createElement("div");
@@ -806,15 +824,8 @@ function displayGoldenPBs(borderMult){
                 left: roomElementLeft,
                 middle: roomElementMiddle,
                 right: roomElementRight,
+                leftBorder: borderElementRef,
             };
-
-            if(roomIndex != roomsObj.length - 1){ //Skip border element for last room
-                var borderElement = document.createElement("div");
-                borderElement.classList.add("border-element");
-                borderElement.classList.add("pb");
-                borderElement.style.flexGrow = (3 * borderMult) + "";
-                container.appendChild(borderElement);
-            }
         }
     }
 
@@ -908,11 +919,16 @@ function updateGoldenPB(text){
                 text = replaceAll(text, "{pb:checkpointRoomNumberSession}",  roomCP.roomIndex+1);
             }
 
+            var roomElements = currentChapterGoldenPBElements[roomName];
+
             if(roomName == pbRoomName){ //At PB
                 foundPB = true;
-                currentChapterGoldenPBElements[roomName].left.classList.add("gold");
-                currentChapterGoldenPBElements[roomName].middle.classList.remove("hidden");
-                currentChapterGoldenPBElements[roomName].right.classList.remove("gold");
+                roomElements.left.classList.add("gold");
+                roomElements.middle.classList.remove("hidden");
+                roomElements.right.classList.remove("gold");
+                if(roomElements.leftBorder != null){
+                    roomElements.leftBorder.classList.add("gold");
+                }
 
                 text = replaceAll(text, "{pb:checkpointName}", roomCP.checkpoint.name);
                 text = replaceAll(text, "{pb:checkpointAbbreviation}", roomCP.checkpoint.abbreviation);
@@ -922,18 +938,25 @@ function updateGoldenPB(text){
             }
 
             if(!foundPB){ //Before PB
-                currentChapterGoldenPBElements[roomName].left.classList.add("gold");
+                roomElements.left.classList.add("gold");
                 if(modState.holdingGolden && roomName == currentRoomName){
-                    currentChapterGoldenPBElements[roomName].middle.classList.remove("hidden");
+                    roomElements.middle.classList.remove("hidden");
                 } else {
-                    currentChapterGoldenPBElements[roomName].middle.classList.add("hidden");
+                    roomElements.middle.classList.add("hidden");
                 }
-                currentChapterGoldenPBElements[roomName].right.classList.add("gold");
+                roomElements.right.classList.add("gold");
+                
+                if(roomElements.leftBorder != null){
+                    roomElements.leftBorder.classList.add("gold");
+                }
 
             } else { //After PB
-                currentChapterGoldenPBElements[roomName].left.classList.remove("gold");
-                currentChapterGoldenPBElements[roomName].middle.classList.add("hidden");
-                currentChapterGoldenPBElements[roomName].right.classList.remove("gold");
+                roomElements.left.classList.remove("gold");
+                roomElements.middle.classList.add("hidden");
+                roomElements.right.classList.remove("gold");
+                if(roomElements.leftBorder != null){
+                    roomElements.leftBorder.classList.remove("gold");
+                }
             }
         }
     }
@@ -1241,4 +1264,13 @@ function getSettingValueOrDefault(settingName){
     } else {
         return defaultSettings[baseKey][settingName];
     }
+}
+
+function getChapterRoomCount(){
+    var count = 0;
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+        var roomsObj = currentChapterPath[checkpointIndex].rooms;
+        count += roomsObj.length;
+    }
+    return count;
 }
