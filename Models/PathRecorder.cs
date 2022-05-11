@@ -13,6 +13,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<List<string>> Checkpoints { get; set; } = new List<List<string>>() {
             new List<string>(),
         };
+        public HashSet<Checkpoint> CheckpointsVisited { get; set; } = new HashSet<Checkpoint>();
 
         public void AddRoom(string name) {
             if (VisitedRooms.Contains(name)) return;
@@ -21,27 +22,60 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             Checkpoints.Last().Add(name);
         }
 
-        public void AddCheckpoint() {
+        public void AddCheckpoint(Checkpoint cp) {
+            if (CheckpointsVisited.Contains(cp)) return;
+            CheckpointsVisited.Add(cp);
+
             string lastRoom = Checkpoints.Last().Last();
             Checkpoints.Last().Remove(lastRoom);
 
             Checkpoints.Add(new List<string>() { lastRoom });
         }
 
-        public override string ToString() {
-            List<string> lines = new List<string>();
+        public PathInfo ToPathInfo() {
+            PathInfo toRet = new PathInfo();
 
             int checkpointIndex = 0;
             foreach (List<string> checkpoint in Checkpoints) {
+                string cpName = $"CP{checkpointIndex + 1}";
+                string cpAbbreviation = $"CP{checkpointIndex + 1}";
+
                 if (checkpointIndex == 0) {
-                    lines.Add($"Start;ST;{checkpoint.Count};" + string.Join(",", checkpoint));
-                } else {
-                    lines.Add($"CP{checkpointIndex + 1};CP{checkpointIndex + 1};{checkpoint.Count};" + string.Join(",", checkpoint));
+                    cpName = "Start";
+                    cpAbbreviation = "ST";
                 }
+
+                CheckpointInfo cpInfo = new CheckpointInfo() {
+                    Name = cpName,
+                    Abbreviation = cpAbbreviation,
+                };
+
+                foreach (string roomName in checkpoint) {
+                    cpInfo.Rooms.Add(new RoomInfo() { DebugRoomName = roomName });
+                }
+
+                toRet.Checkpoints.Add(cpInfo);
+
                 checkpointIndex++;
             }
 
-            return string.Join("\n", lines)+"\n";
+            return toRet;
         }
+
+        //public override string ToString() {
+        //    List<string> lines = new List<string>();
+
+        //    int checkpointIndex = 0;
+        //    foreach (List<string> checkpoint in Checkpoints) {
+        //        if (checkpointIndex == 0) {
+        //            lines.Add($"Start;ST;{checkpoint.Count};" + string.Join(",", checkpoint));
+        //        } else {
+        //            lines.Add($"CP{checkpointIndex + 1};CP{checkpointIndex + 1};{checkpoint.Count};" + string.Join(",", checkpoint));
+        //        }
+        //        checkpointIndex++;
+        //    }
+
+        //    return string.Join("\n", lines)+"\n";
+        //}
     }
 }

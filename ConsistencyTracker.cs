@@ -34,7 +34,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                         Path.AddRoom(CurrentRoomName);
                     }
                 } else {
-                    SaveRoomPath();
+                    SaveRecordedRoomPath();
                 } 
 
                 _DoRecordPath = value;
@@ -43,6 +43,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private bool _DoRecordPath = false;
         private PathRecorder Path;
 
+        private PathInfo CurrentChapterPath;
         private ChapterStats CurrentChapterStats;
 
 
@@ -61,29 +62,132 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"~~~===============~~~");
             ChapterStats.LogCallback = Log;
 
+            HookStuff();
+        }
+
+        private void HookStuff() {
+            //Track where the player is
             On.Celeste.Level.Begin += Level_Begin;
             Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
-            Everest.Events.Player.OnDie += Player_OnDie;
             Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
             On.Celeste.Level.TeleportTo += Level_TeleportTo;
+            //Track deaths
+            Everest.Events.Player.OnDie += Player_OnDie;
+            //Track checkpoints
             On.Celeste.Checkpoint.TurnOn += Checkpoint_TurnOn;
 
+            //Track in-room events, to determine when exiting back into a previous room counts as success
+            //E.g. Power Source rooms where you collect a key but exit back into the HUB room should be marked as success
 
-            //On.Celeste.Strawberry.Added += Strawberry_Added;
+            //Picking up a kye
+            On.Celeste.Key.OnPlayer += Key_OnPlayer; //works
+
+            //Activating Resort clutter switches
+            On.Celeste.ClutterSwitch.OnDashed += ClutterSwitch_OnDashed; //works
+
+            //Picking up a strawberry
+            On.Celeste.Strawberry.OnCollect += Strawberry_OnCollect;
+            On.Celeste.Strawberry.OnPlayer += Strawberry_OnPlayer; //sorta works, but triggers very often for a single berry
+
+            //Changing lava/ice in Core
+            On.Celeste.CoreModeToggle.OnChangeMode += CoreModeToggle_OnChangeMode; //works
+
+            //Picking up a Cassette tape
+            On.Celeste.Cassette.OnPlayer += Cassette_OnPlayer; //works
+
+            //Open up key doors?
+            //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
+            On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
         }
 
-        //private void Strawberry_Added(On.Celeste.Strawberry.orig_Added orig, Strawberry berry, Monocle.Scene scene) { //Triggered when dying with the golden berry
-        //    orig(berry, scene);
-        //    TestLog($"Strawberry.Added -> berry.Golden={berry.Golden}, berry.ReturnHomeWhenLost={berry.ReturnHomeWhenLost}");
-        //}
+        private void UnHookStuff() {
+            On.Celeste.Level.Begin -= Level_Begin;
+            Everest.Events.Level.OnExit -= Level_OnExit;
+            Everest.Events.Level.OnComplete -= Level_OnComplete;
+            Everest.Events.Level.OnTransitionTo -= Level_OnTransitionTo;
+            Everest.Events.Level.OnLoadLevel -= Level_OnLoadLevel;
+            On.Celeste.Level.TeleportTo -= Level_TeleportTo;
+
+            //Track deaths
+            Everest.Events.Player.OnDie -= Player_OnDie;
+
+            //Track checkpoints
+            On.Celeste.Checkpoint.TurnOn -= Checkpoint_TurnOn;
+
+            //Picking up a kye
+            On.Celeste.Key.OnPlayer -= Key_OnPlayer;
+
+            //Activating Resort clutter switches
+            On.Celeste.ClutterSwitch.OnDashed -= ClutterSwitch_OnDashed;
+
+            //Picking up a strawberry
+            On.Celeste.Strawberry.OnPlayer -= Strawberry_OnPlayer;
+
+            //Changing lava/ice in Core
+            On.Celeste.CoreModeToggle.OnChangeMode -= CoreModeToggle_OnChangeMode;
+
+            //Picking up a Cassette tape
+            On.Celeste.Cassette.OnPlayer -= Cassette_OnPlayer;
+
+            //Open up key doors
+            On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
+        }
+
+
+
+        private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
+            orig(self, player, fol);
+            Log($"[LockBlock.TryOpen] Opened a door");
+            SetRoomCompleted(resetOnDeath: false);
+        }
+
+        private DashCollisionResults ClutterSwitch_OnDashed(On.Celeste.ClutterSwitch.orig_OnDashed orig, ClutterSwitch self, Player player, Vector2 direction) {
+            Log($"[ClutterSwitch.OnDashed] Activated a clutter switch");
+            SetRoomCompleted(resetOnDeath: false);
+            return orig(self, player, direction);
+        }
+
+        private void Key_OnPlayer(On.Celeste.Key.orig_OnPlayer orig, Key self, Player player) {
+            Log($"[Key.OnPlayer] Picked up a key");
+            orig(self, player);
+            SetRoomCompleted(resetOnDeath: false);
+        }
+
+        private void Cassette_OnPlayer(On.Celeste.Cassette.orig_OnPlayer orig, Cassette self, Player player) {
+            Log($"[Cassette.OnPlayer] Collected a cassette tape");
+            orig(self, player);
+            SetRoomCompleted(resetOnDeath: false);
+        }
+
+        private Strawberry LastTouchedStrawberry = null;
+        private void Strawberry_OnPlayer(On.Celeste.Strawberry.orig_OnPlayer orig, Strawberry self, Player player) {
+            if (LastTouchedStrawberry != null && LastTouchedStrawberry == self) return; //to not spam the log
+            LastTouchedStrawberry = self;
+
+            Log($"[Strawberry.OnPlayer] Strawberry on player");
+            orig(self, player);
+            SetRoomCompleted(resetOnDeath: true);
+        }
+
+        private void Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
+            Log($"[Strawberry.OnCollect] Collected a strawberry");
+            orig(self);
+            SetRoomCompleted(resetOnDeath: false);
+        }
+
+        private void CoreModeToggle_OnChangeMode(On.Celeste.CoreModeToggle.orig_OnChangeMode orig, CoreModeToggle self, Session.CoreModes mode) {
+            Log($"[CoreModeToggle.OnChangeMode] Changed core mode to '{mode}'");
+            orig(self, mode);
+            SetRoomCompleted(resetOnDeath:true);
+        }
 
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
             Log($"[Checkpoint.TurnOn] cp.Position={cp.Position}");
             if (ModSettings.Enabled && DoRecordPath) {
-                Path.AddCheckpoint();
+                Path.AddCheckpoint(cp);
             }
         }
 
@@ -126,6 +230,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 }
             }
+
+            if (DoRecordPath) {
+                DoRecordPath = false;
+                ModSettings.RecordPath = false;
+            }
         }
 
         private void Level_OnComplete(Level level) {
@@ -151,6 +260,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
+            CurrentChapterPath = GetPathInputInfo();
             CurrentChapterStats = GetCurrentChapterStats();
 
             SetNewRoom(CurrentRoomName, false, false);
@@ -195,6 +305,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
 
             Log($"[Player.OnDie] Player died. (holdingGolden: {holdingGolden})");
+            if (_CurrentRoomCompletedResetOnDeath) {
+                _CurrentRoomCompleted = false;
+            }
+            LastTouchedStrawberry = null; //Held strawberry reset on death, collected don't show up again so those don't matter
+
             if (ModSettings.Enabled) {
                 if(!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
                     CurrentChapterStats?.AddAttempt(false);
@@ -203,13 +318,16 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public override void Unload() {
+            UnHookStuff();
         }
 
+        private bool _CurrentRoomCompleted = false;
+        private bool _CurrentRoomCompletedResetOnDeath = false;
         private bool _PlayerIsHoldingGolden = false;
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
             _PlayerIsHoldingGolden = holdingGolden;
 
-            if (PreviousRoomName == newRoomName) { //Entering previous room
+            if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) { //Don't complete if entering previous room and current room was not completed
                 Log($"[SetNewRoom] Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
@@ -223,6 +341,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             PreviousRoomName = CurrentRoomName;
             CurrentRoomName = newRoomName;
+            _CurrentRoomCompleted = false;
 
             if (DoRecordPath) {
                 Path.AddRoom(newRoomName);
@@ -235,6 +354,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
             }
+        }
+
+        private void SetRoomCompleted(bool resetOnDeath=false) {
+            _CurrentRoomCompleted = true;
+            _CurrentRoomCompletedResetOnDeath = resetOnDeath;
         }
 
         string baseFolderPath = "./ConsistencyTracker/";
@@ -264,7 +388,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (File.Exists(path)) { //Parse File
                 Log($"\tFound file, parsing...");
                 string content = File.ReadAllText(path);
-                return PathInfo.ParseString(content, Log);
+
+                try {
+                    return PathInfo.ParseString(content, Log);
+                } catch (Exception) {
+                    Log($"\tCouldn't read old path info, created new PathInfo. Old path info content:\n{content}");
+                    PathInfo toRet = new PathInfo() { };
+                    return toRet;
+                }
 
             } else { //Create new
                 Log($"\tDidn't find file, created new PathInfo.");
@@ -376,7 +507,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             Log($"[RemoveLastDeathStreak] Removing death streak for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
 
-            while (CurrentChapterStats.CurrentRoom.LastAttempt == false) {
+            while (CurrentChapterStats.CurrentRoom.PreviousAttempts.Count > 0 && CurrentChapterStats.CurrentRoom.LastAttempt == false) {
                 CurrentChapterStats.CurrentRoom.RemoveLastAttempt();
             }
 
@@ -394,12 +525,42 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
-        public void SaveRoomPath() {
+        public void SaveRecordedRoomPath() {
+            Log($"[{nameof(SaveRecordedRoomPath)}] Saving recorded path...");
             DisabledInRoomName = CurrentRoomName;
+            CurrentChapterPath = Path.ToPathInfo();
+            Log($"[{nameof(SaveRecordedRoomPath)}] Recorded path:\n{CurrentChapterPath.ToString()}");
+            SaveRoomPath();
+        }
+        public void SaveRoomPath() {
             string relativeOutPath = $"paths/{CurrentChapterName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
-            File.WriteAllText(outPath, Path.ToString());
+            File.WriteAllText(outPath, CurrentChapterPath.ToString());
             Log($"Wrote path data to '{relativeOutPath}'");
+        }
+
+        public void RemoveRoomFromChapter() {
+            if (CurrentChapterPath == null) {
+                Log($"[RemoveRoomFromChapter] CurrentChapterPath was null");
+                return;
+            }
+
+            bool foundRoom = false;
+            foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (rInfo.DebugRoomName != CurrentRoomName) continue;
+
+                    cpInfo.Rooms.Remove(rInfo);
+                    foundRoom = true;
+                    break;
+                }
+
+                if (foundRoom) break;
+            }
+
+            if (foundRoom) {
+                SaveRoomPath();
+            }
         }
 
 
@@ -417,8 +578,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            PathInfo info = GetPathInputInfo();
-            CurrentChapterStats?.OutputSummary(outPath, info, attemptCount);
+            CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
         }
 
         private bool PlayerIsHoldingGoldenBerry(Player player) {
@@ -490,8 +650,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
                 if (!inGame) return;
 
-                var toggle = new TextMenu.OnOff("Record Path", this.RecordPath);
-                toggle.OnValueChange = v => {
+                var pathRecordingToggle = new TextMenu.OnOff("Record Path", Instance.DoRecordPath);
+                pathRecordingToggle.OnValueChange = v => {
                     if (v)
                         Instance.Log($"Recording chapter path...");
                     else
@@ -504,7 +664,13 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
                 subMenu.Add(new TextMenu.SubHeader("!!!Existing paths will be overwritten!!!"));
-                subMenu.Add(toggle);
+                subMenu.Add(pathRecordingToggle);
+
+                subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the Overlay"));
+                var removeRoomButton = new TextMenu.Button("Remove Current Room From Path") {
+                    OnPressed = Instance.RemoveRoomFromChapter
+                };
+                subMenu.Add(removeRoomButton);
 
                 menu.Add(subMenu);
             }
@@ -518,7 +684,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
 
 
-                subMenu.Add(new TextMenu.SubHeader("Manage Last Attempts Of Current Room"));
+                subMenu.Add(new TextMenu.SubHeader("Current Room"));
                 var buttonLastAttempt = new TextMenu.Button("Remove Last Attempt");
                 buttonLastAttempt.OnPressed = () => {
                     Instance.RemoveLastAttempt();
@@ -532,7 +698,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(button0);
 
 
-                subMenu.Add(new TextMenu.SubHeader("Wipe All Data"));
+                subMenu.Add(new TextMenu.SubHeader("Current Chapter"));
                 var button1 = new TextMenu.Button("Wipe Room Data");
                 button1.OnPressed = () => {
                     Instance.WipeRoomData();

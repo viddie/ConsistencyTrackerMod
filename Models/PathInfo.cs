@@ -15,8 +15,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public static PathInfo GetTestPathInfo() {
             return new PathInfo() {
                 Checkpoints = new List<CheckpointInfo>() {
-                    new CheckpointInfo(){ Name="Start", Abbreviation="0M", RoomCount=7 },
-                    new CheckpointInfo(){ Name="500 M", Abbreviation="500M", RoomCount=9 },
+                    new CheckpointInfo(){ Name="Start", Abbreviation="0M" },
+                    new CheckpointInfo(){ Name="500 M", Abbreviation="500M" },
                 },
             };
         }
@@ -50,13 +50,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     public class CheckpointInfo {
         public string Name { get; set; }
         public string Abbreviation { get; set; }
-        public int RoomCount { get; set; }
+        public int RoomCount {
+            get => Rooms.Count;
+            private set {
+            }
+        }
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
         public double GoldenChance { get; set; } = 1;
 
         public override string ToString() {
-            string toRet = $"{Name};{Abbreviation};{RoomCount}";
+            string toRet = $"{Name};{Abbreviation};{Rooms.Count}";
             string debugNames = string.Join(",", Rooms);
             return $"{toRet};{debugNames}";
         }
@@ -65,7 +69,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             List<string> parts = line.Trim().Split(new string[] { ";" }, StringSplitOptions.None).ToList();
             string name = parts[0];
             string abbreviation = parts[1];
-            int roomCount = int.Parse(parts[2]);
 
             List<string> rooms = parts[3].Split(new string[] { "," }, StringSplitOptions.None).ToList();
             List<RoomInfo> roomInfo = new List<RoomInfo>();
@@ -77,7 +80,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return new CheckpointInfo() {
                 Name = name,
                 Abbreviation = abbreviation,
-                RoomCount = roomCount,
                 Rooms = roomInfo,
             };
         }
