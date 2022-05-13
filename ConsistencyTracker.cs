@@ -100,6 +100,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors?
             //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
+
+            LoadSpeedrunToolActions();
         }
 
         private void UnHookStuff() {
@@ -133,9 +135,18 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Open up key doors
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
+
+            UnloadSpeedrunToolActions();
         }
 
 
+        private void LoadSpeedrunToolActions() {
+
+        }
+
+        private void UnloadSpeedrunToolActions() {
+
+        }
 
         private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
             orig(self, player, fol);

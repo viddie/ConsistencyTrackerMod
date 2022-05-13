@@ -41,8 +41,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 string cpAbbreviation = $"CP{checkpointIndex + 1}";
 
                 if (checkpointIndex == 0) {
-                    cpName = "Start";
-                    cpAbbreviation = "ST";
+                    if (Checkpoints.Count == 1) {
+                        cpName = "Room";
+                        cpAbbreviation = "R";
+                    } else {
+                        cpName = "Start";
+                        cpAbbreviation = "ST";
+                    }
                 }
 
                 CheckpointInfo cpInfo = new CheckpointInfo() {
