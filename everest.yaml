@@ -4,3 +4,6 @@
   Dependencies:
     - Name: Everest
       Version: 1.3164.0
+  OptionalDependencies:
+    - Name: SpeedrunTool
+      Version: 3.10.1

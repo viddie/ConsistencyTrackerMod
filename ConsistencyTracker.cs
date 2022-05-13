@@ -1,14 +1,14 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
-using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Celeste.Mod.ConsistencyTracker.ThirdParty;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
-        
+
         public static ConsistencyTrackerModule Instance;
 
         public static readonly string OverlayVersion = "1.1.1";
@@ -35,7 +35,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 } else {
                     SaveRecordedRoomPath();
-                } 
+                }
 
                 _DoRecordPath = value;
             }
@@ -135,7 +135,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
         }
 
+        public override void Initialize()
+        {
+            base.Initialize();
 
+            // load SpeedrunTool if it exists
+            if (Everest.Modules.Any(m => m.Metadata.Name == "SpeedrunTool")) {
+                SpeedrunToolSupport.Load();
+            }
+        }
 
         private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
             orig(self, player, fol);

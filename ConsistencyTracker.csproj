@@ -32,6 +32,9 @@
     <Reference Include="$(CelesteGamePath)\MMHOOK_Celeste.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(StrippedLibraries)\SpeedrunTool.SpeedrunTool.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Choose>
