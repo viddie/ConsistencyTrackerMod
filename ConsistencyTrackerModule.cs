@@ -44,7 +44,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private bool _DoRecordPath = false;
         private PathRecorder Path;
 
-        private PathInfo CurrentChapterPath;
+        public PathInfo CurrentChapterPath;
         public ChapterStats CurrentChapterStats;
 
 

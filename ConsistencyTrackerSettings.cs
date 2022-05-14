@@ -4,6 +4,8 @@ namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerSettings : EverestModuleSettings {
         public bool Enabled { get; set; } = false;
 
+        public OverlayPosition OverlayPosition { get; set; } = OverlayPosition.Disabled;
+
         public bool PauseDeathTracking {
             get => _PauseDeathTracking;
             set {
@@ -128,5 +130,18 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             menu.Add(subMenu);
         }
+    }
+
+    public enum OverlayPosition {
+        Disabled,
+        Bottom,
+        Top,
+        Left,
+        Right,
+    }
+
+    public static class OverlayPositionExtensions {
+        public static bool IsHorizontal(this OverlayPosition self) => self == OverlayPosition.Top || self == OverlayPosition.Bottom;
+        public static bool IsVertical(this OverlayPosition self) => self == OverlayPosition.Left || self == OverlayPosition.Right;
     }
 }
