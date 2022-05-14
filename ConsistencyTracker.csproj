@@ -5,7 +5,7 @@
     <TargetFramework>net452</TargetFramework>
     <AssemblyName>ConsistencyTracker</AssemblyName>
     <RootNamespace>Celeste.Mod.ConsistencyTracker</RootNamespace>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>latest</LangVersion>
     <StrippedLibraries>lib-stripped</StrippedLibraries>
     <CelesteGamePath Condition="'$(CelesteGamePath)' == '' And Exists('..\..\Celeste.exe')">..\..</CelesteGamePath>
     <CelesteGamePath Condition="'$(CelesteGamePath)' == ''">$(StrippedLibraries)</CelesteGamePath>
