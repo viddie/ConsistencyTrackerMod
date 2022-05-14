@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
+using Celeste.Mod.ConsistencyTracker.Entities;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -44,7 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private PathRecorder Path;
 
         private PathInfo CurrentChapterPath;
-        private ChapterStats CurrentChapterStats;
+        public ChapterStats CurrentChapterStats;
 
 
         public ConsistencyTrackerModule() {
@@ -257,6 +258,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChangeChapter(level.Session);
 
             orig(level);
+        }
+
+        private void LevelLoader_StartLevel(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
+            var level = self.Level;
+            level.Add(new RoomOverlay(level));
+            orig(self);
         }
 
         private void ChangeChapter(Session session) {
