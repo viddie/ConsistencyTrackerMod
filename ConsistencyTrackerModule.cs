@@ -223,6 +223,10 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SetNewRoom(level.Session.LevelData.Name, false, holdingGolden);
                 PreviousRoomName = null;
             }
+
+            if (isFromLoader) {
+                level.Add(new RoomOverlay(level));
+            }
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
@@ -258,12 +262,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChangeChapter(level.Session);
 
             orig(level);
-        }
-
-        private void LevelLoader_StartLevel(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
-            var level = self.Level;
-            level.Add(new RoomOverlay(level));
-            orig(self);
         }
 
         private void ChangeChapter(Session session) {

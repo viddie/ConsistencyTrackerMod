@@ -54,9 +54,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
         public override void Update() {
             // build rooms if we must
+            var createRooms = RoomRectangles == null;
             if (ConsistencyTrackerModule.Instance.CurrentChapterStats != null &&
                 ConsistencyTrackerModule.Instance.CurrentChapterPath != null &&
-                RoomRectangles == null) {
+                createRooms) {
                 RoomRectangles = new List<RoomRectangle>();
                 foreach (var checkpoint in ConsistencyTrackerModule.Instance.CurrentChapterPath.Checkpoints) {
                     foreach (var room in checkpoint.Rooms) {
@@ -78,7 +79,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             }
 
             // update the room lengths if we must
-            UpdateRoomLengths();
+            UpdateRoomLengths(createRooms);
 
             // make rooms tween themselves
             base.Update();
@@ -97,7 +98,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             };
         }
 
-        private void UpdateRoomLengths() {
+        private void UpdateRoomLengths(bool force = false) {
             if (RoomRectangles == null) return;
 
             // break if the room hasn't changed
@@ -125,17 +126,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             var normalRoomLength = normalRoomStride - roomPaddingPixels;
             var checkpointRoomStride = (int) expectedCheckpointRoomLength;
             var checkpointRoomLength = checkpointRoomStride - roomPaddingPixels;
-            var currentRoomStride = (int) (expectedCheckpointLength * currentRoomScale);
-            var currentRoomLength = currentRoomStride - currentRoomStride - roomPaddingPixels;
+            var currentRoomStride = (int) (expectedCheckpointRoomLength * currentRoomScale);
+            var currentRoomLength = currentRoomStride - roomPaddingPixels;
 
             // update rooms
             foreach (var roomRectangle in RoomRectangles) {
                 if (roomRectangle.RoomInfo.DebugRoomName == currentRoomStats.DebugRoomName) {
-                    roomRectangle.TweenToLength(currentRoomLength);
+                    roomRectangle.TweenToLength(currentRoomLength, force);
                 } else if (roomRectangle.CheckpointInfo == currentCheckpoint) {
-                    roomRectangle.TweenToLength(checkpointRoomLength);
+                    roomRectangle.TweenToLength(checkpointRoomLength, force);
                 } else {
-                    roomRectangle.TweenToLength(normalRoomLength);
+                    roomRectangle.TweenToLength(normalRoomLength, force);
                 }
             }
         }
@@ -163,13 +164,18 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             public int Offset;
             public float Length;
 
-            public void TweenToLength(int targetLength) {
-                tweenFrom = Length;
-                tweenTo = targetLength;
-                tweenTimeRemaining = tweenTime;
+            public void TweenToLength(int targetLength, bool force = false) {
+                if (force) {
+                    Length = targetLength;
+                    tweenTimeRemaining = 0;
+                } else {
+                    tweenFrom = Length;
+                    tweenTo = targetLength;
+                    tweenTimeRemaining = tweenTime;
+                }
             }
 
-            private const float tweenTime = 0.3f;
+            private const float tweenTime = 1f;
             private float tweenTimeRemaining;
             private float tweenFrom;
             private float tweenTo;
@@ -212,7 +218,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 var color = RoomStats == null ? Color.White : consistencyColor;
                 const float alpha = 0.6f;
 
-                Draw.Rect(position, horizontal ? rounded : perp, horizontal ? perp : rounded, color * alpha);
+                var size = new Vector2(horizontal ? rounded : perp, horizontal ? perp : rounded);
+                Draw.Rect(position, size.X, size.Y, color * alpha);
+
+                if (RoomStats.DebugRoomName == ConsistencyTrackerModule.Instance.CurrentChapterStats.CurrentRoom.DebugRoomName) {
+                    Draw.HollowRect(position, size.X, size.Y, Color.White * alpha);
+                }
             }
         }
     }
