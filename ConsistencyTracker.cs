@@ -1,29 +1,28 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
-using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Celeste.Mod.ConsistencyTracker.ThirdParty;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
-        
+
         public static ConsistencyTrackerModule Instance;
+        private static readonly int LOG_FILE_COUNT = 10;
 
         public static readonly string OverlayVersion = "1.1.1";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
+        string baseFolderPath = "./ConsistencyTracker/";
 
-        private string CurrentChapterName;
-        private string PreviousRoomName;
-        private string CurrentRoomName;
 
-        private string DisabledInRoomName;
         private bool DidRestart = false;
-
         private HashSet<string> ChaptersThisSession = new HashSet<string>();
+
+        #region Path Recording Variables
 
         public bool DoRecordPath {
             get => _DoRecordPath;
@@ -35,21 +34,38 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 } else {
                     SaveRecordedRoomPath();
-                } 
+                }
 
                 _DoRecordPath = value;
             }
         }
         private bool _DoRecordPath = false;
         private PathRecorder Path;
+        private string DisabledInRoomName;
+
+        #endregion
+
+        #region State Variables
 
         private PathInfo CurrentChapterPath;
         private ChapterStats CurrentChapterStats;
+
+        private string CurrentChapterName;
+        private string PreviousRoomName;
+        private string CurrentRoomName;
+
+        private bool _CurrentRoomCompleted = false;
+        private bool _CurrentRoomCompletedResetOnDeath = false;
+        private bool _PlayerIsHoldingGolden = false;
+
+        #endregion
 
 
         public ConsistencyTrackerModule() {
             Instance = this;
         }
+
+        #region Load/Unload Stuff
 
         public override void Load() {
             CheckFolderExists(baseFolderPath);
@@ -100,8 +116,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors?
             //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
-
-            LoadSpeedrunToolActions();
         }
 
         private void UnHookStuff() {
@@ -135,18 +149,25 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Open up key doors
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
-
-            UnloadSpeedrunToolActions();
         }
 
+        public override void Initialize()
+        {
+            base.Initialize();
 
-        private void LoadSpeedrunToolActions() {
-
+            // load SpeedrunTool if it exists
+            if (Everest.Modules.Any(m => m.Metadata.Name == "SpeedrunTool")) {
+                SpeedrunToolSupport.Load();
+            }
         }
 
-        private void UnloadSpeedrunToolActions() {
-
+        public override void Unload() {
+            UnHookStuff();
         }
+
+        #endregion
+
+        #region Hooks
 
         private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
             orig(self, player, fol);
@@ -262,6 +283,32 @@ namespace Celeste.Mod.ConsistencyTracker {
             orig(level);
         }
 
+        private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
+            Log($"[Level.OnTransitionTo] levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
+            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+            SetNewRoom(levelDataNext.Name, true, holdingGolden);
+        }
+
+        private void Player_OnDie(Player player) {
+            bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
+
+            Log($"[Player.OnDie] Player died. (holdingGolden: {holdingGolden})");
+            if (_CurrentRoomCompletedResetOnDeath) {
+                _CurrentRoomCompleted = false;
+            }
+            LastTouchedStrawberry = null; //Held strawberry reset on death, collected don't show up again so those don't matter
+
+            if (ModSettings.Enabled) {
+                if (!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
+                    CurrentChapterStats?.AddAttempt(false);
+                SaveChapterStats();
+            }
+        }
+
+        #endregion
+
+        #region State Management
+
         private void ChangeChapter(Session session) {
             Log($"[ChangeChapter] Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
 
@@ -281,60 +328,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        private string FormatMapData(MapData data) {
-            if (data == null) return "No MapData attached...";
-
-            string metaPath = "";
-            if (metaPath != null) {
-                metaPath = data.Meta.Path ?? "null";
-            }
-
-            string filename = data.Filename ?? "null";
-            string filepath = data.Filepath ?? "null";
-
-            string areaChapterIndex = "";
-            string areaMode = "";
-            if (data.Area != null) {
-                areaChapterIndex = data.Area.ChapterIndex.ToString();
-                areaMode = data.Area.Mode.ToString();
-            }
-
-            string dataName = data.Data.Name ?? "null";
-            string dataScreenName = data.Data.CompleteScreenName ?? "null";
-            string dataSID = data.Data.SID ?? "null";
-
-            return $"Data.SID->{dataSID}, Data.CompleteScreenName->{dataScreenName}, Data.Name->{dataName}, Meta.Path->{metaPath}, Filename->{filename}, Filepath->{filepath}, Area.ChapterIndex->{areaChapterIndex}, Area.Mode->{areaMode}";
-        }
-
-        private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
-            Log($"[Level.OnTransitionTo] levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
-            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
-            SetNewRoom(levelDataNext.Name, true, holdingGolden);
-        }
-
-        private void Player_OnDie(Player player) {
-            bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
-
-            Log($"[Player.OnDie] Player died. (holdingGolden: {holdingGolden})");
-            if (_CurrentRoomCompletedResetOnDeath) {
-                _CurrentRoomCompleted = false;
-            }
-            LastTouchedStrawberry = null; //Held strawberry reset on death, collected don't show up again so those don't matter
-
-            if (ModSettings.Enabled) {
-                if(!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
-                    CurrentChapterStats?.AddAttempt(false);
-                SaveChapterStats();
-            }
-        }
-
-        public override void Unload() {
-            UnHookStuff();
-        }
-
-        private bool _CurrentRoomCompleted = false;
-        private bool _CurrentRoomCompletedResetOnDeath = false;
-        private bool _PlayerIsHoldingGolden = false;
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
             _PlayerIsHoldingGolden = holdingGolden;
 
@@ -372,7 +365,67 @@ namespace Celeste.Mod.ConsistencyTracker {
             _CurrentRoomCompletedResetOnDeath = resetOnDeath;
         }
 
-        string baseFolderPath = "./ConsistencyTracker/";
+        private bool PlayerIsHoldingGoldenBerry(Player player) {
+            if (player == null || player.Leader == null || player.Leader.Followers == null)
+                return false;
+
+            return player.Leader.Followers.Any((f) => {
+                if (!(f.Entity is Strawberry))
+                    return false;
+
+                Strawberry berry = (Strawberry)f.Entity;
+
+                if (!berry.Golden || berry.Winged)
+                    return false;
+
+                return true;
+            });
+        }
+
+        #region Speedrun Tool Save States
+
+        public void SpeedrunToolSaveState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
+            Type type = GetType();
+            if (!savedvalues.ContainsKey(type)) {
+                savedvalues.Add(type, new Dictionary<string, object>());
+                savedvalues[type].Add(nameof(PreviousRoomName), PreviousRoomName);
+                savedvalues[type].Add(nameof(CurrentRoomName), CurrentRoomName);
+                savedvalues[type].Add(nameof(_CurrentRoomCompleted), _CurrentRoomCompleted);
+                savedvalues[type].Add(nameof(_CurrentRoomCompletedResetOnDeath), _CurrentRoomCompletedResetOnDeath);
+            } else {
+                savedvalues[type][nameof(PreviousRoomName)] = PreviousRoomName;
+                savedvalues[type][nameof(CurrentRoomName)] = CurrentRoomName;
+                savedvalues[type][nameof(_CurrentRoomCompleted)] = _CurrentRoomCompleted;
+                savedvalues[type][nameof(_CurrentRoomCompletedResetOnDeath)] = _CurrentRoomCompletedResetOnDeath;
+            }
+        }
+
+        public void SpeedrunToolLoadState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
+            Type type = GetType();
+            if (!savedvalues.ContainsKey(type)) {
+                Logger.Log(nameof(ConsistencyTrackerModule), "Trying to load state without prior saving a state...");
+                return;
+            }
+
+            PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
+            CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];
+            _CurrentRoomCompleted = (bool) savedvalues[type][nameof(_CurrentRoomCompleted)];
+            _CurrentRoomCompletedResetOnDeath = (bool) savedvalues[type][nameof(_CurrentRoomCompletedResetOnDeath)];
+
+            CurrentChapterStats.SetCurrentRoom(CurrentRoomName);
+            SaveChapterStats();
+        }
+
+        public void SpeedrunToolClearState() {
+            //No action
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Data Import/Export
+
         public string GetPathToFile(string file) {
             return baseFolderPath + file;
         }
@@ -461,6 +514,27 @@ namespace Celeste.Mod.ConsistencyTracker {
             File.WriteAllText(modStatePath, content);
         }
 
+        public void CreateChapterSummary(int attemptCount) {
+            Log($"[CreateChapterSummary(attemptCount={attemptCount})] Attempting to create tracker summary");
+
+            bool hasPathInfo = PathInfoExists();
+
+            string relativeOutPath = $"summaries/{CurrentChapterName}.txt";
+            string outPath = GetPathToFile(relativeOutPath);
+
+            if (!hasPathInfo) {
+                Log($"Called CreateChapterSummary without chapter path info. Please create a path before using this feature");
+                File.WriteAllText(outPath, "No path info was found for the current chapter.\nPlease create a path before using the summary feature");
+                return;
+            }
+
+            CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
+        }
+
+        #endregion
+
+        #region Stats Data Control
+
         public void WipeChapterData() {
             if (CurrentChapterStats == null) {
                 Log($"[WipeChapterData] Aborting wiping chapter data as '{nameof(CurrentChapterStats)}' is null");
@@ -536,6 +610,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
+        #endregion
+
+        #region Path Management
+
         public void SaveRecordedRoomPath() {
             Log($"[{nameof(SaveRecordedRoomPath)}] Saving recorded path...");
             DisabledInRoomName = CurrentRoomName;
@@ -574,43 +652,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
+        #endregion
 
-        public void CreateChapterSummary(int attemptCount) {
-            Log($"[CreateChapterSummary(attemptCount={attemptCount})] Attempting to create tracker summary");
+        #region Logging
 
-            bool hasPathInfo = PathInfoExists();
-
-            string relativeOutPath = $"summaries/{CurrentChapterName}.txt";
-            string outPath = GetPathToFile(relativeOutPath);
-
-            if (!hasPathInfo) {
-                Log($"Called CreateChapterSummary without chapter path info. Please create a path before using this feature");
-                File.WriteAllText(outPath, "No path info was found for the current chapter.\nPlease create a path before using the summary feature");
-                return;
-            }
-
-            CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
-        }
-
-        private bool PlayerIsHoldingGoldenBerry(Player player) {
-            if (player == null || player.Leader == null || player.Leader.Followers == null)
-                return false;
-
-            return player.Leader.Followers.Any((f) => {
-                if (!(f.Entity is Strawberry))
-                    return false;
-
-                Strawberry berry = (Strawberry)f.Entity;
-
-                if (!berry.Golden || berry.Winged)
-                    return false;
-
-                return true;
-            });
-        }
-
-
-        private static readonly int LOG_FILE_COUNT = 10;
         public void LogInit() {
             string logFileMax = GetPathToFile($"logs/log_old{LOG_FILE_COUNT}.txt");
             if (File.Exists(logFileMax)) {
@@ -635,6 +680,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             string path = GetPathToFile("logs/log.txt");
             File.AppendAllText(path, log+"\n");
         }
+
+        #endregion
+
 
         public class ConsistencyTrackerSettings : EverestModuleSettings {
             public bool Enabled { get; set; } = false;
