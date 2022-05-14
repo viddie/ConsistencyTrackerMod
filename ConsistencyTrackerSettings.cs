@@ -6,6 +6,14 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public OverlayPosition OverlayPosition { get; set; } = OverlayPosition.Disabled;
 
+        public int OverlayOpacity { get; set; } = 8;
+        public void CreateOverlayOpacityEntry(TextMenu menu, bool inGame) {
+            var slider = new TextMenu.Slider("Overlay Opacity", i => $"{i * 10}%", 1, 10, OverlayOpacity) {
+                OnValueChange = i => OverlayOpacity = i,
+            };
+            menu.Add(slider);
+        }
+
         public bool PauseDeathTracking {
             get => _PauseDeathTracking;
             set {

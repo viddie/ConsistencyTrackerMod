@@ -8,7 +8,6 @@ using Monocle;
 namespace Celeste.Mod.ConsistencyTracker.Entities {
     public class RoomOverlay : Entity {
         private const float roomAspectRatio = 1.61803f; // golden ratio
-        private const float overlayAlpha = 0.4f;
         private const float offsetPixels = 10f; // this should be configurable
         private const float totalLengthMultiplier = 0.9f;
         private const float minCheckpointLengthMultiplier = 0.25f;
@@ -98,6 +97,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public override void Render() {
             base.Render();
 
+            var overlayAlpha = ConsistencyTrackerModule.Instance.ModSettings.OverlayOpacity * 0.1f;
             var overlayPosition = ConsistencyTrackerModule.Instance.ModSettings.OverlayPosition;
             var horizontal = overlayPosition.IsHorizontal();
             var size = horizontal ? new Vector2(checkpointSeparatorShortPixels, checkpointSeparatorLongPixels) : new Vector2(checkpointSeparatorLongPixels, checkpointSeparatorShortPixels);
@@ -255,6 +255,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     var lastFive = RoomStats.LastFiveRate;
                     color = lastFive <= 0.33f ? Color.Red : lastFive <= 0.66f ? Color.Yellow : Color.Green;
                 }
+
+                var overlayAlpha = ConsistencyTrackerModule.Instance.ModSettings.OverlayOpacity * 0.1f;
 
                 var size = new Vector2(horizontal ? rounded : perp, horizontal ? perp : rounded);
                 Draw.Rect(position, size.X, size.Y, color * overlayAlpha);
