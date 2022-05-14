@@ -18,10 +18,16 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build ConsistencyTracker.csproj --configuration Debug --no-restore
-    - name: Upload Artifact
+    - name: Upload Mod Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ConsistencyTracker
+        name: ConsistencyTrackerMod
         path: |
           everest.yaml
           bin/ConsistencyTracker.dll
+    - name: Upload Overlay Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ConsistencyTrackerOverlay
+        path: |
+          ConsistencyTracker
