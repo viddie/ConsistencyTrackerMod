@@ -225,7 +225,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (isFromLoader) {
-                level.Add(new RoomOverlay(level));
+                level.Add(new RoomOverlay());
             }
         }
 
