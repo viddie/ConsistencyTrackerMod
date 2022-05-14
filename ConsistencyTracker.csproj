@@ -61,4 +61,8 @@
     </When>
   </Choose>
 
+  <Target Name="CopyFiles" AfterTargets="Build">
+    <Copy SourceFiles="$(OutputPath)\ConsistencyTracker.dll" DestinationFolder="bin" />
+  </Target>
+
 </Project>

@@ -1,6 +1,6 @@
 ﻿- Name: ConsistencyTracker
   Version: 1.2.0
-  DLL: bin/Debug/net452/ConsistencyTracker.dll
+  DLL: bin/ConsistencyTracker.dll
   Dependencies:
     - Name: Everest
       Version: 1.3164.0
