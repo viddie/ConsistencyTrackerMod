@@ -979,7 +979,7 @@ function updateRoomInLayout(previousRoom, currentRoom){
             previousRoomElem.classList.remove("selected");
         }
 
-        if(currentChapterGoldenPBElements != null){
+        if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[previousRoom.name] !== undefined){
             currentChapterGoldenPBElements[previousRoom.name].left.classList.remove("selected");
             // currentChapterGoldenPBElements[previousRoom.name].middle.classList.remove("hidden");
             currentChapterGoldenPBElements[previousRoom.name].right.classList.remove("selected");
@@ -992,7 +992,7 @@ function updateRoomInLayout(previousRoom, currentRoom){
         currentRoomElem.classList.add("selected");
     }
 
-    if(currentChapterGoldenPBElements != null){
+    if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[currentRoom.name] !== undefined){
         currentChapterGoldenPBElements[currentRoom.name].left.classList.add("selected");
         currentChapterGoldenPBElements[currentRoom.name].right.classList.add("selected");
     }
@@ -1212,6 +1212,10 @@ function roomsInSameCheckpoint(room, otherRoom){
 function calculateRemainingGoldenChance(roomToCalc, toNow=false){
     var remainingGoldenChance = 1;
     var skipMode = !toNow;
+
+    if(currentChapterPath == null){
+        return 0;
+    }
 
     for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
         var roomsObj = currentChapterPath[checkpointIndex].rooms;
