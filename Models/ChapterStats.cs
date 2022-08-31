@@ -203,6 +203,64 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             sb.AppendLine($"");
 
 
+            sb.AppendLine($"- Choke Rate"); //Choke Rate
+            Dictionary<CheckpointInfo, int> cpChokeRates = new Dictionary<CheckpointInfo, int>();
+            Dictionary<RoomInfo, int> roomChokeRates = new Dictionary<RoomInfo, int>();
+
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                cpChokeRates.Add(cpInfo, 0);
+
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    roomChokeRates.Add(rInfo, 0);
+
+                    if (!Rooms.ContainsKey(rInfo.DebugRoomName)) continue; //Skip rooms the player has not yet visited.
+                    roomChokeRates[rInfo] = Rooms[rInfo.DebugRoomName].GoldenBerryDeaths;
+                    cpChokeRates[cpInfo] += Rooms[rInfo.DebugRoomName].GoldenBerryDeaths;
+                }
+            }
+
+            sb.AppendLine($"");
+            sb.AppendLine($"Room Name,Choke Rate,Golden Runs to Room,Room Deaths");
+            bool goldenAchieved = true;
+
+            foreach (CheckpointInfo cpInfo in info.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) { //For every room
+
+                    int goldenRunsToRoom = 0;
+                    bool foundRoom = false;
+
+                    foreach (CheckpointInfo cpInfoTemp in info.Checkpoints) { //Iterate all remaining rooms and sum up their golden deaths
+                        foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
+                            if (rInfoTemp == rInfo) foundRoom = true;
+                            if (foundRoom) {
+                                goldenRunsToRoom += roomChokeRates[rInfoTemp];
+                            }
+                        }
+                    }
+
+                    if (goldenAchieved) goldenRunsToRoom++;
+
+                    int roomNumber = -1;
+                    if (Rooms.ContainsKey(rInfo.DebugRoomName)) {
+                        roomNumber = Rooms[rInfo.DebugRoomName].RoomNumber;
+                    } else {
+                        roomNumber = UnvisitedRoomsToRoomNumber[rInfo.DebugRoomName];
+                    }
+
+                    float roomChokeRate = 0f;
+                    if (goldenRunsToRoom != 0) {
+                        roomChokeRate = (float)roomChokeRates[rInfo] / (float)goldenRunsToRoom;
+                    }
+
+                    sb.AppendLine($"{cpInfo.Abbreviation}-{roomNumber},{roomChokeRate},{goldenRunsToRoom},{roomChokeRates[rInfo]}");
+
+                }
+            }
+
+
+            sb.AppendLine($"");
+
+
             sb.AppendLine($"- Golden Chance"); //Checkpoint->Chapter
             foreach (CheckpointInfo cpInfo in info.Checkpoints) {
                 string cpPercentStr = cpInfo.GoldenChance.ToString("P2", CultureInfo.InvariantCulture);

@@ -104,7 +104,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.ClutterSwitch.OnDashed += ClutterSwitch_OnDashed; //works
 
             //Picking up a strawberry
-            On.Celeste.Strawberry.OnCollect += Strawberry_OnCollect;
+            On.Celeste.Strawberry.OnCollect += Strawberry_OnCollect; //doesnt work :(
             On.Celeste.Strawberry.OnPlayer += Strawberry_OnPlayer; //sorta works, but triggers very often for a single berry
 
             //Changing lava/ice in Core
