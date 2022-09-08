@@ -226,11 +226,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Not triggered when teleporting via debug map
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
-            Log($"[Level.TeleportTo] level.Session.LevelData.Name={level.Session.LevelData.Name}");
+            Log($"[Level.TeleportTo] level.Session.LevelData.Name={SanitizeRoomName(level.Session.LevelData.Name)}");
         }
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
-            string newCurrentRoom = level.Session.LevelData.Name;
+            string newCurrentRoom = SanitizeRoomName(level.Session.LevelData.Name);
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
 
             Log($"[Level.OnLoadLevel] level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
@@ -243,7 +243,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (DidRestart) {
                 Log($"\tRequested reset of PreviousRoomName to null");
                 DidRestart = false;
-                SetNewRoom(level.Session.LevelData.Name, false, holdingGolden);
+                SetNewRoom(newCurrentRoom, false, holdingGolden);
                 PreviousRoomName = null;
             }
         }
@@ -284,9 +284,10 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
-            Log($"[Level.OnTransitionTo] levelData.Name->{levelDataNext.Name}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
+            string roomName = SanitizeRoomName(levelDataNext.Name);
+            Log($"[Level.OnTransitionTo] levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
-            SetNewRoom(levelDataNext.Name, true, holdingGolden);
+            SetNewRoom(roomName, true, holdingGolden);
         }
 
         private void Player_OnDie(Player player) {
@@ -309,7 +310,12 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region State Management
 
-        private void ChangeChapter(Session session) {
+        private string SanitizeRoomName(string name) {
+            name = name.Replace(";", "");
+            return name;
+        }
+
+            private void ChangeChapter(Session session) {
             Log($"[ChangeChapter] Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
 
             CurrentChapterName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");

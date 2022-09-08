@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Celeste.Mod.ConsistencyTracker.Models {
@@ -10,7 +11,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<List<string>> Checkpoints { get; set; } = new List<List<string>>() {
             new List<string>(),
         };
-        public HashSet<Checkpoint> CheckpointsVisited { get; set; } = new HashSet<Checkpoint>();
+        public HashSet<Vector2> CheckpointsVisited { get; set; } = new HashSet<Vector2>();
 
         public void AddRoom(string name) {
             if (VisitedRooms.Contains(name)) return;
@@ -20,8 +21,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public void AddCheckpoint(Checkpoint cp) {
-            if (CheckpointsVisited.Contains(cp)) return;
-            CheckpointsVisited.Add(cp);
+            if (CheckpointsVisited.Contains(cp.Position)) return;
+            CheckpointsVisited.Add(cp.Position);
+            
 
             string lastRoom = Checkpoints.Last().Last();
             Checkpoints.Last().Remove(lastRoom);
