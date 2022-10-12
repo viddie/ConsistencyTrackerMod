@@ -31,7 +31,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public void AddGoldenBerryDeath() {
             CurrentRoom.GoldenBerryDeaths++;
-            CurrentRoom.GoldenBerryDeathsThisSession++;
+            CurrentRoom.GoldenBerryDeathsSession++;
         }
 
         public void SetCurrentRoom(string debugRoomName) {
@@ -53,7 +53,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public void ResetCurrentSession() {
             foreach (string name in Rooms.Keys) {
                 RoomStats room = Rooms[name];
-                room.GoldenBerryDeathsThisSession = 0;
+                room.GoldenBerryDeathsSession = 0;
             }
         }
 
@@ -356,7 +356,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     public class RoomStats {
         public string DebugRoomName { get; set; }
         public int GoldenBerryDeaths { get; set; } = 0;
-        public int GoldenBerryDeathsThisSession { get; set; } = 0;
+        public int GoldenBerryDeathsSession { get; set; } = 0;
         public List<bool> PreviousAttempts { get; set; } = new List<bool>();
         public bool LastAttempt { get => PreviousAttempts[PreviousAttempts.Count - 1]; }
         public float LastFiveRate { get => AverageSuccessOverN(5); }
@@ -380,6 +380,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return (float)countSucceeded / countTotal;
         }
+        public float AverageSuccessOverSelectedN() {
+            int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.SummarySelectedAttemptCount;
+            return AverageSuccessOverN(attemptCount);
+        }
 
 
         public int SuccessesOverN(int n) {
@@ -391,6 +395,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
             return countSucceeded;
         }
+        public int SuccessesOverSelectedN() {
+            int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.SummarySelectedAttemptCount;
+            return SuccessesOverN(attemptCount);
+        }
+
         public int AttemptsOverN(int n) {
             int countTotal = 0;
             for (int i = 0; i < n; i++) {
@@ -399,6 +408,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 countTotal++;
             }
             return countTotal;
+        }
+        public int AttemptsOverSelectedN() {
+            int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.SummarySelectedAttemptCount;
+            return AttemptsOverN(attemptCount);
         }
 
         public void AddAttempt(bool success) {
@@ -418,7 +431,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public override string ToString() {
             string attemptList = string.Join(",", PreviousAttempts);
-            return $"{DebugRoomName};{GoldenBerryDeaths};{GoldenBerryDeathsThisSession};{LastFiveRate};{LastTenRate};{LastTwentyRate};{MaxRate};{attemptList}";
+            return $"{DebugRoomName};{GoldenBerryDeaths};{GoldenBerryDeathsSession};{LastFiveRate};{LastTenRate};{LastTwentyRate};{MaxRate};{attemptList}";
         }
 
         public static RoomStats ParseString(string line) {
@@ -464,7 +477,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 DebugRoomName = name,
                 PreviousAttempts = attemptList,
                 GoldenBerryDeaths = gbDeaths,
-                GoldenBerryDeathsThisSession = gbDeathsSession,
+                GoldenBerryDeathsSession = gbDeathsSession,
             };
         }
     }

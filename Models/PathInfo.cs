@@ -8,6 +8,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     public class PathInfo {
 
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
+        public AggregateStats Stats { get; set; } = null;
         public string ParseError { get; set; }
 
         public static PathInfo GetTestPathInfo() {
@@ -55,6 +56,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
+        public AggregateStats Stats { get; set; } = null;
         public double GoldenChance { get; set; } = 1;
 
         public override string ToString() {
@@ -90,5 +92,29 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return DebugRoomName;
         }
 
+    }
+
+
+
+    public class AggregateStats {
+        public int CountSuccesses { get; set; } = 0;
+        public int CountAttempts { get; set; } = 0;
+        public int CountFailures {
+            get {
+                return CountAttempts - CountSuccesses;
+            }
+        }
+        public float SuccessRate {
+            get {
+                if (CountAttempts == 0) return 0;
+
+                return (float)CountSuccesses / CountAttempts;
+            }
+        }
+
+        public int CountGoldenBerryDeaths { get; set; } = 0;
+        public int CountGoldenBerryDeathsSession { get; set; } = 0;
+
+        public float GoldenChance { get; set; } = 1;
     }
 }

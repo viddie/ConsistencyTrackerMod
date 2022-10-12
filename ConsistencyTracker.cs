@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
+using Celeste.Mod.ConsistencyTracker.Stats;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -16,7 +17,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
-        string baseFolderPath = "./ConsistencyTracker/";
+        static string BaseFolderPath = "./ConsistencyTracker/";
 
 
         private bool DidRestart = false;
@@ -60,6 +61,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #endregion
 
+        public StatManager StatsManager;
+
 
         public ConsistencyTrackerModule() {
             Instance = this;
@@ -68,7 +71,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region Load/Unload Stuff
 
         public override void Load() {
-            CheckFolderExists(baseFolderPath);
+            CheckFolderExists(BaseFolderPath);
             CheckFolderExists(GetPathToFolder("paths"));
             CheckFolderExists(GetPathToFolder("stats"));
             CheckFolderExists(GetPathToFolder("logs"));
@@ -79,6 +82,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChapterStats.LogCallback = Log;
 
             HookStuff();
+
+            StatsManager = new StatManager();
         }
 
         private void HookStuff() {
@@ -271,7 +276,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"[Level.OnComplete] Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(!ModSettings.PauseDeathTracking)
+            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking)
                 CurrentChapterStats?.AddAttempt(true);
             SaveChapterStats();
         }
@@ -432,13 +437,13 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Data Import/Export
 
-        public string GetPathToFile(string file) {
-            return baseFolderPath + file;
+        public static string GetPathToFile(string file) {
+            return BaseFolderPath + file;
         }
-        public string GetPathToFolder(string folder) {
-            return baseFolderPath + folder + "/";
+        public static string GetPathToFolder(string folder) {
+            return BaseFolderPath + folder + "/";
         }
-        public void CheckFolderExists(string folderPath) {
+        public static void CheckFolderExists(string folderPath) {
             if (!Directory.Exists(folderPath)) {
                 Directory.CreateDirectory(folderPath);
             }
@@ -468,9 +473,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
 
             } else { //Create new
-                Log($"\tDidn't find file, created new PathInfo.");
-                PathInfo toRet = new PathInfo() {};
-                return toRet;
+                Log($"\tDidn't find file, returned null.");
+                return null;
             }
         }
 
@@ -518,6 +522,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{OverlayVersion};{_PlayerIsHoldingGolden}\n";
             File.WriteAllText(modStatePath, content);
+
+            StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
         }
 
         public void CreateChapterSummary(int attemptCount) {
@@ -574,7 +580,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
                 CurrentChapterStats.Rooms[debugName].GoldenBerryDeaths = 0;
-                CurrentChapterStats.Rooms[debugName].GoldenBerryDeathsThisSession = 0;
+                CurrentChapterStats.Rooms[debugName].GoldenBerryDeathsSession = 0;
             }
 
             SaveChapterStats();
@@ -786,8 +792,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
 
-            private int SelectedAttemptCount { get; set; } = 20;
             public bool CreateSummary { get; set; } = false;
+            public int SummarySelectedAttemptCount { get; set; } = 20;
             public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
                 if (!inGame) return;
 
@@ -801,9 +807,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-                TextMenuExt.EnumerableSlider<int> attemptSlider = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, 20);
+                TextMenuExt.EnumerableSlider<int> attemptSlider = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount);
                 attemptSlider.OnValueChange = (value) => {
-                    SelectedAttemptCount = value;
+                    SummarySelectedAttemptCount = value;
                 };
                 subMenu.Add(attemptSlider);
 
@@ -811,12 +817,83 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 var button1 = new TextMenu.Button("Create Chapter Summary");
                 button1.OnPressed = () => {
-                    Instance.CreateChapterSummary(SelectedAttemptCount);
+                    Instance.CreateChapterSummary(SummarySelectedAttemptCount);
                 };
                 subMenu.Add(button1);
 
                 menu.Add(subMenu);
             }
+
+
+
+            //Live Data Settings:
+            //- Percentages digit cutoff (default: 2)
+            //- Stats over X Attempts
+            //- Reload format file
+            //- Toggle name/abbreviation for e.g. PB Display
+            public bool LiveData { get; set; } = false;
+            public int LiveDataDecimalPlaces { get; set; } = 2;
+            public int LiveDataSelectedAttemptCount { get; set; } = 20;
+
+            //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
+            public int LiveDataPBDisplayNameType { get; set; } = 1;
+
+            public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
+                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
+
+
+                subMenu.Add(new TextMenu.SubHeader("Floating point numbers will be rounded to this decimal"));
+                List<KeyValuePair<int, string>> DigitCounts = new List<KeyValuePair<int, string>>() {
+                    new KeyValuePair<int, string>(0, "0"),
+                    new KeyValuePair<int, string>(1, "1"),
+                    new KeyValuePair<int, string>(2, "2"),
+                    new KeyValuePair<int, string>(3, "3"),
+                    new KeyValuePair<int, string>(4, "4"),
+                    new KeyValuePair<int, string>(5, "5"),
+                };
+                TextMenuExt.EnumerableSlider<int> decimalsSlider = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces);
+                decimalsSlider.OnValueChange = (value) => {
+                    LiveDataDecimalPlaces = value;
+                };
+                subMenu.Add(decimalsSlider);
+
+
+                subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
+                List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
+                    new KeyValuePair<int, string>(5, "5"),
+                    new KeyValuePair<int, string>(10, "10"),
+                    new KeyValuePair<int, string>(20, "20"),
+                    new KeyValuePair<int, string>(100, "100"),
+                };
+                TextMenuExt.EnumerableSlider<int> attemptSlider = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount);
+                attemptSlider.OnValueChange = (value) => {
+                    LiveDataSelectedAttemptCount = value;
+                };
+                subMenu.Add(attemptSlider);
+
+
+                subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated"));
+                List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
+                    new KeyValuePair<int, string>(1, "EH-3"),
+                    new KeyValuePair<int, string>(2, "Event-Horizon-3"),
+                };
+                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, LiveDataPBDisplayNameType);
+                nameTypeSlider.OnValueChange = (value) => {
+                    LiveDataPBDisplayNameType = value;
+                };
+                subMenu.Add(nameTypeSlider);
+
+
+                subMenu.Add(new TextMenu.SubHeader("After editing 'live-data/format.txt' use this to update the live data format"));
+                var button1 = new TextMenu.Button("Reload format file");
+                button1.OnPressed = () => {
+                    Instance.StatsManager.LoadFormats();
+                };
+                subMenu.Add(button1);
+
+                menu.Add(subMenu);
+            }
+
         }
     }
 }
