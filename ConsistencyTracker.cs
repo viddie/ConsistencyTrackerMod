@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Stats;
+using Celeste.Mod.ConsistencyTracker.Enums;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -515,6 +516,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
+            CurrentChapterStats.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
+
             string path = GetPathToFile($"stats/{CurrentChapterName}.txt");
             File.WriteAllText(path, CurrentChapterStats.ToChapterStatsString());
 
@@ -836,7 +839,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             public int LiveDataSelectedAttemptCount { get; set; } = 20;
 
             //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
-            public int LiveDataPBDisplayNameType { get; set; } = 1;
+            [SettingIgnore]
+            public RoomNameDisplayType LiveDataPBDisplayNameType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
 
             public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
@@ -874,12 +878,12 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated"));
                 List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(1, "EH-3"),
-                    new KeyValuePair<int, string>(2, "Event-Horizon-3"),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "EH-3"),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Event-Horizon-3"),
                 };
-                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, LiveDataPBDisplayNameType);
+                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, (int)LiveDataPBDisplayNameType);
                 nameTypeSlider.OnValueChange = (value) => {
-                    LiveDataPBDisplayNameType = value;
+                    LiveDataPBDisplayNameType = (RoomNameDisplayType)value;
                 };
                 subMenu.Add(nameTypeSlider);
 

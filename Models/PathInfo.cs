@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +9,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     public class PathInfo {
 
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
+        public int RoomCount {
+            get {
+                return Checkpoints.Sum((cpInfo) => cpInfo.Rooms.Count);
+            }
+        }
         public AggregateStats Stats { get; set; } = null;
+        public RoomInfo CurrentRoom { get; set; } = null;
+
         public string ParseError { get; set; }
 
         public static PathInfo GetTestPathInfo() {
@@ -57,6 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
         public AggregateStats Stats { get; set; } = null;
+        public int CPNumberInChapter { get; set; } = -1;
         public double GoldenChance { get; set; } = 1;
 
         public override string ToString() {
@@ -71,24 +80,46 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string abbreviation = parts[1];
 
             List<string> rooms = parts[3].Split(new string[] { "," }, StringSplitOptions.None).ToList();
-            List<RoomInfo> roomInfo = new List<RoomInfo>();
+            List<RoomInfo> roomInfos = new List<RoomInfo>();
 
-            foreach (string room in rooms) {
-                roomInfo.Add(new RoomInfo() { DebugRoomName = room });
-            }
-
-            return new CheckpointInfo() {
+            CheckpointInfo cpInfo = new CheckpointInfo() {
                 Name = name,
                 Abbreviation = abbreviation,
-                Rooms = roomInfo,
             };
+
+            foreach (string room in rooms) {
+                roomInfos.Add(new RoomInfo() { DebugRoomName = room, Checkpoint = cpInfo });
+            }
+
+            cpInfo.Rooms = roomInfos;
+
+            return cpInfo;
         }
     }
 
     [Serializable]
     public class RoomInfo {
+
+        public CheckpointInfo Checkpoint;
+
         public string DebugRoomName { get; set; }
         public override string ToString() {
+            return DebugRoomName;
+        }
+
+        public int RoomNumberInCP { get; set; } = -1;
+        public int RoomNumberInChapter { get; set; } = -1;
+
+        public string GetFormattedRoomName(RoomNameDisplayType format) {
+            switch (format) {
+                case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                    return $"{Checkpoint.Abbreviation}-{RoomNumberInCP}";
+                case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                    return $"{Checkpoint.Name}-{RoomNumberInCP}";
+                case RoomNameDisplayType.DebugRoomName:
+                    return DebugRoomName;
+            }
+
             return DebugRoomName;
         }
 

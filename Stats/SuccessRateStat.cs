@@ -28,13 +28,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int decimalPlaces = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
             int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount;
 
-            format = format.Replace(RoomSuccessRate, $"{Math.Round(chapterStats.CurrentRoom.AverageSuccessOverN(attemptCount) * 100, decimalPlaces)}%");
-            format = format.Replace(ChapterSuccessRate, $"{Math.Round(chapterPath.Stats.SuccessRate * 100, decimalPlaces)}%");
-
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, CheckpointSuccessRate);
                 return format;
             }
+
+            format = format.Replace(RoomSuccessRate, $"{Math.Round(chapterStats.CurrentRoom.AverageSuccessOverN(attemptCount) * 100, decimalPlaces)}%");
+            format = format.Replace(ChapterSuccessRate, $"{Math.Round(chapterPath.Stats.SuccessRate * 100, decimalPlaces)}%");
 
             bool foundRoom = false;
 

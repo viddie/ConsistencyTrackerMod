@@ -14,7 +14,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             Identificators = pIdentificators;
         }
 
-        public bool ContainsIdentificator(string format) {
+        public virtual bool ContainsIdentificator(string format) {
             return Identificators.Exists((id) => format.Contains(id));
         }
 

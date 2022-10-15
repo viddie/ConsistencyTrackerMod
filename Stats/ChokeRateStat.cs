@@ -9,9 +9,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
     /*
      Stats to implement:
-     {room:successRate} - Success Rate of the current room
-     {checkpoint:successRate} - Average Success Rate of current checkpoint
-     {chapter:successRate} - Average Success Rate of the entire chapter
+     {room:chokeRate}
+     {room:chokeRateSession}
+     {checkpoint:chokeRate}
+     {checkpoint:chokeRateSession}
 
          */
 
