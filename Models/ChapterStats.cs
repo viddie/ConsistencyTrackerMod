@@ -15,7 +15,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public RoomStats CurrentRoom { get; set; }
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
 
-        public bool PlayerIsHoldingGolden { get; set; }
+        public ModState ModState { get; set; } = new ModState();
 
         /// <summary>Adds the attempt to the specified room.</summary>
         /// <param name="debugRoomName">debug name of the room.</param>

@@ -15,6 +15,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private static readonly int LOG_FILE_COUNT = 10;
 
         public static readonly string OverlayVersion = "1.1.1";
+        public static readonly string ModVersion = "1.3.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -516,14 +517,19 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            CurrentChapterStats.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
+            CurrentChapterStats.ModState.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
+            CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
+            CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
+            CurrentChapterStats.ModState.OverlayVersion = OverlayVersion;
+            CurrentChapterStats.ModState.ModVersion = ModVersion;
+
 
             string path = GetPathToFile($"stats/{CurrentChapterName}.txt");
             File.WriteAllText(path, CurrentChapterStats.ToChapterStatsString());
 
             string modStatePath = GetPathToFile($"stats/modState.txt");
 
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{OverlayVersion};{_PlayerIsHoldingGolden}\n";
+            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{CurrentChapterStats.ModState}\n";
             File.WriteAllText(modStatePath, content);
 
             StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
@@ -840,7 +846,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
             [SettingIgnore]
-            public RoomNameDisplayType LiveDataPBDisplayNameType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
+            public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
+
+            [SettingIgnore]
+            public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
 
             public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
@@ -881,11 +890,20 @@ namespace Celeste.Mod.ConsistencyTracker {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "EH-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Event-Horizon-3"),
                 };
-                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, (int)LiveDataPBDisplayNameType);
+                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType);
                 nameTypeSlider.OnValueChange = (value) => {
-                    LiveDataPBDisplayNameType = (RoomNameDisplayType)value;
+                    LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
                 };
                 subMenu.Add(nameTypeSlider);
+
+
+
+                subMenu.Add(new TextMenu.SubHeader("If a format depends on path information and no path is set, the format will be blanked out"));
+                var hideFormatsToggle = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath);
+                hideFormatsToggle.OnValueChange = v => {
+                    LiveDataHideFormatsWithoutPath = v;
+                };
+                subMenu.Add(hideFormatsToggle);
 
 
                 subMenu.Add(new TextMenu.SubHeader("After editing 'live-data/format.txt' use this to update the live data format"));

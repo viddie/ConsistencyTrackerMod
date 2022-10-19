@@ -111,7 +111,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             int pbNumber = 0;
             int pbNumberSession = 0;
-            RoomNameDisplayType nameFormat = ConsistencyTrackerModule.Instance.ModSettings.LiveDataPBDisplayNameType;
+            RoomNameDisplayType nameFormat = StatManager.RoomNameType;
 
             //Walk the path BACKWARDS (d1d7 reference???)
             for (int cpIndex = chapterPath.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {

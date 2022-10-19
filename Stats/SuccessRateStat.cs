@@ -25,23 +25,24 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public SuccessRateStat() : base(IDs) {}
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
-            int decimalPlaces = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
-            int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount;
+            int attemptCount = StatManager.AttemptCount;
+
+            format = format.Replace(RoomSuccessRate, $"{StatManager.FormatPercentage(chapterStats.CurrentRoom.AverageSuccessOverN(attemptCount))}");
 
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, CheckpointSuccessRate);
+                format = StatManager.MissingPathFormat(format, ChapterSuccessRate);
                 return format;
             }
 
-            format = format.Replace(RoomSuccessRate, $"{Math.Round(chapterStats.CurrentRoom.AverageSuccessOverN(attemptCount) * 100, decimalPlaces)}%");
-            format = format.Replace(ChapterSuccessRate, $"{Math.Round(chapterPath.Stats.SuccessRate * 100, decimalPlaces)}%");
+            format = format.Replace(ChapterSuccessRate, $"{StatManager.FormatPercentage(chapterPath.Stats.SuccessRate)}");
 
             bool foundRoom = false;
 
             foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
-                        format = format.Replace(CheckpointSuccessRate, $"{Math.Round(cpInfo.Stats.SuccessRate * 100, decimalPlaces)}% ");
+                        format = format.Replace(CheckpointSuccessRate, $"{StatManager.FormatPercentage(cpInfo.Stats.SuccessRate)}");
                         foundRoom = true;
                         break;
                     }
@@ -49,7 +50,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             if (!foundRoom) {
-                format = format.Replace(CheckpointSuccessRate, $"-%");
+                format = StatManager.NotOnPathFormatPercent(format, CheckpointSuccessRate);
             }
 
             return format;

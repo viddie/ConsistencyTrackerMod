@@ -143,8 +143,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
         }
 
-        public int CountGoldenBerryDeaths { get; set; } = 0;
-        public int CountGoldenBerryDeathsSession { get; set; } = 0;
+        public int GoldenBerryDeaths { get; set; } = 0;
+        public int GoldenBerryDeathsSession { get; set; } = 0;
 
         public float GoldenChance { get; set; } = 1;
     }

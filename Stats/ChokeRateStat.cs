@@ -35,8 +35,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 return format;
             }
 
-            int decimalPlaces = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
-
             CheckpointInfo currentCpInfo = null;
 
             //======== Room ========
@@ -73,16 +71,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             else crRoomSession = (float)goldenDeathsInRoom[1] / (goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1]);
 
             //Format
-            if (float.IsNaN(crRoom) || pastRoom == false) { //pastRoom is false when player is not on path
+            if (float.IsNaN(crRoom)) { //pastRoom is false when player is not on path
                 format = format.Replace(RoomChokeRate, $"-%");
+            } else if (pastRoom == false) {
+                format = StatManager.NotOnPathFormatPercent(format, RoomChokeRate);
             } else {
-                format = format.Replace(RoomChokeRate, $"{Math.Round(crRoom * 100, decimalPlaces)}%");
+                format = format.Replace(RoomChokeRate, $"{StatManager.FormatPercentage(crRoom)}");
             }
 
-            if (float.IsNaN(crRoomSession) || pastRoom == false) {
+            if (float.IsNaN(crRoomSession)) {
                 format = format.Replace(RoomChokeRateSession, $"-%");
+            } else if (pastRoom == false) {
+                format = StatManager.NotOnPathFormatPercent(format, RoomChokeRateSession);
             } else {
-                format = format.Replace(RoomChokeRateSession, $"{Math.Round(crRoomSession * 100, decimalPlaces)}%");
+                format = format.Replace(RoomChokeRateSession, $"{StatManager.FormatPercentage(crRoomSession)}");
             }
 
             //======== Checkpoint ========
@@ -95,14 +97,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
                     if (pastCP) {
-                        goldenDeathsAfterCP[0] += cpInfo.Stats.CountGoldenBerryDeaths;
-                        goldenDeathsAfterCP[1] += cpInfo.Stats.CountGoldenBerryDeathsSession;
+                        goldenDeathsAfterCP[0] += cpInfo.Stats.GoldenBerryDeaths;
+                        goldenDeathsAfterCP[1] += cpInfo.Stats.GoldenBerryDeathsSession;
                     }
 
                     if (cpInfo == currentCpInfo) {
                         pastCP = true;
-                        goldenDeathsInCP[0] = cpInfo.Stats.CountGoldenBerryDeaths;
-                        goldenDeathsInCP[1] = cpInfo.Stats.CountGoldenBerryDeathsSession;
+                        goldenDeathsInCP[0] = cpInfo.Stats.GoldenBerryDeaths;
+                        goldenDeathsInCP[1] = cpInfo.Stats.GoldenBerryDeathsSession;
                     }
                 }
 
@@ -119,13 +121,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 if (float.IsNaN(crCheckpoint)) {
                     format = format.Replace(CheckpointChokeRate, $"-%");
                 } else {
-                    format = format.Replace(CheckpointChokeRate, $"{Math.Round(crCheckpoint * 100, decimalPlaces)}%");
+                    format = format.Replace(CheckpointChokeRate, $"{StatManager.FormatPercentage(crCheckpoint)}");
                 }
 
                 if (float.IsNaN(crCheckpointSession)) {
                     format = format.Replace(CheckpointChokeRateSession, $"-%");
                 } else {
-                    format = format.Replace(CheckpointChokeRateSession, $"{Math.Round(crCheckpointSession * 100, decimalPlaces)}%");
+                    format = format.Replace(CheckpointChokeRateSession, $"{StatManager.FormatPercentage(crCheckpointSession)}");
                 }
             } else {
                 //Player is not on path

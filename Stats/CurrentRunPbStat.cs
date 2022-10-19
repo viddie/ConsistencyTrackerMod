@@ -38,17 +38,24 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 return format;
             }
 
-            if (!chapterStats.PlayerIsHoldingGolden || chapterPath.CurrentRoom == null) { //If player is not holding the golden berry or is not on the path
+            if (!chapterStats.ModState.PlayerIsHoldingGolden) { //If player is not holding the golden berry 
                 format = format.Replace(RunCurrentPbStatus, "-");
                 format = format.Replace(RunCurrentPbStatusSession, "-");
                 format = format.Replace(RunCurrentPbStatusPercent, "-%");
                 format = format.Replace(RunCurrentPbStatusPercentSession, "-%");
                 return format;
+
+            } else if (chapterPath.CurrentRoom == null) { //or is not on the path
+                format = StatManager.NotOnPathFormat(format, RunCurrentPbStatus);
+                format = StatManager.NotOnPathFormat(format, RunCurrentPbStatusSession);
+                format = StatManager.NotOnPathFormatPercent(format, RunCurrentPbStatusPercent);
+                format = StatManager.NotOnPathFormatPercent(format, RunCurrentPbStatusPercentSession);
+                return format;
             }
 
 
-            int totalGoldenDeaths = chapterPath.Stats.CountGoldenBerryDeaths;
-            int totalGoldenDeathsSession = chapterPath.Stats.CountGoldenBerryDeathsSession;
+            int totalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths;
+            int totalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession;
 
             int goldenDeathsUntilRoom = 0;
             int goldenDeathsUntilRoomSession = 0;
@@ -84,13 +91,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             if (totalGoldenDeaths == 0) {
                 runStatusPercentStr = "100%";
             } else {
-                runStatusPercentStr = $"{StatManager.PercentageFormatting(goldenDeathsUntilRoom, totalGoldenDeaths)}";
+                runStatusPercentStr = $"{StatManager.FormatPercentage(goldenDeathsUntilRoom, totalGoldenDeaths)}";
             }
 
             if (totalGoldenDeathsSession == 0) {
                 runStatusPercentSessionStr = "100%";
             } else {
-                runStatusPercentSessionStr = $"{StatManager.PercentageFormatting(goldenDeathsUntilRoomSession, totalGoldenDeathsSession)}";
+                runStatusPercentSessionStr = $"{StatManager.FormatPercentage(goldenDeathsUntilRoomSession, totalGoldenDeathsSession)}";
             }
 
             format = format.Replace(RunCurrentPbStatusPercent, runStatusPercentStr);

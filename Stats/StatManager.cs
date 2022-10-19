@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.ConsistencyTracker.Models;
+﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,16 +11,34 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class StatManager {
 
         public static List<Stat> AllStats = new List<Stat>() {
-            new SuccessRateStat(),
+            new BasicInfoStat(),
             new ChokeRateStat(),
-            new SuccessRateColorsStat(),
+            new CurrentRunPbStat(),
             new LiveProgressStat(),
             new PersonalBestStat(),
-            new CurrentRunPbStat(),
+            new SuccessRateColorsStat(),
+            new SuccessRateStat(),
         };
 
         public static string BaseFolder = "live-data";
-        public static string MissingPathOutput = "<Missing Path>";
+        public static string MissingPathOutput = "<path>";
+        public static string NotOnPathOutput = "-";
+
+        public static bool HideFormatsWithoutPath {
+            get {
+                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataHideFormatsWithoutPath;
+            }
+        }
+        public static RoomNameDisplayType RoomNameType {
+            get {
+                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataRoomNameDisplayType;
+            }
+        }
+        public static int AttemptCount {
+            get {
+                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount;
+            }
+        }
 
         public Dictionary<StatFormat, List<Stat>> Formats;
 
@@ -91,8 +110,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     RoomStats rStats = chapterStats.GetRoom(rInfo.DebugRoomName);
                     cpInfo.Stats.CountAttempts += rStats.AttemptsOverN(attemptCount);
                     cpInfo.Stats.CountSuccesses += rStats.SuccessesOverN(attemptCount);
-                    cpInfo.Stats.CountGoldenBerryDeaths += rStats.GoldenBerryDeaths;
-                    cpInfo.Stats.CountGoldenBerryDeathsSession += rStats.GoldenBerryDeathsSession;
+                    cpInfo.Stats.GoldenBerryDeaths += rStats.GoldenBerryDeaths;
+                    cpInfo.Stats.GoldenBerryDeathsSession += rStats.GoldenBerryDeathsSession;
 
                     cpInfo.Stats.GoldenChance *= rStats.AverageSuccessOverN(attemptCount);
 
@@ -104,8 +123,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 pathInfo.Stats.CountAttempts += cpInfo.Stats.CountAttempts;
                 pathInfo.Stats.CountSuccesses += cpInfo.Stats.CountSuccesses;
-                pathInfo.Stats.CountGoldenBerryDeaths += cpInfo.Stats.CountGoldenBerryDeaths;
-                pathInfo.Stats.CountGoldenBerryDeathsSession += cpInfo.Stats.CountGoldenBerryDeathsSession;
+                pathInfo.Stats.GoldenBerryDeaths += cpInfo.Stats.GoldenBerryDeaths;
+                pathInfo.Stats.GoldenBerryDeathsSession += cpInfo.Stats.GoldenBerryDeathsSession;
 
                 pathInfo.Stats.GoldenChance *= cpInfo.Stats.GoldenChance;
             }
@@ -133,9 +152,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
 
         public static string MissingPathFormat(string format, string id) {
+            if (HideFormatsWithoutPath) {
+                return "";
+            }
             return format.Replace(id, MissingPathOutput);
         }
+        public static string NotOnPathFormat(string format, string id, string addition="") {
+            return format.Replace(id, $"{NotOnPathOutput}{addition}");
+        }
+        public static string NotOnPathFormatPercent(string format, string id) {
+            return NotOnPathFormat(format, id, "%");
+        }
 
+        //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})
 
         public Dictionary<StatFormat, List<Stat>> CreateDefaultFormatFile(string path) {
             Dictionary <StatFormat, List <Stat>> formats = new Dictionary<StatFormat, List<Stat>>() {
@@ -146,6 +175,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 [new StatFormat("choke-rate", $"Room Choke Rate: {ChokeRateStat.RoomChokeRate} (CP: {ChokeRateStat.CheckpointChokeRate})")] = new List<Stat>() { },
                 [new StatFormat("live-progress", $"Room {LiveProgressStat.RunChapterProgressNumber}/{LiveProgressStat.ChapterRoomCount} ({LiveProgressStat.RunChapterProgressPercent})" +
                     $" | Room in CP: {LiveProgressStat.RunCheckpointProgressNumber}/{LiveProgressStat.CheckpointRoomCount} ({LiveProgressStat.RunCheckpointProgressPercent})")] = new List<Stat>() { },
+                [new StatFormat("current-run-pb", $"Current run: #{CurrentRunPbStat.RunCurrentPbStatus}, better than {CurrentRunPbStat.RunCurrentPbStatusPercent} of all runs")] = new List<Stat>(),
+                [new StatFormat("current-run-pb", $"Current run (Session): #{CurrentRunPbStat.RunCurrentPbStatusSession}, better than {CurrentRunPbStat.RunCurrentPbStatusPercentSession} of all runs this session")] = new List<Stat>(),
             };
 
             string prelude = $"# Lines starting with a # are ignored\n" +
@@ -203,7 +234,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
 
-        public static string PercentageFormatting(int a, int b, int decimals=int.MaxValue) {
+        public static string FormatPercentage(int a, int b, int decimals=int.MaxValue) {
             if (decimals == int.MaxValue) {
                 decimals = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
             }
@@ -211,6 +242,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             double res = Math.Round(((double)a / b) * 100, decimals);
 
             return $"{res}%";
+        }
+        public static string FormatPercentage(float f, int decimals = int.MaxValue) {
+            if (decimals == int.MaxValue) {
+                decimals = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
+            }
+
+            double res = Math.Round(f * 100, decimals);
+
+            return $"{res}%";
+        }
+        public static string FormatBool(bool b) {
+            return b ? $"true" : $"false";
         }
     }
 }
