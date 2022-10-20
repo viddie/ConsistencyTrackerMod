@@ -360,6 +360,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int GoldenBerryDeaths { get; set; } = 0;
         public int GoldenBerryDeathsSession { get; set; } = 0;
         public List<bool> PreviousAttempts { get; set; } = new List<bool>();
+        public bool IsUnplayed { get => PreviousAttempts.Count == 0; }
         public bool LastAttempt { get => PreviousAttempts[PreviousAttempts.Count - 1]; }
         public float LastFiveRate { get => AverageSuccessOverN(5); }
         public float LastTenRate { get => AverageSuccessOverN(10); }
@@ -379,6 +380,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 countTotal++;
                 if (PreviousAttempts[neededIndex]) countSucceeded++;
             }
+
+            if (countTotal == 0) return 0;
 
             return (float)countSucceeded / countTotal;
         }

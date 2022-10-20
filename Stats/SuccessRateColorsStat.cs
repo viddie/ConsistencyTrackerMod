@@ -62,5 +62,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
+
+
+        //color-tracker;Reds: {chapter:color-red}, Yellows: {chapter:color-yellow}, Greens: {chapter:color-green}, Light-Greens: {chapter:color-lightGreen}
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(ColorRed, "Count of red rooms (success rate <50%)"),
+                new KeyValuePair<string, string>(ColorYellow, "Count of yellow rooms (success rate 50%-80%)"),
+                new KeyValuePair<string, string>(ColorGreen, "Count of green rooms (success rate 80%-95%)"),
+                new KeyValuePair<string, string>(ColorLightGreen, "Count of light green rooms (success rate 95%-100%)"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("color-tracker", $"Reds: {ColorRed}, Yellows: {ColorYellow}, Greens: {ColorGreen}, Light-Greens: {ColorLightGreen}")
+            };
+        }
     }
 }

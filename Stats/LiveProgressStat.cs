@@ -84,5 +84,26 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
+
+
+        //live-progress;Room {room:roomNumberInChapter}/{chapter:roomCount} ({room:chapterProgressPercent})
+        // | Room in CP: {room:roomNumberInCheckpoint}/{checkpoint:roomCount} ({room:checkpointProgressPercent})
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(RunChapterProgressNumber, "Number of the room within the entire chapter"),
+                new KeyValuePair<string, string>(ChapterRoomCount, "Count of rooms in the chapter"),
+                new KeyValuePair<string, string>(RunChapterProgressPercent, "Percent completion of the chapter given the current room"),
+
+                new KeyValuePair<string, string>(RunCheckpointProgressNumber, "Number of the room within the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointRoomCount, "Count of rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(RunCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("live-progress", $"Room {RunChapterProgressNumber}/{ChapterRoomCount} ({RunChapterProgressPercent})" +
+                    $" | Room in CP: {RunCheckpointProgressNumber}/{CheckpointRoomCount} ({RunCheckpointProgressPercent})")
+            };
+        }
     }
 }

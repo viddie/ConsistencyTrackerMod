@@ -16,10 +16,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
      {pb:best#<number>}
      {pb:bestSession#<number>}
-
-     {run:currentPbStatus}          - Format e.g. "Current run: 75. best run", "Current run: 4. best run", "Current run: PB"
-     {run:currentPbStatusPercent}   - Format e.g. "Current run better than 0% of all runs", "Current run better than 72.39% of all runs", "Current run better than 100% of all runs"
-
          */
 
     public class PersonalBestStat : Stat {
@@ -173,14 +169,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
-        public string JoinMatchGroupValues(Match match, string sep = ", ") {
-            List<string> values = new List<string>();
-
-            for (int i = 0; i < match.Groups.Count; i++) {
-                values.Add(match.Groups[0].Value);
-            }
-
-            return string.Join(sep, values);
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(PBBest, "Name of the PB room + the death count if it's greater than 1"),
+                new KeyValuePair<string, string>(PBBestSession, $"Same as {PBBest}, but only runs in the current session"),
+                new KeyValuePair<string, string>("{pb:best#<num>}", $"Same as {PBBest}, but for the <num>'s best run. {{pb:best#1}} is equivalent to {PBBest}"),
+                new KeyValuePair<string, string>("{pb:bestSession#<num>}", $"Same as {PBBest} for current session, but for the <num>'s best run. {{pb:bestSession#1}} is equivalent to {PBBestSession}"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("pb", $"Best runs: {{pb:best}} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
+                new StatFormat("pb-session", $"Best runs: {{pb:bestSession}} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+            };
         }
     }
 }

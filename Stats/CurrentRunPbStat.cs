@@ -110,5 +110,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
+
+
+        //current-run-pb;Current run: #{run:currentPbStatus}, better than {run:currentPbStatusPercent} of all runs
+        //current-run-pb-session;Current run(Session): #{run:currentPbStatusSession}, better than {run:currentPbStatusPercentSession} of all runs this session
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(RunCurrentPbStatus, "Rank of the current run vs. all other runs, e.g. 3rd best run, or PB run"),
+                new KeyValuePair<string, string>(RunCurrentPbStatusPercent, "Percentage of many runs the current tops, e.g. The current run is better than 85% of all runs"),
+                new KeyValuePair<string, string>(RunCurrentPbStatusSession, $"Same as {RunCurrentPbStatus}, but only for the current session"),
+                new KeyValuePair<string, string>(RunCurrentPbStatusPercentSession, $"Same as {RunCurrentPbStatusPercent}, but only for the current session"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("current-run-pb", $"Current run: #{RunCurrentPbStatus}, better than {RunCurrentPbStatusPercent} of all runs"),
+                new StatFormat("current-run-pb-session", $"Current run (Session): #{RunCurrentPbStatusSession}, better than {RunCurrentPbStatusPercentSession} of all runs this session")
+            };
+        }
     }
 }

@@ -134,5 +134,43 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
+
+
+        //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n
+        //\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n
+        //\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})\n\n--- Mod State ---\nTracking Paused: {mod:trackingPaused}\nRecording Path: {mod:recordingPath}\nPlayer Holding Golden: {player:holdingGolden}\nMod Version: {mod:modVersion}\nOverlay Version: {mod:overlayVersion}
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(ChapterDebugName, "Debug name of the chapter"),
+                new KeyValuePair<string, string>(ChapterGoldenDeaths, "Golden Deaths in the chapter"),
+                new KeyValuePair<string, string>(ChapterGoldenDeathsSession, "Golden Deaths in the chapter in the current session"),
+                new KeyValuePair<string, string>(ChapterGoldenChance, "Golden Chance of the chapter"),
+
+                new KeyValuePair<string, string>(CheckpointName, "Name of the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointAbbreviation, "Abbreviation of the current checkpoint's name"),
+                new KeyValuePair<string, string>(CheckpointGoldenDeaths, "Golden Deaths in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointGoldenDeathsSession, "Golden Deaths in the current checkpoint in the current session"),
+                new KeyValuePair<string, string>(CheckpointGoldenChance, "Golden Chance of the current checkpoint"),
+
+                new KeyValuePair<string, string>(RoomName, "Name of the room. Display format can be changed via Mod Options -> Consistency Tracker -> Live Data -> Room Name Format"),
+                new KeyValuePair<string, string>(RoomDebugName, "Debug name of the current room"),
+                new KeyValuePair<string, string>(RoomGoldenDeaths, "Golden Deaths in the current room"),
+                new KeyValuePair<string, string>(RoomGoldenDeathsSession, "Golden Deaths in the current room in the current session"),
+
+                new KeyValuePair<string, string>(PlayerHoldingGolden, "Whether the player is holding a golden berry"),
+                new KeyValuePair<string, string>(ModTrackingPaused, "Whether death tracking is currently paused"),
+                new KeyValuePair<string, string>(ModRecordingPath, "Whether the path is currently being recorded"),
+                new KeyValuePair<string, string>(ModModVersion, "Current version of the mod"),
+                new KeyValuePair<string, string>(ModOverlayVersion, "Most recent version of the overlay"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("basic-info", $"--- Chapter ---\nName: {ChapterDebugName}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
+                $"\n--- Checkpoint ---\nName: {CheckpointName} ({CheckpointAbbreviation})\nGolden Deaths: {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\nGolden Chance: {CheckpointGoldenChance}\n" +
+                $"\n--- Room ---\nName: {RoomName} ({RoomDebugName})\nGolden Deaths: {RoomGoldenDeaths} ({RoomGoldenDeathsSession})\n" +
+                $"\n--- Mod State ---\nTracking Paused: {ModTrackingPaused}\nRecording Path: {ModRecordingPath}\nPlayer Holding Golden: {PlayerHoldingGolden}\nMod Version: {ModModVersion}\nOverlay Version: {ModOverlayVersion}")
+            };
+        }
     }
 }

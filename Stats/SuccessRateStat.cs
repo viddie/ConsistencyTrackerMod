@@ -39,6 +39,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             bool foundRoom = false;
 
+            //Walk the path
             foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
@@ -58,6 +59,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
+        }
+
+
+        //success-rate;Room SR: {room:successRate} | CP: {checkpoint:successRate} | Total: {chapter:successRate}
+        public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>(RoomSuccessRate, "Current room's success rate (count of successful attempts / total attempts)"),
+                new KeyValuePair<string, string>(CheckpointSuccessRate, "Current checkpoint's success rate"),
+                new KeyValuePair<string, string>(ChapterSuccessRate, "The chapter's success rate"),
+            };
+        }
+        public override List<StatFormat> GetStatExamples() {
+            return new List<StatFormat>() {
+                new StatFormat("success-rate", $"Room SR: {RoomSuccessRate} | CP: {CheckpointSuccessRate} | Total: {ChapterSuccessRate}")
+            };
         }
     }
 }

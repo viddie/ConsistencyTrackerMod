@@ -31,6 +31,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         /// <returns>A string to which comprises a section in the summary export
         /// for this stat, or null when this stat shouldn't be added to the summary</returns>
         public abstract string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats);
+
+
+        public virtual List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
+            return null;
+        }
+        public virtual List<StatFormat> GetStatExamples() {
+            return null;
+        }
         
     }
 }

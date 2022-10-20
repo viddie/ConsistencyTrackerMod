@@ -851,6 +851,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             [SettingIgnore]
             public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
 
+            [SettingIgnore]
+            public bool LiveDataIgnoreUnplayedRooms { get; set; } = false;
+
             public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
 
@@ -885,12 +888,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(attemptSlider);
 
 
-                subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated"));
+                subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated in the room name"));
                 List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "EH-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Event-Horizon-3"),
                 };
-                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("PB Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType);
+                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType);
                 nameTypeSlider.OnValueChange = (value) => {
                     LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
                 };
@@ -904,6 +907,15 @@ namespace Celeste.Mod.ConsistencyTracker {
                     LiveDataHideFormatsWithoutPath = v;
                 };
                 subMenu.Add(hideFormatsToggle);
+
+
+
+                subMenu.Add(new TextMenu.SubHeader("For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms"));
+                var ignoreUnplayedToggle = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms);
+                ignoreUnplayedToggle.OnValueChange = v => {
+                    LiveDataIgnoreUnplayedRooms = v;
+                };
+                subMenu.Add(ignoreUnplayedToggle);
 
 
                 subMenu.Add(new TextMenu.SubHeader("After editing 'live-data/format.txt' use this to update the live data format"));

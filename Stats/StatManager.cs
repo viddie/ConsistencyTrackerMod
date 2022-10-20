@@ -11,45 +11,38 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class StatManager {
 
         public static List<Stat> AllStats = new List<Stat>() {
-            new BasicInfoStat(),
-            new ChokeRateStat(),
-            new CurrentRunPbStat(),
-            new LiveProgressStat(),
-            new PersonalBestStat(),
-            new SuccessRateColorsStat(),
             new SuccessRateStat(),
+            new LiveProgressStat(),
+            new CurrentRunPbStat(),
+            new PersonalBestStat(),
+            new ChokeRateStat(),
+            new BasicInfoStat(),
+            new RunGoldenChanceStat(),
+            new SuccessRateColorsStat(),
         };
 
         public static string BaseFolder = "live-data";
+        public static string FormatFileName = "format.txt";
+        public static string FormatSeparator = ";";
         public static string MissingPathOutput = "<path>";
         public static string NotOnPathOutput = "-";
 
-        public static bool HideFormatsWithoutPath {
-            get {
-                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataHideFormatsWithoutPath;
-            }
-        }
-        public static RoomNameDisplayType RoomNameType {
-            get {
-                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataRoomNameDisplayType;
-            }
-        }
-        public static int AttemptCount {
-            get {
-                return ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount;
-            }
-        }
+        public static bool HideFormatsWithoutPath { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataHideFormatsWithoutPath; }
+        public static RoomNameDisplayType RoomNameType { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataRoomNameDisplayType; }
+        public static int AttemptCount { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount; }
+        public static int DecimalPlaces { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces; }
+        public static bool IgnoreUnplayedRooms { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataIgnoreUnplayedRooms; }
 
         public Dictionary<StatFormat, List<Stat>> Formats;
 
         public StatManager() {
             LoadFormats();
 
-            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFolder("live-data"));
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFolder($"{BaseFolder}"));
         }
 
         public void LoadFormats() {
-            string formatFilePath = ConsistencyTrackerModule.GetPathToFile("live-data/format.txt");
+            string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
             if (File.Exists(formatFilePath)) {
                 string content = File.ReadAllText(formatFilePath);
                 Formats = ParseFormatsFile(content);
@@ -113,7 +106,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     cpInfo.Stats.GoldenBerryDeaths += rStats.GoldenBerryDeaths;
                     cpInfo.Stats.GoldenBerryDeathsSession += rStats.GoldenBerryDeathsSession;
 
-                    cpInfo.Stats.GoldenChance *= rStats.AverageSuccessOverN(attemptCount);
+                    float successRate = rStats.AverageSuccessOverN(attemptCount);
+                    if (IgnoreUnplayedRooms && rStats.IsUnplayed)
+                        successRate = 1;
+
+                    cpInfo.Stats.GoldenChance *= successRate;
 
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
                         pathInfo.CurrentRoom = rInfo;
@@ -167,43 +164,60 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})
 
         public Dictionary<StatFormat, List<Stat>> CreateDefaultFormatFile(string path) {
-            Dictionary <StatFormat, List <Stat>> formats = new Dictionary<StatFormat, List<Stat>>() {
-                [new StatFormat("success-rate", $"Room SR: {SuccessRateStat.RoomSuccessRate} | CP: {SuccessRateStat.CheckpointSuccessRate} | Total: {SuccessRateStat.ChapterSuccessRate}")] = new List<Stat>() { },
-                [new StatFormat("pb", $"Best runs: {{pb:best}} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}")] = new List<Stat>() { },
-                [new StatFormat("pb-session", $"Best runs: {{pb:bestSession}} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}")] = new List<Stat>() { },
-                [new StatFormat("color-tracker", $"Reds: {SuccessRateColorsStat.ColorRed}, Yellows: {SuccessRateColorsStat.ColorYellow}, Greens: {SuccessRateColorsStat.ColorGreen}, Light-Greens: {SuccessRateColorsStat.ColorLightGreen}")] = new List<Stat>() { },
-                [new StatFormat("choke-rate", $"Room Choke Rate: {ChokeRateStat.RoomChokeRate} (CP: {ChokeRateStat.CheckpointChokeRate})")] = new List<Stat>() { },
-                [new StatFormat("live-progress", $"Room {LiveProgressStat.RunChapterProgressNumber}/{LiveProgressStat.ChapterRoomCount} ({LiveProgressStat.RunChapterProgressPercent})" +
-                    $" | Room in CP: {LiveProgressStat.RunCheckpointProgressNumber}/{LiveProgressStat.CheckpointRoomCount} ({LiveProgressStat.RunCheckpointProgressPercent})")] = new List<Stat>() { },
-                [new StatFormat("current-run-pb", $"Current run: #{CurrentRunPbStat.RunCurrentPbStatus}, better than {CurrentRunPbStat.RunCurrentPbStatusPercent} of all runs")] = new List<Stat>(),
-                [new StatFormat("current-run-pb", $"Current run (Session): #{CurrentRunPbStat.RunCurrentPbStatusSession}, better than {CurrentRunPbStat.RunCurrentPbStatusPercentSession} of all runs this session")] = new List<Stat>(),
-            };
+            Dictionary <StatFormat, List <Stat>> formats = new Dictionary<StatFormat, List<Stat>>();
 
             string prelude = $"# Lines starting with a # are ignored\n" +
                 $"# \n" +
                 $"# Each line in this file corresponds to one output file following this scheme:\n" +
-                $"# <filename>;<format>\n" +
+                $"# <filename>{FormatSeparator}<format>\n" +
                 $"# where the format can be any text or placeholders mixed together\n" +
                 $"# \n" +
                 $"# Example:\n" +
-                $"# successRate;Room SR: {SuccessRateStat.RoomSuccessRate} | CP: {SuccessRateStat.CheckpointSuccessRate} | Total: {SuccessRateStat.ChapterSuccessRate}\n" +
+                $"# successRate{FormatSeparator}Room SR: {SuccessRateStat.RoomSuccessRate} | CP: {SuccessRateStat.CheckpointSuccessRate} | Total: {SuccessRateStat.ChapterSuccessRate}\n" +
                 $"# would generate a 'successRate.txt' file containing the text \"Room SR: <data> | CP: <data> | Total: <data>\"\n" +
                 $"# \n" +
-                $"# To add new-lines to a format use '\\n'";
+                $"# To add new-lines to a format use '\\n'\n" +
+                $"# \n" +
+                $"# \n" +
+                $"# List of all available placeholders:\n";
 
-            string content = FormatsToFile(formats, prelude);
-            File.WriteAllText(path, content);
+            //Add all stat explanations here
+            foreach (Stat stat in AllStats) {
+                foreach (KeyValuePair<string, string> explanation in stat.GetPlaceholderExplanations()) {
+                    prelude += $"# {explanation.Key} - {explanation.Value}\n";
+                }
+                prelude += $"# \n";
+
+                foreach (StatFormat statFormat in stat.GetStatExamples()) {
+                    formats.Add(statFormat, new List<Stat>());
+                }
+            }
+
+
+            string afterExplanationHeader = $"# \n" +
+                $"# Predefined Formats\n" +
+                $"# ";
+
+            string content = FormatsToFile(formats);
+
+            string afterCustomFormatHeader = $"# \n" +
+                $"# Custom Formats\n" +
+                $"# \n";
+
+            string combined = $"{prelude}\n{afterExplanationHeader}\n{content}\n{afterCustomFormatHeader}";
+
+            File.WriteAllText(path, combined);
 
             return formats;
         }
 
-        public static string FormatsToFile(Dictionary<StatFormat, List<Stat>> formats, string prelude) {
-            string toRet = $"{prelude}\n\n";
+        public static string FormatsToFile(Dictionary<StatFormat, List<Stat>> formats) {
+            string toRet = $"";
 
             foreach (StatFormat format in formats.Keys) {
                 string formatText = format.Format;
                 formatText = formatText.Replace("\n", "\\n");
-                toRet += $"{format.Name};{formatText}\n";
+                toRet += $"{format.Name}{FormatSeparator}{formatText}\n\n";
             }
 
             return toRet;
@@ -211,19 +225,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static Dictionary<StatFormat, List<Stat>> ParseFormatsFile(string content) {
             Dictionary<StatFormat, List<Stat>> toRet = new Dictionary<StatFormat, List<Stat>>();
 
-            string[] lines = content.Split(new char[] { '\n' });
+            string[] lines = content.Split(new string[] { FormatSeparator }, StringSplitOptions.None);
 
             foreach (string line in lines) {
-                if (line.Trim().StartsWith("#")) continue;
+                if (line.Trim() == "" || line.Trim().StartsWith("#")) continue; //Empty line or comment
 
-                string[] formatSplit = line.Trim().Split(new char[] { ';' });
+                string[] formatSplit = line.Trim().Split(new string[] { FormatSeparator }, StringSplitOptions.None);
                 if (formatSplit.Length <= 1) {
                     //Ill-formed format detected
                     continue;
                 }
 
                 string name = formatSplit[0];
-                string formatText = string.Join(";", formatSplit.Skip(1));
+                string formatText = string.Join(FormatSeparator, formatSplit.Skip(1));
 
                 formatText = formatText.Replace("\\n", "\n");
 
@@ -236,7 +250,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public static string FormatPercentage(int a, int b, int decimals=int.MaxValue) {
             if (decimals == int.MaxValue) {
-                decimals = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
+                decimals = DecimalPlaces;
             }
 
             double res = Math.Round(((double)a / b) * 100, decimals);
@@ -245,7 +259,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public static string FormatPercentage(float f, int decimals = int.MaxValue) {
             if (decimals == int.MaxValue) {
-                decimals = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
+                decimals = DecimalPlaces;
             }
 
             double res = Math.Round(f * 100, decimals);
@@ -253,7 +267,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return $"{res}%";
         }
         public static string FormatBool(bool b) {
-            return b ? $"true" : $"false";
+            return b ? $"True" : $"False";
         }
     }
 }
