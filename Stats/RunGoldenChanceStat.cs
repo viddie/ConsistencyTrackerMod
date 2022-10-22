@@ -82,7 +82,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public override List<StatFormat> GetStatExamples() {
             return new List<StatFormat>() {
-                new StatFormat("success-rate", $"Start->Room: {RunGoldenChanceFromStart}\\nRoom->End: {RunGoldenChanceToEnd}")
+                new StatFormat("run-golden-chance", $"Start->Room: {RunGoldenChanceFromStart}\\nRoom->End: {RunGoldenChanceToEnd}")
             };
         }
     }

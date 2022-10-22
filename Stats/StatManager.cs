@@ -42,13 +42,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void LoadFormats() {
+            ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Loading live-data formats...");
             string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
             if (File.Exists(formatFilePath)) {
+                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Found {FormatFileName}...");
                 string content = File.ReadAllText(formatFilePath);
+                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Parsing {FormatFileName}");
                 Formats = ParseFormatsFile(content);
+                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Read '{Formats.Count}' formats from {FormatFileName}");
 
             } else {
+                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Did not find {FormatFileName}, creating new...");
                 Formats = CreateDefaultFormatFile(formatFilePath);
+                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Read '{Formats.Count}' formats from default format file");
             }
 
             FindStatsForFormats();
@@ -66,21 +72,28 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void OutputFormats(PathInfo pathInfo, ChapterStats chapterStats) {
-            //To summarize some data that many stats need
-            AggregateStatsPass(pathInfo, chapterStats);
+            ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Starting output");
 
-            foreach (StatFormat format in Formats.Keys) {
-                List<Stat> statList = Formats[format];
-                string outFileName = $"{format.Name}.txt";
-                string outFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{outFileName}");
+            try {
+                //To summarize some data that many stats need
+                AggregateStatsPass(pathInfo, chapterStats);
 
-                string formattedData = format.Format;
 
-                foreach (Stat stat in statList) {
-                    formattedData = stat.FormatStat(pathInfo, chapterStats, formattedData);
+                foreach (StatFormat format in Formats.Keys) {
+                    List<Stat> statList = Formats[format];
+                    string outFileName = $"{format.Name}.txt";
+                    string outFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{outFileName}");
+
+                    string formattedData = format.Format;
+
+                    foreach (Stat stat in statList) {
+                        formattedData = stat.FormatStat(pathInfo, chapterStats, formattedData);
+                    }
+
+                    File.WriteAllText(outFilePath, formattedData);
                 }
-
-                File.WriteAllText(outFilePath, formattedData);
+            } catch (Exception ex) {
+                ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Exception during aggregate pass, stat calculation or format outputting: {ex}");
             }
         }
 
@@ -225,7 +238,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static Dictionary<StatFormat, List<Stat>> ParseFormatsFile(string content) {
             Dictionary<StatFormat, List<Stat>> toRet = new Dictionary<StatFormat, List<Stat>>();
 
-            string[] lines = content.Split(new string[] { FormatSeparator }, StringSplitOptions.None);
+            string[] lines = content.Split(new string[] { "\n" }, StringSplitOptions.None);
 
             foreach (string line in lines) {
                 if (line.Trim() == "" || line.Trim().StartsWith("#")) continue; //Empty line or comment

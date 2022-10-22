@@ -874,7 +874,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(decimalsSlider);
 
 
-                subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
+                subMenu.Add(new TextMenu.SubHeader("When calculating room consistency stats, only the last X attempts in each room will be counted"));
                 List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
@@ -918,7 +918,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(ignoreUnplayedToggle);
 
 
-                subMenu.Add(new TextMenu.SubHeader("After editing 'live-data/format.txt' use this to update the live data format"));
+                subMenu.Add(new TextMenu.SubHeader($"After editing '{StatManager.BaseFolder}/{StatManager.FormatFileName}' use this to update the live data format"));
                 var button1 = new TextMenu.Button("Reload format file");
                 button1.OnPressed = () => {
                     Instance.StatsManager.LoadFormats();
