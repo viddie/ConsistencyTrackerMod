@@ -36,9 +36,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public Dictionary<StatFormat, List<Stat>> Formats;
 
         public StatManager() {
-            LoadFormats();
-
             ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFolder($"{BaseFolder}"));
+            LoadFormats();
         }
 
         public void LoadFormats() {
