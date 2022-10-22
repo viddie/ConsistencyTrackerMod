@@ -200,10 +200,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             SetRoomCompleted(resetOnDeath: false);
         }
 
-        private Strawberry LastTouchedStrawberry = null;
+        private readonly List<EntityID> TouchedBerries = new List<EntityID>();
+        // All touched berries need to be reset on death, since they either:
+        // - already collected
+        // - disappeared on death
         private void Strawberry_OnPlayer(On.Celeste.Strawberry.orig_OnPlayer orig, Strawberry self, Player player) {
-            if (LastTouchedStrawberry != null && LastTouchedStrawberry == self) return; //to not spam the log
-            LastTouchedStrawberry = self;
+            if (TouchedBerries.Contains(self.ID)) return; //to not spam the log
+            TouchedBerries.Add(self.ID);
 
             Log($"[Strawberry.OnPlayer] Strawberry on player");
             orig(self, player);
@@ -298,13 +301,13 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Player_OnDie(Player player) {
+            TouchedBerries.Clear();
             bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
 
             Log($"[Player.OnDie] Player died. (holdingGolden: {holdingGolden})");
             if (_CurrentRoomCompletedResetOnDeath) {
                 _CurrentRoomCompleted = false;
             }
-            LastTouchedStrawberry = null; //Held strawberry reset on death, collected don't show up again so those don't matter
 
             if (ModSettings.Enabled) {
                 if (!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
@@ -333,6 +336,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterPath = GetPathInputInfo();
             CurrentChapterStats = GetCurrentChapterStats();
+
+            TouchedBerries.Clear();
 
             SetNewRoom(CurrentRoomName, false, false);
 
