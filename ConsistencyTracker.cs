@@ -739,38 +739,37 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             public bool OnlyTrackWithGoldenBerry { get; set; } = false;
             public void CreateOnlyTrackWithGoldenBerryEntry(TextMenu menu, bool inGame) {
-                var toggle = new TextMenu.OnOff("Only Track Deaths With Golden Berry", this.OnlyTrackWithGoldenBerry);
-                toggle.OnValueChange = v => {
-                    this.OnlyTrackWithGoldenBerry = v;
-                };
-                menu.Add(toggle);
+                menu.Add(new TextMenu.OnOff("Only Track Deaths With Golden Berry", this.OnlyTrackWithGoldenBerry) {
+                    OnValueChange = v => {
+                        this.OnlyTrackWithGoldenBerry = v;
+                    }
+                });
             }
 
             public bool RecordPath { get; set; } = false;
             public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
                 if (!inGame) return;
 
-                var pathRecordingToggle = new TextMenu.OnOff("Record Path", Instance.DoRecordPath);
-                pathRecordingToggle.OnValueChange = v => {
-                    if (v)
-                        Instance.Log($"Recording chapter path...");
-                    else
-                        Instance.Log($"Stopped recording path. Outputting info...");
-
-                    this.RecordPath = v;
-                    Instance.DoRecordPath = v;
-                    Instance.SaveChapterStats();
-                };
-
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
+
                 subMenu.Add(new TextMenu.SubHeader("!!!Existing paths will be overwritten!!!"));
-                subMenu.Add(pathRecordingToggle);
+                subMenu.Add(new TextMenu.OnOff("Record Path", Instance.DoRecordPath) {
+                    OnValueChange = v => {
+                        if (v)
+                            Instance.Log($"Recording chapter path...");
+                        else
+                            Instance.Log($"Stopped recording path. Outputting info...");
+
+                        this.RecordPath = v;
+                        Instance.DoRecordPath = v;
+                        Instance.SaveChapterStats();
+                    }
+                });
 
                 subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the Overlay"));
-                var removeRoomButton = new TextMenu.Button("Remove Current Room From Path") {
+                subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
                     OnPressed = Instance.RemoveRoomFromChapter
-                };
-                subMenu.Add(removeRoomButton);
+                });
 
                 menu.Add(subMenu);
             }
@@ -785,43 +784,44 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
                 subMenu.Add(new TextMenu.SubHeader("Current Room"));
-                var buttonLastAttempt = new TextMenu.Button("Remove Last Attempt");
-                buttonLastAttempt.OnPressed = () => {
-                    Instance.RemoveLastAttempt();
-                };
-                subMenu.Add(buttonLastAttempt);
+                subMenu.Add(new TextMenu.Button("Remove Last Attempt") {
+                    OnPressed = () => {
+                        Instance.RemoveLastAttempt();
+                    }
+                });
 
-                var button0 = new TextMenu.Button("Remove Last Death Streak");
-                button0.OnPressed = () => {
-                    Instance.RemoveLastDeathStreak();
-                };
-                subMenu.Add(button0);
+                subMenu.Add(new TextMenu.Button("Remove Last Death Streak") {
+                    OnPressed = () => {
+                        Instance.RemoveLastDeathStreak();
+                    }
+                });
 
-                var button1 = new TextMenu.Button("Remove All Attempts");
-                button1.OnPressed = () => {
-                    Instance.WipeRoomData();
-                };
-                subMenu.Add(button1);
+                subMenu.Add(new TextMenu.Button("Remove All Attempts") {
+                    OnPressed = () => {
+                        Instance.WipeRoomData();
+                    }
+                });
 
-                var button3 = new TextMenu.Button("Remove Golden Berry Deaths");
-                button3.OnPressed = () => {
-                    Instance.RemoveRoomGoldenBerryDeaths();
-                };
-                subMenu.Add(button3);
+                subMenu.Add(new TextMenu.Button("Remove Golden Berry Deaths") {
+                    OnPressed = () => {
+                        Instance.RemoveRoomGoldenBerryDeaths();
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader("Current Chapter"));
-                var button2 = new TextMenu.Button("Reset All Attempts");
-                button2.OnPressed = () => {
-                    Instance.WipeChapterData();
-                };
-                subMenu.Add(button2);
+                subMenu.Add(new TextMenu.Button("Reset All Attempts") {
+                    OnPressed = () => {
+                        Instance.WipeChapterData();
+                    }
+                });
 
-                var button4 = new TextMenu.Button("Reset All Golden Berry Deaths");
-                button4.OnPressed = () => {
-                    Instance.WipeChapterGoldenBerryDeaths();
-                };
-                subMenu.Add(button4);
+                subMenu.Add(new TextMenu.Button("Reset All Golden Berry Deaths") {
+                    OnPressed = () => {
+                        Instance.WipeChapterGoldenBerryDeaths();
+                    }
+                });
+
 
                 menu.Add(subMenu);
             }
@@ -836,25 +836,25 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(new TextMenu.SubHeader("Outputs some cool data of the current chapter in a readable .txt format"));
 
 
+                subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
                 List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-                TextMenuExt.EnumerableSlider<int> attemptSlider = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount);
-                attemptSlider.OnValueChange = (value) => {
-                    SummarySelectedAttemptCount = value;
-                };
-                subMenu.Add(attemptSlider);
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
+                    OnValueChange = (value) => {
+                        SummarySelectedAttemptCount = value;
+                    }
+                });
 
-                subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
 
-                var button1 = new TextMenu.Button("Create Chapter Summary");
-                button1.OnPressed = () => {
-                    Instance.CreateChapterSummary(SummarySelectedAttemptCount);
-                };
-                subMenu.Add(button1);
+                subMenu.Add(new TextMenu.Button("Create Chapter Summary") {
+                    OnPressed = () => {
+                        Instance.CreateChapterSummary(SummarySelectedAttemptCount);
+                    }
+                });
 
                 menu.Add(subMenu);
             }
@@ -893,11 +893,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     new KeyValuePair<int, string>(4, "4"),
                     new KeyValuePair<int, string>(5, "5"),
                 };
-                TextMenuExt.EnumerableSlider<int> decimalsSlider = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces);
-                decimalsSlider.OnValueChange = (value) => {
-                    LiveDataDecimalPlaces = value;
-                };
-                subMenu.Add(decimalsSlider);
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
+                    OnValueChange = (value) => {
+                        LiveDataDecimalPlaces = value;
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader("When calculating room consistency stats, only the last X attempts in each room will be counted"));
@@ -907,11 +907,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-                TextMenuExt.EnumerableSlider<int> attemptSlider = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount);
-                attemptSlider.OnValueChange = (value) => {
-                    LiveDataSelectedAttemptCount = value;
-                };
-                subMenu.Add(attemptSlider);
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
+                    OnValueChange = (value) => {
+                        LiveDataSelectedAttemptCount = value;
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated in the room name"));
@@ -919,37 +919,35 @@ namespace Celeste.Mod.ConsistencyTracker {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "EH-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Event-Horizon-3"),
                 };
-                TextMenuExt.EnumerableSlider<int> nameTypeSlider = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType);
-                nameTypeSlider.OnValueChange = (value) => {
-                    LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
-                };
-                subMenu.Add(nameTypeSlider);
-
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
+                    OnValueChange = (value) => {
+                        LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader("If a format depends on path information and no path is set, the format will be blanked out"));
-                var hideFormatsToggle = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath);
-                hideFormatsToggle.OnValueChange = v => {
-                    LiveDataHideFormatsWithoutPath = v;
-                };
-                subMenu.Add(hideFormatsToggle);
-
+                subMenu.Add(new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
+                    OnValueChange = v => {
+                        LiveDataHideFormatsWithoutPath = v;
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader("For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms"));
-                var ignoreUnplayedToggle = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms);
-                ignoreUnplayedToggle.OnValueChange = v => {
-                    LiveDataIgnoreUnplayedRooms = v;
-                };
-                subMenu.Add(ignoreUnplayedToggle);
+                subMenu.Add(new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
+                    OnValueChange = v => {
+                        LiveDataIgnoreUnplayedRooms = v;
+                    }
+                });
 
 
                 subMenu.Add(new TextMenu.SubHeader($"After editing '{StatManager.BaseFolder}/{StatManager.FormatFileName}' use this to update the live data format"));
-                var button1 = new TextMenu.Button("Reload format file");
-                button1.OnPressed = () => {
-                    Instance.StatsManager.LoadFormats();
-                };
-                subMenu.Add(button1);
+                subMenu.Add(new TextMenu.Button("Reload format file") {
+                    OnPressed = () => {
+                        Instance.StatsManager.LoadFormats();
+                    }
+                });
 
                 menu.Add(subMenu);
             }
