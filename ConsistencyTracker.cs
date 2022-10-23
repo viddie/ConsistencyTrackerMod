@@ -584,9 +584,22 @@ namespace Celeste.Mod.ConsistencyTracker {
             WipeRoomData();
         }
 
+        public void RemoveRoomGoldenBerryDeaths() {
+            if (CurrentChapterStats == null) {
+                Log($"[WipeChapterGoldenBerryDeaths] Aborting wiping room golden berry deaths as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
+
+            Log($"[WipeChapterGoldenBerryDeaths] Wiping golden berry death data for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+
+            CurrentChapterStats.CurrentRoom.GoldenBerryDeaths = 0;
+            CurrentChapterStats.CurrentRoom.GoldenBerryDeathsSession = 0;
+
+            SaveChapterStats();
+        }
         public void WipeChapterGoldenBerryDeaths() {
             if (CurrentChapterStats == null) {
-                Log($"[WipeChapterGoldenBerryDeaths] Aborting wiping chapter data as '{nameof(CurrentChapterStats)}' is null");
+                Log($"[WipeChapterGoldenBerryDeaths] Aborting wiping chapter golden berry deaths as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
 
@@ -599,6 +612,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             SaveChapterStats();
         }
+
+        
 
         public void WipeRoomData() {
             if (CurrentChapterStats == null) {
@@ -782,25 +797,31 @@ namespace Celeste.Mod.ConsistencyTracker {
                 };
                 subMenu.Add(button0);
 
-
-                subMenu.Add(new TextMenu.SubHeader("Current Chapter"));
-                var button1 = new TextMenu.Button("Wipe Room Data");
+                var button1 = new TextMenu.Button("Remove All Attempts");
                 button1.OnPressed = () => {
                     Instance.WipeRoomData();
                 };
                 subMenu.Add(button1);
 
-                var button2 = new TextMenu.Button("Wipe Chapter Data");
+                var button3 = new TextMenu.Button("Remove Golden Berry Deaths");
+                button3.OnPressed = () => {
+                    Instance.RemoveRoomGoldenBerryDeaths();
+                };
+                subMenu.Add(button3);
+
+
+                subMenu.Add(new TextMenu.SubHeader("Current Chapter"));
+                var button2 = new TextMenu.Button("Reset All Attempts");
                 button2.OnPressed = () => {
                     Instance.WipeChapterData();
                 };
                 subMenu.Add(button2);
 
-                var button3 = new TextMenu.Button("Wipe Chapter Golden Berry Deaths");
-                button3.OnPressed = () => {
+                var button4 = new TextMenu.Button("Reset All Golden Berry Deaths");
+                button4.OnPressed = () => {
                     Instance.WipeChapterGoldenBerryDeaths();
                 };
-                subMenu.Add(button3);
+                subMenu.Add(button4);
 
                 menu.Add(subMenu);
             }
