@@ -15,7 +15,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private static readonly int LOG_FILE_COUNT = 10;
 
         public static readonly string OverlayVersion = "1.1.1";
-        public static readonly string ModVersion = "1.3.2";
+        public static readonly string ModVersion = "1.3.3";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
