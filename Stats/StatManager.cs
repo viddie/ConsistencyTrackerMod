@@ -269,12 +269,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             return $"{res}%";
         }
-        public static string FormatPercentage(float f, int decimals = int.MaxValue) {
+        public static string FormatPercentage(double d, int decimals = int.MaxValue) {
             if (decimals == int.MaxValue) {
                 decimals = DecimalPlaces;
             }
 
-            double res = Math.Round(f * 100, decimals);
+            double res = Math.Round(d * 100, decimals);
 
             return $"{res}%";
         }

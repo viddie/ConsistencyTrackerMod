@@ -205,11 +205,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         // - already collected
         // - disappeared on death
         private void Strawberry_OnPlayer(On.Celeste.Strawberry.orig_OnPlayer orig, Strawberry self, Player player) {
+            orig(self, player);
+
             if (TouchedBerries.Contains(self.ID)) return; //to not spam the log
             TouchedBerries.Add(self.ID);
 
             Log($"[Strawberry.OnPlayer] Strawberry on player");
-            orig(self, player);
             SetRoomCompleted(resetOnDeath: true);
         }
 
