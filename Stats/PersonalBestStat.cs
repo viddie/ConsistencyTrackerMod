@@ -180,7 +180,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override List<StatFormat> GetStatExamples() {
             return new List<StatFormat>() {
                 new StatFormat("pb", $"Best runs: {{pb:best}} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
-                new StatFormat("pb-session", $"Best runs: {{pb:bestSession}} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+                new StatFormat("pb-session", $"Best runs (Session): {{pb:bestSession}} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
             };
         }
     }
