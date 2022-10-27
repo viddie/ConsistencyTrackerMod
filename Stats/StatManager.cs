@@ -281,5 +281,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string FormatBool(bool b) {
             return b ? $"True" : $"False";
         }
+
+        public static string GetFormattedRoomName(RoomInfo rInfo) {
+            return rInfo.GetFormattedRoomName(RoomNameType);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 
 namespace Celeste.Mod.ConsistencyTracker.Stats {
@@ -22,13 +23,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ColorGreen = "{chapter:color-green}";
         public static string ColorLightGreen = "{chapter:color-lightGreen}";
 
-        public static string ColorRedCP = "{checkpoint:color-red}";
-        public static string ColorYellowCP = "{checkpoint:color-yellow}";
-        public static string ColorGreenCP = "{checkpoint:color-green}";
-        public static string ColorLightGreenCP = "{checkpoint:color-lightGreen}";
+        public static string CheckpointColorRed = "{checkpoint:color-red}";
+        public static string CheckpointColorYellow = "{checkpoint:color-yellow}";
+        public static string CheckpointColorGreen = "{checkpoint:color-green}";
+        public static string CheckpointColorLightGreen = "{checkpoint:color-lightGreen}";
+
+        public static string ChapterListColorRed = "{chapter:listColor-red}";
+        public static string CheckpointListColorRed = "{checkpoint:listColor-red}";
+
         public static List<string> IDs = new List<string>() {
             ColorRed, ColorYellow, ColorGreen, ColorLightGreen,
-            ColorRedCP, ColorYellowCP, ColorGreenCP, ColorLightGreenCP
+            CheckpointColorRed, CheckpointColorYellow, CheckpointColorGreen, CheckpointColorLightGreen,
+            ChapterListColorRed, CheckpointListColorRed,
         };
 
         public SuccessRateColorsStat() : base(IDs) { }
@@ -40,10 +46,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.MissingPathFormat(format, ColorGreen);
                 format = StatManager.MissingPathFormat(format, ColorLightGreen);
 
-                format = StatManager.MissingPathFormat(format, ColorRedCP);
-                format = StatManager.MissingPathFormat(format, ColorYellowCP);
-                format = StatManager.MissingPathFormat(format, ColorGreenCP);
-                format = StatManager.MissingPathFormat(format, ColorLightGreenCP);
+                format = StatManager.MissingPathFormat(format, CheckpointColorRed);
+                format = StatManager.MissingPathFormat(format, CheckpointColorYellow);
+                format = StatManager.MissingPathFormat(format, CheckpointColorGreen);
+                format = StatManager.MissingPathFormat(format, CheckpointColorLightGreen);
+
+                format = StatManager.MissingPathFormat(format, ChapterListColorRed);
+                format = StatManager.MissingPathFormat(format, CheckpointListColorRed);
                 return format;
             }
 
@@ -51,11 +60,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             //Light Green, Green, Yellow, Red
             int[] colorCounts = new int[] { 0, 0, 0, 0 };
             int[] colorCountsCP = new int[] { 0, 0, 0, 0 };
-             
+
+            List<string> listColorRedChapter = new List<string>();
+            List<string> listColorRedCheckpoint = new List<string>();
+
             //Walk path
             bool foundRoom = false;
             foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
                 int[] tempColorCountsCp = new int[] { 0, 0, 0, 0 };
+                List<string> tempColorListCp = new List<string>();
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     RoomStats rStats = chapterStats.GetRoom(rInfo.DebugRoomName);
@@ -65,15 +78,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     if (successRate >= 0.95) {
                         colorCounts[0]++;
                         tempColorCountsCp[0]++;
+
                     } else if (successRate >= 0.8) {
                         colorCounts[1]++;
                         tempColorCountsCp[1]++;
+
                     } else if (successRate >= 0.5) {
                         colorCounts[2]++;
                         tempColorCountsCp[2]++;
+
                     } else {
                         colorCounts[3]++;
                         tempColorCountsCp[3]++;
+                        listColorRedChapter.Add(StatManager.GetFormattedRoomName(rInfo));
+                        tempColorListCp.Add(StatManager.GetFormattedRoomName(rInfo));
                     }
 
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
@@ -84,6 +102,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 if (foundRoom) {
                     foundRoom = false;
                     colorCountsCP = tempColorCountsCp;
+                    listColorRedCheckpoint = tempColorListCp;
                 }
             }
 
@@ -92,10 +111,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ColorYellow, $"{colorCounts[2]}");
             format = format.Replace(ColorRed, $"{colorCounts[3]}");
 
-            format = format.Replace(ColorLightGreenCP, $"{colorCountsCP[0]}");
-            format = format.Replace(ColorGreenCP, $"{colorCountsCP[1]}");
-            format = format.Replace(ColorYellowCP, $"{colorCountsCP[2]}");
-            format = format.Replace(ColorRedCP, $"{colorCountsCP[3]}");
+            if (chapterPath.CurrentRoom == null) {
+                format = StatManager.NotOnPathFormat(format, CheckpointColorLightGreen);
+                format = StatManager.NotOnPathFormat(format, CheckpointColorGreen);
+                format = StatManager.NotOnPathFormat(format, CheckpointColorYellow);
+                format = StatManager.NotOnPathFormat(format, CheckpointColorRed);
+
+                format = StatManager.NotOnPathFormat(format, CheckpointListColorRed);
+            } else {
+                format = format.Replace(CheckpointColorLightGreen, $"{colorCountsCP[0]}");
+                format = format.Replace(CheckpointColorGreen, $"{colorCountsCP[1]}");
+                format = format.Replace(CheckpointColorYellow, $"{colorCountsCP[2]}");
+                format = format.Replace(CheckpointColorRed, $"{colorCountsCP[3]}");
+
+                format = format.Replace(CheckpointListColorRed, $"{string.Join(", ", listColorRedCheckpoint)}");
+            }
+
+            format = format.Replace(ChapterListColorRed, $"{string.Join(", ", listColorRedChapter)}");
 
             return format;
         }
@@ -113,16 +145,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(ColorGreen, "Count of green rooms (success rate 80%-95%)"),
                 new KeyValuePair<string, string>(ColorLightGreen, "Count of light green rooms (success rate 95%-100%)"),
 
-                new KeyValuePair<string, string>(ColorRedCP, "Count of red rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(ColorYellowCP, "Count of yellow rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(ColorGreenCP, "Count of green rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(ColorLightGreenCP, "Count of light green rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointColorRed, "Count of red rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointColorYellow, "Count of yellow rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointColorGreen, "Count of green rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointColorLightGreen, "Count of light green rooms in the current checkpoint"),
+
+                new KeyValuePair<string, string>(ChapterListColorRed, "Lists all red rooms in the chapter by name"),
+                new KeyValuePair<string, string>(CheckpointListColorRed, "Lists all red rooms in the current checkpoint by name"),
             };
         }
         public override List<StatFormat> GetStatExamples() {
             return new List<StatFormat>() {
                 new StatFormat("color-tracker", $"Reds: {ColorRed}, Yellows: {ColorYellow}, Greens: {ColorGreen}, Light-Greens: {ColorLightGreen}"),
-                new StatFormat("color-tracker-cp", $"Checkpoint: Reds: {ColorRedCP}, Yellows: {ColorYellowCP}, Greens: {ColorGreenCP}, Light-Greens: {ColorLightGreenCP}")
+                new StatFormat("color-tracker-cp", $"Checkpoint: Reds: {CheckpointColorRed}, Yellows: {CheckpointColorYellow}, Greens: {CheckpointColorGreen}, Light-Greens: {CheckpointColorLightGreen}"),
+                new StatFormat("red-rooms-list", $"All red rooms: {ChapterListColorRed}\\nIn CP: {CheckpointListColorRed}")
             };
         }
     }
