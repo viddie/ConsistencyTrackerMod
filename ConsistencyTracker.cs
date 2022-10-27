@@ -33,6 +33,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if (value) {
                     if (DisabledInRoomName != CurrentRoomName) {
                         Path = new PathRecorder();
+                        InsertCheckpointIntoPath(null, LastRoomWithCheckpoint);
                         Path.AddRoom(CurrentRoomName);
                     }
                 } else {
@@ -53,9 +54,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         private PathInfo CurrentChapterPath;
         private ChapterStats CurrentChapterStats;
 
-        private string CurrentChapterName;
+        private string CurrentChapterDebugName;
         private string PreviousRoomName;
         private string CurrentRoomName;
+
+        private string LastRoomWithCheckpoint = null;
 
         private bool _CurrentRoomCompleted = false;
         private bool _CurrentRoomCompletedResetOnDeath = false;
@@ -228,9 +231,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
-            Log($"[Checkpoint.TurnOn] cp.Position={cp.Position}");
+            Log($"[Checkpoint.TurnOn] cp.Position={cp.Position}, LastRoomWithCheckpoint={LastRoomWithCheckpoint}");
             if (ModSettings.Enabled && DoRecordPath) {
-                Path.AddCheckpoint(cp);
+                InsertCheckpointIntoPath(cp, LastRoomWithCheckpoint);
             }
         }
 
@@ -290,11 +293,14 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_Begin(On.Celeste.Level.orig_Begin orig, Level level) {
             Log($"[Level.Begin] Calling ChangeChapter with 'level.Session'");
             ChangeChapter(level.Session);
-
             orig(level);
         }
 
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
+            if (levelDataNext.HasCheckpoint) {
+                LastRoomWithCheckpoint = levelDataNext.Name;
+            }
+
             string roomName = SanitizeRoomName(levelDataNext.Name);
             Log($"[Level.OnTransitionTo] levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
@@ -326,11 +332,19 @@ namespace Celeste.Mod.ConsistencyTracker {
             return name;
         }
 
-            private void ChangeChapter(Session session) {
-            Log($"[ChangeChapter] Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}");
+        private void ChangeChapter(Session session) {
+            Log($"[ChangeChapter] Called chapter change");
+            AreaData area = AreaData.Areas[session.Area.ID];
+            string chapName = area.Name;
+            string chapNameClean = chapName.DialogCleanOrNull() ?? chapName.SpacedPascalCase();
+            string campaignName = DialogExt.CleanLevelSet(area.GetLevelSet());
 
-            CurrentChapterName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");
+            Log($"[ChangeChapter] Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}, chapterNameClean->{chapNameClean}, campaignName->{campaignName}");
 
+            CurrentChapterDebugName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");
+
+            //string test2 = Dialog.Get($"luma_farewellbb_FarewellBB_b_intro");
+            //Log($"[ChangeChapter] Dialog Test 2: {test2}");
 
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
@@ -338,9 +352,19 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPath = GetPathInputInfo();
             CurrentChapterStats = GetCurrentChapterStats();
 
+            CurrentChapterStats.ChapterSID = session.MapData.Data.SID;
+            CurrentChapterStats.ChapterSIDDialogSanitized = SanitizeSIDForDialog(session.MapData.Data.SID);
+            CurrentChapterStats.ChapterName = chapNameClean;
+            CurrentChapterStats.CampaignName = campaignName;
+
             TouchedBerries.Clear();
 
             SetNewRoom(CurrentRoomName, false, false);
+            if (session.LevelData.HasCheckpoint) {
+                LastRoomWithCheckpoint = CurrentRoomName;
+            } else {
+                LastRoomWithCheckpoint = null;
+            }
 
             if (!DoRecordPath && ModSettings.RecordPath) {
                 DoRecordPath = true;
@@ -459,13 +483,13 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
         public bool PathInfoExists() {
-            string path = GetPathToFile($"paths/{CurrentChapterName}.txt");
+            string path = GetPathToFile($"paths/{CurrentChapterDebugName}.txt");
             return File.Exists(path);
         }
         public PathInfo GetPathInputInfo() {
-            Log($"[GetPathInputInfo] Fetching path info for chapter '{CurrentChapterName}'");
+            Log($"[GetPathInputInfo] Fetching path info for chapter '{CurrentChapterDebugName}'");
 
-            string path = GetPathToFile($"paths/{CurrentChapterName}.txt");
+            string path = GetPathToFile($"paths/{CurrentChapterDebugName}.txt");
             Log($"\tSearching for path '{path}'");
 
             if (File.Exists(path)) { //Parse File
@@ -487,22 +511,22 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public ChapterStats GetCurrentChapterStats() {
-            string path = GetPathToFile($"stats/{CurrentChapterName}.txt");
+            string path = GetPathToFile($"stats/{CurrentChapterDebugName}.txt");
 
-            bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterName);
-            ChaptersThisSession.Add(CurrentChapterName);
-            Log($"[GetCurrentChapterStats] CurrentChapterName: '{CurrentChapterName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
+            bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
+            ChaptersThisSession.Add(CurrentChapterDebugName);
+            Log($"[GetCurrentChapterStats] CurrentChapterName: '{CurrentChapterDebugName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
             ChapterStats toRet;
 
             if (File.Exists(path)) { //Parse File
                 string content = File.ReadAllText(path);
                 toRet = ChapterStats.ParseString(content);
-                toRet.ChapterName = CurrentChapterName;
+                toRet.ChapterDebugName = CurrentChapterDebugName;
 
             } else { //Create new
                 toRet = new ChapterStats() {
-                    ChapterName = CurrentChapterName,
+                    ChapterDebugName = CurrentChapterDebugName,
                 };
                 toRet.SetCurrentRoom(CurrentRoomName);
             }
@@ -530,12 +554,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.ModVersion = ModVersion;
 
 
-            string path = GetPathToFile($"stats/{CurrentChapterName}.txt");
+            string path = GetPathToFile($"stats/{CurrentChapterDebugName}.txt");
             File.WriteAllText(path, CurrentChapterStats.ToChapterStatsString());
 
             string modStatePath = GetPathToFile($"stats/modState.txt");
 
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterName};{CurrentChapterStats.ModState}\n";
+            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterDebugName};{CurrentChapterStats.ModState}\n";
             File.WriteAllText(modStatePath, content);
 
             StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
@@ -546,7 +570,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             bool hasPathInfo = PathInfoExists();
 
-            string relativeOutPath = $"summaries/{CurrentChapterName}.txt";
+            string relativeOutPath = $"summaries/{CurrentChapterDebugName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
 
             if (!hasPathInfo) {
@@ -568,7 +592,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"[WipeChapterData] Wiping death data for chapter '{CurrentChapterName}'");
+            Log($"[WipeChapterData] Wiping death data for chapter '{CurrentChapterDebugName}'");
 
             RoomStats currentRoom = CurrentChapterStats.CurrentRoom;
             List<string> toRemove = new List<string>();
@@ -604,7 +628,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"[WipeChapterGoldenBerryDeaths] Wiping golden berry death data for chapter '{CurrentChapterName}'");
+            Log($"[WipeChapterGoldenBerryDeaths] Wiping golden berry death data for chapter '{CurrentChapterDebugName}'");
 
             foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
                 CurrentChapterStats.Rooms[debugName].GoldenBerryDeaths = 0;
@@ -664,7 +688,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveRoomPath();
         }
         public void SaveRoomPath() {
-            string relativeOutPath = $"paths/{CurrentChapterName}.txt";
+            string relativeOutPath = $"paths/{CurrentChapterDebugName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
             File.WriteAllText(outPath, CurrentChapterPath.ToString());
             Log($"Wrote path data to '{relativeOutPath}'");
@@ -725,9 +749,33 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #endregion
 
+        #region Util
+        public static string SanitizeSIDForDialog(string sid) {
+            string bsSuffix = "_pqeijpvqie";
+            string dialogCleaned = Dialog.Get($"{sid}{bsSuffix}");
+            return dialogCleaned.Substring(1, sid.Length);
+        }
+
+        public void InsertCheckpointIntoPath(Checkpoint cp, string roomName) {
+            if (roomName == null) {
+                Path.AddCheckpoint(cp, PathRecorder.DefaultCheckpointName);
+                return;
+            }
+
+            string cpDialogName = $"{CurrentChapterStats.ChapterSIDDialogSanitized}_{roomName}";
+            //Log($"[Dialog Testing] cpDialogName: {cpDialogName}");
+            string cpName = Dialog.Get(cpDialogName);
+            //Log($"[Dialog Testing] Dialog.Get says: {cpName}");
+
+            if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
+
+            Path.AddCheckpoint(cp, cpName);
+        }
+        #endregion
+
 
         public class ConsistencyTrackerSettings : EverestModuleSettings {
-            public bool Enabled { get; set; } = false;
+            public bool Enabled { get; set; } = true;
 
             public bool PauseDeathTracking {
                 get => _PauseDeathTracking;

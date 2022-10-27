@@ -47,6 +47,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 return format;
             }
 
+
             //Light Green, Green, Yellow, Red
             int[] colorCounts = new int[] { 0, 0, 0, 0 };
             int[] colorCountsCP = new int[] { 0, 0, 0, 0 };

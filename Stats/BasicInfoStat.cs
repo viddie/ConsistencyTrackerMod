@@ -28,9 +28,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
      {checkpoint:goldenChance} path+
 
      {chapter:debugName}
+     {chapter:name}
      {chapter:goldenDeaths} path
      {chapter:goldenDeathsSession} path
      {chapter:goldenChance} path
+     
+     {campaign:name}
 
      "path" note means a recorded path is required for this stat
      "path+" note additionally means that the player needs to be ON the path for this stat
@@ -56,17 +59,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string CheckpointGoldenDeathsSession = "{checkpoint:goldenDeathsSession}";
         public static string CheckpointGoldenChance = "{checkpoint:goldenChance}";
 
+        public static string ChapterName = "{chapter:name}";
+        public static string ChapterSID = "{chapter:sid}";
+        public static string ChapterSanitizedSID = "{chapter:sidSanitized}";
         public static string ChapterDebugName = "{chapter:debugName}";
         public static string ChapterGoldenDeaths = "{chapter:goldenDeaths}";
         public static string ChapterGoldenDeathsSession = "{chapter:goldenDeathsSession}";
         public static string ChapterGoldenChance = "{chapter:goldenChance}";
+
+        public static string CampaignName = "{campaign:name}";
 
         public static List<string> IDs = new List<string>() {
             PlayerHoldingGolden,
             ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomName, RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
             CheckpointName, CheckpointAbbreviation, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
-            ChapterDebugName, ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance
+            ChapterName, ChapterDebugName, ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
+            CampaignName
         };
 
         public BasicInfoStat() : base(IDs) { }
@@ -83,7 +92,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(RoomGoldenDeaths, $"{chapterStats.CurrentRoom.GoldenBerryDeaths}");
             format = format.Replace(RoomGoldenDeathsSession, $"{chapterStats.CurrentRoom.GoldenBerryDeathsSession}");
 
-            format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterName}");
+            format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterDebugName}");
+            format = format.Replace(ChapterName, $"{chapterStats.ChapterName}");
+            format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
+            format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");
+            format = format.Replace(ChapterSanitizedSID, $"{chapterStats.ChapterSIDDialogSanitized}");
 
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, RoomName);
@@ -136,12 +149,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
 
-        //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n
-        //\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n
-        //\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})\n\n--- Mod State ---\nTracking Paused: {mod:trackingPaused}\nRecording Path: {mod:recordingPath}\nPlayer Holding Golden: {player:holdingGolden}\nMod Version: {mod:modVersion}\nOverlay Version: {mod:overlayVersion}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ChapterDebugName, "Debug name of the chapter"),
+                new KeyValuePair<string, string>(CampaignName, "Name of the campaign"),
+
+                new KeyValuePair<string, string>(ChapterName, "Name of the chapter"),
+                new KeyValuePair<string, string>(ChapterDebugName, "[DEV] Debug name of the chapter"),
+                new KeyValuePair<string, string>(ChapterSID, "[DEV] SID of chapter"),
+                new KeyValuePair<string, string>(ChapterSanitizedSID, "[DEV] Dialog sanitized SID of chapter"),
                 new KeyValuePair<string, string>(ChapterGoldenDeaths, "Golden Deaths in the chapter"),
                 new KeyValuePair<string, string>(ChapterGoldenDeathsSession, "Golden Deaths in the chapter in the current session"),
                 new KeyValuePair<string, string>(ChapterGoldenChance, "Golden Chance of the chapter"),
@@ -166,7 +181,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public override List<StatFormat> GetStatExamples() {
             return new List<StatFormat>() {
-                new StatFormat("basic-info", $"--- Chapter ---\nName: {ChapterDebugName}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
+                new StatFormat("basic-info", $"--- Chapter ---\nName: {ChapterName} ({ChapterDebugName})\nCampaign Name: {CampaignName}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
                 $"\n--- Checkpoint ---\nName: {CheckpointName} ({CheckpointAbbreviation})\nGolden Deaths: {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\nGolden Chance: {CheckpointGoldenChance}\n" +
                 $"\n--- Room ---\nName: {RoomName} ({RoomDebugName})\nGolden Deaths: {RoomGoldenDeaths} ({RoomGoldenDeathsSession})\n" +
                 $"\n--- Mod State ---\nTracking Paused: {ModTrackingPaused}\nRecording Path: {ModRecordingPath}\nPlayer Holding Golden: {PlayerHoldingGolden}\nMod Version: {ModModVersion}\nOverlay Version: {ModOverlayVersion}")

@@ -11,7 +11,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public static readonly int MAX_ATTEMPT_COUNT = 100;
         public static Action<string> LogCallback;
 
+        public string CampaignName { get; set; }
         public string ChapterName { get; set; }
+        public string ChapterSID { get; set; }
+        public string ChapterSIDDialogSanitized { get; set; }
+        public string ChapterDebugName { get; set; }
         public RoomStats CurrentRoom { get; set; }
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
 
@@ -95,7 +99,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         private Dictionary<string, int> UnvisitedRoomsToRoomNumber = new Dictionary<string, int>();
         public void OutputSummary(string outPath, PathInfo info, int attemptCount) {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Tracker summary for chapter '{ChapterName}'");
+            sb.AppendLine($"Tracker summary for chapter '{ChapterDebugName}'");
             sb.AppendLine($"");
             sb.AppendLine($"--- Golden Berry Deaths ---"); //Room->Checkpoint->Chapter + 1
 
