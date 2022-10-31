@@ -17,8 +17,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             new PersonalBestStat(),
             new ChokeRateStat(),
             new BasicInfoStat(),
+            new BasicPathlessInfo(),
             new RunGoldenChanceStat(),
             new SuccessRateColorsStat(),
+            new ListRoomNamesStat(),
+            new ListSuccessRatesStat(),
+            new ListChokeRatesStat(),
         };
 
         public static string BaseFolder = "live-data";
@@ -32,6 +36,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static int AttemptCount { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount; }
         public static int DecimalPlaces { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces; }
         public static bool IgnoreUnplayedRooms { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataIgnoreUnplayedRooms; }
+        public static ListFormat ListOutputFormat { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataListOutputFormat; }
+
 
         public Dictionary<StatFormat, List<Stat>> Formats;
 
@@ -198,7 +204,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 foreach (KeyValuePair<string, string> explanation in stat.GetPlaceholderExplanations()) {
                     prelude += $"# {explanation.Key} - {explanation.Value}\n";
                 }
-                prelude += $"# \n";
+
+                if (stat.GetPlaceholderExplanations().Count > 0)
+                    prelude += $"# \n";
 
                 foreach (StatFormat statFormat in stat.GetStatExamples()) {
                     formats.Add(statFormat, new List<Stat>());

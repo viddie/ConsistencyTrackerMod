@@ -70,34 +70,17 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string CampaignName = "{campaign:name}";
 
         public static List<string> IDs = new List<string>() {
-            PlayerHoldingGolden,
-            ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
-            RoomName, RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
+            //PlayerHoldingGolden,
+            //ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
+            RoomName, /*RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,*/
             CheckpointName, CheckpointAbbreviation, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
-            ChapterName, ChapterDebugName, ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
-            CampaignName
+            /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
+            //CampaignName
         };
 
         public BasicInfoStat() : base(IDs) { }
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
-            format = format.Replace(PlayerHoldingGolden, $"{StatManager.FormatBool(chapterStats.ModState.PlayerIsHoldingGolden)}");
-            format = format.Replace(ModTrackingPaused, $"{StatManager.FormatBool(chapterStats.ModState.DeathTrackingPaused)}");
-            format = format.Replace(ModRecordingPath, $"{StatManager.FormatBool(chapterStats.ModState.RecordingPath)}");
-            format = format.Replace(ModModVersion, $"{chapterStats.ModState.ModVersion}");
-            format = format.Replace(ModOverlayVersion, $"{chapterStats.ModState.OverlayVersion}");
-
-
-            format = format.Replace(RoomDebugName, $"{chapterStats.CurrentRoom.DebugRoomName}");
-            format = format.Replace(RoomGoldenDeaths, $"{chapterStats.CurrentRoom.GoldenBerryDeaths}");
-            format = format.Replace(RoomGoldenDeathsSession, $"{chapterStats.CurrentRoom.GoldenBerryDeathsSession}");
-
-            format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterDebugName}");
-            format = format.Replace(ChapterName, $"{chapterStats.ChapterName}");
-            format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
-            format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");
-            format = format.Replace(ChapterSanitizedSID, $"{chapterStats.ChapterSIDDialogSanitized}");
-
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, RoomName);
 
@@ -184,7 +167,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new StatFormat("basic-info", $"--- Chapter ---\nName: {ChapterName} ({ChapterDebugName})\nCampaign Name: {CampaignName}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
                 $"\n--- Checkpoint ---\nName: {CheckpointName} ({CheckpointAbbreviation})\nGolden Deaths: {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\nGolden Chance: {CheckpointGoldenChance}\n" +
                 $"\n--- Room ---\nName: {RoomName} ({RoomDebugName})\nGolden Deaths: {RoomGoldenDeaths} ({RoomGoldenDeathsSession})\n" +
-                $"\n--- Mod State ---\nTracking Paused: {ModTrackingPaused}\nRecording Path: {ModRecordingPath}\nPlayer Holding Golden: {PlayerHoldingGolden}\nMod Version: {ModModVersion}\nOverlay Version: {ModOverlayVersion}")
+                $"\n--- Mod State ---\nTracking Paused: {ModTrackingPaused}\nRecording Path: {ModRecordingPath}\nPlayer Holding Golden: {PlayerHoldingGolden}\nMod Version: {ModModVersion}\nOverlay Version: {ModOverlayVersion}"),
+                new StatFormat("current-map", $"Map: '{ChapterName}' from '{CampaignName}'"),
             };
         }
     }

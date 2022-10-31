@@ -923,6 +923,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             [SettingIgnore]
             public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
 
+            //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
+            [SettingIgnore]
+            public ListFormat LiveDataListOutputFormat { get; set; } = ListFormat.Json;
+
             [SettingIgnore]
             public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
 
@@ -971,6 +975,18 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                     OnValueChange = (value) => {
                         LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
+                    }
+                });
+
+
+                subMenu.Add(new TextMenu.SubHeader("Output format for lists. Plain is easily readable, JSON is for programming purposes"));
+                List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
+                    new KeyValuePair<int, string>((int)ListFormat.Plain, "Plain"),
+                    new KeyValuePair<int, string>((int)ListFormat.Json, "JSON"),
+                };
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("List Output Format", ListTypes, (int)LiveDataListOutputFormat) {
+                    OnValueChange = (value) => {
+                        LiveDataListOutputFormat = (ListFormat)value;
                     }
                 });
 

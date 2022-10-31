@@ -211,7 +211,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                             pbRoomsToFormatSession[pbNumberSession] = roomName;
                         }
                         if (pbRoomNumbersToFormatSession.ContainsKey(pbNumberSession)) {
-                            pbRoomNumbersToFormatSession[pbNumber] = $"{rInfo.RoomNumberInChapter}";
+                            pbRoomNumbersToFormatSession[pbNumberSession] = $"{rInfo.RoomNumberInChapter}";
                         }
                     }
                 }
