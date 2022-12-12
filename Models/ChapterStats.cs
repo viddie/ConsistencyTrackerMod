@@ -371,6 +371,25 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public float LastTwentyRate { get => AverageSuccessOverN(20); }
         public float MaxRate { get => AverageSuccessOverN(ChapterStats.MAX_ATTEMPT_COUNT); }
 
+        public int SuccessStreak {
+            get {
+                if (PreviousAttempts.Count == 0) return 0;
+
+                int count = 0;
+                bool success = PreviousAttempts[PreviousAttempts.Count - 1];
+                while (success) {
+                    count++;
+                    if (PreviousAttempts.Count == count) return count;
+                    success = PreviousAttempts[PreviousAttempts.Count - (1 + count)];
+                }
+
+                return count;
+            }
+            private set { }
+        }
+
+        public int DeathsInCurrentRun { get; set; } = 0;
+
         public int RoomNumber { get; set; }
 
         public float AverageSuccessOverN(int n) {

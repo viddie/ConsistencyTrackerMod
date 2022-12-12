@@ -285,8 +285,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"[Level.OnComplete] Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking)
+            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || _PlayerIsHoldingGolden))
                 CurrentChapterStats?.AddAttempt(true);
+            CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
         }
 
@@ -319,6 +320,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (ModSettings.Enabled) {
                 if (!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
                     CurrentChapterStats?.AddAttempt(false);
+
+                if(CurrentChapterStats != null)
+                    CurrentChapterStats.CurrentRoom.DeathsInCurrentRun++;
+
                 SaveChapterStats();
             }
         }
@@ -373,6 +378,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
             _PlayerIsHoldingGolden = holdingGolden;
+            CurrentChapterStats.ModState.ChapterCompleted = false;
 
             if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) { //Don't complete if entering previous room and current room was not completed
                 Log($"[SetNewRoom] Entered previous room '{PreviousRoomName}'");
@@ -548,6 +554,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterStats.ModState.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
+            CurrentChapterStats.ModState.GoldenDone = _PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
+
             CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
             CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
             CurrentChapterStats.ModState.OverlayVersion = OverlayVersion;
