@@ -75,7 +75,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                     float successRate = rStats.AverageSuccessOverSelectedN();
 
-                    if (successRate >= 0.95) {
+                    if (successRate >= 0.949999) {
                         colorCounts[0]++;
                         tempColorCountsCp[0]++;
 

@@ -11,6 +11,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     /*
      
      {player:holdingGolden}
+     {player:goldenDone}
+     {player:chapterCompleted}
+
      {mod:trackingPaused}
      {mod:recordingPath}
      {mod:modVersion}
@@ -40,8 +43,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
          */
 
     public class BasicPathlessInfo : Stat {
-
+        
         public static string PlayerHoldingGolden = "{player:holdingGolden}";
+        public static string PlayerGoldenDone = "{player:goldenDone}";
+        public static string PlayerChapterCompleted = "{player:chapterCompleted}";
+
         public static string ModTrackingPaused = "{mod:trackingPaused}";
         public static string ModRecordingPath = "{mod:recordingPath}";
         public static string ModModVersion = "{mod:modVersion}";
@@ -70,10 +76,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string CampaignName = "{campaign:name}";
 
         public static List<string> IDs = new List<string>() {
-            PlayerHoldingGolden,
+            PlayerHoldingGolden, PlayerGoldenDone, PlayerChapterCompleted,
             ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
-            ChapterName, ChapterDebugName,
+            ChapterName, ChapterDebugName, ChapterSID, ChapterSanitizedSID,
             CampaignName
         };
 
@@ -81,6 +87,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             format = format.Replace(PlayerHoldingGolden, $"{StatManager.FormatBool(chapterStats.ModState.PlayerIsHoldingGolden)}");
+            format = format.Replace(PlayerGoldenDone, $"{StatManager.FormatBool(chapterStats.ModState.GoldenDone)}");
+            format = format.Replace(PlayerChapterCompleted, $"{StatManager.FormatBool(chapterStats.ModState.ChapterCompleted)}");
+
             format = format.Replace(ModTrackingPaused, $"{StatManager.FormatBool(chapterStats.ModState.DeathTrackingPaused)}");
             format = format.Replace(ModRecordingPath, $"{StatManager.FormatBool(chapterStats.ModState.RecordingPath)}");
             format = format.Replace(ModModVersion, $"{chapterStats.ModState.ModVersion}");
