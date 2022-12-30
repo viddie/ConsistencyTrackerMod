@@ -33,6 +33,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string FormatSeparator = ";";
         public static string MissingPathOutput = "<path>";
         public static string NotOnPathOutput = "-";
+        public static string ValueNotAvailable = "-";
 
         public static bool HideFormatsWithoutPath { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataHideFormatsWithoutPath; }
         public static RoomNameDisplayType RoomNameType { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataRoomNameDisplayType; }

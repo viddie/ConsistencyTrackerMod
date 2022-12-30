@@ -19,12 +19,23 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public RoomStats CurrentRoom { get; set; }
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
         public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
+        public static Dictionary<string, Dictionary<int, double>> HighestRollingAverages { get; set; } = new Dictionary<string, Dictionary<int, double>>();
+
         public List<RoomStats> CurrentChapterLastGoldenRuns {
             get {
                 if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
                     LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
                 }
                 return LastGoldenRuns[ChapterDebugName];
+            }
+            private set { }
+        }
+        public Dictionary<int, double> CurrentChapterRollingAverages {
+            get {
+                if (!HighestRollingAverages.ContainsKey(ChapterDebugName)) {
+                    HighestRollingAverages.Add(ChapterDebugName, new Dictionary<int, double>());
+                }
+                return HighestRollingAverages[ChapterDebugName];
             }
             private set { }
         }

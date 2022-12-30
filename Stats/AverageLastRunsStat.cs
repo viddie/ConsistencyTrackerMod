@@ -23,6 +23,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ChapterAverageRunDistance = "{chapter:averageRunDistance}";
         public static string ChapterAverageRunDistanceSession = "{chapter:averageRunDistanceSession}";
 
+        public static string ChapterHighestAverageOver10Runs = "{chapter:highestAverageOver10Runs}";
+
         public static string ChapterAverageRunDistanceSessionOverX = @"\{chapter:averageRunDistanceSession#(.*?)\}";
         public static string ChapterLastRunDistanceOverX = @"\{chapter:lastRunDistance#(.*?)\}";
 
@@ -149,6 +151,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 if (lastRunNumbersToFormat.ContainsKey(runCountLastXSession)) {
                     lastRunNumbersToFormat[runCountLastXSession] = $"{rInfo.RoomNumberInChapter}";
                 }
+
+                if (runCountLastXSession == 10) {
+                    double avg = averageRunDistanceLastXSession / runCountLastXSession;
+                    if (!chapterStats.CurrentChapterRollingAverages.ContainsKey(10)) {
+                        chapterStats.CurrentChapterRollingAverages.Add(10, avg);
+                    } else if(avg > chapterStats.CurrentChapterRollingAverages[10]) {
+                        chapterStats.CurrentChapterRollingAverages[10] = avg;
+                    }
+                }
             }
 
 
@@ -187,6 +198,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ChapterAverageRunDistance, $"{StatManager.FormatDouble(averageRunDistance)}");
             format = format.Replace(ChapterAverageRunDistanceSession, $"{StatManager.FormatDouble(averageRunDistanceSession)}");
 
+            if (chapterStats.CurrentChapterRollingAverages.ContainsKey(10)) {
+                format = format.Replace(ChapterHighestAverageOver10Runs, $"{StatManager.FormatDouble(chapterStats.CurrentChapterRollingAverages[10])}");
+            } else {
+                format = format.Replace(ChapterHighestAverageOver10Runs, $"{StatManager.ValueNotAvailable}");
+            }
+
             return format;
         }
 
@@ -200,6 +217,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return new List<KeyValuePair<string, string>>() {
                 new KeyValuePair<string, string>(ChapterAverageRunDistance, "Average run distance over all runs ever"),
                 new KeyValuePair<string, string>(ChapterAverageRunDistanceSession, "Average run distance over all runs of the current session"),
+                new KeyValuePair<string, string>(ChapterHighestAverageOver10Runs, "The highest average distance over any 10 consecutive runs of the current session"),
                 new KeyValuePair<string, string>("{chapter:averageRunDistanceSession#X}", "Average run distance over the last X runs of the current session"),
                 new KeyValuePair<string, string>("{chapter:lastRunDistance#X}", "The room number of last run nr. X (e.g. {chapter:lastRunDistance#1} would give you the room number of the most recent golden run, #2 of the 2nd most recent, ...)"),
             };
@@ -209,6 +227,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new StatFormat("avg-run-distance", $"Avg. run distance: {ChapterAverageRunDistance}/{LiveProgressStat.ChapterRoomCount}" +
                 $"\nAvg. run distance: {ChapterAverageRunDistanceSession}/{LiveProgressStat.ChapterRoomCount}" +
                 $"\nAvg. over last 10 runs: {{chapter:averageRunDistanceSession#10}}/{LiveProgressStat.ChapterRoomCount}" +
+                $"\nHighest 10-run-average: {ChapterHighestAverageOver10Runs}/{LiveProgressStat.ChapterRoomCount}" +
                 $"\n\nLast runs (most recent run first):" +
                 $"\n{{chapter:lastRunDistance#1}}/{LiveProgressStat.ChapterRoomCount}" +
                 $"\n{{chapter:lastRunDistance#2}}/{LiveProgressStat.ChapterRoomCount}" +
