@@ -25,6 +25,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             new ListChokeRatesStat(),
             new ListCheckpointDeathsStat(),
             new StreakStat(),
+            new AverageLastRunsStat(),
         };
 
         public static string BaseFolder = "live-data";
@@ -290,6 +291,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public static string FormatBool(bool b) {
             return b ? $"True" : $"False";
+        }
+
+        public static string FormatFloat(float f) {
+            return FormatDouble(f);
+        }
+        public static string FormatDouble(double d) {
+            double res = Math.Round(d, DecimalPlaces);
+            return $"{res}";
         }
 
         public static string GetFormattedRoomName(RoomInfo rInfo) {

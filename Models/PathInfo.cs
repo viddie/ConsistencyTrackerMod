@@ -28,6 +28,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             };
         }
 
+        public RoomInfo FindRoom(RoomStats roomStats) {
+            return FindRoom(roomStats.DebugRoomName);
+        }
+        public RoomInfo FindRoom(string roomName) {
+            foreach (CheckpointInfo cpInfo in Checkpoints) {
+                RoomInfo rInfo = cpInfo.Rooms.Find((r) => r.DebugRoomName == roomName);
+                if (rInfo != null) return rInfo;
+            }
+
+            return null;
+        }
+
         public override string ToString() {
             List<string> lines = new List<string>();
 

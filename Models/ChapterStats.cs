@@ -18,6 +18,16 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string ChapterDebugName { get; set; }
         public RoomStats CurrentRoom { get; set; }
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
+        public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
+        public List<RoomStats> CurrentChapterLastGoldenRuns {
+            get {
+                if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
+                    LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
+                }
+                return LastGoldenRuns[ChapterDebugName];
+            }
+            private set { }
+        }
 
         public ModState ModState { get; set; } = new ModState();
 
@@ -36,6 +46,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public void AddGoldenBerryDeath() {
+            CurrentChapterLastGoldenRuns.Add(CurrentRoom);
             CurrentRoom.GoldenBerryDeaths++;
             CurrentRoom.GoldenBerryDeathsSession++;
         }
