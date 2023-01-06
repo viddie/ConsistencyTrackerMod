@@ -28,6 +28,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ChapterAverageRunDistanceSessionOverX = @"\{chapter:averageRunDistanceSession#(.*?)\}";
         public static string ChapterLastRunDistanceOverX = @"\{chapter:lastRunDistance#(.*?)\}";
 
+        public static ValuePlaceholder<int> ListRollingAverageRunDistances = new ValuePlaceholder<int>(@"\{list:rollingAverageRunDistances#(.*?)\}", "{list:rollingAverageRunDistances#(.*?)}");
+
         public static List<string> IDs = new List<string>() { ChapterAverageRunDistance, ChapterAverageRunDistanceSession };
 
         public AverageLastRunsStat() : base(IDs) {}
@@ -35,7 +37,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override bool ContainsIdentificator(string format) {
             if (format.Contains(ChapterAverageRunDistance) || format.Contains(ChapterAverageRunDistanceSession)) return true;
 
-            return Regex.IsMatch(format, ChapterAverageRunDistanceSessionOverX) || Regex.IsMatch(format, ChapterLastRunDistanceOverX);
+            return ListRollingAverageRunDistances.HasMatch(format) || Regex.IsMatch(format, ChapterAverageRunDistanceSessionOverX) || Regex.IsMatch(format, ChapterLastRunDistanceOverX);
         }
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
@@ -45,8 +47,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = Regex.Replace(format, ChapterAverageRunDistanceSessionOverX, StatManager.MissingPathOutput);
                 format = Regex.Replace(format, ChapterLastRunDistanceOverX, StatManager.MissingPathOutput);
+                format = ListRollingAverageRunDistances.ReplaceAll(format, StatManager.MissingPathOutput);
                 return format;
             }
+
 
             double averageRunDistance = 0;
             int countRunsTotal = 0;
@@ -170,13 +174,60 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             foreach (int nr in runCountsToFormatSession.Keys) {
                 string formatted = runCountsToFormatSession[nr];
                 if (formatted == null) {
-                    toSet.Add(nr, $"{StatManager.FormatDouble(leftOverAvg)}");
+                    if (runCountLastXSession == 0) {
+                        toSet.Add(nr, $"{StatManager.ValueNotAvailable}");
+                    } else {
+                        toSet.Add(nr, $"{StatManager.FormatDouble(leftOverAvg)}");
+                    }
                 }
             }
             foreach (var kv in toSet) {
                 runCountsToFormatSession[kv.Key] = kv.Value;
             }
 
+
+            // ========================================
+
+            List<int> matchList = ListRollingAverageRunDistances.GetMatchList(format);
+            Dictionary<int, string> rollingAverageOutputs = new Dictionary<int, string>();
+
+            foreach (int windowSize in matchList) {
+                int count = chapterStats.CurrentChapterLastGoldenRuns.Count;
+                if (count < windowSize || windowSize < 1) {
+                    rollingAverageOutputs.Add(windowSize, StatManager.ValueNotAvailable);
+                    continue;
+                }
+
+                List<double> graph = new List<double>();
+                int lastIndex = count - windowSize;
+
+                for (int i = 0; i <= lastIndex; i++) {
+                    double avg = 0;
+                    for (int j = 0; j < windowSize; j++) {
+                        int index = i + j;
+                        RoomStats rStats = chapterStats.CurrentChapterLastGoldenRuns[index];
+                        RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                        //ConsistencyTrackerModule.Instance.Log($"Adding to avg: index '{index}', index.RoomNumber '{rInfo.RoomNumberInChapter}'");
+                        avg += rInfo.RoomNumberInChapter;
+                    }
+                    //ConsistencyTrackerModule.Instance.Log($"Adding to graph: avg before '{avg}', windowSize '{windowSize}', avg '{avg / windowSize}'");
+                    graph.Add(avg / windowSize);
+                }
+
+
+                string output = string.Join(", ", graph);
+                switch (StatManager.ListOutputFormat) {
+                    case ListFormat.Plain:
+                        rollingAverageOutputs.Add(windowSize, output);
+                        break;
+                    case ListFormat.Json:
+                        rollingAverageOutputs.Add(windowSize, $"[{output}]");
+                        break;
+                }
+            }
+
+            format = ListRollingAverageRunDistances.ReplaceMatchException(format);
+            format = ListRollingAverageRunDistances.ValueReplaceAll(format, rollingAverageOutputs);
 
             // ========================================
 
