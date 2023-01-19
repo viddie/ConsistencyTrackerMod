@@ -9,6 +9,7 @@ using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Properties;
+using System.Drawing;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -89,6 +90,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             CheckFolderExists(GetPathToFolder("stats"));
             CheckFolderExists(GetPathToFolder("logs"));
             CheckFolderExists(GetPathToFolder("summaries"));
+
+            bool overlayFolderExisted = CheckFolderExists(GetPathToFolder("external-overlay"));
+            if (!overlayFolderExisted) {
+                CreateExternalOverlay();
+            }
+
 
             LogInit();
             Log($"~~~===============~~~");
@@ -648,10 +655,23 @@ namespace Celeste.Mod.ConsistencyTracker {
             CreatePathFile(nameof(Resources.Celeste_9_Core_CSide), Resources.Celeste_9_Core_CSide);
 
             CreatePathFile(nameof(Resources.Celeste_LostLevels_Normal), Resources.Celeste_LostLevels_Normal);
-        }
 
+        }
         private void CreatePathFile(string name, string content) {
             string path = GetPathToFile($"paths/{name}.txt");
+            File.WriteAllText(path, content);
+        }
+
+        public void CreateExternalOverlay() {
+            CreateOverlayFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
+            CreateOverlayFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
+            CreateOverlayFile("CCTOverlay.js", Resources.CCTOverlay_JS);
+            CreateOverlayFile("common.js", Resources.CCT_common_JS);
+            CheckFolderExists(GetPathToFolder($"external-overlay/img"));
+            Resources.goldberry_GIF.Save(GetPathToFile($"external-overlay/img/goldberry.gif"));
+        }
+        private void CreateOverlayFile(string name, string content) {
+            string path = GetPathToFile($"external-overlay/{name}");
             File.WriteAllText(path, content);
         }
 

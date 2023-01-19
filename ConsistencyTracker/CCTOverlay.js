@@ -215,6 +215,13 @@ function fetchSettings(){ //Called once per second
             
             applySettings();
             intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
+            fetch('http://localhost:32270/cct/info')
+                .then((response) => {
+                    console.log(response);
+                    return response.json();
+                })
+                .then((data) => console.log(data));
+
         }
     };
     xhr.send();
@@ -222,73 +229,137 @@ function fetchSettings(){ //Called once per second
 
 var checkedForUpdate = false; //Flag to prevent multiple update checks
 var updateSkipCounter = -1; //Counter to delay start of usual overlay stuff
-function fetchModState(){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './stats/modState.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
-                previousRoomName = currentRoomName;
+// function fetchModState(){ //Called once per second
+//     var xhr = new XMLHttpRequest();
+//     xhr.open('GET', './stats/modState.txt', true);
+//     xhr.onreadystatechange = function() {
+//         if (xhr.readyState == 4) {
+//             if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
+//                 previousRoomName = currentRoomName;
 
-                var newCurrentRoom = parseRoomData(xhr.responseText, true, "stats-display");
-                modState = newCurrentRoom.state;
+//                 var newCurrentRoom = parseRoomData(xhr.responseText, true, "stats-display");
+//                 modState = newCurrentRoom.state;
 
-                var hasUpdate = updateModState();
-                if(!checkedForUpdate && hasUpdate){
-                    checkedForUpdate = true;
-                    var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
-                    var timeToSkip = 5 * 1000;
-                    updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
+//                 var hasUpdate = updateModState();
+//                 if(!checkedForUpdate && hasUpdate){
+//                     checkedForUpdate = true;
+//                     var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
+//                     var timeToSkip = 5 * 1000;
+//                     updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
 
-                    document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
-                }
-                if(updateSkipCounter > 0){
-                    updateSkipCounter--;
-                    return;
-                }
+//                     document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
+//                 }
+//                 if(updateSkipCounter > 0){
+//                     updateSkipCounter--;
+//                     return;
+//                 }
 
 
-                if(currentRoomName != null)
-                    previousRoomRaw = getCurrentRoom();
-                setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
+//                 if(currentRoomName != null)
+//                     previousRoomRaw = getCurrentRoom();
+//                 setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
 
-                var roomToDisplayStats = null;
-                var isSelecting = false;
-                if(currentSelectedRoomName != null){
-                    roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
-                    isSelecting = true;
-                }
+//                 var roomToDisplayStats = null;
+//                 var isSelecting = false;
+//                 if(currentSelectedRoomName != null){
+//                     roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
+//                     isSelecting = true;
+//                 }
 
-                if(roomToDisplayStats == null || roomToDisplayStats == undefined){
-                    roomToDisplayStats = getCurrentRoom();
-                    isSelecting = false;
-                }
+//                 if(roomToDisplayStats == null || roomToDisplayStats == undefined){
+//                     roomToDisplayStats = getCurrentRoom();
+//                     isSelecting = false;
+//                 }
 
-                var textLeft = getSettingValueOrDefault("text-format-left");
-                updateStatsText("stats-left", textLeft, roomToDisplayStats, isSelecting);
+//                 var textLeft = getSettingValueOrDefault("text-format-left");
+//                 updateStatsText("stats-left", textLeft, roomToDisplayStats, isSelecting);
                 
-                var textMiddle = getSettingValueOrDefault("text-format-center");
-                updateStatsText("stats-center", textMiddle, roomToDisplayStats, isSelecting);
+//                 var textMiddle = getSettingValueOrDefault("text-format-center");
+//                 updateStatsText("stats-center", textMiddle, roomToDisplayStats, isSelecting);
                 
-                var textRight = getSettingValueOrDefault("text-format-right");
-                updateStatsText("stats-right", textRight, roomToDisplayStats, isSelecting);
+//                 var textRight = getSettingValueOrDefault("text-format-right");
+//                 updateStatsText("stats-right", textRight, roomToDisplayStats, isSelecting);
 
-                displayRoomAttempts(roomToDisplayStats);
+//                 displayRoomAttempts(roomToDisplayStats);
 
 
-                if((previousRoomName != null && previousChapterName != modState.chapterName) || (previousRoomName == null && currentRoomName != null) || currentChapterPath == null){
-                    //Update the chapter layout
-                    previousChapterName = modState.chapterName;
-                    updateChapterLayout(modState.chapterName);
+//                 if((previousRoomName != null && previousChapterName != modState.chapterName) || (previousRoomName == null && currentRoomName != null) || currentChapterPath == null){
+//                     //Update the chapter layout
+//                     previousChapterName = modState.chapterName;
+//                     updateChapterLayout(modState.chapterName);
                     
-                } else if(previousRoomName != null && !areRoomsEqual(previousRoomRaw, getCurrentRoom())){
-                    //Update only one room
-                    updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
-                }
-            }
+//                 } else if(previousRoomName != null && !areRoomsEqual(previousRoomRaw, getCurrentRoom())){
+//                     //Update only one room
+//                     updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
+//                 }
+//             }
+//         }
+//     };
+//     xhr.send();
+// }
+function fetchModState(){ //Called once per second
+    var url = "http://localhost:32270/cct/state";
+    fetch(url).then((response) => {
+        return response.text();
+    }).then((responseText) => {
+        previousRoomName = currentRoomName;
+
+        var newCurrentRoom = parseRoomData(responseText, true, "stats-display");
+        modState = newCurrentRoom.state;
+
+        var hasUpdate = updateModState();
+        if(!checkedForUpdate && hasUpdate){
+            checkedForUpdate = true;
+            var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
+            var timeToSkip = 5 * 1000;
+            updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
+
+            document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
         }
-    };
-    xhr.send();
+        if(updateSkipCounter > 0){
+            updateSkipCounter--;
+            return;
+        }
+
+
+        if(currentRoomName != null)
+            previousRoomRaw = getCurrentRoom();
+        setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
+
+        var roomToDisplayStats = null;
+        var isSelecting = false;
+        if(currentSelectedRoomName != null){
+            roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
+            isSelecting = true;
+        }
+
+        if(roomToDisplayStats == null || roomToDisplayStats == undefined){
+            roomToDisplayStats = getCurrentRoom();
+            isSelecting = false;
+        }
+
+        var textLeft = getSettingValueOrDefault("text-format-left");
+        updateStatsText("stats-left", textLeft, roomToDisplayStats, isSelecting);
+        
+        var textMiddle = getSettingValueOrDefault("text-format-center");
+        updateStatsText("stats-center", textMiddle, roomToDisplayStats, isSelecting);
+        
+        var textRight = getSettingValueOrDefault("text-format-right");
+        updateStatsText("stats-right", textRight, roomToDisplayStats, isSelecting);
+
+        displayRoomAttempts(roomToDisplayStats);
+
+
+        if((previousRoomName != null && previousChapterName != modState.chapterName) || (previousRoomName == null && currentRoomName != null) || currentChapterPath == null){
+            //Update the chapter layout
+            previousChapterName = modState.chapterName;
+            updateChapterLayout(modState.chapterName);
+            
+        } else if(previousRoomName != null && !areRoomsEqual(previousRoomRaw, getCurrentRoom())){
+            //Update only one room
+            updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
+        }
+    });
 }
 
 function updateModState(){
@@ -392,6 +463,10 @@ function updateStatsText(targetId, text, room, isSelecting){
 
         var rateNumber = getSelectedRateNumber();
 
+        //colors: light-green, green, yellow, red
+        //at cutoff values: 0.95, 0.9, 0.5, 0
+        var colorCounts = [0, 0, 0, 0];
+
         //Iterate the object currentChapterRoomObjs
         for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
             var roomsObj = currentChapterPath[checkpointIndex].rooms;
@@ -459,6 +534,18 @@ function updateStatsText(targetId, text, room, isSelecting){
                         }
                     }
                 }
+
+                //Count colors
+                var rate = getSelectedRateOfRoom(roomObj);
+                if(rate >= 0.95){
+                    colorCounts[0]++;
+                } else if(rate >= 0.9){
+                    colorCounts[1]++;
+                } else if(rate >= 0.5){
+                    colorCounts[2]++;
+                } else {
+                    colorCounts[3]++;
+                }
             }
         }
 
@@ -483,6 +570,12 @@ function updateStatsText(targetId, text, room, isSelecting){
         text = replaceAll(text, "{chapter:goldenDeathsSession}", gbDeathsChapterSession);
         text = replaceAll(text, "{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
         text = replaceAll(text, "{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
+        
+        //Colors
+        text = replaceAll(text, "{chapter:light-greens}", colorCounts[0]);
+        text = replaceAll(text, "{chapter:greens}", colorCounts[1]);
+        text = replaceAll(text, "{chapter:yellows}", colorCounts[2]);
+        text = replaceAll(text, "{chapter:reds}", colorCounts[3]);
 
         text = replaceAll(text, "{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
         text = replaceAll(text, "{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
@@ -547,56 +640,66 @@ function updateStatsText(targetId, text, room, isSelecting){
 
 
 
-function updateChapterLayout(chapterName){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './stats/'+chapterName+'.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if(xhr.status === 200 || xhr.status == 0)
-            {
-                var roomStrings = xhr.responseText.split("\n");
-                currentChapterRoomObjs = {};
-                currentChapterElements = {};
-                for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-                    if(roomStrings[i].trim() == "") continue;
-                    var room = parseRoomData(roomStrings[i], false);
-                    currentChapterRoomObjs[room.name] = room;
-                }
-                var currentRoom = parseRoomData(roomStrings[0], false);
-                setCurrentRoom(currentRoom, currentRoom.name);
+// function updateChapterLayout(chapterName){ //Called once per second
+//     var xhr = new XMLHttpRequest();
+//     xhr.open('GET', './stats/'+chapterName+'.txt', true);
+//     xhr.onreadystatechange = function() {
+//         if (xhr.readyState == 4) {
+//             if(xhr.status === 200 || xhr.status == 0)
+//             {
+//                 var roomStrings = xhr.responseText.split("\n");
+//                 currentChapterRoomObjs = {};
+//                 currentChapterElements = {};
+//                 for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+//                     if(roomStrings[i].trim() == "") continue;
+//                     var room = parseRoomData(roomStrings[i], false);
+//                     currentChapterRoomObjs[room.name] = room;
+//                 }
+//                 var currentRoom = parseRoomData(roomStrings[0], false);
+//                 setCurrentRoom(currentRoom, currentRoom.name);
 
-                getChapterPath(chapterName, currentChapterRoomObjs);
-            }
+//                 getChapterPath(chapterName, currentChapterRoomObjs);
+//             }
+//         }
+//     };
+//     xhr.send();
+// }
+function updateChapterLayout(chapterName){ //Called once per second
+    var url = "http://localhost:32270/cct/currentChapterStats";
+    fetch(url).then((response) => response.text()).then((responseText) => {
+        var roomStrings = responseText.split("\n");
+        currentChapterRoomObjs = {};
+        currentChapterElements = {};
+        for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+            if(roomStrings[i].trim() == "") continue;
+            var room = parseRoomData(roomStrings[i], false);
+            currentChapterRoomObjs[room.name] = room;
         }
-    };
-    xhr.send();
+        var currentRoom = parseRoomData(roomStrings[0], false);
+        setCurrentRoom(currentRoom, currentRoom.name);
+
+        getChapterPath(chapterName, currentChapterRoomObjs);
+    });
 }
 
 function getChapterPath(chapterName, roomObjects){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './paths/'+chapterName+'.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if(xhr.status === 200 || xhr.status == 0)
-            {
-                if(xhr.responseText == ""){ //File was not found or was empty
-                    currentChapterPath = null;
-                    currentCheckpointObj = null;
-                    currentCheckpointRoomIndex = null;
-                    
-                    document.getElementById("chapter-container").innerHTML = "Path info not found";
-                    hideGoldenShareDisplay();
-                    hideGoldenPBDisplay();
-                } else {
-                    currentChapterPath = parseChapterPath(xhr.responseText);
-                    displayRoomObjects(roomObjects);
-                    applySettingsForGoldenShareDisplay();
-                    applySettingsForGoldenPBDisplay();
-                }
-            }
+    var url = "http://localhost:32270/cct/currentChapterPath";
+    fetch(url).then((response) => response.text()).then((responseText) => {
+        if(responseText == ""){ //File was not found or was empty
+            currentChapterPath = null;
+            currentCheckpointObj = null;
+            currentCheckpointRoomIndex = null;
+            
+            document.getElementById("chapter-container").innerHTML = "Path info not found";
+            hideGoldenShareDisplay();
+            hideGoldenPBDisplay();
+        } else {
+            currentChapterPath = parseChapterPath(responseText);
+            displayRoomObjects(roomObjects);
+            applySettingsForGoldenShareDisplay();
+            applySettingsForGoldenPBDisplay();
         }
-    };
-    xhr.send();
+    });
 }
 
 
@@ -695,7 +798,7 @@ function displayRoomObjects(roomObjs){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("checkpoint-element");
-            checkpointElement.style.flexGrow = (5 * borderMult) + "";
+            checkpointElement.style.flex = (5 * borderMult) + "";
             container.appendChild(checkpointElement);
         }
         
@@ -738,7 +841,7 @@ function displayRoomObjects(roomObjs){
             if(roomIndex != roomsObj.length - 1){ //Skip border element for last room
                 var borderElement = document.createElement("div");
                 borderElement.classList.add("border-element");
-                borderElement.style.flexGrow = (3 * borderMult) + "";
+                borderElement.style.flex = (3 * borderMult) + "";
                 container.appendChild(borderElement);
             }
         }
@@ -772,7 +875,7 @@ function displayGoldenPBs(borderMult){
             checkpointElement = document.createElement("div");
             checkpointElement.classList.add("checkpoint-element");
             checkpointElement.classList.add("pb");
-            checkpointElement.style.flexGrow = (5 * borderMult) + "";
+            checkpointElement.style.flex = (5 * borderMult) + "";
             container.appendChild(checkpointElement);
         }
         
@@ -785,7 +888,7 @@ function displayGoldenPBs(borderMult){
                 var borderElement = document.createElement("div");
                 borderElement.classList.add("border-element");
                 borderElement.classList.add("pb");
-                borderElement.style.flexGrow = (3 * borderMult) + "";
+                borderElement.style.flex = (3 * borderMult) + "";
                 container.appendChild(borderElement);
                 borderElementRef = borderElement;
             } else if(checkpointIndex != 0){
@@ -851,7 +954,7 @@ function displayGoldenShares(borderMult){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("golden-share-checkpoint-delim");
-            checkpointElement.style.flexGrow = (5 * borderMult) + "";
+            checkpointElement.style.flex = (5 * borderMult) + "";
             container.appendChild(checkpointElement);
         }
         
@@ -859,7 +962,7 @@ function displayGoldenShares(borderMult){
 
         var checkpointElement = document.createElement("div");
         checkpointElement.classList.add("golden-share-checkpoint");
-        checkpointElement.style.flexGrow = checkpointObj.rooms.length * 50 + (checkpointObj.rooms.length-1) * (3 * borderMult);
+        checkpointElement.style.flex = checkpointObj.rooms.length * 50 + (checkpointObj.rooms.length-1) * (3 * borderMult);
         container.appendChild(checkpointElement);
 
         var checkpointName = checkpointObj.name;
@@ -999,28 +1102,43 @@ function updateRoomInLayout(previousRoom, currentRoom){
 }
 
 //Fetches the current chapter stats and calls an update with the room objects
-function updateChapterStats(chapterName){
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './stats/'+chapterName+'.txt', true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if(xhr.status === 200 || xhr.status == 0)
-            {
+// function updateChapterStats(chapterName){
+//     var xhr = new XMLHttpRequest();
+//     xhr.open('GET', './stats/'+chapterName+'.txt', true);
+//     xhr.onreadystatechange = function() {
+//         if (xhr.readyState == 4) {
+//             if(xhr.status === 200 || xhr.status == 0)
+//             {
                 
-                var roomStrings = xhr.responseText.split("\n");
-                currentChapterRoomObjs = {};
+//                 var roomStrings = xhr.responseText.split("\n");
+//                 currentChapterRoomObjs = {};
 
-                for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-                    if(roomStrings[i].trim() == "") continue;
-                    var room = parseRoomData(roomStrings[i], false);
-                    currentChapterRoomObjs[room.name] = room;
-                }
+//                 for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+//                     if(roomStrings[i].trim() == "") continue;
+//                     var room = parseRoomData(roomStrings[i], false);
+//                     currentChapterRoomObjs[room.name] = room;
+//                 }
 
-                updateRoomObjects(currentChapterRoomObjs);
-            }
+//                 updateRoomObjects(currentChapterRoomObjs);
+//             }
+//         }
+//     };
+//     xhr.send();
+// }
+function updateChapterStats(chapterName){
+    var url = "http://localhost:32270/cct/currentChapterStats";
+    fetch(url).then((response) => response.text()).then((responseText) => {
+        var roomStrings = responseText.split("\n");
+        currentChapterRoomObjs = {};
+
+        for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+            if(roomStrings[i].trim() == "") continue;
+            var room = parseRoomData(roomStrings[i], false);
+            currentChapterRoomObjs[room.name] = room;
         }
-    };
-    xhr.send();
+
+        updateRoomObjects(currentChapterRoomObjs);
+    });
 }
 
 //Updates the already existing HTML elements with new data

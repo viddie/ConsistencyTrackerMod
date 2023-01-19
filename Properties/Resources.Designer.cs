@@ -61,6 +61,104 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 
+        ///
+        ///function parseRoomData(roomString, hasState, targetLogId){
+        ///    //Example roomString: &quot;name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled;version;holdingGolden&quot;
+        ///
+        ///    var roomLine = null;
+        ///    var roomObj = {};
+        ///
+        ///    if(hasState){
+        ///        var splitData = roomString.split(&quot;\n&quot;);
+        ///        roomLine = splitData[0];
+        ///        var state = splitData[1].trim();
+        ///        roomObj.state = {};
+        ///
+        ///        var stateSplit = state.split(&quot;;&quot;);
+        ///        roomObj.state.chapt [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CCT_common_JS {
+            get {
+                return ResourceManager.GetString("CCT_common_JS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to body {
+        ///    height: 100%;
+        ///    width: 100%;
+        ///    display: flex;
+        ///    flex-direction: column;
+        ///    justify-content: center;
+        ///    align-items: center;
+        ///    margin: 0;
+        ///    color: white;
+        ///    /* background-color: black; */
+        ///}
+        ///
+        ///.hidden {
+        ///    display: none;
+        ///}
+        ///
+        ////* ===== TEXT STATS DISPLAY ===== */
+        ///
+        ///#stats-display {
+        ///    width: 100%;
+        ///    color: white;
+        ///    font-weight: bold;
+        ///    font-size: 2rem;
+        ///    text-shadow: #000 0px 0px 2px,   #000 0px 0px 2px,   #000 0px 0px 2px,
+        ///                 #000 0px 0px 2px [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CCTOverlay_CSS {
+            get {
+                return ResourceManager.GetString("CCTOverlay_CSS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;
+        ///&lt;head&gt;
+        ///	&lt;title&gt;Consistency Overlay&lt;/title&gt;
+        ///	&lt;script src=&quot;common.js&quot;&gt;&lt;/script&gt;
+        ///	&lt;script src=&quot;CCTOverlay.js&quot;&gt;&lt;/script&gt;
+        ///	&lt;!-- Load stylesheet from &apos;PlainOverlay.css&apos; --&gt;
+        ///	&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;CCTOverlay.css&quot;&gt;
+        ///&lt;/head&gt;
+        ///&lt;body id=&quot;body&quot;&gt;
+        ///	&lt;div id=&quot;stats-display&quot;&gt;
+        ///		&lt;div id=&quot;stats-left&quot;&gt;&lt;/div&gt;
+        ///		&lt;div id=&quot;stats-center&quot;&gt;CCT - by viddie&lt;/div&gt;
+        ///		&lt;div id=&quot;stats-right&quot;&gt;&lt;/div&gt;
+        ///	&lt;/div&gt;
+        ///	&lt;div id=&quot;room-attempts-container&quot;&gt;
+        ///		&lt;div class=&quot;room-attempts-start-end&quot;&gt;
+        ///			New ➔
+        ///		&lt;/di [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CCTOverlay_HTML {
+            get {
+                return ResourceManager.GetString("CCTOverlay_HTML", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to let settings = {};
+        ///let defaultSettings = {
+        ///    &quot;base&quot;: {
+        ///        &quot;attempts&quot;: &quot;20&quot;,
+        ///        &quot;refresh-time-ms&quot;: 1000,
+        ///        &quot;text-format-left&quot;: &quot;GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]&lt;br&gt;Choke Rate: {room:goldenChokeRate}%&lt;br&gt;PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})&quot;,
+        ///        &quot;text-format-center&quot;: &quot;{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate} [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CCTOverlay_JS {
+            get {
+                return ResourceManager.GetString("CCTOverlay_JS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Start;ST;5;00,01,02,02b,03
         ///Contraption;CT;5;04,05,05b,06,07
         ///Scrap Pit;SP;6;08,08b,09,10,11,end
@@ -360,6 +458,16 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         internal static string Celeste_LostLevels_Normal {
             get {
                 return ResourceManager.GetString("Celeste_LostLevels_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap goldberry_GIF {
+            get {
+                object obj = ResourceManager.GetObject("goldberry_GIF", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

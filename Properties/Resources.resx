@@ -118,6 +118,18 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="CCTOverlay_CSS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\CCTOverlay.css;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="CCTOverlay_HTML" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\CCTOverlay.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="CCTOverlay_JS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\CCTOverlay.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="CCT_common_JS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\common.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="Celeste_1_ForsakenCity_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\paths\Celeste_1-ForsakenCity_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
@@ -192,6 +204,9 @@
   </data>
   <data name="Celeste_LostLevels_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\paths\Celeste_LostLevels_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="goldberry_GIF" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\img\goldberry.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="nameguysdsidespack_0_1_City" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\paths\nameguysdsidespack_0_1-City.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
