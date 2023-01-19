@@ -1,0 +1,5 @@
+Start;ST;8;a-00b,a-00d,a-00c,a-00,a-01,a-08,a-12,a-13
+Depths;DP;7;b-00,b-01,b-01b,b-02,b-06,b-19,b-14
+Unravelling;UR;12;b-16,c-01,c-01b,c-01c,c-08b,c-08,c-10,c-12,c-07,c-11,c-09,c-13
+Search;SC;7;d-00,d-01,d-04,d-19b,d-19,d-10,d-20
+Rescue;RS;12;e-00,e-01,e-02,e-03,e-04,e-06,e-05,e-07,e-08,e-09,e-10,e-11

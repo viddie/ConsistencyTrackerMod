@@ -14,12 +14,24 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public bool RecordingPath { get; set; } = false;
         public string OverlayVersion { get; set; } = null;
         public string ModVersion { get; set; } = null;
-        
+        public bool ChapterHasPath { get; set; } = false;
+
 
         //{ModSettings.PauseDeathTracking};{ModSettings.RecordPath};{OverlayVersion};{_PlayerIsHoldingGolden}
         public override string ToString() {
             return $"{DeathTrackingPaused};{RecordingPath};{OverlayVersion};{PlayerIsHoldingGolden}";
         }
 
+        public string ToJson() {
+            return $"{{ \"deathTrackingPaused\":{JsonFormatBool(DeathTrackingPaused)}" +
+                $", \"recordingPath\":{JsonFormatBool(RecordingPath)}" +
+                $", \"overlayVersion\":\"{OverlayVersion}\"" +
+                $", \"playerIsHoldingGolden\":{JsonFormatBool(PlayerIsHoldingGolden)}" +
+                $", \"chapterHasPath\":{JsonFormatBool(ChapterHasPath)} }}";
+        }
+
+        private string JsonFormatBool(bool b) {
+            return b ? "true" : "false";
+        }
     }
 }

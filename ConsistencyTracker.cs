@@ -7,6 +7,8 @@ using System.Linq;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using Celeste.Mod.ConsistencyTracker.Properties;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -15,7 +17,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private static readonly int LOG_FILE_COUNT = 10;
 
         public static readonly string OverlayVersion = "1.1.1";
-        public static readonly string ModVersion = "1.3.8";
+        public static readonly string ModVersion = "1.4.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -51,12 +53,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region State Variables
 
-        private PathInfo CurrentChapterPath;
-        private ChapterStats CurrentChapterStats;
+        //Used to cache and prevent unnecessary operations via DebugRC
+        public long CurrentUpdateFrame;
 
-        private string CurrentChapterDebugName;
-        private string PreviousRoomName;
-        private string CurrentRoomName;
+        public PathInfo CurrentChapterPath;
+        public ChapterStats CurrentChapterStats;
+
+        public string CurrentChapterDebugName;
+        public string PreviousRoomName;
+        public string CurrentRoomName;
 
         private string LastRoomWithCheckpoint = null;
 
@@ -77,7 +82,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public override void Load() {
             CheckFolderExists(BaseFolderPath);
-            CheckFolderExists(GetPathToFolder("paths"));
+            bool pathsFolderExisted = CheckFolderExists(GetPathToFolder("paths"));
+            if (!pathsFolderExisted) {
+                CreatePrepackagedPaths();
+            }
             CheckFolderExists(GetPathToFolder("stats"));
             CheckFolderExists(GetPathToFolder("logs"));
             CheckFolderExists(GetPathToFolder("summaries"));
@@ -89,6 +97,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             HookStuff();
 
             StatsManager = new StatManager();
+
+            DebugRcPage.Load();
+        }
+
+        public override void Unload() {
+            UnHookStuff();
+            DebugRcPage.Unload();
         }
 
         private void HookStuff() {
@@ -169,10 +184,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (Everest.Modules.Any(m => m.Metadata.Name == "SpeedrunTool")) {
                 SpeedrunToolSupport.Load();
             }
-        }
-
-        public override void Unload() {
-            UnHookStuff();
         }
 
         #endregion
@@ -481,10 +492,16 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static string GetPathToFolder(string folder) {
             return BaseFolderPath + folder + "/";
         }
-        public static void CheckFolderExists(string folderPath) {
+        /// <summary>Checks the folder exists.</summary>
+        /// <param name="folderPath">The folder path.</param>
+        /// <returns>true when the folder already existed, false when a new folder has been created.</returns>
+        public static bool CheckFolderExists(string folderPath) {
             if (!Directory.Exists(folderPath)) {
                 Directory.CreateDirectory(folderPath);
+                return false;
             }
+
+            return true;
         }
 
 
@@ -553,6 +570,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
+            CurrentUpdateFrame++;
+
             CurrentChapterStats.ModState.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
             CurrentChapterStats.ModState.GoldenDone = _PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
 
@@ -560,6 +579,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
             CurrentChapterStats.ModState.OverlayVersion = OverlayVersion;
             CurrentChapterStats.ModState.ModVersion = ModVersion;
+            CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
 
 
             string path = GetPathToFile($"stats/{CurrentChapterDebugName}.txt");
@@ -588,6 +608,51 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
+        }
+
+        #endregion
+
+        #region Default Path Creation
+
+        public void CreatePrepackagedPaths() {
+            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_Normal), Resources.Celeste_1_ForsakenCity_Normal);
+            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_BSide), Resources.Celeste_1_ForsakenCity_BSide);
+            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_CSide), Resources.Celeste_1_ForsakenCity_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_2_OldSite_Normal), Resources.Celeste_2_OldSite_Normal);
+            CreatePathFile(nameof(Resources.Celeste_2_OldSite_BSide), Resources.Celeste_2_OldSite_BSide);
+            CreatePathFile(nameof(Resources.Celeste_2_OldSite_CSide), Resources.Celeste_2_OldSite_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_Normal), Resources.Celeste_3_CelestialResort_Normal);
+            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_BSide), Resources.Celeste_3_CelestialResort_BSide);
+            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_CSide), Resources.Celeste_3_CelestialResort_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_Normal), Resources.Celeste_4_GoldenRidge_Normal);
+            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_BSide), Resources.Celeste_4_GoldenRidge_BSide);
+            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_CSide), Resources.Celeste_4_GoldenRidge_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_Normal), Resources.Celeste_5_MirrorTemple_Normal);
+            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_BSide), Resources.Celeste_5_MirrorTemple_BSide);
+            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_CSide), Resources.Celeste_5_MirrorTemple_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_6_Reflection_Normal), Resources.Celeste_6_Reflection_Normal);
+            CreatePathFile(nameof(Resources.Celeste_6_Reflection_BSide), Resources.Celeste_6_Reflection_BSide);
+            CreatePathFile(nameof(Resources.Celeste_6_Reflection_CSide), Resources.Celeste_6_Reflection_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_7_Summit_Normal), Resources.Celeste_7_Summit_Normal);
+            CreatePathFile(nameof(Resources.Celeste_7_Summit_BSide), Resources.Celeste_7_Summit_BSide);
+            CreatePathFile(nameof(Resources.Celeste_7_Summit_CSide), Resources.Celeste_7_Summit_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_9_Core_Normal), Resources.Celeste_9_Core_Normal);
+            CreatePathFile(nameof(Resources.Celeste_9_Core_BSide), Resources.Celeste_9_Core_BSide);
+            CreatePathFile(nameof(Resources.Celeste_9_Core_CSide), Resources.Celeste_9_Core_CSide);
+
+            CreatePathFile(nameof(Resources.Celeste_LostLevels_Normal), Resources.Celeste_LostLevels_Normal);
+        }
+
+        private void CreatePathFile(string name, string content) {
+            string path = GetPathToFile($"paths/{name}.txt");
+            File.WriteAllText(path, content);
         }
 
         #endregion

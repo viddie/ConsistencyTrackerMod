@@ -483,6 +483,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string attemptList = string.Join(",", PreviousAttempts);
             return $"{DebugRoomName};{GoldenBerryDeaths};{GoldenBerryDeathsSession};{LastFiveRate};{LastTenRate};{LastTwentyRate};{MaxRate};{attemptList}";
         }
+        public string ToJson() {
+            string attemptList = string.Join(",", PreviousAttempts);
+            return $"{{\"debuRoomName\":\"{DebugRoomName}\"" +
+                $", \"goldenBerryDeaths\":{GoldenBerryDeaths}" +
+                $", \"goldenBerryDeathsSession\":{GoldenBerryDeathsSession}" +
+                $", \"lastFiveRate\":{LastFiveRate}" +
+                $", \"lastTenRate\":{LastTenRate}" +
+                $", \"lastTwentyRate\":{LastTwentyRate}" +
+                $", \"maxRate\":{MaxRate}" +
+                $", \"attemptList\":\"{attemptList}\"}}";
+        }
 
         public static RoomStats ParseString(string line) {
             //ChapterStats.LogCallback($"RoomStats -> Parsing line '{line}'");

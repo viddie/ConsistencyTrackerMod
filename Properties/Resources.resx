@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Celeste_1_ForsakenCity_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_1-ForsakenCity_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_1_ForsakenCity_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_1-ForsakenCity_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_1_ForsakenCity_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_1-ForsakenCity_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_2_OldSite_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_2-OldSite_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_2_OldSite_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_2-OldSite_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_2_OldSite_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_2-OldSite_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_3_CelestialResort_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_3-CelestialResort_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_3_CelestialResort_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_3-CelestialResort_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_3_CelestialResort_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_3-CelestialResort_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_4_GoldenRidge_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_4-GoldenRidge_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_4_GoldenRidge_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_4-GoldenRidge_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_4_GoldenRidge_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_4-GoldenRidge_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_5_MirrorTemple_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_5-MirrorTemple_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_5_MirrorTemple_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_5-MirrorTemple_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_5_MirrorTemple_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_5-MirrorTemple_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_6_Reflection_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_6-Reflection_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_6_Reflection_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_6-Reflection_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_6_Reflection_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_6-Reflection_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_7_Summit_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_7-Summit_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_7_Summit_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_7-Summit_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_7_Summit_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_7-Summit_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_9_Core_BSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_9-Core_BSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_9_Core_CSide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_9-Core_CSide.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_9_Core_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_9-Core_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Celeste_LostLevels_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\Celeste_LostLevels_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_1_City" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_1-City.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_1_City_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_1-City_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_2_Oldsite_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_2-Oldsite_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_3_Resort_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_3-Resort_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_4_Ridge_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_4-Ridge_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_7_Summit_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_7-Summit_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="nameguysdsidespack_0_8_Core_Normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\paths\nameguysdsidespack_0_8-Core_Normal.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+</root>
