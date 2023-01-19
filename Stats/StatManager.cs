@@ -291,7 +291,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return $"{res}%";
         }
         public static string FormatBool(bool b) {
-            return b ? $"True" : $"False";
+            return b ? $"true" : $"false";
         }
 
         public static string FormatFloat(float f) {

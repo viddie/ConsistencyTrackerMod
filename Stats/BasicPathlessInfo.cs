@@ -69,6 +69,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ChapterSID = "{chapter:sid}";
         public static string ChapterSanitizedSID = "{chapter:sidSanitized}";
         public static string ChapterDebugName = "{chapter:debugName}";
+        public static string ChapterHasPath = "{chapter:hasPath}";
         //public static string ChapterGoldenDeaths = "{chapter:goldenDeaths}";
         //public static string ChapterGoldenDeathsSession = "{chapter:goldenDeathsSession}";
         //public static string ChapterGoldenChance = "{chapter:goldenChance}";
@@ -79,7 +80,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             PlayerHoldingGolden, PlayerGoldenDone, PlayerChapterCompleted,
             ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
-            ChapterName, ChapterDebugName, ChapterSID, ChapterSanitizedSID,
+            ChapterName, ChapterDebugName, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
             CampaignName
         };
 
@@ -105,6 +106,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
             format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");
             format = format.Replace(ChapterSanitizedSID, $"{chapterStats.ChapterSIDDialogSanitized}");
+            format = format.Replace(ChapterHasPath, $"{StatManager.FormatBool(chapterPath != null)}");
+
+            
 
             return format;
         }
