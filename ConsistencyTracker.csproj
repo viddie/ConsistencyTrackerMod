@@ -19,40 +19,6 @@
     <PackageReference PrivateAssets="all" ExcludeAssets="runtime" />
     <Reference Private="false" />
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <None Remove="paths\Celeste_1-ForsakenCity_BSide.txt" />
-    <None Remove="paths\Celeste_1-ForsakenCity_CSide.txt" />
-    <None Remove="paths\Celeste_1-ForsakenCity_Normal.txt" />
-    <None Remove="paths\Celeste_2-OldSite_BSide.txt" />
-    <None Remove="paths\Celeste_2-OldSite_CSide.txt" />
-    <None Remove="paths\Celeste_2-OldSite_Normal.txt" />
-    <None Remove="paths\Celeste_3-CelestialResort_BSide.txt" />
-    <None Remove="paths\Celeste_3-CelestialResort_CSide.txt" />
-    <None Remove="paths\Celeste_3-CelestialResort_Normal.txt" />
-    <None Remove="paths\Celeste_4-GoldenRidge_BSide.txt" />
-    <None Remove="paths\Celeste_4-GoldenRidge_CSide.txt" />
-    <None Remove="paths\Celeste_4-GoldenRidge_Normal.txt" />
-    <None Remove="paths\Celeste_5-MirrorTemple_BSide.txt" />
-    <None Remove="paths\Celeste_5-MirrorTemple_CSide.txt" />
-    <None Remove="paths\Celeste_5-MirrorTemple_Normal.txt" />
-    <None Remove="paths\Celeste_6-Reflection_BSide.txt" />
-    <None Remove="paths\Celeste_6-Reflection_CSide.txt" />
-    <None Remove="paths\Celeste_6-Reflection_Normal.txt" />
-    <None Remove="paths\Celeste_7-Summit_BSide.txt" />
-    <None Remove="paths\Celeste_7-Summit_CSide.txt" />
-    <None Remove="paths\Celeste_7-Summit_Normal.txt" />
-    <None Remove="paths\Celeste_9-Core_BSide.txt" />
-    <None Remove="paths\Celeste_9-Core_CSide.txt" />
-    <None Remove="paths\Celeste_9-Core_Normal.txt" />
-    <None Remove="paths\Celeste_LostLevels_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_1-City.txt" />
-    <None Remove="paths\nameguysdsidespack_0_1-City_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_2-Oldsite_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_3-Resort_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_4-Ridge_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_7-Summit_Normal.txt" />
-    <None Remove="paths\nameguysdsidespack_0_8-Core_Normal.txt" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MonoMod" Version="21.08.19.01" />
@@ -72,105 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="paths\Celeste_1-ForsakenCity_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_1-ForsakenCity_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Resource Include="paths\Celeste_1-ForsakenCity_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Content Include="paths\Celeste_2-OldSite_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_2-OldSite_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_2-OldSite_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_3-CelestialResort_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_3-CelestialResort_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_3-CelestialResort_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_4-GoldenRidge_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_4-GoldenRidge_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_4-GoldenRidge_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_5-MirrorTemple_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_5-MirrorTemple_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_5-MirrorTemple_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_6-Reflection_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_6-Reflection_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_6-Reflection_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_7-Summit_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_7-Summit_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_7-Summit_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_9-Core_BSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_9-Core_CSide.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_9-Core_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\Celeste_LostLevels_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_1-City.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_1-City_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_2-Oldsite_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_3-Resort_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_4-Ridge_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_7-Summit_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="paths\nameguysdsidespack_0_8-Core_Normal.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -183,6 +50,105 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="paths\Celeste_1-ForsakenCity_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_1-ForsakenCity_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_1-ForsakenCity_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_2-OldSite_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_2-OldSite_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_2-OldSite_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_3-CelestialResort_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_3-CelestialResort_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_3-CelestialResort_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_4-GoldenRidge_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_4-GoldenRidge_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_4-GoldenRidge_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_5-MirrorTemple_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_5-MirrorTemple_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_5-MirrorTemple_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_6-Reflection_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_6-Reflection_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_6-Reflection_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_7-Summit_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_7-Summit_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_7-Summit_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_9-Core_BSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_9-Core_CSide.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_9-Core_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\Celeste_LostLevels_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_1-City.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_1-City_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_2-Oldsite_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_3-Resort_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_4-Ridge_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_7-Summit_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="paths\nameguysdsidespack_0_8-Core_Normal.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <Choose>
