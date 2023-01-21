@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,11 +24,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public string ToJson() {
-            return $"{{ \"deathTrackingPaused\":{JsonFormatBool(DeathTrackingPaused)}" +
-                $", \"recordingPath\":{JsonFormatBool(RecordingPath)}" +
-                $", \"overlayVersion\":\"{OverlayVersion}\"" +
-                $", \"playerIsHoldingGolden\":{JsonFormatBool(PlayerIsHoldingGolden)}" +
-                $", \"chapterHasPath\":{JsonFormatBool(ChapterHasPath)} }}";
+            string deathTrackingPaused = DebugRcPage.FormatFieldJson("deathTrackingPaused", DeathTrackingPaused);
+            string recordingPath = DebugRcPage.FormatFieldJson("recordingPath", RecordingPath);
+            string overlayVersion = DebugRcPage.FormatFieldJson("overlayVersion", OverlayVersion);
+            string playerIsHoldingGolden = DebugRcPage.FormatFieldJson("playerIsHoldingGolden", PlayerIsHoldingGolden);
+            string chapterHasPath = DebugRcPage.FormatFieldJson("chapterHasPath", ChapterHasPath);
+
+            return DebugRcPage.FormatJson(deathTrackingPaused, recordingPath, overlayVersion, playerIsHoldingGolden, chapterHasPath);
         }
 
         private string JsonFormatBool(bool b) {

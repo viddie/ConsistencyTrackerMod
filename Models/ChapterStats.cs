@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -56,10 +57,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CurrentRoom.AddAttempt(success);
         }
 
-        public void AddGoldenBerryDeath() {
-            CurrentChapterLastGoldenRuns.Add(CurrentRoom);
-            CurrentRoom.GoldenBerryDeaths++;
-            CurrentRoom.GoldenBerryDeathsSession++;
+        public void AddGoldenBerryDeath(string debugRoomName=null) {
+            RoomStats rStats = CurrentRoom;
+            if (debugRoomName != null) {
+                if (Rooms.ContainsKey(debugRoomName)) {
+                    rStats = Rooms[debugRoomName];
+                }
+            }
+            
+            CurrentChapterLastGoldenRuns.Add(rStats);
+            rStats.GoldenBerryDeaths++;
+            rStats.GoldenBerryDeathsSession++;
         }
 
         public void SetCurrentRoom(string debugRoomName) {
@@ -115,6 +123,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             return stats;
+        }
+
+        public string ToJson() {
+            string currentRoom = DebugRcPage.FormatObjectStringJson("currentRoom", CurrentRoom.ToJson());
+            List<string> roomList = new List<string>();
+
+            foreach (string key in Rooms.Keys) {
+                roomList.Add(Rooms[key].ToJson());
+            }
+
+            string roomListJson = DebugRcPage.FormatArrayJson("rooms", roomList);
+            return DebugRcPage.FormatJson(currentRoom, roomListJson);
         }
 
 
@@ -485,14 +505,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
         public string ToJson() {
             string attemptList = string.Join(",", PreviousAttempts);
-            return $"{{\"debuRoomName\":\"{DebugRoomName}\"" +
-                $", \"goldenBerryDeaths\":{GoldenBerryDeaths}" +
-                $", \"goldenBerryDeathsSession\":{GoldenBerryDeathsSession}" +
-                $", \"lastFiveRate\":{LastFiveRate}" +
-                $", \"lastTenRate\":{LastTenRate}" +
-                $", \"lastTwentyRate\":{LastTwentyRate}" +
-                $", \"maxRate\":{MaxRate}" +
-                $", \"attemptList\":\"{attemptList}\"}}";
+
+            string debuRoomName = DebugRcPage.FormatFieldJson("debuRoomName", DebugRoomName);
+            string goldenBerryDeaths = DebugRcPage.FormatFieldJson("goldenBerryDeaths", GoldenBerryDeaths);
+            string goldenBerryDeathsSession = DebugRcPage.FormatFieldJson("goldenBerryDeathsSession", GoldenBerryDeathsSession);
+            string lastFiveRate = DebugRcPage.FormatFieldJson("lastFiveRate", LastFiveRate);
+            string lastTenRate = DebugRcPage.FormatFieldJson("lastTenRate", LastTenRate);
+            string lastTwentyRate = DebugRcPage.FormatFieldJson("lastTwentyRate", LastTwentyRate);
+            string maxRate = DebugRcPage.FormatFieldJson("maxRate", MaxRate);
+            string attemptListField = DebugRcPage.FormatFieldJson("attemptList", attemptList);
+
+            return DebugRcPage.FormatJson(debuRoomName, goldenBerryDeaths, goldenBerryDeathsSession, lastFiveRate, lastTenRate, lastTwentyRate, maxRate, attemptListField);
         }
 
         public static RoomStats ParseString(string line) {

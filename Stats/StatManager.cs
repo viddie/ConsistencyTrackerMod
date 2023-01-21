@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Exceptions;
 using Celeste.Mod.ConsistencyTracker.Models;
 using System;
 using System.Collections.Generic;
@@ -45,6 +46,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public Dictionary<StatFormat, List<Stat>> Formats;
 
+        public ChapterStats LastPassChapterStats = null;
+        public PathInfo LastPassPathInfo = null;
+
         public StatManager() {
             ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFolder($"{BaseFolder}"));
             LoadFormats();
@@ -86,6 +90,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             try {
                 //To summarize some data that many stats need
                 AggregateStatsPass(pathInfo, chapterStats);
+                LastPassChapterStats = chapterStats;
+                LastPassPathInfo = pathInfo;
 
 
                 foreach (StatFormat format in Formats.Keys) {
@@ -104,6 +110,17 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             } catch (Exception ex) {
                 ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Exception during aggregate pass, stat calculation or format outputting: {ex}");
             }
+        }
+        public string FormatVariableFormat(string format) {
+            if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
+
+            foreach (Stat stat in AllStats) {
+                if (stat.ContainsIdentificator(format)) {
+                    format = stat.FormatStat(LastPassPathInfo, LastPassChapterStats, format);
+                }
+            }
+
+            return format;
         }
 
         /// <summary>To summarize some data that many stats need.</summary>

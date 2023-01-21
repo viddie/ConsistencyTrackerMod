@@ -80,25 +80,28 @@ body {
 .green {
     background-color: green;
 }
+.green-colorblind {
+    background-color: #0000ea;
+}
 .light-green{
     background-color: rgb(0, 230, 0);
 }
+.light-green-colorblind {
+    background-color: #00c0ff;
+}
 
-/* .green.selected {
-    background-color: rgb(0, 204, 0);
-} */
 .yellow {
     background-color: rgb(194, 194, 41);
 }
-/* .yellow.selected {
-    background-color: rgb(255, 255, 0);
-} */
+.yellow-colorblind {
+    background-color: rgb(194, 194, 41);
+}
 .red {
     background-color: rgb(231, 45, 45);
 }
-/* .red.selected {
-    background-color: rgb(255, 0, 0);
-} */
+.red-colorblind {
+    background-color: rgb(231, 45, 45);
+}
 
 .checkpoint-element {
     height: 75%;

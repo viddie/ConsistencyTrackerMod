@@ -3,9 +3,9 @@ let defaultSettings = {
     "base": {
         "attempts": "20",
         "refresh-time-ms": 1000,
-        "text-format-left": "GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Choke Rate: {room:goldenChokeRate}%<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})",
-        "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})<br>CP: {checkpoint:rate}%<br>Total: {chapter:rate}%",
-        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}%<br>Total: {chapter:goldenChance}%<br>Room➔End: {run:roomToEndGoldenChance}%",
+        "text-format-left": "GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Choke Rate: {room:chokeRate}<br>PB: {pb:best} (Session: {pb:bestSession})",
+        "text-format-center": "{room:name}: {room:successRate} ({room:successes}/{room:attempts})<br>CP: {checkpoint:successRate}<br>Total: {chapter:successRate}",
+        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}<br>Total: {chapter:goldenChance}<br>Room->End: {run:goldenChanceToEnd}",
         "text-nan-replacement": "-",
         "color": "white",
         "font-family": "Renogare",
@@ -27,10 +27,11 @@ let defaultSettings = {
         "room-attempts-display-enabled": true,
         "room-attempts-font-size": "26px",
         "room-attempts-circle-size": "23px",
-        "room-attempts-new-text": "New ➔",
-        "room-attempts-old-text": "➔ Old",
+        "room-attempts-new-text": "New -",
+        "room-attempts-old-text": "- Old",
         "tracking-disabled-message-enabled": true,
-        "golden-pb-display-enabled": true
+        "golden-pb-display-enabled": true,
+        "colorblind-mode-enabled": true
     },
     "selected-override": "",
     "overrides": {
@@ -129,7 +130,53 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function applySettings(){
+function applySettings(overlaySettingsObj){
+    if(overlaySettingsObj.errorCode === 0){
+        console.log("Settings loaded successfully from mod");
+        let modOverlaySettings = overlaySettingsObj.settings;
+
+        //General
+        settings.base["colorblind-mode-enabled"] = modOverlaySettings.general.colorblindMode;
+        settings.base["font-family"] = modOverlaySettings.general.fontFamily;
+
+        //Chapter Bar
+        settings.base["chapter-bar-enabled"] = modOverlaySettings.chapterBarDisplay.enabled;
+        settings.base["chapter-bar-border-width-multiplier"] = modOverlaySettings.chapterBarDisplay.borderWidthMultiplier;
+        settings.base["light-green-cutoff"] = modOverlaySettings.chapterBarDisplay.lightGreenCutoff;
+        settings.base["green-cutoff"] = modOverlaySettings.chapterBarDisplay.greenCutoff;
+        settings.base["yellow-cutoff"] = modOverlaySettings.chapterBarDisplay.yellowCutoff;
+
+        //Text Stats
+        if(modOverlaySettings.textStatsDisplay.enabled === false){
+            settings.base["text-format-left"] = "";
+            settings.base["text-format-center"] = "";
+            settings.base["text-format-right"] = "";
+        }
+        if(modOverlaySettings.textStatsDisplay.leftEnabled === false){
+            settings.base["text-format-left"] = "";
+        }
+        if(modOverlaySettings.textStatsDisplay.middleEnabled === false){
+            settings.base["text-format-center"] = "";
+        }
+        if(modOverlaySettings.textStatsDisplay.rightEnabled === false){
+            settings.base["text-format-right"] = "";
+        }
+
+        //Golden Share
+        settings.base["golden-share-display-enabled"] = modOverlaySettings.goldenShareDisplay.enabled;
+        settings.base["golden-share-show-current-session"] = modOverlaySettings.goldenShareDisplay.showSession;
+
+        //Other
+        settings.base["golden-pb-display-enabled"] = modOverlaySettings.goldenPBDisplay.enabled;
+        settings.base["room-attempts-display-enabled"] = modOverlaySettings.roomAttemptsDisplay.enabled;
+    } else {
+        let errorMessage = overlaySettingsObj.errorMessage;
+        let errorCode = overlaySettingsObj.errorCode;
+        console.log("Error ("+errorCode+") loading settings from mod: "+errorMessage);
+    }
+    
+
+
     let hideBar = !getSettingValueOrDefault("chapter-bar-enabled");
     if(hideBar){
         document.getElementById("chapter-container").style.display = "none";
@@ -198,111 +245,35 @@ function applyToElement(id, color, fontSize, textShadow){
 }
 //======================
 
+function fetchSettings(){ //Called once on startup
+    fetch('http://localhost:32270/cct/info').then((response) => response.json()).then((data) => console.log(data));
 
-function fetchSettings(){ //Called once per second
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', './CCTOverlaySettings.json', true);
-    xhr.onreadystatechange = function() {
-        //Get content of file
-        if (xhr.readyState == 4) {
-            if(xhr.status === 404){
-                settings = defaultSettings;
-            } else if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
-                settings = JSON.parse(xhr.responseText);
-            } else {
-                settings = defaultSettings;
-            }
-            
-            applySettings();
-            intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
-            fetch('http://localhost:32270/cct/info')
-                .then((response) => {
-                    console.log(response);
-                    return response.json();
-                })
-                .then((data) => console.log(data));
-
-        }
-    };
-    xhr.send();
+    var url = "http://localhost:32270/cct/overlaySettings";
+    fetch(url, { headers: { "Accept":"application/json" }}).then((response) => {
+        return response.json();
+    }).then((responseObj) => {
+        settings = defaultSettings;
+        applySettings(responseObj);
+        intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
+        
+    }).catch((error) => console.log(error));
 }
 
 var checkedForUpdate = false; //Flag to prevent multiple update checks
 var updateSkipCounter = -1; //Counter to delay start of usual overlay stuff
-// function fetchModState(){ //Called once per second
-//     var xhr = new XMLHttpRequest();
-//     xhr.open('GET', './stats/modState.txt', true);
-//     xhr.onreadystatechange = function() {
-//         if (xhr.readyState == 4) {
-//             if((xhr.status === 200 || xhr.status == 0) && xhr.responseText != "") {
-//                 previousRoomName = currentRoomName;
-
-//                 var newCurrentRoom = parseRoomData(xhr.responseText, true, "stats-display");
-//                 modState = newCurrentRoom.state;
-
-//                 var hasUpdate = updateModState();
-//                 if(!checkedForUpdate && hasUpdate){
-//                     checkedForUpdate = true;
-//                     var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
-//                     var timeToSkip = 5 * 1000;
-//                     updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
-
-//                     document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
-//                 }
-//                 if(updateSkipCounter > 0){
-//                     updateSkipCounter--;
-//                     return;
-//                 }
-
-
-//                 if(currentRoomName != null)
-//                     previousRoomRaw = getCurrentRoom();
-//                 setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
-
-//                 var roomToDisplayStats = null;
-//                 var isSelecting = false;
-//                 if(currentSelectedRoomName != null){
-//                     roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
-//                     isSelecting = true;
-//                 }
-
-//                 if(roomToDisplayStats == null || roomToDisplayStats == undefined){
-//                     roomToDisplayStats = getCurrentRoom();
-//                     isSelecting = false;
-//                 }
-
-//                 var textLeft = getSettingValueOrDefault("text-format-left");
-//                 updateStatsText("stats-left", textLeft, roomToDisplayStats, isSelecting);
-                
-//                 var textMiddle = getSettingValueOrDefault("text-format-center");
-//                 updateStatsText("stats-center", textMiddle, roomToDisplayStats, isSelecting);
-                
-//                 var textRight = getSettingValueOrDefault("text-format-right");
-//                 updateStatsText("stats-right", textRight, roomToDisplayStats, isSelecting);
-
-//                 displayRoomAttempts(roomToDisplayStats);
-
-
-//                 if((previousRoomName != null && previousChapterName != modState.chapterName) || (previousRoomName == null && currentRoomName != null) || currentChapterPath == null){
-//                     //Update the chapter layout
-//                     previousChapterName = modState.chapterName;
-//                     updateChapterLayout(modState.chapterName);
-                    
-//                 } else if(previousRoomName != null && !areRoomsEqual(previousRoomRaw, getCurrentRoom())){
-//                     //Update only one room
-//                     updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
-//                 }
-//             }
-//         }
-//     };
-//     xhr.send();
-// }
 function fetchModState(){ //Called once per second
     var url = "http://localhost:32270/cct/state";
-    fetch(url).then((response) => {
+    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => {
         return response.text();
     }).then((responseText) => {
         previousRoomName = currentRoomName;
+
+        //split the response into lines
+        var lines = responseText.split("\n");
+        
+        //ignore the first line, join the rest
+        var responseText = lines.slice(1).join("\n");
+        
 
         var newCurrentRoom = parseRoomData(responseText, true, "stats-display");
         modState = newCurrentRoom.state;
@@ -339,14 +310,41 @@ function fetchModState(){ //Called once per second
         }
 
         var textLeft = getSettingValueOrDefault("text-format-left");
-        updateStatsText("stats-left", textLeft, roomToDisplayStats, isSelecting);
-        
         var textMiddle = getSettingValueOrDefault("text-format-center");
-        updateStatsText("stats-center", textMiddle, roomToDisplayStats, isSelecting);
-        
         var textRight = getSettingValueOrDefault("text-format-right");
-        updateStatsText("stats-right", textRight, roomToDisplayStats, isSelecting);
 
+        //combine the three text into one string, separated by newlines and ignoring empty texts
+        var combinedBody = "";
+        if(textLeft != null && textLeft != ""){
+            combinedBody += textLeft + "\n";
+        } else {
+            combinedBody += " \n";
+        }
+        if(textMiddle != null && textMiddle != ""){
+            combinedBody += textMiddle + "\n";
+        } else {
+            combinedBody += " \n";
+        }
+        if(textRight != null && textRight != ""){
+            combinedBody += textRight + "\n";
+        } else {
+            combinedBody += " \n";
+        }
+
+        fetch("http://localhost:32270/cct/parseFormat", {
+            method: "POST",
+            body: combinedBody,
+        }).then((response) => response.json()).then((responseObj) => {
+            var textFormattedLeft = responseObj.formats[0];
+            var textFormattedMiddle = responseObj.formats[1];
+            var textFormattedRight = responseObj.formats[2];
+
+            updateStatsText("stats-left", textFormattedLeft, roomToDisplayStats, isSelecting);
+            updateStatsText("stats-center", textFormattedMiddle, roomToDisplayStats, isSelecting);
+            updateStatsText("stats-right", textFormattedRight, roomToDisplayStats, isSelecting);
+        });
+
+        updateGoldenPB();
         displayRoomAttempts(roomToDisplayStats);
 
 
@@ -359,7 +357,7 @@ function fetchModState(){ //Called once per second
             //Update only one room
             updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
         }
-    });
+    }).catch((error) => console.log(error));
 }
 
 function updateModState(){
@@ -392,299 +390,32 @@ function updateModState(){
 }
 
 function updateStatsText(targetId, text, room, isSelecting){
-    text = replaceAll(text, "{room:name}", room.name);
-    text = replaceAll(text, "{chapter:SID}", modState.chapterName);
-    text = replaceAll(text, "{state:trackingPaused}", modState.isTrackingPaused == true ? "Yes" : "No");
-    text = replaceAll(text, "{state:recordingPath}", modState.isRecordingEnabled == true ? "Yes" : "No");
-
-    var selectedRate = getSettingValueOrDefault("attempts");
-    if(selectedRate == "5"){
-        text = replaceAll(text, "{room:rate}", (room.rate5*100).toFixed(2));
-        text = replaceAll(text, "{room:successes}", room.successes5);
-        text = replaceAll(text, "{room:attempts}", room.totalAttempts5);
-        text = replaceAll(text, "{room:failures}", room.failures5);
-    } else if(selectedRate == "10"){
-        text = replaceAll(text, "{room:rate}", (room.rate10*100).toFixed(2));
-        text = replaceAll(text, "{room:successes}", room.successes10);
-        text = replaceAll(text, "{room:attempts}", room.totalAttempts10);
-        text = replaceAll(text, "{room:failures}", room.failures10);
-    } else if(selectedRate == "20"){    
-        text = replaceAll(text, "{room:rate}", (room.rate20*100).toFixed(2));
-        text = replaceAll(text, "{room:successes}", room.successes20);
-        text = replaceAll(text, "{room:attempts}", room.totalAttempts20);
-        text = replaceAll(text, "{room:failures}", room.failures20);
-    } else {
-        text = replaceAll(text, "{room:rate}", (room.rateMax*100).toFixed(2));
-        text = replaceAll(text, "{room:successes}", room.successesMax);
-        text = replaceAll(text, "{room:attempts}", room.totalAttemptsMax);
-        text = replaceAll(text, "{room:failures}", room.failuresMax);
-    }
-
-    text = replaceAll(text, "{room:goldenDeaths}", room.goldenBerryDeaths);
-    text = replaceAll(text, "{room:goldenDeathsSession}", room.goldenBerryDeathsSession);
-    
-    var roomCP = currentChapterRoomCheckpoints[room.name];
-    if(roomCP === undefined){
-        text = replaceAll(text, "{checkpoint:name}", "-");
-        text = replaceAll(text, "{checkpoint:abbreviation}", "-");
-        text = replaceAll(text, "{checkpoint:roomNumber}",  "-");
-    } else {
-        text = replaceAll(text, "{checkpoint:name}", roomCP.checkpoint.name);
-        text = replaceAll(text, "{checkpoint:abbreviation}", roomCP.checkpoint.abbreviation);
-        text = replaceAll(text, "{checkpoint:roomNumber}",  roomCP.roomIndex+1);
-    }
-
-    if(roomCP !== undefined){
-        var countAttemptsChapter = 0;
-        var countSuccessesChapter = 0;
-        var countRoomsChapter = 0;
-
-        var countAttemptsCheckpoint = 0;
-        var countSuccessesCheckpoint = 0;
-        var countRoomsCheckpoint = 0;
-
-        var gbDeathsChapter = 0;
-        var gbDeathsCheckpoint = 0;
-        var gbDeathsChapterSession = 0;
-        var gbDeathsCheckpointSession = 0;
-
-        var chapterGoldenChance = 1;
-        var checkpointGoldenChance = 1;
-        var fromNowGoldenChance = calculateRemainingGoldenChance(room);
-        var toNowGoldenChance = calculateRemainingGoldenChance(room, true);
-
-        var deathsBeforeRoom = 0;
-        var deathsBeforeRoomSession = 0;
-        var deathsBeforeCheckpoint = 0;
-        var deathsBeforeCheckpointSession = 0;
-        var foundRoom = false;
-        var foundCheckpoint = false;
-        var currentCheckpointObj = null;
-
-        var rateNumber = getSelectedRateNumber();
-
-        //colors: light-green, green, yellow, red
-        //at cutoff values: 0.95, 0.9, 0.5, 0
-        var colorCounts = [0, 0, 0, 0];
-
-        //Iterate the object currentChapterRoomObjs
-        for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-            var roomsObj = currentChapterPath[checkpointIndex].rooms;
-            for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-                var roomName = roomsObj[roomIndex];
-
-                //if roomName doesnt exist in currentChapterRoomObjs, continue
-                if(currentChapterRoomObjs[roomName] === undefined){
-                    continue;
-                }
-
-                var roomObj = currentChapterRoomObjs[roomName];
-
-                //Choke Rate
-                if(!foundRoom && roomObj.name == room.name){
-                    foundRoom = true;
-                    deathsBeforeRoom = gbDeathsChapter;
-                    deathsBeforeRoomSession = gbDeathsChapterSession;
-                }
-                if(!foundCheckpoint && roomsInSameCheckpoint(roomObj, room)){
-                    foundCheckpoint = true;
-                    deathsBeforeCheckpoint = gbDeathsChapter;
-                    deathsBeforeCheckpointSession = gbDeathsChapterSession;
-                    currentCheckpointObj = currentChapterPath[checkpointIndex];
-                }
-
-
-
-                //Golden Berry Deaths
-                gbDeathsChapter += roomObj.goldenBerryDeaths;
-                gbDeathsChapterSession += roomObj.goldenBerryDeathsSession;
-                if(roomsInSameCheckpoint(room, roomObj)){
-                    gbDeathsCheckpoint += roomObj.goldenBerryDeaths;
-                    gbDeathsCheckpointSession += roomObj.goldenBerryDeathsSession;
-                }
-
-
-
-                //Calculate Golden Chances
-                chapterGoldenChance *= getSelectedRateOfRoom(roomObj);
-                if(roomsInSameCheckpoint(room, roomObj)){
-                    checkpointGoldenChance *= getSelectedRateOfRoom(roomObj);
-                }
-
-                //Count rooms
-                if(roomObj.attempts.length >= 1){
-                    countRoomsChapter++;
-                    if(roomsInSameCheckpoint(room, roomObj)){
-                        countRoomsCheckpoint++;
-                    }
-                }
-
-                //Count attempts and successes
-                var max = Math.min(rateNumber, roomObj.attempts.length);
-                for(var i = 0; i < max; i++){
-                    countAttemptsChapter++;
-                    if(roomsInSameCheckpoint(room, roomObj)){
-                        countAttemptsCheckpoint++;
-                    }
-
-                    if(roomObj.attempts[i]){
-                        countSuccessesChapter++;
-                        if(roomsInSameCheckpoint(room, roomObj)){
-                            countSuccessesCheckpoint++;
-                        }
-                    }
-                }
-
-                //Count colors
-                var rate = getSelectedRateOfRoom(roomObj);
-                if(rate >= 0.95){
-                    colorCounts[0]++;
-                } else if(rate >= 0.9){
-                    colorCounts[1]++;
-                } else if(rate >= 0.5){
-                    colorCounts[2]++;
-                } else {
-                    colorCounts[3]++;
-                }
-            }
-        }
-
-        var chapterSuccessRate = countAttemptsChapter == 0 ? 0 : countSuccessesChapter/countAttemptsChapter;
-        var checkpointSuccessRate = countAttemptsCheckpoint == 0 ? 0 : countSuccessesCheckpoint/countAttemptsCheckpoint;
-
-        var chapterGoldenEstimateAttempts = 1 / chapterGoldenChance;
-        var checkpointGoldenEstimateAttempts = 1 / checkpointGoldenChance;
-
-        var goldenChanceDecimals = getSettingValueOrDefault("golden-chance-decimals");
-
-        var roomChokeRate = room.goldenBerryDeaths / (gbDeathsChapter - deathsBeforeRoom);
-        var roomChokeRateSession = room.goldenBerryDeathsSession / (gbDeathsChapterSession - deathsBeforeRoomSession);
-
-        var checkpointChokeRate = gbDeathsCheckpoint / (gbDeathsChapter - deathsBeforeCheckpoint);
-        var checkpointChokeRateSession = gbDeathsCheckpointSession / (gbDeathsChapterSession - deathsBeforeCheckpointSession);
-
-        text = replaceAll(text, "{chapter:rate}", (chapterSuccessRate*100).toFixed(2));
-        text = replaceAll(text, "{chapter:DPR}", ((1/chapterSuccessRate)-1).toFixed(2));
-        text = replaceAll(text, "{chapter:countRooms}", getChapterRoomCount());
-        text = replaceAll(text, "{chapter:goldenDeaths}", gbDeathsChapter);
-        text = replaceAll(text, "{chapter:goldenDeathsSession}", gbDeathsChapterSession);
-        text = replaceAll(text, "{chapter:goldenChance}", (chapterGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = replaceAll(text, "{chapter:goldenEstimateAttempts}", chapterGoldenEstimateAttempts.toFixed(0));
-        
-        //Colors
-        text = replaceAll(text, "{chapter:light-greens}", colorCounts[0]);
-        text = replaceAll(text, "{chapter:greens}", colorCounts[1]);
-        text = replaceAll(text, "{chapter:yellows}", colorCounts[2]);
-        text = replaceAll(text, "{chapter:reds}", colorCounts[3]);
-
-        text = replaceAll(text, "{checkpoint:rate}", (checkpointSuccessRate*100).toFixed(2));
-        text = replaceAll(text, "{checkpoint:DPR}", ((1/checkpointSuccessRate)-1).toFixed(2));
-        if(currentCheckpointObj != null){
-            text = replaceAll(text, "{checkpoint:countRooms}", currentCheckpointObj.rooms.length);
-        }
-        text = replaceAll(text, "{checkpoint:goldenDeaths}", gbDeathsCheckpoint);
-        text = replaceAll(text, "{checkpoint:goldenDeathsSession}", gbDeathsCheckpointSession);
-        text = replaceAll(text, "{checkpoint:goldenChance}", (checkpointGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = replaceAll(text, "{checkpoint:goldenEstimateAttempts}", checkpointGoldenEstimateAttempts.toFixed(0));
-        text = replaceAll(text, "{checkpoint:goldenChokeRate}", (checkpointChokeRate*100).toFixed(2));
-        text = replaceAll(text, "{checkpoint:goldenChokeRateSession}", (checkpointChokeRateSession*100).toFixed(2));
-
-        text = replaceAll(text, "{room:goldenChokeRate}", (roomChokeRate*100).toFixed(2));
-        text = replaceAll(text, "{room:goldenChokeRateSession}", (roomChokeRateSession*100).toFixed(2));
-
-        text = replaceAll(text, "{run:roomToEndGoldenChance}", (fromNowGoldenChance*100).toFixed(goldenChanceDecimals));
-        text = replaceAll(text, "{run:startToRoomGoldenChance}", (toNowGoldenChance*100).toFixed(goldenChanceDecimals));
-
-    } else {
-        var loadingReplacement = "...";
-        text = replaceAll(text, "{chapter:rate}", loadingReplacement);
-        text = replaceAll(text, "{chapter:DPR}", loadingReplacement);
-        text = replaceAll(text, "{chapter:countRooms}", loadingReplacement);
-        text = replaceAll(text, "{chapter:goldenDeaths}", loadingReplacement);
-        text = replaceAll(text, "{chapter:goldenDeathsSession}", loadingReplacement);
-        text = replaceAll(text, "{chapter:goldenChance}", loadingReplacement);
-        text = replaceAll(text, "{chapter:goldenEstimateAttempts}", loadingReplacement);
-
-        text = replaceAll(text, "{checkpoint:rate}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:DPR}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:countRooms}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenDeaths}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenDeathsSession}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenChance}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenEstimateAttempts}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenChokeRate}", loadingReplacement);
-        text = replaceAll(text, "{checkpoint:goldenChokeRateSession}", loadingReplacement);
-        
-        text = replaceAll(text, "{room:goldenChokeRate}", loadingReplacement);
-        text = replaceAll(text, "{room:goldenChokeRateSession}", loadingReplacement);
-
-        text = replaceAll(text, "{run:roomToEndGoldenChance}", loadingReplacement);
-        text = replaceAll(text, "{run:startToRoomGoldenChance}", loadingReplacement);
-
-        text = replaceAll(text, "{pb:checkpointName}", loadingReplacement);
-        text = replaceAll(text, "{pb:checkpointAbbreviation}", loadingReplacement);
-        text = replaceAll(text, "{pb:checkpointRoomNumber}", loadingReplacement);
-        text = replaceAll(text, "{pb:checkpointNameSession}", loadingReplacement);
-        text = replaceAll(text, "{pb:checkpointAbbreviationSession}", loadingReplacement);
-        text = replaceAll(text, "{pb:checkpointRoomNumberSession}", loadingReplacement);
-
-        
-    }
-
-    text = updateGoldenPB(text);
-
-    text = replaceAll(text, "{test}", room.test);
-    text = replaceAll(text, "NaN", getSettingValueOrDefault("text-nan-replacement"));
     document.getElementById(targetId).innerHTML = text;
 }
 
 
 
-// function updateChapterLayout(chapterName){ //Called once per second
-//     var xhr = new XMLHttpRequest();
-//     xhr.open('GET', './stats/'+chapterName+'.txt', true);
-//     xhr.onreadystatechange = function() {
-//         if (xhr.readyState == 4) {
-//             if(xhr.status === 200 || xhr.status == 0)
-//             {
-//                 var roomStrings = xhr.responseText.split("\n");
-//                 currentChapterRoomObjs = {};
-//                 currentChapterElements = {};
-//                 for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-//                     if(roomStrings[i].trim() == "") continue;
-//                     var room = parseRoomData(roomStrings[i], false);
-//                     currentChapterRoomObjs[room.name] = room;
-//                 }
-//                 var currentRoom = parseRoomData(roomStrings[0], false);
-//                 setCurrentRoom(currentRoom, currentRoom.name);
-
-//                 getChapterPath(chapterName, currentChapterRoomObjs);
-//             }
-//         }
-//     };
-//     xhr.send();
-// }
 function updateChapterLayout(chapterName){ //Called once per second
     var url = "http://localhost:32270/cct/currentChapterStats";
-    fetch(url).then((response) => response.text()).then((responseText) => {
+    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
         var roomStrings = responseText.split("\n");
         currentChapterRoomObjs = {};
         currentChapterElements = {};
-        for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
+        for(var i = 2; i < roomStrings.length; i++){ //Start at 2 because the error code is row 0 and the current room is row 1
             if(roomStrings[i].trim() == "") continue;
             var room = parseRoomData(roomStrings[i], false);
             currentChapterRoomObjs[room.name] = room;
         }
-        var currentRoom = parseRoomData(roomStrings[0], false);
+        var currentRoom = parseRoomData(roomStrings[1], false);
         setCurrentRoom(currentRoom, currentRoom.name);
 
         getChapterPath(chapterName, currentChapterRoomObjs);
-    });
+    }).catch((error) => console.log(error));
 }
 
 function getChapterPath(chapterName, roomObjects){ //Called once per second
     var url = "http://localhost:32270/cct/currentChapterPath";
-    fetch(url).then((response) => response.text()).then((responseText) => {
+    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
         if(responseText == ""){ //File was not found or was empty
             currentChapterPath = null;
             currentCheckpointObj = null;
@@ -694,12 +425,17 @@ function getChapterPath(chapterName, roomObjects){ //Called once per second
             hideGoldenShareDisplay();
             hideGoldenPBDisplay();
         } else {
+            //Split the response into lines
+            var lines = responseText.split("\n");
+            //skip the first line, join the rest
+            responseText = lines.slice(1).join("\n");
+
             currentChapterPath = parseChapterPath(responseText);
             displayRoomObjects(roomObjects);
             applySettingsForGoldenShareDisplay();
             applySettingsForGoldenPBDisplay();
         }
-    });
+    }).catch((error) => console.log(error));
 }
 
 
@@ -713,6 +449,7 @@ function displayRoomAttempts(roomToDisplayStats){
 
     var fontSize = getSettingValueOrDefault("room-attempts-font-size");
     var circleSize = getSettingValueOrDefault("room-attempts-circle-size");
+    var isColorblindMode = getSettingValueOrDefault("colorblind-mode-enabled");
 
     var amountAttempts = getSelectedRateNumber();
 
@@ -755,9 +492,9 @@ function displayRoomAttempts(roomToDisplayStats){
         circleInnerElement.style.height = circleSize;
 
         if(attempt){
-            circleInnerElement.classList.add("green");
+            circleInnerElement.classList.add(isColorblindMode ? "green-colorblind" : "green");
         } else {
-            circleInnerElement.classList.add("red");
+            circleInnerElement.classList.add(isColorblindMode ? "red-colorblind" : "red");
         }
 
         circleElement.appendChild(circleInnerElement);
@@ -1016,12 +753,6 @@ function updateGoldenPB(text){
             var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
             var roomCP = currentChapterRoomCheckpoints[roomName];
 
-            if(roomName == pbRoomNameSession){
-                text = replaceAll(text, "{pb:checkpointNameSession}", roomCP.checkpoint.name);
-                text = replaceAll(text, "{pb:checkpointAbbreviationSession}", roomCP.checkpoint.abbreviation);
-                text = replaceAll(text, "{pb:checkpointRoomNumberSession}",  roomCP.roomIndex+1);
-            }
-
             var roomElements = currentChapterGoldenPBElements[roomName];
 
             if(roomName == pbRoomName){ //At PB
@@ -1032,10 +763,6 @@ function updateGoldenPB(text){
                 if(roomElements.leftBorder != null){
                     roomElements.leftBorder.classList.add("gold");
                 }
-
-                text = replaceAll(text, "{pb:checkpointName}", roomCP.checkpoint.name);
-                text = replaceAll(text, "{pb:checkpointAbbreviation}", roomCP.checkpoint.abbreviation);
-                text = replaceAll(text, "{pb:checkpointRoomNumber}",  roomCP.roomIndex+1);
 
                 continue;
             }
@@ -1102,32 +829,9 @@ function updateRoomInLayout(previousRoom, currentRoom){
 }
 
 //Fetches the current chapter stats and calls an update with the room objects
-// function updateChapterStats(chapterName){
-//     var xhr = new XMLHttpRequest();
-//     xhr.open('GET', './stats/'+chapterName+'.txt', true);
-//     xhr.onreadystatechange = function() {
-//         if (xhr.readyState == 4) {
-//             if(xhr.status === 200 || xhr.status == 0)
-//             {
-                
-//                 var roomStrings = xhr.responseText.split("\n");
-//                 currentChapterRoomObjs = {};
-
-//                 for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-//                     if(roomStrings[i].trim() == "") continue;
-//                     var room = parseRoomData(roomStrings[i], false);
-//                     currentChapterRoomObjs[room.name] = room;
-//                 }
-
-//                 updateRoomObjects(currentChapterRoomObjs);
-//             }
-//         }
-//     };
-//     xhr.send();
-// }
 function updateChapterStats(chapterName){
     var url = "http://localhost:32270/cct/currentChapterStats";
-    fetch(url).then((response) => response.text()).then((responseText) => {
+    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
         var roomStrings = responseText.split("\n");
         currentChapterRoomObjs = {};
 
@@ -1138,7 +842,7 @@ function updateChapterStats(chapterName){
         }
 
         updateRoomObjects(currentChapterRoomObjs);
-    });
+    }).catch((error) => console.log(error));
 }
 
 //Updates the already existing HTML elements with new data
@@ -1151,9 +855,13 @@ function updateRoomObjects(roomObjs){
             var roomElement = currentChapterElements[roomName];
             var classColor = getColorClass(room);
             roomElement.classList.remove("light-green");
+            roomElement.classList.remove("light-green-colorblind");
             roomElement.classList.remove("green");
+            roomElement.classList.remove("green-colorblind");
             roomElement.classList.remove("yellow");
+            roomElement.classList.remove("yellow-colorblind");
             roomElement.classList.remove("red");
+            roomElement.classList.remove("red-colorblind");
             roomElement.classList.remove("gray");
             roomElement.classList.add(classColor);
 
@@ -1276,16 +984,18 @@ function getColorClass(room){
     var greenCutoff = getSettingValueOrDefault("green-cutoff");
     var yellowCutoff = getSettingValueOrDefault("yellow-cutoff");
 
+    var isColorblindMode = getSettingValueOrDefault("colorblind-mode-enabled");
+
     if(isNaN(compareAgainstRate)){
         return "gray";
     } else if(compareAgainstRate >= lightGreenCutoff){
-        return "light-green";
+        return isColorblindMode ? "light-green-colorblind" : "light-green";
     } else if(compareAgainstRate >= greenCutoff){
-        return "green";
+        return isColorblindMode ? "green-colorblind" : "green";
     } else if(compareAgainstRate >= yellowCutoff){
-        return "yellow";
+        return isColorblindMode ? "yellow-colorblind" : "yellow";
     } else {
-        return "red";
+        return isColorblindMode ? "red-colorblind" : "red";
     }
 }
 

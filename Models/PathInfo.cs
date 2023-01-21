@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,19 +50,32 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return string.Join("\n", lines);
         }
-
-        public static PathInfo ParseString(string content, Action<string> logCallback) {
-            logCallback($"[PathInfo.ParseString] Parsing path info string");
+        public static PathInfo ParseString(string content) {
+            ConsistencyTrackerModule.Instance.Log($"[PathInfo.ParseString] Parsing path info string");
             List<string> lines = content.Trim().Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
 
             PathInfo pathInfo = new PathInfo();
 
             foreach (string line in lines) {
-                logCallback($"\tParsing line '{line}'");
+                ConsistencyTrackerModule.Instance.Log($"\tParsing line '{line}'");
                 pathInfo.Checkpoints.Add(CheckpointInfo.ParseString(line));
             }
 
             return pathInfo;
+        }
+
+        public string ToJson() {
+            List<string> checkpointJsons = new List<string>();
+
+            foreach (CheckpointInfo cpInfo in Checkpoints) {
+                checkpointJsons.Add(cpInfo.ToJson());
+            }
+
+            string checkpointCount = DebugRcPage.FormatFieldJson("countCheckpoints", Checkpoints.Count);
+            string roomCount = DebugRcPage.FormatFieldJson("countRooms", RoomCount);
+            string checkpointsField = DebugRcPage.FormatArrayJson("checkpoints", checkpointJsons);
+
+            return DebugRcPage.FormatJson(checkpointCount, roomCount, checkpointsField);
         }
     }
 
@@ -84,6 +98,16 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string toRet = $"{Name};{Abbreviation};{Rooms.Count}";
             string debugNames = string.Join(",", Rooms);
             return $"{toRet};{debugNames}";
+        }
+        public string ToJson() {
+            string name = DebugRcPage.FormatFieldJson("name", Name);
+            string abbreviation = DebugRcPage.FormatFieldJson("abbreviation", Abbreviation);
+            string countRooms = DebugRcPage.FormatFieldJson("countRooms", Rooms.Count);
+
+            List<string> roomsListJson = new List<string>(Rooms.Select((roomInfo) => $"\"{roomInfo.DebugRoomName}\""));
+            string roomsArray = DebugRcPage.FormatArrayJson("rooms", roomsListJson);
+
+            return DebugRcPage.FormatJson(name, abbreviation, countRooms, roomsArray);
         }
 
         public static CheckpointInfo ParseString(string line) {

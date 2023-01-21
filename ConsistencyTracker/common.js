@@ -8,7 +8,7 @@ function parseRoomData(roomString, hasState, targetLogId){
 
     if(hasState){
         var splitData = roomString.split("\n");
-        roomLine = splitData[0];
+        roomLine = splitData[0].trim();;
         var state = splitData[1].trim();
         roomObj.state = {};
 
