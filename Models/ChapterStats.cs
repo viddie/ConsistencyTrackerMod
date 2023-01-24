@@ -36,6 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
         public static Dictionary<string, Dictionary<int, double>> HighestRollingAverages { get; set; } = new Dictionary<string, Dictionary<int, double>>();
 
+        [JsonIgnore]
         public List<RoomStats> CurrentChapterLastGoldenRuns {
             get {
                 if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
@@ -45,6 +46,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
             private set { }
         }
+
+        [JsonIgnore]
         public Dictionary<int, double> CurrentChapterRollingAverages {
             get {
                 if (!HighestRollingAverages.ContainsKey(ChapterDebugName)) {
@@ -432,6 +435,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("maxRate")]
         public float MaxRate { get => AverageSuccessOverN(ChapterStats.MAX_ATTEMPT_COUNT); }
 
+        [JsonProperty("successStreak")]
         public int SuccessStreak {
             get {
                 if (PreviousAttempts.Count == 0) return 0;
@@ -449,8 +453,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             private set { }
         }
 
+
+        [JsonProperty("deathsInCurrentRun")]
         public int DeathsInCurrentRun { get; set; } = 0;
 
+        [JsonIgnore]
         public int RoomNumber { get; set; }
 
         public float AverageSuccessOverN(int n) {

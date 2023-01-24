@@ -406,8 +406,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         // +------------------------------------------+
         private static readonly RCEndPoint ListAllPathsEndPoint = new RCEndPoint() {
             Path = "/cct/listAllPaths",
-            Name = "Consistency Tracker List All Paths",
-            InfoHTML = "Get a list of all available paths [json only]",
+            Name = "Consistency Tracker List All Paths [JSON only]",
+            InfoHTML = "Get a list of all available paths",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
@@ -446,8 +446,65 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         private static readonly RCEndPoint GetPathFileEndPoint = new RCEndPoint() {
             Path = "/cct/getPathFile",
             PathHelp = "/cct/getPathFile?map={map}",
-            Name = "Consistency Tracker Get Path File",
-            InfoHTML = "Get the path file for a map [json only]",
+            Name = "Consistency Tracker Get Path File [GET] [JSON only]",
+            InfoHTML = "Get the path file for a map",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                string map = GetQueryParameter(c, "map");
+                if (map == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "map");
+                    return;
+                }
+
+                map = map.Replace(".", "");
+                map = map.Replace("/", "");
+                map = map.Replace("\\", "");
+
+                string baseFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
+                string combinedPath = Path.Combine(baseFolder, $"{map}.txt");
+                if (!File.Exists(combinedPath)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
+                    return;
+                }
+
+                string content = File.ReadAllText(combinedPath);
+                PathInfo pathInfo = null;
+                try {
+                    pathInfo = PathInfo.ParseString(content);
+                } catch (Exception) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse contents of path file '{map}'");
+                    return;
+                }
+
+                //Response
+                ChapterPathResponse response = new ChapterPathResponse() {
+                    path = pathInfo,
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+
+
+        // +------------------------------------------+
+        // |            /cct/setPathFile              |
+        // +------------------------------------------+
+        private static readonly RCEndPoint SetPathFileEndPoint = new RCEndPoint() {
+            Path = "/cct/setPathFile",
+            PathHelp = "/cct/setPathFile?map={map}",
+            Name = "Consistency Tracker Set Path File [POST] [JSON only]",
+            InfoHTML = "Set the path file for a map. Put path info object in the body of the POST request ",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");

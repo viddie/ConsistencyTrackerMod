@@ -58,24 +58,23 @@ let overlayVersion = {
 };
 let modState = null;
 
-let currentRoomName = null;
-let previousRoomName = null;
-let previousRoomRaw = null;
-let previousChapterName = null;
-let currentChapterRoomObjs = {};
-let currentChapterElements = {};
-let currentChapterPath = null;
-let currentChapterOverallRate = null;
-let currentSelectedRoomName = null;
-let currentChapterRoomCheckpoints = {};
+//Actual RoomStats objects
+let currentRoomStats = null;
+let previousRoomStats = null;
 
+//Chapter unique identifiers
+let currentChapterName = null;
+let previousChapterName = null;
+
+let currentChapterStats = {}; //Stats objects for each room in the chapter (independent of the path)
+let currentChapterElements = {}; //HTML elements for the path
+let currentChapterPath = null; //Path of the chapter
+let currentSelectedRoomName = null;
+
+//HTML elements for various displays
 let currentChapterGoldenShareCheckpointElements = {};
 let currentChapterGoldenPBElements = null;
 let currentChapterGoldenPBPreviousElement = null;
-
-let currentCheckpointObj = null;
-let currentCheckpointRoomIndex = null;
-
 let trackingPausedElement = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -215,6 +214,15 @@ function fetchSettings(){ //Called once on startup
     fetch(url, { headers: { "Accept":"application/json" }}).then((response) => {
         return response.json();
     }).then((responseObj) => {
+        if(responseObj.errorCode != 0){
+            console.log("[fetchSettings] Error ("+responseObj.errorCode+") loading settings from mod: "+responseObj.errorMessage);
+            applySettings(responseObj);
+            displayCriticalError(responseObj.errorCode, responseObj.errorMessage);
+            return;
+        }
+
+        console.log("Overlay settings from mod:");
+        console.log(responseObj);
         applySettings(responseObj);
         intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
         
@@ -230,20 +238,15 @@ var checkedForUpdate = false; //Flag to prevent multiple update checks
 var updateSkipCounter = -1; //Counter to delay start of usual overlay stuff
 function fetchModState(){ //Called once per second
     var url = "http://localhost:32270/cct/state";
-    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => {
-        return response.text();
-    }).then((responseText) => {
-        previousRoomName = currentRoomName;
+    fetch(url, { headers: { "Accept":"application/json" }}).then((response) => {
+        return response.json();
+    }).then((responseObj) => {
+        if(responseObj.errorCode != 0){
+            console.log("[fetchModState] Error ("+responseObj.errorCode+") fetching state from mod: "+responseObj.errorMessage);
+            return;
+        }
 
-        //split the response into lines
-        var lines = responseText.split("\n");
-        
-        //ignore the first line, join the rest
-        var responseText = lines.slice(1).join("\n");
-        
-
-        var newCurrentRoom = parseRoomData(responseText, true, "stats-display");
-        modState = newCurrentRoom.state;
+        modState = responseObj.modState;
 
         var hasUpdate = updateModState();
         if(!checkedForUpdate && hasUpdate){
@@ -252,27 +255,26 @@ function fetchModState(){ //Called once per second
             var timeToSkip = 5 * 1000;
             updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
 
-            document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.modVersion.version;
+            document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.overlayVersion;
         }
         if(updateSkipCounter > 0){
             updateSkipCounter--;
             return;
         }
 
+        previousRoomStats = currentRoomStats;
+        currentRoomStats = responseObj.currentRoom;
+        
 
-        if(currentRoomName != null)
-            previousRoomRaw = getCurrentRoom();
-        setCurrentRoom(newCurrentRoom, newCurrentRoom.name);
-
-        var roomToDisplayStats = null;
+        var roomStatsToDisplay = null;
         var isSelecting = false;
-        if(currentSelectedRoomName != null){
-            roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
-            isSelecting = true;
-        }
+        // if(currentSelectedRoomName != null){ //Currently broken due to live-data fetching being restricted to the current room only
+        //     roomToDisplayStats = currentChapterRoomObjs[currentSelectedRoomName];
+        //     isSelecting = true;
+        // }
 
-        if(roomToDisplayStats == null || roomToDisplayStats == undefined){
-            roomToDisplayStats = getCurrentRoom();
+        if(roomStatsToDisplay == null){
+            roomStatsToDisplay = currentRoomStats;
             isSelecting = false;
         }
 
@@ -280,29 +282,20 @@ function fetchModState(){ //Called once per second
         var textMiddle = getSettingValueOrDefault("text-format-center");
         var textRight = getSettingValueOrDefault("text-format-right");
 
-        //combine the three text into one string, separated by newlines and ignoring empty texts
-        var combinedBody = "";
-        if(textLeft != null && textLeft != ""){
-            combinedBody += textLeft + "\n";
-        } else {
-            combinedBody += " \n";
-        }
-        if(textMiddle != null && textMiddle != ""){
-            combinedBody += textMiddle + "\n";
-        } else {
-            combinedBody += " \n";
-        }
-        if(textRight != null && textRight != ""){
-            combinedBody += textRight + "\n";
-        } else {
-            combinedBody += " \n";
-        }
+        var body = JSON.stringify({
+            formats: [
+                textLeft,
+                textMiddle,
+                textRight
+            ]
+        });
 
         fetch("http://localhost:32270/cct/parseFormat", {
             method: "POST",
-            body: combinedBody,
+            body: body,
         }).then((response) => response.json()).then((responseObj) => {
             if(responseObj.errorCode != 0){
+                console.log("[fetchModState->parseFormat] Error ("+responseObj.errorCode+") fetching /cct/parseFormat: "+responseObj.errorMessage);
                 var textFormattedLeft = "";
                 var textFormattedMiddle = "";
                 var textFormattedRight = "";
@@ -312,30 +305,30 @@ function fetchModState(){ //Called once per second
                 var textFormattedRight = responseObj.formats[2];
             }
             
-            updateStatsText("stats-left", textFormattedLeft, roomToDisplayStats, isSelecting);
-            updateStatsText("stats-center", textFormattedMiddle, roomToDisplayStats, isSelecting);
-            updateStatsText("stats-right", textFormattedRight, roomToDisplayStats, isSelecting);
+            updateStatsText("stats-left", textFormattedLeft);
+            updateStatsText("stats-center", textFormattedMiddle);
+            updateStatsText("stats-right", textFormattedRight);
         });
 
         updateGoldenPB();
-        displayRoomAttempts(roomToDisplayStats);
+        displayRoomAttempts(roomStatsToDisplay);
 
 
-        if((previousRoomName != null && previousChapterName != modState.chapterName) || (previousRoomName == null && currentRoomName != null) || currentChapterPath == null){
+        if((previousRoomStats != null && previousChapterName != currentChapterName) || (previousRoomStats == null && currentRoomStats != null) || currentChapterPath == null){
             //Update the chapter layout
-            previousChapterName = modState.chapterName;
-            updateChapterLayout(modState.chapterName);
+            previousChapterName = currentChapterName;
+            updateChapterLayout(currentChapterName);
             
-        } else if(previousRoomName != null && !areRoomsEqual(previousRoomRaw, getCurrentRoom())){
+        } else if(previousRoomStats != null && !areRoomsEqual(previousRoomStats, currentRoomStats)){
             //Update only one room
-            updateRoomInLayout(getPreviousRoom(), getCurrentRoom());
+            updateRoomInLayout(previousRoomStats, currentRoomStats);
         }
     }).catch((error) => console.log(error));
 }
 
 function updateModState(){
     if(trackingPausedElement != null){
-        if(modState.isTrackingPaused && getSettingValueOrDefault("tracking-disabled-message-enabled")){
+        if(modState.deathTrackingPaused && getSettingValueOrDefault("tracking-disabled-message-enabled")){
             trackingPausedElement.style.display = "block";
         } else {
             trackingPausedElement.style.display = "none";
@@ -343,16 +336,16 @@ function updateModState(){
     }
 
     if(!checkedForUpdate){
-        var modVersionObj = modState.modVersion; //Obj with version and major/minor/patch numbers
+        var modOverlayVersionObj = SplitVersionNumber(modState.overlayVersion); //Obj with version and major/minor/patch numbers
         //Check if overlay version is outdated compared to the mod version
         var isOutdated = false;
-        if(modVersionObj.major > overlayVersion.major){
+        if(modOverlayVersionObj.major > overlayVersion.major){
             isOutdated = true;
         }
-        if(modVersionObj.major == overlayVersion.major && modVersionObj.minor > overlayVersion.minor){
+        if(modOverlayVersionObj.major == overlayVersion.major && modOverlayVersionObj.minor > overlayVersion.minor){
             isOutdated = true;
         }
-        if(modVersionObj.major == overlayVersion.major && modVersionObj.minor == overlayVersion.minor && modVersionObj.patch > overlayVersion.patch){
+        if(modOverlayVersionObj.major == overlayVersion.major && modOverlayVersionObj.minor == overlayVersion.minor && modOverlayVersionObj.patch > overlayVersion.patch){
             isOutdated = true;
         }
 
@@ -362,46 +355,37 @@ function updateModState(){
     return false;
 }
 
-function updateStatsText(targetId, text, room, isSelecting){
+function updateStatsText(targetId, text){
     document.getElementById(targetId).innerHTML = text;
 }
 
 
 
-function updateChapterLayout(chapterName){ //Called once per second
+function updateChapterLayout(chapterName){ //Called once per chapter change
     var url = "http://localhost:32270/cct/currentChapterStats";
-    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
-        var roomStrings = responseText.split("\n");
-        currentChapterRoomObjs = {};
-        currentChapterElements = {};
-        for(var i = 2; i < roomStrings.length; i++){ //Start at 2 because the error code is row 0 and the current room is row 1
-            if(roomStrings[i].trim() == "") continue;
-            var room = parseRoomData(roomStrings[i], false);
-            currentChapterRoomObjs[room.name] = room;
+    fetch(url, { headers: { "Accept":"application/json" }}).then((response) => response.json()).then((responseObj) => {
+        if(responseObj.errorCode != 0){
+            console.log("[updateChapterLayout] Error ("+responseObj.errorCode+") fetching chapter stats from mod: "+responseObj.errorMessage);
+            return;
         }
-        var currentRoom = parseRoomData(roomStrings[1], false);
-        setCurrentRoom(currentRoom, currentRoom.name);
 
-        getChapterPath(chapterName, currentChapterRoomObjs);
+        currentChapterStats = responseObj.chapterStats;
+        currentChapterElements = {};
+
+        getChapterPath();
     }).catch((error) => console.log(error));
 }
 
-function getChapterPath(chapterName, roomObjects){ //Called once per second
+function getChapterPath(){ //Called once per second
     var url = "http://localhost:32270/cct/currentChapterPath";
-    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
-        var lines = responseText.split("\n");
-        var errorCodeLine = lines[0];
-        var splitErrorCodeLine = errorCodeLine.split(";");
-        var errorCode = splitErrorCodeLine[0];
-        var errorMessage = splitErrorCodeLine[1];
-
-        if(errorCode != "0"){
-            displayCriticalError(errorCode, errorMessage);
+    fetch(url, { headers: { "Accept":"application/json" }}).then((response) => response.json()).then((responseObj) => {
+        if(responseObj.errorCode != 0){
+            console.log("[getChapterPath] Error ("+responseObj.errorCode+") fetching chapter stats from mod: "+responseObj.errorMessage);
+            displayCriticalError(responseObj.errorCode, responseObj.errorMessage);
         } else {
-            displayCriticalError(errorCode, errorMessage);
-            responseText = lines.slice(1).join("\n");
-            currentChapterPath = parseChapterPath(responseText);
-            displayRoomObjects(roomObjects);
+            displayCriticalError(responseObj.errorCode, responseObj.errorMessage);
+            currentChapterPath = responseObj.path;
+            displayRoomObjects();
         }
     }).catch((error) => console.log(error));
 }
@@ -409,8 +393,6 @@ function getChapterPath(chapterName, roomObjects){ //Called once per second
 function displayCriticalError(errorCode, errorMessage){
     if(errorCode != 0){
         currentChapterPath = null;
-        currentCheckpointObj = null;
-        currentCheckpointRoomIndex = null;
         
         document.getElementById("chapter-container").innerHTML = errorMessage;
         hideGoldenShareDisplay();
@@ -426,7 +408,7 @@ function displayCriticalError(errorCode, errorMessage){
 
 
 var roomAttemptsInitialized = false;
-function displayRoomAttempts(roomToDisplayStats){
+function displayRoomAttempts(roomStatsToDisplay){
     if(!roomAttemptsInitialized){
         roomAttemptsInitialized = true;
         applySettingsForRoomAttemptDisplay();
@@ -449,8 +431,8 @@ function displayRoomAttempts(roomToDisplayStats){
     container.appendChild(startElement);
 
     //Iterate the attempts in roomToDisplayStats
-    for(var i = 0; i < roomToDisplayStats.attempts.length; i++){
-        var attempt = roomToDisplayStats.attempts[i];
+    for(var i = 0; i < roomStatsToDisplay.previousAttempts.length; i++){
+        var attempt = roomStatsToDisplay.previousAttempts[i];
 
         if(i >= amountAttempts){
             break;
@@ -497,7 +479,7 @@ function displayRoomAttempts(roomToDisplayStats){
 }
 
 //Creates HTML elements for all room objects and saves them in currentChapterElements
-function displayRoomObjects(roomObjs){
+function displayRoomObjects(){
     var container = document.getElementById("chapter-container");
     container.innerHTML = "";
 
@@ -516,7 +498,7 @@ function displayRoomObjects(roomObjs){
     container.appendChild(startElement);
 
 
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("checkpoint-element");
@@ -524,30 +506,23 @@ function displayRoomObjects(roomObjs){
             container.appendChild(checkpointElement);
         }
         
-        var roomsObj = currentChapterPath[checkpointIndex].rooms;
+        var checkpointRoomsObj = currentChapterPath.checkpoints[checkpointIndex].rooms;
 
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = currentChapterPath[checkpointIndex].rooms[roomIndex];
-            var room = getRoomByNameOrDefault(roomObjs, roomName);
-
-            currentChapterRoomCheckpoints[roomName] = {
-                checkpoint: currentChapterPath[checkpointIndex],
-                roomIndex: roomIndex,
-            };
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
+            var roomStats = getRoomStatsByNameOrDefault(roomName);
 
             var roomElement = document.createElement("div");
             roomElement.classList.add("room-element");
 
-            var classColor = getColorClass(room);
+            var classColor = getColorClass(roomStats);
             roomElement.classList.add(classColor);
 
-            if(room.name == getCurrentRoom().name){
+            if(roomName == currentRoomStats.debugRoomName){ //Find current room and give it special styling
                 roomElement.classList.add("selected");
-                currentCheckpointObj = currentChapterPath[checkpointIndex];
-                currentCheckpointRoomIndex = roomIndex;
             }
             
-            roomElement.setAttribute("data-room-name", room.name);
+            roomElement.setAttribute("data-room-name", roomName);
             //On hover, set a global variable to this room name
             roomElement.onmouseover = function(){
                 var roomName = this.getAttribute("data-room-name");
@@ -560,7 +535,7 @@ function displayRoomObjects(roomObjs){
             container.appendChild(roomElement);
             currentChapterElements[roomName] = roomElement;
 
-            if(roomIndex != roomsObj.length - 1){ //Skip border element for last room
+            if(roomIndex != checkpointRoomsObj.length - 1){ //Skip border element for last room
                 var borderElement = document.createElement("div");
                 borderElement.classList.add("border-element");
                 borderElement.style.flex = (3 * borderMult) + "";
@@ -591,7 +566,7 @@ function displayGoldenPBs(borderMult){
     container.appendChild(startElement);
 
 
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
         var checkpointElement = null;
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             checkpointElement = document.createElement("div");
@@ -601,9 +576,9 @@ function displayGoldenPBs(borderMult){
             container.appendChild(checkpointElement);
         }
         
-        var roomsObj = currentChapterPath[checkpointIndex].rooms;
+        var checkpointRoomsObj = currentChapterPath.checkpoints[checkpointIndex].rooms;
 
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
 
             var borderElementRef = null;
             if(roomIndex != 0){ //Skip border element for first room
@@ -617,7 +592,7 @@ function displayGoldenPBs(borderMult){
                 borderElementRef = checkpointElement;
             }
             
-            var roomName = currentChapterPath[checkpointIndex].rooms[roomIndex];
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
 
             var roomElementLeft = document.createElement("div");
             roomElementLeft.classList.add("room-element");
@@ -640,7 +615,7 @@ function displayGoldenPBs(borderMult){
             roomElementRight.classList.add("pb");
             container.appendChild(roomElementRight);
 
-            if(roomName == getCurrentRoom().name){
+            if(roomName == currentRoomStats.debugRoomName){
                 roomElementLeft.classList.add("selected");
                 roomElementRight.classList.add("selected");
             }
@@ -672,7 +647,7 @@ function displayGoldenShares(borderMult){
     startElement.className = "golden-share-start-end";
     container.appendChild(startElement);
 
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
         if(checkpointIndex != 0){ //Skip checkpoint element for first and last
             var checkpointElement = document.createElement("div");
             checkpointElement.classList.add("golden-share-checkpoint-delim");
@@ -680,7 +655,7 @@ function displayGoldenShares(borderMult){
             container.appendChild(checkpointElement);
         }
         
-        var checkpointObj = currentChapterPath[checkpointIndex];
+        var checkpointObj = currentChapterPath.checkpoints[checkpointIndex];
 
         var checkpointElement = document.createElement("div");
         checkpointElement.classList.add("golden-share-checkpoint");
@@ -697,31 +672,31 @@ function displayGoldenShares(borderMult){
     endElement.className = "golden-share-start-end";
     container.appendChild(endElement);
     
-    updateGoldenShares(currentChapterRoomObjs);
+    updateGoldenShares();
     applySettingsForGoldenShareDisplay();
 }
 
 
 function updateGoldenPB(text){
-    if(currentChapterPath == null || currentChapterRoomObjs == null){
+    if(currentChapterPath == null || currentChapterStats == null){
         return text;
     }
 
     var pbRoomName = null;
     var pbRoomNameSession = null;
 
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var checkpointObj = currentChapterPath[checkpointIndex];
-        var roomsObj = checkpointObj.rooms;
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath.checkpoints[checkpointIndex];
+        var checkpointRoomsObj = checkpointObj.rooms;
 
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = roomsObj[roomIndex];
-            var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
+            var room = getRoomStatsByNameOrDefault(roomName);
 
-            if(room.goldenBerryDeaths != 0 || (modState.holdingGolden && roomName == currentRoomName) || pbRoomName == null){
+            if(room.goldenBerryDeaths != 0 || (modState.playerIsHoldingGolden && roomName == currentRoomStats.debugRoomName) || pbRoomName == null){
                 pbRoomName = roomName;
             }
-            if(room.goldenBerryDeathsSession != 0 || (modState.holdingGolden && roomName == currentRoomName) || pbRoomNameSession == null){
+            if(room.goldenBerryDeathsSession != 0 || (modState.playerIsHoldingGolden && roomName == currentRoomStats.debugRoomName) || pbRoomNameSession == null){
                 pbRoomNameSession = roomName;
             }
         }
@@ -729,14 +704,13 @@ function updateGoldenPB(text){
 
     let foundPB = false;
     
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var checkpointObj = currentChapterPath[checkpointIndex];
-        var roomsObj = checkpointObj.rooms;
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath.checkpoints[checkpointIndex];
+        var checkpointRoomsObj = checkpointObj.rooms;
 
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = roomsObj[roomIndex];
-            var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
-            var roomCP = currentChapterRoomCheckpoints[roomName];
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
+            var room = getRoomStatsByNameOrDefault(roomName);
 
             var roomElements = currentChapterGoldenPBElements[roomName];
 
@@ -754,7 +728,7 @@ function updateGoldenPB(text){
 
             if(!foundPB){ //Before PB
                 roomElements.left.classList.add("gold");
-                if(modState.holdingGolden && roomName == currentRoomName){
+                if(modState.playerIsHoldingGolden && roomName == currentRoomStats.debugRoomName){
                     roomElements.middle.classList.remove("hidden");
                 } else {
                     roomElements.middle.classList.add("hidden");
@@ -781,64 +755,60 @@ function updateGoldenPB(text){
 
 
 function updateRoomInLayout(previousRoom, currentRoom){
-    console.log("Updating room in layout: "+previousRoom.name+" -> "+currentRoom.name);
+    console.log("Updating room in layout: "+previousRoom.debugRoomName+" -> "+currentRoom.debugRoomName);
 
-    var currentRoomElem = currentChapterElements[currentRoom.name];
+    var currentRoomElem = currentChapterElements[currentRoom.debugRoomName];
     console.log("Current room elem: "+JSON.stringify(currentRoomElem));
 
     if(previousRoom != null){
-        var previousRoomElem = currentChapterElements[previousRoom.name];
-        if(previousRoomElem === undefined || previousRoom.name == currentRoom.name){ //Died in room
+        var previousRoomElem = currentChapterElements[previousRoom.debugRoomName];
+        if(previousRoomElem === undefined || previousRoom.debugRoomName == currentRoom.debugRoomName){ //Died in room
             
         } else {
             previousRoomElem.classList.remove("selected");
         }
 
-        if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[previousRoom.name] !== undefined){
-            currentChapterGoldenPBElements[previousRoom.name].left.classList.remove("selected");
-            // currentChapterGoldenPBElements[previousRoom.name].middle.classList.remove("hidden");
-            currentChapterGoldenPBElements[previousRoom.name].right.classList.remove("selected");
+        if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[previousRoom.debugRoomName] !== undefined){
+            currentChapterGoldenPBElements[previousRoom.debugRoomName].left.classList.remove("selected");
+            // currentChapterGoldenPBElements[previousRoom.debugRoomName].middle.classList.remove("hidden");
+            currentChapterGoldenPBElements[previousRoom.debugRoomName].right.classList.remove("selected");
         }
 
-        updateChapterStats(modState.chapterName);
+        updateChapterStats(currentChapterName);
     }
     
     if(currentRoomElem !== undefined){
         currentRoomElem.classList.add("selected");
     }
 
-    if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[currentRoom.name] !== undefined){
-        currentChapterGoldenPBElements[currentRoom.name].left.classList.add("selected");
-        currentChapterGoldenPBElements[currentRoom.name].right.classList.add("selected");
+    if(currentChapterGoldenPBElements != null && currentChapterGoldenPBElements[currentRoom.debugRoomName] !== undefined){
+        currentChapterGoldenPBElements[currentRoom.debugRoomName].left.classList.add("selected");
+        currentChapterGoldenPBElements[currentRoom.debugRoomName].right.classList.add("selected");
     }
 }
 
 //Fetches the current chapter stats and calls an update with the room objects
 function updateChapterStats(chapterName){
     var url = "http://localhost:32270/cct/currentChapterStats";
-    fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
-        var roomStrings = responseText.split("\n");
-        currentChapterRoomObjs = {};
-
-        for(var i = 1; i < roomStrings.length; i++){ //Start at 1 because the current room is always row 0
-            if(roomStrings[i].trim() == "") continue;
-            var room = parseRoomData(roomStrings[i], false);
-            currentChapterRoomObjs[room.name] = room;
+    fetch(url, { headers: { "Accept":"application/json" }}).then((response) => response.json()).then((responseObj) => {
+        if(responseObj.errorCode != 0){
+            console.log("[updateChapterStats] Error ("+responseObj.errorCode+") fetching chapter stats from mod: "+responseObj.errorMessage);
+            return;
         }
-
-        updateRoomObjects(currentChapterRoomObjs);
+        currentChapterStats = responseObj.chapterStats;
+        updateRoomObjects();
     }).catch((error) => console.log(error));
 }
 
 //Updates the already existing HTML elements with new data
-function updateRoomObjects(roomObjs){
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var roomsObj = currentChapterPath[checkpointIndex].rooms;
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = roomsObj[roomIndex];
-            var room = getRoomByNameOrDefault(roomObjs, roomName);
+function updateRoomObjects(){
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
+        var checkpointRoomsObj = currentChapterPath.checkpoints[checkpointIndex].rooms;
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
+            var roomName = checkpointRoomsObj[roomIndex];
+            var roomStats = getRoomStatsByNameOrDefault(roomName);
             var roomElement = currentChapterElements[roomName];
-            var classColor = getColorClass(room);
+            var classColor = getColorClass(roomStats);
             roomElement.classList.remove("light-green");
             roomElement.classList.remove("light-green-colorblind");
             roomElement.classList.remove("green");
@@ -849,49 +819,44 @@ function updateRoomObjects(roomObjs){
             roomElement.classList.remove("red-colorblind");
             roomElement.classList.remove("gray");
             roomElement.classList.add(classColor);
-
-            if(room.name == getCurrentRoom().name){
-                currentCheckpointObj = currentChapterPath[checkpointIndex];
-                currentCheckpointRoomIndex = roomIndex;
-            }
         }
     }
 
-    updateGoldenShares(currentChapterRoomObjs);
+    updateGoldenShares();
 }
 
 
 
 //Updates the already existing HTML elements with new data
-function updateGoldenShares(roomObjs){
+function updateGoldenShares(){
     var totalGoldenDeaths = 0;
     var totalGoldenDeathsSession = 0;
     var checkpointDeathsObj = {};
     var checkpointDeathsSessionObj = {};
     
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var checkpointObj = currentChapterPath[checkpointIndex];
-        var roomsObj = checkpointObj.rooms;
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath.checkpoints[checkpointIndex];
+        var checkpointRoomsObj = checkpointObj.rooms;
 
         checkpointDeathsObj[checkpointObj.name] = 0;
         checkpointDeathsSessionObj[checkpointObj.name] = 0;
 
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = roomsObj[roomIndex];
-            var room = getRoomByNameOrDefault(roomObjs, roomName);
-            totalGoldenDeaths += room.goldenBerryDeaths;
-            totalGoldenDeathsSession += room.goldenBerryDeathsSession;
-            checkpointDeathsObj[checkpointObj.name] += room.goldenBerryDeaths;
-            checkpointDeathsSessionObj[checkpointObj.name] += room.goldenBerryDeathsSession;
+        for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
+            var roomStats = getRoomStatsByNameOrDefault(roomName);
+            totalGoldenDeaths += roomStats.goldenBerryDeaths;
+            totalGoldenDeathsSession += roomStats.goldenBerryDeathsSession;
+            checkpointDeathsObj[checkpointObj.name] += roomStats.goldenBerryDeaths;
+            checkpointDeathsSessionObj[checkpointObj.name] += roomStats.goldenBerryDeathsSession;
         }
     }
 
 
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var checkpointObj = currentChapterPath[checkpointIndex];
+    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
+        var checkpointObj = currentChapterPath.checkpoints[checkpointIndex];
         var goldenShareElement = currentChapterGoldenShareCheckpointElements[checkpointObj.name];
 
-        var roomsObj = checkpointObj.rooms;
+        var checkpointRoomsObj = checkpointObj.rooms;
         var checkpointDeaths = checkpointDeathsObj[checkpointObj.name];
         var checkpointDeathsSession = checkpointDeathsSessionObj[checkpointObj.name];
 
@@ -934,31 +899,23 @@ function updateGoldenShares(roomObjs){
 }
 
 
-
-function getCurrentRoom(){
-    return currentChapterRoomObjs[currentRoomName];
-}
-function setCurrentRoom(room, roomName){
-    currentRoomName = roomName;
-    return currentChapterRoomObjs[roomName] = room;
-}
-function getPreviousRoom(){
-    return currentChapterRoomObjs[previousRoomName];
-}
-function getRoomByNameOrDefault(roomObjs, roomDebugName){
+function getRoomStatsByNameOrDefault(roomDebugName){
     //If roomObjs has a key with the same name as roomDebugName, return that room
-    if(roomObjs[roomDebugName]){
-        return roomObjs[roomDebugName];
+    if(currentChapterStats.rooms[roomDebugName]){
+        return currentChapterStats.rooms[roomDebugName];
     }
 
     return {
-        attempts: [],
+        debugRoomName: roomDebugName,
         goldenBerryDeaths: 0,
         goldenBerryDeathsSession: 0,
-        rate5: NaN,
-        rate10: NaN,
-        rate20: NaN,
-        rateMax: NaN,
+        previousAttempts: [],
+        lastFiveRate: 0,
+        last10Rate: 0,
+        lastTwentyRate: 0,
+        maxRate: 0,
+        successStreak: 0,
+        deathsInCurrentRun: 0,
     };
 }
 
@@ -987,13 +944,13 @@ function getColorClass(room){
 function getSelectedRateOfRoom(room){
     var selectedRate = getSettingValueOrDefault("attempts");
     if(selectedRate == "5"){
-        return room.rate5;
+        return room.lastFiveRate;
     } else if(selectedRate == "10"){
-        return room.rate10;
+        return room.lastTenRate;
     } else if(selectedRate == "20"){
-        return room.rate20;
+        return room.lastTwentyRate;
     } else {
-        return room.rateMax;
+        return room.maxRate;
     }
 }
 function getSelectedRateNumber(){
@@ -1008,54 +965,6 @@ function getSelectedRateNumber(){
         return 9999999;
     }
 }
-
-function roomsInSameCheckpoint(room, otherRoom){
-    var roomCP = currentChapterRoomCheckpoints[room.name];
-    var otherRoomCP = currentChapterRoomCheckpoints[otherRoom.name];
-
-    if(otherRoomCP === undefined) return false;
-
-    if(roomCP.checkpoint === undefined || otherRoomCP.checkpoint === undefined){
-        return false;
-    }
-
-    return roomCP.checkpoint.name == otherRoomCP.checkpoint.name;
-}
-
-function calculateRemainingGoldenChance(roomToCalc, toNow=false){
-    var remainingGoldenChance = 1;
-    var skipMode = !toNow;
-
-    if(currentChapterPath == null){
-        return 0;
-    }
-
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var roomsObj = currentChapterPath[checkpointIndex].rooms;
-        for(var roomIndex = 0; roomIndex < roomsObj.length; roomIndex++){
-            var roomName = roomsObj[roomIndex];
-            var room = getRoomByNameOrDefault(currentChapterRoomObjs, roomName);
-
-            if(room.name == roomToCalc.name){ //Found current room, disable skip mode and start calculating from here
-                skipMode = !skipMode;
-            }
-
-            if(!skipMode){
-                var roomRate = getSelectedRateOfRoom(room);
-                if(!isNaN(roomRate)){
-                    remainingGoldenChance *= getSelectedRateOfRoom(room);
-                } else {
-                    remainingGoldenChance = 0; //If there is a room that was not yet played, chances are 0%
-                }
-            }
-
-            if(remainingGoldenChance == 0) break; //No need to keep calculating if chances are 0%
-        }
-    }
-
-    return remainingGoldenChance;
-}
-
 
 
 let baseKey = "base";
@@ -1088,13 +997,4 @@ function getSettingValueOrDefault(settingName){
     } else {
         return defaultSettings[baseKey][settingName];
     }
-}
-
-function getChapterRoomCount(){
-    var count = 0;
-    for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.length; checkpointIndex++){
-        var roomsObj = currentChapterPath[checkpointIndex].rooms;
-        count += roomsObj.length;
-    }
-    return count;
 }
