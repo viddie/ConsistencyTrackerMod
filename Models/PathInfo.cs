@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +10,22 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     [Serializable]
     public class PathInfo {
 
+        [JsonProperty("checkpoints")]
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
+
+        [JsonProperty("roomCount")]
         public int RoomCount {
             get {
                 return Checkpoints.Sum((cpInfo) => cpInfo.Rooms.Count);
             }
         }
+
+        [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;
+        [JsonIgnore]
         public RoomInfo CurrentRoom { get; set; } = null;
 
+        [JsonIgnore]
         public string ParseError { get; set; }
 
         public static PathInfo GetTestPathInfo() {
@@ -63,51 +71,38 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return pathInfo;
         }
-
-        public string ToJson() {
-            List<string> checkpointJsons = new List<string>();
-
-            foreach (CheckpointInfo cpInfo in Checkpoints) {
-                checkpointJsons.Add(cpInfo.ToJson());
-            }
-
-            string checkpointCount = DebugRcPage.FormatFieldJson("countCheckpoints", Checkpoints.Count);
-            string roomCount = DebugRcPage.FormatFieldJson("countRooms", RoomCount);
-            string checkpointsField = DebugRcPage.FormatArrayJson("checkpoints", checkpointJsons);
-
-            return DebugRcPage.FormatJson(checkpointCount, roomCount, checkpointsField);
-        }
     }
 
     [Serializable]
     public class CheckpointInfo {
+
+        [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("abbreviation")]
         public string Abbreviation { get; set; }
+
+        [JsonProperty("roomCount")]
         public int RoomCount {
             get => Rooms.Count;
             private set {
             }
         }
+
+        [JsonProperty("rooms")]
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
+        [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;
+        [JsonIgnore]
         public int CPNumberInChapter { get; set; } = -1;
+        [JsonIgnore]
         public double GoldenChance { get; set; } = 1;
 
         public override string ToString() {
             string toRet = $"{Name};{Abbreviation};{Rooms.Count}";
             string debugNames = string.Join(",", Rooms);
             return $"{toRet};{debugNames}";
-        }
-        public string ToJson() {
-            string name = DebugRcPage.FormatFieldJson("name", Name);
-            string abbreviation = DebugRcPage.FormatFieldJson("abbreviation", Abbreviation);
-            string countRooms = DebugRcPage.FormatFieldJson("countRooms", Rooms.Count);
-
-            List<string> roomsListJson = new List<string>(Rooms.Select((roomInfo) => $"\"{roomInfo.DebugRoomName}\""));
-            string roomsArray = DebugRcPage.FormatArrayJson("rooms", roomsListJson);
-
-            return DebugRcPage.FormatJson(name, abbreviation, countRooms, roomsArray);
         }
 
         public static CheckpointInfo ParseString(string line) {
@@ -136,14 +131,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     [Serializable]
     public class RoomInfo {
 
+        [JsonIgnore]
         public CheckpointInfo Checkpoint;
 
+        [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
         public override string ToString() {
             return DebugRoomName;
         }
 
+        [JsonIgnore]
         public int RoomNumberInCP { get; set; } = -1;
+        [JsonIgnore]
         public int RoomNumberInChapter { get; set; } = -1;
 
         public string GetFormattedRoomName(RoomNameDisplayType format) {

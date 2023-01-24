@@ -9,6 +9,9 @@ using Celeste.Mod;
 using System.Web;
 using Celeste.Mod.ConsistencyTracker.Exceptions;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.EverestInterop.Models;
+using Newtonsoft.Json;
+using Celeste.Mod.ConsistencyTracker.Stats;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
     public enum RCErrorCode {
@@ -48,18 +51,26 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 bool requestedJson = HasRequestedJson(c);
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
-                string response = null;
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
                 string content = "CCT API up and running :thumbsup_emoji:";
 
                 if (requestedJson) {
-                    string field = FormatFieldJson("status", content);
-                    response = FormatResponseJson(RCErrorCode.OK, field);
+                    InfoResponse response = new InfoResponse() {
+                        message = content,
+                        modVersion = ConsistencyTrackerModule.ModVersion,
+                        hasPath = mod.CurrentChapterPath != null,
+                        hasStats = mod.CurrentChapterStats != null,
+                        formatsLoaded = new List<StatFormat>(mod.StatsManager.Formats.Select((kv) => kv.Key)),
+                    };
+
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
                 } else {
                     string field = FormatFieldPlain("status", content);
-                    response = FormatResponsePlain(RCErrorCode.OK, field);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, field);
                 }
 
-                WriteResponse(c, response);
+                WriteResponse(c, responseStr);
             }
         };
 
@@ -76,7 +87,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
                 if (mod.CurrentUpdateFrame <= CurrentStateCache.LastUpdateFrame && CurrentStateCache.LastRequestedJson == requestedJson) {
                     WriteResponse(c, CurrentStateCache.LastResponse);
@@ -90,24 +101,26 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
 
                 if (requestedJson) {
-                    string roomObj = FormatObjectStringJson("currentRoom", mod.CurrentChapterStats.CurrentRoom.ToJson());
-                    string chapterName = FormatFieldJson("chapterName", mod.CurrentChapterStats.ChapterDebugName);
-                    string modStateObj = FormatObjectStringJson("modState", mod.CurrentChapterStats.ModState.ToJson());
-                    response = FormatResponseJson(RCErrorCode.OK, roomObj, chapterName, modStateObj);
+                    StateResponse response = new StateResponse() {
+                        currentRoom = mod.CurrentChapterStats.CurrentRoom,
+                        chapterName = mod.CurrentChapterStats.ChapterDebugName,
+                        modState = mod.CurrentChapterStats.ModState,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string currentRoom = mod.CurrentChapterStats.CurrentRoom.ToString();
                     string modState = $"{mod.CurrentChapterStats.ChapterDebugName};{mod.CurrentChapterStats.ModState}";
-                    response = FormatResponsePlain(RCErrorCode.OK, currentRoom, modState);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, currentRoom, modState);
                 }
 
-                CurrentStateCache.Update(mod.CurrentUpdateFrame, response, requestedJson);
-                WriteResponse(c, response);
+                CurrentStateCache.Update(mod.CurrentUpdateFrame, responseStr, requestedJson);
+                WriteResponse(c, responseStr);
             }
         };
 
         // +------------------------------------------+
-        // |             /cct/settings                |
+        // |          /cct/overlaySettings            |
         // +------------------------------------------+
         private static readonly RCEndPoint SettingsEndPoint = new RCEndPoint() {
             Path = "/cct/overlaySettings",
@@ -123,47 +136,47 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
+                SettingsResponse response = new SettingsResponse() {
+                    settings = new SettingsResponse.Settings() {
+                        general = new SettingsResponse.General() {
+                            refreshTimeSeconds = mod.ModSettings.ExternalOverlayRefreshTimeSeconds,
+                            attemptsCount = mod.ModSettings.ExternalOverlayAttemptsCount,
+                            textOutlineSize = mod.ModSettings.ExternalOverlayTextOutlineSize,
+                            fontFamily = mod.ModSettings.ExternalOverlayFontFamily,
+                            colorblindMode = mod.ModSettings.ExternalOverlayColorblindMode,
+                        },
+                        roomAttemptsDisplay = new SettingsResponse.RoomAttemptsDisplay() {
+                            enabled = mod.ModSettings.ExternalOverlayRoomAttemptsDisplayEnabled,
+                        },
+                        goldenShareDisplay = new SettingsResponse.GoldenShareDisplay() {
+                            enabled = mod.ModSettings.ExternalOverlayGoldenShareDisplayEnabled,
+                            showSession = mod.ModSettings.ExternalOverlayGoldenShareDisplayShowSession,
+                        },
+                        goldenPBDisplay = new SettingsResponse.GoldenPBDisplay() {
+                            enabled = mod.ModSettings.ExternalOverlayGoldenPBDisplayEnabled,
+                        },
+                        chapterBarDisplay = new SettingsResponse.ChapterBarDisplay() {
+                            enabled = mod.ModSettings.ExternalOverlayChapterBarEnabled,
+                            borderWidthMultiplier = mod.ModSettings.ExternalOverlayChapterBorderWidthMultiplier,
+                            lightGreenCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarLightGreenPercent / 100,
+                            greenCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarGreenPercent / 100,
+                            yellowCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarYellowPercent / 100,
+                        },
+                        textStatsDisplay = new SettingsResponse.TextStatsDisplay() {
+                            enabled = mod.ModSettings.ExternalOverlayTextDisplayEnabled,
+                            preset = mod.ModSettings.ExternalOverlayTextDisplayPreset,
+                            leftEnabled = mod.ModSettings.ExternalOverlayTextDisplayLeftEnabled,
+                            middleEnabled = mod.ModSettings.ExternalOverlayTextDisplayMiddleEnabled,
+                            rightEnabled = mod.ModSettings.ExternalOverlayTextDisplayRightEnabled,
+                        }
+                    },
+                };
 
-                string generalObj = FormatObjectFieldJson("general", new Dictionary<string, object>() {
-                    ["refreshTimeSeconds"] = mod.ModSettings.ExternalOverlayRefreshTimeSeconds,
-                    ["attemptsCount"] = mod.ModSettings.ExternalOverlayAttemptsCount,
-                    ["textOutlineSize"] = mod.ModSettings.ExternalOverlayTextOutlineSize,
-                    ["fontFamily"] = mod.ModSettings.ExternalOverlayFontFamily,
-                    ["colorblindMode"] = mod.ModSettings.ExternalOverlayColorblindMode,
-                });
-                string roomAttemptsObj = FormatObjectFieldJson("roomAttemptsDisplay", new Dictionary<string, object>() {
-                    ["enabled"] = mod.ModSettings.ExternalOverlayRoomAttemptsDisplayEnabled,
-                });
-                string goldenShareObj = FormatObjectFieldJson("goldenShareDisplay", new Dictionary<string, object>() {
-                    ["enabled"] = mod.ModSettings.ExternalOverlayGoldenShareDisplayEnabled,
-                    ["showSession"] = mod.ModSettings.ExternalOverlayGoldenShareDisplayShowSession,
-                });
-                string goldenPBObj = FormatObjectFieldJson("goldenPBDisplay", new Dictionary<string, object>() {
-                    ["enabled"] = mod.ModSettings.ExternalOverlayGoldenPBDisplayEnabled,
-                });
-                string chapterBarObj = FormatObjectFieldJson("chapterBarDisplay", new Dictionary<string, object>() {
-                    ["enabled"] = mod.ModSettings.ExternalOverlayChapterBarEnabled,
-                    ["borderWidthMultiplier"] = mod.ModSettings.ExternalOverlayChapterBorderWidthMultiplier,
-                    ["lightGreenCutoff"] = ((float)mod.ModSettings.ExternalOverlayChapterBarLightGreenPercent / 100),
-                    ["greenCutoff"] = ((float)mod.ModSettings.ExternalOverlayChapterBarGreenPercent / 100),
-                    ["yellowCutoff"] = ((float)mod.ModSettings.ExternalOverlayChapterBarYellowPercent / 100),
-                });
-                string textStatsObj = FormatObjectFieldJson("textStatsDisplay", new Dictionary<string, object>() {
-                    ["enabled"] = mod.ModSettings.ExternalOverlayTextDisplayEnabled,
-                    ["preset"] = mod.ModSettings.ExternalOverlayTextDisplayPreset,
-                    ["leftEnabled"] = mod.ModSettings.ExternalOverlayTextDisplayLeftEnabled,
-                    ["middleEnabled"] = mod.ModSettings.ExternalOverlayTextDisplayMiddleEnabled,
-                    ["rightEnabled"] = mod.ModSettings.ExternalOverlayTextDisplayRightEnabled,
-                });
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
-                string settingsObjString = FormatJson(generalObj, roomAttemptsObj, goldenShareObj, goldenPBObj, chapterBarObj, textStatsObj);
-                string settingsObj = FormatObjectStringJson("settings", settingsObjString);
-
-                response = FormatResponseJson(RCErrorCode.OK, settingsObj);
-
-                WriteResponse(c, response);
+                WriteResponse(c, responseStr);
             }
         };
         #endregion
@@ -181,7 +194,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
                 if (mod.CurrentUpdateFrame <= CurrentChapterStatsCache.LastUpdateFrame && CurrentChapterStatsCache.LastRequestedJson == requestedJson) {
                     WriteResponse(c, CurrentChapterStatsCache.LastResponse);
@@ -195,16 +208,18 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
 
                 if (requestedJson) {
-                    string chapterStats = FormatObjectStringJson("chapterStats", mod.CurrentChapterStats.ToJson());
-                    response = FormatResponseJson(RCErrorCode.OK, chapterStats);
+                    ChapterStatsResponse response = new ChapterStatsResponse() {
+                        chapterStats = mod.CurrentChapterStats,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string chapterStats = mod.CurrentChapterStats.ToChapterStatsString();
-                    response = FormatResponsePlain(RCErrorCode.OK, chapterStats);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, chapterStats);
                 }
 
-                CurrentChapterStatsCache.Update(mod.CurrentUpdateFrame, response, requestedJson);
-                WriteResponse(c, response);
+                CurrentChapterStatsCache.Update(mod.CurrentUpdateFrame, responseStr, requestedJson);
+                WriteResponse(c, responseStr);
             }
         };
 
@@ -243,7 +258,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 mod.SaveChapterStats();
 
                 if (requestedJson) {
-                    response = FormatResponseJson(RCErrorCode.OK);
+                    response = FormatResponseJson(RCErrorCode.OK, new Response());
 
                 } else {
                     response = FormatResponsePlain(RCErrorCode.OK);
@@ -269,15 +284,26 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
-                string singleFormat = null;
+                bool isGetRequest = c.Request.HttpMethod == "GET";
+                string getFormat = null;
+                ParseFormatRequest postRequest = null;
+
                 if (c.Request.HttpMethod == "GET") {
-                    singleFormat = GetQueryParameter(c, "format");
+                    getFormat = GetQueryParameter(c, "format");
+
                 } else if (c.Request.HttpMethod == "POST") {
                     if (c.Request.HasEntityBody) {
+                        string body = null;
                         using (var reader = new StreamReader(c.Request.InputStream, c.Request.ContentEncoding)) {
-                            singleFormat = reader.ReadToEnd();
+                            body = reader.ReadToEnd();
+                        }
+                        try {
+                            postRequest = JsonConvert.DeserializeObject<ParseFormatRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
                         }
                     } else {
                         WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
@@ -288,18 +314,24 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     return;
                 }
 
-                if (singleFormat == null || singleFormat == "") { //Missing parameter "format"
+                if (isGetRequest && getFormat == null) { //Missing parameter "format"
                     WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "format");
+                    return;
+
+                } else if (!isGetRequest && postRequest.formats == null) { //Missing parameter "format"
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "formats");
                     return;
                 }
 
-                string[] formatSplitLines = singleFormat.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
-
                 List<string> requestedFormats = new List<string>();
-                foreach (string line in formatSplitLines) {
-                    requestedFormats.Add(line.Trim());
+
+                if (isGetRequest) {
+                    requestedFormats.Add(getFormat);
+                } else {
+                    requestedFormats = postRequest.formats;
                 }
 
+                DateTime startTime = DateTime.Now;
                 try {
                     for (int i = 0; i < requestedFormats.Count; i++) {
                         requestedFormats[i] = mod.StatsManager.FormatVariableFormat(requestedFormats[i]);
@@ -308,18 +340,21 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
                     return;
                 }
+                DateTime endTime = DateTime.Now;
 
                 if (requestedJson) {
-                    requestedFormats = FormatStringListForJson(requestedFormats);
-                    string formats = FormatArrayJson("formats", requestedFormats);
-                    response = FormatResponseJson(RCErrorCode.OK, formats);
+                    ParseFormatResponse response = new ParseFormatResponse() {
+                        formats = requestedFormats,
+                        calculationTime = (endTime - startTime).TotalMilliseconds,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string content = string.Join(PlainLineSplitToken, requestedFormats);
-                    response = FormatResponsePlain(RCErrorCode.OK, content);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
                 }
 
-                WriteResponse(c, response);
+                WriteResponse(c, responseStr);
             }
         };
         #endregion
@@ -337,7 +372,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
                 if (mod.CurrentUpdateFrame <= CurrentChapterPathCache.LastUpdateFrame && CurrentChapterPathCache.LastRequestedJson == requestedJson) {
                     WriteResponse(c, CurrentChapterPathCache.LastResponse);
@@ -351,16 +386,18 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
 
                 if (requestedJson) {
-                    string path = FormatObjectStringJson("path", mod.CurrentChapterPath.ToJson());
-                    response = FormatResponseJson(RCErrorCode.OK, path);
+                    ChapterPathResponse response = new ChapterPathResponse() {
+                        path = mod.CurrentChapterPath,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string chapterPathString = mod.CurrentChapterPath.ToString();
-                    response = FormatResponsePlain(RCErrorCode.OK, chapterPathString);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, chapterPathString);
                 }
 
-                CurrentChapterPathCache.Update(mod.CurrentUpdateFrame, response, requestedJson);
-                WriteResponse(c, response);
+                CurrentChapterPathCache.Update(mod.CurrentUpdateFrame, responseStr, requestedJson);
+                WriteResponse(c, responseStr);
             }
         };
 
@@ -381,23 +418,24 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 //}
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
                 string pathsFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
                 string[] allPathFiles = Directory.GetFiles(pathsFolder);
                 List<string> allPathFilesNames = new List<string>(allPathFiles.Select((path) => Path.GetFileNameWithoutExtension(path)));
 
                 if (requestedJson) {
-                    List<string> jsonFormattedFiles = FormatStringListForJson(allPathFilesNames);
-                    string content = FormatArrayJson("availableMaps", jsonFormattedFiles);
-                    response = FormatResponseJson(RCErrorCode.OK, content);
+                    PathListResponse response = new PathListResponse() {
+                        availablePaths = allPathFilesNames,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string content = string.Join("\n", allPathFilesNames);
-                    response = FormatResponsePlain(RCErrorCode.OK, content);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
                 }
 
-                WriteResponse(c, response);
+                WriteResponse(c, responseStr);
             }
         };
 
@@ -420,7 +458,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string response = null;
+                string responseStr = null;
 
                 string map = GetQueryParameter(c, "map");
                 if (map == null) {
@@ -449,10 +487,12 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
 
                 //Response
-                string path = FormatObjectStringJson("path", pathInfo.ToJson());
-                response = FormatResponseJson(RCErrorCode.OK, path);
+                ChapterPathResponse response = new ChapterPathResponse() {
+                    path = pathInfo,
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
-                WriteResponse(c, response);
+                WriteResponse(c, responseStr);
             }
         };
         #endregion
@@ -503,10 +543,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         }
 
         public static string GetErrorResponse(RCErrorCode code, bool requestedJson) {
-            return requestedJson ? FormatResponseJson(code) : FormatResponsePlain(code);
+            return requestedJson ? FormatErrorResponseJson(code) : FormatResponsePlain(code);
         }
         public static string GetErrorResponseWithDetails(RCErrorCode code, bool requestedJson, string details) {
-            return requestedJson ? FormatResponseJson(code, new List<string>(), details) : FormatResponsePlain(code, new List<string>(), details);
+            return requestedJson ? FormatErrorResponseJson(code, details) : FormatResponsePlain(code, new List<string>(), details);
         }
 
         public static string ToMessage(this RCErrorCode code, string details=null) {
@@ -550,105 +590,24 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             c.Response.AddHeader("Content-Type", responseType);
             return requestedJson;
         }
+
+        public static string FormatBool(bool b) {
+            return b ? "true" : "false";
+        }
         #endregion
 
         #region JSON Responses
-        public static string FormatResponseJson(RCErrorCode code, params string[] values) {
-            List<string> list = values.ToList();
-            return FormatResponseJson(code, list);
+        public static string FormatResponseJson(RCErrorCode code, Response response) {
+            response.errorCode = (int)code;
+            response.errorMessage = code.ToMessage();
+            return JsonConvert.SerializeObject(response);
         }
-        public static string FormatResponseJson(RCErrorCode code, List<string> values, string errorCodeDetails=null) {
-            string errorCode = ErrorCodeJson(code);
-            string errorMessage = FormatFieldJson("errorMessage", code.ToMessage(errorCodeDetails));
-            if (values == null) values = new List<string>();
-            values.Add(errorCode);
-            values.Add(errorMessage);
-            return FormatJson(values);
-        }
-        public static string FormatJson(params string[] values) {
-            List<string> list = values.ToList();
-            return FormatJson(list);
-        }
-        public static string FormatJson(List<string> values) {
-            string result = $"{{";
-
-            foreach (string val in values) {
-                result += $"{val},";
-            }
-
-            if (values.Count > 0) {
-                result = result.Substring(0, result.Length - 1);
-            }
-
-            result += $"}}";
-
-            return result;
-        }
-
-
-        public static string ErrorCodeJson(RCErrorCode code) {
-            return $"\"errorCode\":{(int)code}";
-        }
-
-        public static string FormatObjectStringJson(string name, string jsonObject) {
-            string result = $"\"{name}\":{jsonObject}";
-            return result;
-        }
-        public static string FormatObjectFieldJson(string name, Dictionary<string, object> objects) {
-            List<string> fields = new List<string>();
-
-            foreach (string key in objects.Keys) {
-                fields.Add(FormatFieldJson(key, objects[key]));
-            }
-
-            string objectString = FormatJson(fields);
-
-            return FormatObjectStringJson(name, objectString);
-        }
-        public static string FormatArrayJson(string name, List<string> jsonStringsArray) {
-            string result = $"\"{name}\":[";
-            foreach (string jsonString in jsonStringsArray) {
-                result += $"{jsonString},";
-            }
-            if (jsonStringsArray.Count > 0) {
-                result = result.Substring(0, result.Length-1);
-            }
-            result += "]";
-            return result;
-        }
-        public static string FormatFieldJson(string name, string value) {
-            return $"\"{name}\":\"{value}\"";
-        }
-        public static string FormatFieldJson(string name, int value) {
-            return $"\"{name}\":{value}";
-        }
-        public static string FormatFieldJson(string name, bool value) {
-            return $"\"{name}\":{FormatBoolJson(value)}";
-        }
-        public static string FormatFieldJson(string name, double value) {
-            return $"\"{name}\":{value}";
-        }
-        public static string FormatFieldJson(string name, float value) {
-            return $"\"{name}\":{value}";
-        }
-        public static string FormatFieldJson(string name, object value) {
-            if (value is int) return FormatFieldJson(name, (int)value);
-            else if (value is bool) return FormatFieldJson(name, (bool)value);
-            else if (value is float) return FormatFieldJson(name, (float)value);
-            else if (value is double) return FormatFieldJson(name, (double)value);
-            else if (value is string) return FormatFieldJson(name, (string)value);
-
-            return $"\"{name}\":\"{value}\"";
-        }
-        public static string FormatBoolJson(bool b) {
-            return b ? "true" : "false";
-        }
-
-        public static List<string> FormatStringListForJson(List<string> stringsList) {
-            return new List<string>(stringsList.Select((s) => $"\"{s}\""));
-        }
-        public static List<string> FormatStringListForJson(params string[] stringsArray) {
-            return new List<string>(stringsArray.Select((s) => $"\"{s}\""));
+        public static string FormatErrorResponseJson(RCErrorCode code, string details=null) {
+            Response response = new Response {
+                errorCode = (int)code,
+                errorMessage = code.ToMessage(details)
+            };
+            return JsonConvert.SerializeObject(response);
         }
         #endregion
 
@@ -679,7 +638,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             return result;
         }
         public static string FormatFieldPlain(string name, bool value) {
-            string result = $"{name}{PlainFieldSplitToken}{FormatBoolJson(value)}";
+            string result = $"{name}{PlainFieldSplitToken}{FormatBool(value)}";
             return result;
         }
 

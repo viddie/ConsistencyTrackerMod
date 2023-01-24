@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="MonoMod" Version="21.08.19.01" />
     <PackageReference Include="MonoMod.RuntimeDetour" Version="21.08.19.01" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>
