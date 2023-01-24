@@ -127,8 +127,11 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
 
                 string generalObj = FormatObjectFieldJson("general", new Dictionary<string, object>() {
-                    ["colorblindMode"] = mod.ModSettings.ExternalOverlayColorblindMode,
+                    ["refreshTimeSeconds"] = mod.ModSettings.ExternalOverlayRefreshTimeSeconds,
+                    ["attemptsCount"] = mod.ModSettings.ExternalOverlayAttemptsCount,
+                    ["textOutlineSize"] = mod.ModSettings.ExternalOverlayTextOutlineSize,
                     ["fontFamily"] = mod.ModSettings.ExternalOverlayFontFamily,
+                    ["colorblindMode"] = mod.ModSettings.ExternalOverlayColorblindMode,
                 });
                 string roomAttemptsObj = FormatObjectFieldJson("roomAttemptsDisplay", new Dictionary<string, object>() {
                     ["enabled"] = mod.ModSettings.ExternalOverlayRoomAttemptsDisplayEnabled,

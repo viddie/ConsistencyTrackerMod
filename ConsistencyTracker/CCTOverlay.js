@@ -3,9 +3,9 @@ let defaultSettings = {
     "base": {
         "attempts": "20",
         "refresh-time-ms": 1000,
-        "text-format-left": "GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Choke Rate: {room:chokeRate}<br>PB: {pb:best} (Session: {pb:bestSession})",
+        "text-format-left": "Attempts: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Choke Rate: {room:chokeRate}<br>PB: {pb:best} (Session: {pb:bestSession})",
         "text-format-center": "{room:name}: {room:successRate} ({room:successes}/{room:attempts})<br>CP: {checkpoint:successRate}<br>Total: {chapter:successRate}",
-        "text-format-right": "Golden Chance<br>CP: {checkpoint:goldenChance}<br>Total: {chapter:goldenChance}<br>Room->End: {run:goldenChanceToEnd}",
+        "text-format-right": "Low Death: {list:checkpointDeaths}<br>Current Run: #{run:currentPbStatus} (Session: #{run:currentPbStatusSession})",
         "text-nan-replacement": "-",
         "color": "white",
         "font-family": "Renogare",
@@ -35,61 +35,15 @@ let defaultSettings = {
     },
     "selected-override": "",
     "overrides": {
-        "only-room-rate": {
-            "chapter-bar-enabled": false,
-            "golden-share-display-enabled": false,
-            "room-attempts-display-enabled": false,
-            "text-format-left": "",
-            "text-format-center": "{room:rate}% ({room:successes}/{room:attempts})",
-            "text-format-right": ""
+        "Low Death": {
+            "text-format-left": "Attempts: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>Room Streak: {room:currentStreak} (CP: {checkpoint:currentStreak})",
+            "text-format-center": "{room:name}: {room:successRate} ({room:successes}/{room:attempts})<br>CP: {checkpoint:successRate}<br>Total: {chapter:successRate}",
+            "text-format-right": "Current Low Death: {list:checkpointDeaths}<br>Red: {chapter:color-red}, Yellow: {chapter:color-yellow}, Green: {chapter:color-green} ({chapter:color-lightGreen})",
         },
-        "only-rates": {
-            "chapter-bar-enabled": false,
-            "golden-share-display-enabled": false,
-            "room-attempts-display-enabled": false,
-            "text-format-left": "",
-            "text-format-right": ""
-        },
-        "only-bar": {
-            "chapter-bar-enabled": true,
-            "golden-share-display-enabled": false,
-            "room-attempts-display-enabled": false,
-            "text-format-left": "",
-            "text-format-center": "",
-            "text-format-right": ""
-        },
-        "bar-and-rates": {
-            "chapter-bar-enabled": true,
-            "golden-share-display-enabled": false,
-            "room-attempts-display-enabled": false,
-            "text-format-left": "",
-            "text-format-right": ""
-        },
-        "some-grinding-info": {
-            "text-format-left": "GB Deaths Room: {room:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%",
-            "text-format-right": "",
-            "room-attempts-display-enabled": false,
-            "golden-share-show-current-session": false
-        },
-        "more-grinding-info": {
-            "text-format-left": "GB Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})<br>Room: {room:goldenDeaths}<br>Choke Rate: {room:goldenChokeRate}%",
-            "room-attempts-new-text": "➔",
-            "room-attempts-old-text": "➔"
-        },
-        "golden-berry-tracking-simple": {
-            "text-format-left": "GB Deaths: {chapter:goldenDeaths}<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber}",
-            "text-format-center": "",
-            "text-format-right": "",
-            "room-attempts-display-enabled": false
-        },
-        "golden-berry-tracking-with-session": {
-            "text-format-left": "GB Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})",
-            "text-format-center": "{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate}% ({room:successes}/{room:attempts})",
-            "text-format-right": "",
-            "room-attempts-display-enabled": false,
-            "font-size-left": "30px",
-            "font-size-center": "30px",
-            "font-size-right": "30px"
+        "Golden Attempts": {
+            "text-format-left": "Attempts: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>PB: {pb:best} ({pb:bestRoomNumber}/{chapter:roomCount})<br>Session PB: {pb:bestSession} ({pb:bestRoomNumberSession}/{chapter:roomCount})",
+            "text-format-center": "{room:name}: {room:successRate} ({room:successes}/{room:attempts})<br>CP: {checkpoint:successRate}<br>Total: {chapter:successRate}",
+            "text-format-right": "Current Run: #{run:currentPbStatus} (Session: #{run:currentPbStatusSession})<br>Choke Rate: {room:chokeRate} (CP: {checkpoint:chokeRate})<br>CP Golden Chance: {checkpoint:goldenChance}<br> Chapter Golden Chance: {chapter:goldenChance}",
         }
     }
 }
@@ -125,7 +79,6 @@ let currentCheckpointRoomIndex = null;
 let trackingPausedElement = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    //Call updateOverlay once per second
     fetchSettings();
 });
 
@@ -137,6 +90,9 @@ function applySettings(overlaySettingsObj){
 
         //General
         settings.base["colorblind-mode-enabled"] = modOverlaySettings.general.colorblindMode;
+        settings.base["attempts"] = modOverlaySettings.general.attemptsCount+"";
+        settings.base["refresh-time-ms"] = modOverlaySettings.general.refreshTimeSeconds*1000;
+        settings.base["outline-size"] = modOverlaySettings.general.textOutlineSize+"px";
         settings.base["font-family"] = modOverlaySettings.general.fontFamily;
 
         //Chapter Bar
@@ -161,6 +117,8 @@ function applySettings(overlaySettingsObj){
         if(modOverlaySettings.textStatsDisplay.rightEnabled === false){
             settings.base["text-format-right"] = "";
         }
+
+        settings["selected-override"] = modOverlaySettings.textStatsDisplay.preset;
 
         //Golden Share
         settings.base["golden-share-display-enabled"] = modOverlaySettings.goldenShareDisplay.enabled;
@@ -218,7 +176,11 @@ function applySettingsForGoldenShareDisplay(){
 }
 //===============================
 
-// show ATTEMPT DISPLAY
+// hide/show ATTEMPT DISPLAY
+function hideRoomAttemptDisplay(){
+    var elemContainer = document.getElementById("room-attempts-container");
+    elemContainer.style.display = "none";
+}
 function applySettingsForRoomAttemptDisplay(){
     if(getSettingValueOrDefault("room-attempts-display-enabled")){
         document.getElementById("room-attempts-container").style.display = "flex";
@@ -247,16 +209,21 @@ function applyToElement(id, color, fontSize, textShadow){
 
 function fetchSettings(){ //Called once on startup
     fetch('http://localhost:32270/cct/info').then((response) => response.json()).then((data) => console.log(data));
+    settings = defaultSettings;
 
     var url = "http://localhost:32270/cct/overlaySettings";
     fetch(url, { headers: { "Accept":"application/json" }}).then((response) => {
         return response.json();
     }).then((responseObj) => {
-        settings = defaultSettings;
         applySettings(responseObj);
         intervalHandle = setInterval(fetchModState, getSettingValueOrDefault("refresh-time-ms"));
         
-    }).catch((error) => console.log(error));
+    }).catch((error) => {
+        console.log("Failed to fetch settings from mod. Is it running?");
+        console.log(error);
+        applySettings({ errorCode: 99, errorMessage: "Failed to fetch settings from mod. Is it running?"});
+        displayCriticalError(99, "Failed to fetch settings from mod. Is it running?");
+    });
 }
 
 var checkedForUpdate = false; //Flag to prevent multiple update checks
@@ -335,10 +302,16 @@ function fetchModState(){ //Called once per second
             method: "POST",
             body: combinedBody,
         }).then((response) => response.json()).then((responseObj) => {
-            var textFormattedLeft = responseObj.formats[0];
-            var textFormattedMiddle = responseObj.formats[1];
-            var textFormattedRight = responseObj.formats[2];
-
+            if(responseObj.errorCode != 0){
+                var textFormattedLeft = "";
+                var textFormattedMiddle = "";
+                var textFormattedRight = "";
+            } else {
+                var textFormattedLeft = responseObj.formats[0];
+                var textFormattedMiddle = responseObj.formats[1];
+                var textFormattedRight = responseObj.formats[2];
+            }
+            
             updateStatsText("stats-left", textFormattedLeft, roomToDisplayStats, isSelecting);
             updateStatsText("stats-center", textFormattedMiddle, roomToDisplayStats, isSelecting);
             updateStatsText("stats-right", textFormattedRight, roomToDisplayStats, isSelecting);
@@ -416,26 +389,38 @@ function updateChapterLayout(chapterName){ //Called once per second
 function getChapterPath(chapterName, roomObjects){ //Called once per second
     var url = "http://localhost:32270/cct/currentChapterPath";
     fetch(url, { headers: { "Accept":"text/plain" }}).then((response) => response.text()).then((responseText) => {
-        if(responseText == ""){ //File was not found or was empty
-            currentChapterPath = null;
-            currentCheckpointObj = null;
-            currentCheckpointRoomIndex = null;
-            
-            document.getElementById("chapter-container").innerHTML = "Path info not found";
-            hideGoldenShareDisplay();
-            hideGoldenPBDisplay();
-        } else {
-            //Split the response into lines
-            var lines = responseText.split("\n");
-            //skip the first line, join the rest
-            responseText = lines.slice(1).join("\n");
+        var lines = responseText.split("\n");
+        var errorCodeLine = lines[0];
+        var splitErrorCodeLine = errorCodeLine.split(";");
+        var errorCode = splitErrorCodeLine[0];
+        var errorMessage = splitErrorCodeLine[1];
 
+        if(errorCode != "0"){
+            displayCriticalError(errorCode, errorMessage);
+        } else {
+            displayCriticalError(errorCode, errorMessage);
+            responseText = lines.slice(1).join("\n");
             currentChapterPath = parseChapterPath(responseText);
             displayRoomObjects(roomObjects);
-            applySettingsForGoldenShareDisplay();
-            applySettingsForGoldenPBDisplay();
         }
     }).catch((error) => console.log(error));
+}
+
+function displayCriticalError(errorCode, errorMessage){
+    if(errorCode != 0){
+        currentChapterPath = null;
+        currentCheckpointObj = null;
+        currentCheckpointRoomIndex = null;
+        
+        document.getElementById("chapter-container").innerHTML = errorMessage;
+        hideGoldenShareDisplay();
+        hideRoomAttemptDisplay();
+        hideGoldenPBDisplay();
+    } else {
+        applySettingsForGoldenShareDisplay();
+        applySettingsForRoomAttemptDisplay();
+        applySettingsForGoldenPBDisplay();
+    }
 }
 
 
@@ -1078,6 +1063,14 @@ let selOverrideKey = "selected-override";
 let overridesKey = "overrides";
 function getSettingValueOrDefault(settingName){
     var selectedOverride = settings[selOverrideKey];
+    var baseSettings = settings[baseKey];
+
+    var isTextFormat = settingName === "text-format-left" || settingName === "text-format-right" || settingName === "text-format-center";
+    if(isTextFormat){
+        if(baseSettings[settingName] === ""){
+            return baseSettings[settingName];
+        }
+    }
 
     if(selectedOverride !== "" && selectedOverride !== null){
         var overrides = settings[overridesKey];
@@ -1089,7 +1082,6 @@ function getSettingValueOrDefault(settingName){
         }
     }
 
-    var baseSettings = settings[baseKey];
 
     if(baseSettings.hasOwnProperty(settingName)){
         return baseSettings[settingName];

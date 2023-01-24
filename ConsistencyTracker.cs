@@ -102,10 +102,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CreateExternalOverlay();
             }
 
-
             LogInit();
-            Log($"~~~===============~~~");
-            ChapterStats.LogCallback = Log;
+            Log($"~~~===== {DateTime.Now} =====~~~");
 
             HookStuff();
 
@@ -664,6 +662,16 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         }
         private void CreatePathFile(string name, string content) {
+            if (name != "Celeste_LostLevels_Normal") {
+                string[] split = name.Split('_');
+                string celeste = split[0];
+                string chapterNum = split[1];
+                string chapterName = split[2];
+                string side = split[3];
+
+                name = $"{celeste}_{chapterNum}-{chapterName}_{side}";
+            }
+
             string path = GetPathToFile($"{PathsFolder}/{name}.txt");
             File.WriteAllText(path, content);
         }
@@ -1121,6 +1129,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             public bool ExternalOverlay { get; set; } = false;
 
             [SettingIgnore]
+            public int ExternalOverlayRefreshTimeSeconds { get; set; } = 2;
+            [SettingIgnore]
+            public int ExternalOverlayAttemptsCount { get; set; } = 20;
+            [SettingIgnore]
+            public int ExternalOverlayTextOutlineSize { get; set; } = 10;
+            [SettingIgnore]
             public bool ExternalOverlayColorblindMode { get; set; } = false;
             [SettingIgnore]
             public string ExternalOverlayFontFamily { get; set; } = "Renogare";
@@ -1165,9 +1179,20 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 //General Settings
                 subMenu.Add(new TextMenu.SubHeader("General Settings"));
-                subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
-                    OnValueChange = v => {
-                        ExternalOverlayColorblindMode = v;
+                subMenu.Add(new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
+                    OnValueChange = (value) => {
+                        ExternalOverlayRefreshTimeSeconds = value;
+                    }
+                });
+                List<int> attemptsList = new List<int>() { 5, 10, 20, 100 };
+                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
+                    OnValueChange = (value) => {
+                        ExternalOverlayAttemptsCount = value;
+                    }
+                });
+                subMenu.Add(new TextMenu.Slider("Text Outline Size", (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
+                    OnValueChange = (value) => {
+                        ExternalOverlayTextOutlineSize = value;
                     }
                 });
                 List<string> fontList = new List<string>() {
@@ -1183,6 +1208,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
                     OnValueChange = v => {
                         ExternalOverlayFontFamily = v;
+                    }
+                });
+                subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
+                    OnValueChange = v => {
+                        ExternalOverlayColorblindMode = v;
                     }
                 });
 

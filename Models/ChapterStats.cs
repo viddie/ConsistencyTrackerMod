@@ -10,7 +10,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     [Serializable]
     public class ChapterStats {
         public static readonly int MAX_ATTEMPT_COUNT = 100;
-        public static Action<string> LogCallback;
 
         public string CampaignName { get; set; }
         public string ChapterName { get; set; }
