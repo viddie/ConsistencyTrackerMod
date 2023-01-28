@@ -9,7 +9,11 @@ using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Properties;
+using Celeste.Mod.ConsistencyTracker.Util;
 using System.Drawing;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using Celeste.Mod.ConsistencyTracker.Entities;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -17,7 +21,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static ConsistencyTrackerModule Instance;
         private static readonly int LOG_FILE_COUNT = 10;
 
-        public static readonly string OverlayVersion = "1.2.0";
+        public static readonly string OverlayVersion = "2.0.0";
         public static readonly string ModVersion = "1.4.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
@@ -79,6 +83,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         public StatManager StatsManager;
+        public TextOverlay IngameOverlay;
 
 
         public ConsistencyTrackerModule() {
@@ -282,6 +287,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SetNewRoom(newCurrentRoom, false, holdingGolden);
                 PreviousRoomName = null;
             }
+
+            if (isFromLoader) {
+                Log("[Level.OnLoadLevel] Adding overlay!");
+                IngameOverlay = new TextOverlay();
+                level.Add(IngameOverlay);
+            }
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
@@ -376,14 +387,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
-            CurrentChapterPath = GetPathInputInfo();
             CurrentChapterStats = GetCurrentChapterStats();
-
+            CurrentChapterStats.ChapterDebugName = CurrentChapterDebugName;
+            CurrentChapterStats.CampaignName = campaignName;
+            CurrentChapterStats.ChapterName = chapNameClean;
             CurrentChapterStats.ChapterSID = session.MapData.Data.SID;
             CurrentChapterStats.ChapterSIDDialogSanitized = SanitizeSIDForDialog(session.MapData.Data.SID);
-            CurrentChapterStats.ChapterName = chapNameClean;
-            CurrentChapterStats.CampaignName = campaignName;
+            CurrentChapterStats.SideName = session.Area.Mode.ToReadableString();
 
+            SetCurrentChapterPath(GetPathInputInfo());
+
+            //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
 
             SetNewRoom(CurrentRoomName, false, false);
@@ -395,6 +409,21 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if (!DoRecordPath && ModSettings.RecordPath) {
                 DoRecordPath = true;
+            }
+        }
+
+        public void SetCurrentChapterPath(PathInfo path) {
+            CurrentChapterPath = path;
+            if (CurrentChapterPath != null) {
+                CurrentChapterPath.SetCheckpointRefs();
+
+                if (CurrentChapterPath.ChapterName == null) {
+                    CurrentChapterPath.CampaignName = CurrentChapterStats.CampaignName;
+                    CurrentChapterPath.ChapterName = CurrentChapterStats.ChapterName;
+                    CurrentChapterPath.ChapterSID = CurrentChapterStats.ChapterSID;
+                    CurrentChapterPath.SideName = CurrentChapterStats.SideName;
+                    SaveCurrentPathToFile();
+                }
             }
         }
 
@@ -530,12 +559,22 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"\tFound file, parsing...");
                 string content = File.ReadAllText(path);
 
+                //[Try 1] New file format: JSON
                 try {
-                    return PathInfo.ParseString(content);
+                    return JsonConvert.DeserializeObject<PathInfo>(content);
                 } catch (Exception) {
-                    Log($"\tCouldn't read old path info, created new PathInfo. Old path info content:\n{content}");
-                    PathInfo toRet = new PathInfo() { };
-                    return toRet;
+                    Log($"\tCouldn't read path info as JSON, trying old path format...");
+                }
+
+                //[Try 2] Old file format: selfmade text format
+                try {
+                    PathInfo parsedOldFormat = PathInfo.ParseString(content);
+                    Log($"\tSaving path for map '{CurrentChapterDebugName}' in new format!");
+                    SaveCurrentPathToFile(parsedOldFormat); //Save in new format
+                    return parsedOldFormat;
+                } catch (Exception) {
+                    Log($"\tCouldn't read old path info. Old path info content:\n{content}");
+                    return null;
                 }
 
             } else { //Create new
@@ -551,26 +590,39 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChaptersThisSession.Add(CurrentChapterDebugName);
             Log($"[GetCurrentChapterStats] CurrentChapterName: '{CurrentChapterDebugName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
-            ChapterStats toRet;
+            ChapterStats toRet = null;
 
             if (File.Exists(path)) { //Parse File
                 string content = File.ReadAllText(path);
-                toRet = ChapterStats.ParseString(content);
-                toRet.ChapterDebugName = CurrentChapterDebugName;
 
+                //[Try 1] New file format: JSON
+                try {
+                    toRet = JsonConvert.DeserializeObject<ChapterStats>(content);
+                } catch (Exception) {
+                    Log($"\tCouldn't read chapter stats as JSON, trying old stats format...");
+                }
+
+                if (toRet == null) {
+                    //[Try 2] Old file format: selfmade text format
+                    try {
+                        toRet = ChapterStats.ParseString(content);
+                        Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!");
+                    } catch (Exception) {
+                        Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}");
+                        toRet = new ChapterStats();
+                        toRet.SetCurrentRoom(CurrentRoomName);
+                    }
+                }
+                
             } else { //Create new
-                toRet = new ChapterStats() {
-                    ChapterDebugName = CurrentChapterDebugName,
-                };
+                toRet = new ChapterStats();
                 toRet.SetCurrentRoom(CurrentRoomName);
             }
 
             if (!hasEnteredThisSession) {
                 toRet.ResetCurrentSession();
-                Log("Resetting session for GB deaths");
-            } else {
-                Log("Not resetting session for GB deaths");
             }
+            toRet.ResetCurrentRun();
 
             return toRet;
         }
@@ -594,7 +646,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
             string path = GetPathToFile($"{StatsFolder}/{CurrentChapterDebugName}.txt");
-            File.WriteAllText(path, CurrentChapterStats.ToChapterStatsString());
+            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats));
 
             string modStatePath = GetPathToFile($"{StatsFolder}/modState.txt");
 
@@ -790,14 +842,18 @@ namespace Celeste.Mod.ConsistencyTracker {
         public void SaveRecordedRoomPath() {
             Log($"[{nameof(SaveRecordedRoomPath)}] Saving recorded path...");
             DisabledInRoomName = CurrentRoomName;
-            CurrentChapterPath = Path.ToPathInfo();
+            SetCurrentChapterPath(Path.ToPathInfo());
             Log($"[{nameof(SaveRecordedRoomPath)}] Recorded path:\n{CurrentChapterPath.ToString()}");
-            SaveRoomPath();
+            SaveCurrentPathToFile();
         }
-        public void SaveRoomPath() {
+        public void SaveCurrentPathToFile(PathInfo path = null) {
+            if (path == null) {
+                path = CurrentChapterPath;
+            }
+
             string relativeOutPath = $"{PathsFolder}/{CurrentChapterDebugName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
-            File.WriteAllText(outPath, CurrentChapterPath.ToString());
+            File.WriteAllText(outPath, JsonConvert.SerializeObject(path));
             Log($"Wrote path data to '{relativeOutPath}'");
         }
 
@@ -821,7 +877,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (foundRoom) {
-                SaveRoomPath();
+                SaveCurrentPathToFile();
             }
         }
 
@@ -870,11 +926,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             string cpDialogName = $"{CurrentChapterStats.ChapterSIDDialogSanitized}_{roomName}";
-            //Log($"[Dialog Testing] cpDialogName: {cpDialogName}");
+            Log($"[Dialog Testing] cpDialogName: {cpDialogName}");
             string cpName = Dialog.Get(cpDialogName);
-            //Log($"[Dialog Testing] Dialog.Get says: {cpName}");
+            Log($"[Dialog Testing] Dialog.Get says: {cpName}");
 
-            if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
+            //if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
+            if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
             Path.AddCheckpoint(cp, cpName);
         }
@@ -908,7 +965,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
 
-                subMenu.Add(new TextMenu.SubHeader("!!!Existing paths will be overwritten!!!"));
+                subMenu.Add(new TextMenu.SubHeader("!!! The existing path will be overwritten !!!"));
                 subMenu.Add(new TextMenu.OnOff("Record Path", Instance.DoRecordPath) {
                     OnValueChange = v => {
                         if (v)
@@ -922,10 +979,27 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 });
 
-                subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the Overlay"));
+                TextMenu.Item menuItem;
+                subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the external overlay"));
                 subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
                     OnPressed = Instance.RemoveRoomFromChapter
                 });
+                subMenu.Add(new TextMenu.Button("Export path to Clipboard").Pressed(() => {
+                    if (ConsistencyTrackerModule.Instance.CurrentChapterPath == null) return;
+                    TextInput.SetClipboardText(JsonConvert.SerializeObject(ConsistencyTrackerModule.Instance.CurrentChapterPath));
+                }));
+                subMenu.Add(menuItem = new TextMenu.Button("Import path from Clipboard").Pressed(() => {
+                    string text = TextInput.GetClipboardText();
+                    try {
+                        PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
+                        ConsistencyTrackerModule.Instance.SetCurrentChapterPath(path);
+                        ConsistencyTrackerModule.Instance.SaveCurrentPathToFile();
+                        ConsistencyTrackerModule.Instance.SaveChapterStats();
+                    } catch (Exception ex) {
+                        Instance.Log($"Couldn't import path from clipboard: {ex}");
+                    }
+                }));
+                subMenu.AddDescription(menu, menuItem, "!!! The existing path will be overwritten !!!");
 
                 menu.Add(subMenu);
             }
@@ -1174,22 +1248,30 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             public void CreateExternalOverlayEntry(TextMenu menu, bool inGame) {
                 TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("External Overlay Settings", false);
+                TextMenu.Item menuItem;
+
+                subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
+                    string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalOverlayFolder}/CCTOverlay.html"));
+                    Process.Start("explorer", path);
+                }));
+
 
                 subMenu.Add(new TextMenu.SubHeader("REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS"));
-
                 //General Settings
                 subMenu.Add(new TextMenu.SubHeader("General Settings"));
-                subMenu.Add(new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
+                subMenu.Add(menuItem = new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
                     OnValueChange = (value) => {
                         ExternalOverlayRefreshTimeSeconds = value;
                     }
                 });
+                subMenu.AddDescription(menu, menuItem, "The delay between two updates of the overlay.");
                 List<int> attemptsList = new List<int>() { 5, 10, 20, 100 };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
                     OnValueChange = (value) => {
                         ExternalOverlayAttemptsCount = value;
                     }
                 });
+                subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts will be used for calculation");
                 subMenu.Add(new TextMenu.Slider("Text Outline Size", (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
                     OnValueChange = (value) => {
                         ExternalOverlayTextOutlineSize = value;
@@ -1205,11 +1287,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                     "Impact",
                     "Comic Sans MS",
                 };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
                     OnValueChange = v => {
                         ExternalOverlayFontFamily = v;
                     }
                 });
+                subMenu.AddDescription(menu, menuItem, "If a font doesn't show up on the overlay, you might need to install it first (just google font name lol)");
                 subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
                     OnValueChange = v => {
                         ExternalOverlayColorblindMode = v;
@@ -1265,22 +1348,25 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 });
 
-                subMenu.Add(new TextMenu.SubHeader($"Success rate in a room to get a certain color (default: light green 95%, green 80%, yellow 50%)"));
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), ExternalOverlayChapterBarLightGreenPercent) {
+                //subMenu.Add(new TextMenu.SubHeader($"Success rate in a room to get a certain color (default: light green 95%, green 80%, yellow 50%)"));
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), ExternalOverlayChapterBarLightGreenPercent) {
                     OnValueChange = (value) => {
                         ExternalOverlayChapterBarLightGreenPercent = value;
                     }
                 });
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), ExternalOverlayChapterBarGreenPercent) {
+                subMenu.AddDescription(menu, menuItem, "Default: 95%");
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), ExternalOverlayChapterBarGreenPercent) {
                     OnValueChange = (value) => {
                         ExternalOverlayChapterBarGreenPercent = value;
                     }
                 });
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), ExternalOverlayChapterBarYellowPercent) {
+                subMenu.AddDescription(menu, menuItem, "Default: 80%");
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), ExternalOverlayChapterBarYellowPercent) {
                     OnValueChange = (value) => {
                         ExternalOverlayChapterBarYellowPercent = value;
                     }
                 });
+                subMenu.AddDescription(menu, menuItem, "Default: 50%");
 
 
                 //Room Attempts Display
@@ -1299,11 +1385,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                         ExternalOverlayGoldenShareDisplayEnabled = v;
                     }
                 });
-                subMenu.Add(new TextMenu.OnOff("Golden Share Show Session Deaths", ExternalOverlayGoldenShareDisplayShowSession) {
+                subMenu.Add(menuItem = new TextMenu.OnOff("Golden Share Show Session Deaths", ExternalOverlayGoldenShareDisplayShowSession) {
                     OnValueChange = v => {
                         ExternalOverlayGoldenShareDisplayShowSession = v;
                     }
                 });
+                subMenu.AddDescription(menu, menuItem, "Shown in parenthesis after the total checkpoint death count");
 
 
                 //Golden PB Display
@@ -1320,10 +1407,125 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
 
-            private List<KeyValuePair<int, string>> PercentageSlider(int stepSize = 5) {
+            // ===== Ingame Overlay Settings =====
+            public bool IngameOverlay { get; set; } = false;
+
+            [SettingIgnore]
+            public bool IngameOverlayTextEnabled { get; set; } = false;
+
+            [SettingIgnore]
+            public StatTextPosition IngameOverlayTextPosition { get; set; } = StatTextPosition.TopRight;
+
+            [SettingIgnore]
+            public string IngameOverlayTextFormat { get; set; }
+
+            [SettingIgnore]
+            public int IngameOverlayTextSize { get; set; } = 100;
+
+            [SettingIgnore]
+            public int IngameOverlayTextOffset { get; set; } = 5;
+
+
+            [SettingIgnore]
+            public int IngameOverlayTestStyle { get; set; } = 1;
+
+            [SettingIgnore]
+            public bool IngameOverlayTextDebugPositionEnabled { get; set; } = false;
+
+            public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
+                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Ingame Overlay Settings", false);
+                TextMenu.Item menuItem;
+
+                subMenu.Add(new TextMenu.SubHeader("Text Overlay"));
+                subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
+                    OnValueChange = v => {
+                        IngameOverlayTextEnabled = v;
+                        Instance.IngameOverlay.Visible = v;
+                    }
+                });
+                subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayTextPosition) {
+                    OnValueChange = v => {
+                        IngameOverlayTextPosition = v;
+                        Instance.IngameOverlay.SetTextPosition(v);
+                    }
+                });
+                List<string> availableFormats = new List<string>(Instance.StatsManager.Formats.Select((kv) => kv.Key.Name));
+                if (IngameOverlayTextFormat == null || !availableFormats.Contains(IngameOverlayTextFormat)) {
+                    IngameOverlayTextFormat = availableFormats[0];
+                }
+                subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayTextFormat) {
+                    OnValueChange = v => {
+                        IngameOverlayTextFormat = v;
+                        KeyValuePair<StatFormat, string> stat = Instance.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
+                        if (stat.Key != null) {
+                            Instance.IngameOverlay.SetText(stat.Value);
+                        }
+                    }
+                });
+                subMenu.Add(new TextMenuExt.IntSlider("Offset", 0, 500, IngameOverlayTextOffset) {
+                    OnValueChange = (value) => {
+                        IngameOverlayTextOffset = value;
+                        Instance.IngameOverlay.SetTextOffset(value);
+                    }
+                });
+                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 300), IngameOverlayTextSize) {
+                    OnValueChange = (value) => {
+                        IngameOverlayTextSize = value;
+                        Instance.IngameOverlay.SetTextSize(value);
+                    }
+                });
+
+
+
+                subMenu.Add(new TextMenu.SubHeader("[Developement Only] Debug Features"));
+                //subMenu.Add(new TextMenuExt.IntSlider("Text Overlay Style Test", 1, 9, IngameOverlayTestStyle) {
+                //    OnValueChange = (value) => {
+                //        IngameOverlayTestStyle = value;
+                //        Instance.IngameOverlay.TestStyle(value);
+                //    }
+                //});
+                subMenu.Add(new TextMenu.OnOff("Text Overlay Debug Position", IngameOverlayTextDebugPositionEnabled) {
+                    OnValueChange = v => {
+                        IngameOverlayTextDebugPositionEnabled = v;
+                        Instance.IngameOverlay.StatText.DebugShowPosition = v;
+                    }
+                });
+
+                //subMenu.Add(new TextMenu.Button("PosX+100") {
+                //    OnPressed = () => {
+                //        Instance.IngameOverlay.StatText.PosX += 100;
+                //    }
+                //});
+                //subMenu.Add(new TextMenu.Button("PosX-100") {
+                //    OnPressed = () => {
+                //        Instance.IngameOverlay.StatText.PosX -= 100;
+                //    }
+                //});
+                //subMenu.Add(new TextMenu.Button("PosY+100") {
+                //    OnPressed = () => {
+                //        Instance.IngameOverlay.StatText.PosY += 100;
+                //    }
+                //});
+                //subMenu.Add(new TextMenu.Button("PosY-100") {
+                //    OnPressed = () => {
+                //        Instance.IngameOverlay.StatText.PosY -= 100;
+                //    }
+                //});
+
+                menu.Add(subMenu);
+            }
+
+
+
+
+
+
+
+
+            private List<KeyValuePair<int, string>> PercentageSlider(int stepSize = 5, int min = 0, int max = 100) {
                 List<KeyValuePair<int, string>> toRet = new List<KeyValuePair<int, string>>();
 
-                for (int i = 0; i <= 100; i += stepSize) {
+                for (int i = min; i <= max; i += stepSize) {
                     toRet.Add(new KeyValuePair<int, string>(i, $"{i}%"));
                 }
 

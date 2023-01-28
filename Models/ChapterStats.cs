@@ -27,6 +27,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("chapterDebugName")]
         public string ChapterDebugName { get; set; }
 
+        [JsonProperty("sideName")]
+        public string SideName { get; set; }
+
         [JsonProperty("currentRoom")]
         public RoomStats CurrentRoom { get; set; }
 
@@ -107,6 +110,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             foreach (string name in Rooms.Keys) {
                 RoomStats room = Rooms[name];
                 room.GoldenBerryDeathsSession = 0;
+            }
+        }
+        public void ResetCurrentRun() {
+            foreach (string name in Rooms.Keys) {
+                RoomStats room = Rooms[name];
+                room.DeathsInCurrentRun = 0;
             }
         }
 

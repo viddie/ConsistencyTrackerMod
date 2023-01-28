@@ -67,6 +67,7 @@ body {
     height: 55%;
     flex-grow: 50;
     transition: flex-grow .5s, background-color .5s, box-shadow .5s, height .5s;
+    cursor: pointer;
 }
 .room-element:hover {
     height: 75%;

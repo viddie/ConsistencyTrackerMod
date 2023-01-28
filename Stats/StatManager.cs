@@ -45,6 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
 
         public Dictionary<StatFormat, List<Stat>> Formats;
+        public Dictionary<StatFormat, string> LastResults = new Dictionary<StatFormat, string>();
 
         public ChapterStats LastPassChapterStats = null;
         public PathInfo LastPassPathInfo = null;
@@ -86,12 +87,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public void OutputFormats(PathInfo pathInfo, ChapterStats chapterStats) {
             ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Starting output");
+            DateTime startTime = DateTime.Now;
 
             try {
                 //To summarize some data that many stats need
                 AggregateStatsPass(pathInfo, chapterStats);
                 LastPassChapterStats = chapterStats;
                 LastPassPathInfo = pathInfo;
+                LastResults.Clear();
 
 
                 foreach (StatFormat format in Formats.Keys) {
@@ -105,18 +108,30 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                         formattedData = stat.FormatStat(pathInfo, chapterStats, formattedData);
                     }
 
+                    if (format.Name == ConsistencyTrackerModule.Instance.ModSettings.IngameOverlayTextFormat) {
+                        ConsistencyTrackerModule.Instance.IngameOverlay.SetText(formattedData);
+                    }
+
+                    LastResults.Add(format, formattedData);
                     File.WriteAllText(outFilePath, formattedData);
                 }
             } catch (Exception ex) {
-                ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Exception during aggregate pass, stat calculation or format outputting: {ex}");
+                ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Exception during aggregate pass or stat calculation: {ex}");
             }
+
+            DateTime endTime = DateTime.Now;
+            ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
         }
         public string FormatVariableFormat(string format) {
             if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
 
             foreach (Stat stat in AllStats) {
                 if (stat.ContainsIdentificator(format)) {
-                    format = stat.FormatStat(LastPassPathInfo, LastPassChapterStats, format);
+                    try {
+                        format = stat.FormatStat(LastPassPathInfo, LastPassChapterStats, format);
+                    } catch (Exception ex) {
+                        ConsistencyTrackerModule.Instance.Log($"[FormatVariableFormat] Exception during stat calculation: Stat '{stat.GetType().Name}' with format '{format}' caused exception -> {ex}");
+                    }
                 }
             }
 

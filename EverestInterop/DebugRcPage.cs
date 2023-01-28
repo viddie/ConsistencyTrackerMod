@@ -27,18 +27,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
     public static class DebugRcPage {
 
-        //private static readonly List<RCEndPoint> EndPoints = new List<RCEndPoint>() {
-        //    InfoEndPoint,
-        //    StateEndPoint,
-        //    CurrentChapterStatsEndPoint,
-        //    CurrentChapterPathEndPoint,
-        //    ParseFormatEndPoint
-        //};
-
         private static readonly UpdateCache CurrentStateCache = new UpdateCache();
         private static readonly UpdateCache CurrentChapterStatsCache = new UpdateCache();
-        private static readonly UpdateCache CurrentChapterPathCache = new UpdateCache();
-        private static readonly UpdateCache ParseFormatCache = new UpdateCache();
+        //private static readonly UpdateCache CurrentChapterPathCache = new UpdateCache();
+        //private static readonly UpdateCache ParseFormatCache = new UpdateCache();
 
         // +------------------------------------------+
         // |               /cct/info                  |
@@ -187,7 +179,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         // +------------------------------------------+
         private static readonly RCEndPoint CurrentChapterStatsEndPoint = new RCEndPoint() {
             Path = "/cct/currentChapterStats",
-            Name = "Consistency Tracker Current Chapter",
+            Name = "Consistency Tracker Current Chapter Stats",
             InfoHTML = "Fetches the stats of the current chapter.",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
@@ -295,10 +287,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 } else if (c.Request.HttpMethod == "POST") {
                     if (c.Request.HasEntityBody) {
-                        string body = null;
-                        using (var reader = new StreamReader(c.Request.InputStream, c.Request.ContentEncoding)) {
-                            body = reader.ReadToEnd();
-                        }
+                        string body = GetBodyAsString(c);
                         try {
                             postRequest = JsonConvert.DeserializeObject<ParseFormatRequest>(body);
                         } catch (Exception ex) {
@@ -365,7 +354,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         // +------------------------------------------+
         private static readonly RCEndPoint CurrentChapterPathEndPoint = new RCEndPoint() {
             Path = "/cct/currentChapterPath",
-            Name = "Consistency Tracker Current Chapter",
+            Name = "Consistency Tracker Current Chapter Path",
             InfoHTML = "Fetches the stats of the current chapter.",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
@@ -374,10 +363,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
-                if (mod.CurrentUpdateFrame <= CurrentChapterPathCache.LastUpdateFrame && CurrentChapterPathCache.LastRequestedJson == requestedJson) {
-                    WriteResponse(c, CurrentChapterPathCache.LastResponse);
-                    return;
-                }
+                //if (mod.CurrentUpdateFrame <= CurrentChapterPathCache.LastUpdateFrame && CurrentChapterPathCache.LastRequestedJson == requestedJson) {
+                //    WriteResponse(c, CurrentChapterPathCache.LastResponse);
+                //    return;
+                //}
 
                 if (mod.CurrentChapterPath == null || mod.CurrentChapterPath.RoomCount == 0) {
                     WriteErrorResponse(c, RCErrorCode.PathNotFound, requestedJson);
@@ -396,7 +385,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     responseStr = FormatResponsePlain(RCErrorCode.OK, chapterPathString);
                 }
 
-                CurrentChapterPathCache.Update(mod.CurrentUpdateFrame, responseStr, requestedJson);
+                //CurrentChapterPathCache.Update(mod.CurrentUpdateFrame, responseStr, requestedJson);
                 WriteResponse(c, responseStr);
             }
         };
@@ -412,10 +401,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 bool requestedJson = HasRequestedJson(c);
                 c.Response.AddHeader("Access-Control-Allow-Origin", "*");
 
-                //if (!requestedJson) {
-                //    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
-                //    return;
-                //}
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
@@ -424,16 +413,17 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 string[] allPathFiles = Directory.GetFiles(pathsFolder);
                 List<string> allPathFilesNames = new List<string>(allPathFiles.Select((path) => Path.GetFileNameWithoutExtension(path)));
 
-                if (requestedJson) {
-                    PathListResponse response = new PathListResponse() {
-                        availablePaths = allPathFilesNames,
-                    };
-                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
+                //if (requestedJson) {
+                PathListResponse response = new PathListResponse() {
+                    availablePaths = allPathFilesNames,
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
-                } else {
-                    string content = string.Join("\n", allPathFilesNames);
-                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
-                }
+                //}
+                //else {
+                //    string content = string.Join("\n", allPathFilesNames);
+                //    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
+                //}
 
                 WriteResponse(c, responseStr);
             }
@@ -529,25 +519,40 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 string baseFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
                 string combinedPath = Path.Combine(baseFolder, $"{map}.txt");
-                if (!File.Exists(combinedPath)) {
-                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
+
+                SetPathFileRequest request = null;
+                if (c.Request.HttpMethod == "POST") {
+                    if (c.Request.HasEntityBody) {
+                        string body = GetBodyAsString(c);
+                        try {
+                            request = JsonConvert.DeserializeObject<SetPathFileRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
+                        }
+                    } else {
+                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
+                        return;
+                    }
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
                     return;
                 }
 
-                string content = File.ReadAllText(combinedPath);
-                PathInfo pathInfo = null;
+                if (request.path == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "path");
+                    return;
+                }
+
                 try {
-                    pathInfo = PathInfo.ParseString(content);
+                    File.WriteAllText(combinedPath, JsonConvert.SerializeObject(request.path));
                 } catch (Exception) {
-                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse contents of path file '{map}'");
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't write contents of path file '{map}'");
                     return;
                 }
 
                 //Response
-                ChapterPathResponse response = new ChapterPathResponse() {
-                    path = pathInfo,
-                };
-                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+                responseStr = FormatResponseJson(RCErrorCode.OK);
 
                 WriteResponse(c, responseStr);
             }
@@ -561,21 +566,11 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             foreach (RCEndPoint endpoint in EndPoints) {
                 Everest.DebugRC.EndPoints.Add(endpoint);
             }
-            //Everest.DebugRC.EndPoints.Add(InfoEndPoint);
-            //Everest.DebugRC.EndPoints.Add(StateEndPoint);
-            //Everest.DebugRC.EndPoints.Add(CurrentChapterStatsEndPoint);
-            //Everest.DebugRC.EndPoints.Add(CurrentChapterPathEndPoint);
-            //Everest.DebugRC.EndPoints.Add(ParseFormatEndPoint);
         }
         public static void Unload() {
             foreach (RCEndPoint endpoint in EndPoints) {
                 Everest.DebugRC.EndPoints.Remove(endpoint);
             }
-            //Everest.DebugRC.EndPoints.Remove(InfoEndPoint);
-            //Everest.DebugRC.EndPoints.Remove(StateEndPoint);
-            //Everest.DebugRC.EndPoints.Remove(CurrentChapterStatsEndPoint);
-            //Everest.DebugRC.EndPoints.Remove(CurrentChapterPathEndPoint);
-            //Everest.DebugRC.EndPoints.Remove(ParseFormatEndPoint);
         }
         #endregion
 
@@ -585,6 +580,14 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             string value = args[parameter];
             if (value != null) return HttpUtility.UrlDecode(value);
             return null;
+        }
+
+        public static string GetBodyAsString(HttpListenerContext c) {
+            string body = null;
+            using (var reader = new StreamReader(c.Request.InputStream, c.Request.ContentEncoding)) {
+                body = reader.ReadToEnd();
+            }
+            return body;
         }
 
         public static void WriteErrorResponseWithDetails(HttpListenerContext c, RCErrorCode code, bool requestedJson, string details) {
@@ -654,6 +657,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         #endregion
 
         #region JSON Responses
+        public static string FormatResponseJson(RCErrorCode code) {
+            Response response = new Response {
+                errorCode = (int)code,
+                errorMessage = code.ToMessage()
+            };
+            return JsonConvert.SerializeObject(response);
+        }
         public static string FormatResponseJson(RCErrorCode code, Response response) {
             response.errorCode = (int)code;
             response.errorMessage = code.ToMessage();
@@ -717,7 +727,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             ListAllPathsEndPoint,
             GetPathFileEndPoint,
             AddGoldenDeathEndPoint,
-            SettingsEndPoint
+            SettingsEndPoint,
+            SetPathFileEndPoint
         };
 
         private class UpdateCache {

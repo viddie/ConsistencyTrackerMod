@@ -51,10 +51,10 @@ let defaultSettings = {
 let intervalHandle = null;
 
 let overlayVersion = {
-    "version": "1.1.1",
-    "major": 1,
-    "minor": 1,
-    "patch": 1
+    "version": "2.0.0",
+    "major": 2,
+    "minor": 0,
+    "patch": 0
 };
 let modState = null;
 
@@ -77,8 +77,10 @@ let currentChapterGoldenPBElements = null;
 let currentChapterGoldenPBPreviousElement = null;
 let trackingPausedElement = null;
 
+
+var fetchSettingsIntervalHandle = null;
 document.addEventListener('DOMContentLoaded', function() {
-    fetchSettings();
+    fetchSettingsIntervalHandle = setInterval(fetchSettings, 1000);
 });
 
 
@@ -221,6 +223,8 @@ function fetchSettings(){ //Called once on startup
             return;
         }
 
+        clearInterval(fetchSettingsIntervalHandle);
+
         console.log("Overlay settings from mod:");
         console.log(responseObj);
         applySettings(responseObj);
@@ -242,6 +246,7 @@ function fetchModState(){ //Called once per second
         return response.json();
     }).then((responseObj) => {
         if(responseObj.errorCode != 0){
+            displayCriticalError(responseObj.errorCode, responseObj.errorMessage);
             console.log("[fetchModState] Error ("+responseObj.errorCode+") fetching state from mod: "+responseObj.errorMessage);
             return;
         }
@@ -252,7 +257,7 @@ function fetchModState(){ //Called once per second
         if(!checkedForUpdate && hasUpdate){
             checkedForUpdate = true;
             var updateTimeMs = getSettingValueOrDefault("refresh-time-ms");
-            var timeToSkip = 5 * 1000;
+            var timeToSkip = 1 * 1000; //Change back to 5
             updateSkipCounter = Math.floor(timeToSkip / updateTimeMs);
 
             document.getElementById("stats-center").innerHTML = "An update is available! "+overlayVersion.version+" -> "+modState.overlayVersion;
@@ -264,6 +269,7 @@ function fetchModState(){ //Called once per second
 
         previousRoomStats = currentRoomStats;
         currentRoomStats = responseObj.currentRoom;
+        currentChapterName = responseObj.chapterName;
         
 
         var roomStatsToDisplay = null;
@@ -294,6 +300,7 @@ function fetchModState(){ //Called once per second
             method: "POST",
             body: body,
         }).then((response) => response.json()).then((responseObj) => {
+            // console.log(responseObj);
             if(responseObj.errorCode != 0){
                 console.log("[fetchModState->parseFormat] Error ("+responseObj.errorCode+") fetching /cct/parseFormat: "+responseObj.errorMessage);
                 var textFormattedLeft = "";
@@ -317,7 +324,7 @@ function fetchModState(){ //Called once per second
         if((previousRoomStats != null && previousChapterName != currentChapterName) || (previousRoomStats == null && currentRoomStats != null) || currentChapterPath == null){
             //Update the chapter layout
             previousChapterName = currentChapterName;
-            updateChapterLayout(currentChapterName);
+            updateChapterLayout();
             
         } else if(previousRoomStats != null && !areRoomsEqual(previousRoomStats, currentRoomStats)){
             //Update only one room
@@ -361,7 +368,7 @@ function updateStatsText(targetId, text){
 
 
 
-function updateChapterLayout(chapterName){ //Called once per chapter change
+function updateChapterLayout(){ //Called once per chapter change
     var url = "http://localhost:32270/cct/currentChapterStats";
     fetch(url, { headers: { "Accept":"application/json" }}).then((response) => response.json()).then((responseObj) => {
         if(responseObj.errorCode != 0){
@@ -431,12 +438,14 @@ function displayRoomAttempts(roomStatsToDisplay){
     container.appendChild(startElement);
 
     //Iterate the attempts in roomToDisplayStats
-    for(var i = 0; i < roomStatsToDisplay.previousAttempts.length; i++){
+    var countCircles = 0;
+    for(var i = roomStatsToDisplay.previousAttempts.length-1; i >= 0; i--){
         var attempt = roomStatsToDisplay.previousAttempts[i];
 
-        if(i >= amountAttempts){
+        if(countCircles >= amountAttempts){
             break;
         }
+        countCircles++;
 
         /* Create the element:
         <div class="room-attempts-element">
@@ -531,6 +540,10 @@ function displayRoomObjects(){
             roomElement.onmouseleave = function(){
                 currentSelectedRoomName = null;
             }
+            roomElement.onclick = function(){
+                var roomName = this.getAttribute("data-room-name");
+                fetch("http://localhost:32270/tp?level=" + roomName);
+            };
 
             container.appendChild(roomElement);
             currentChapterElements[roomName] = roomElement;
@@ -805,9 +818,12 @@ function updateRoomObjects(){
     for(var checkpointIndex = 0; checkpointIndex < currentChapterPath.checkpoints.length; checkpointIndex++){
         var checkpointRoomsObj = currentChapterPath.checkpoints[checkpointIndex].rooms;
         for(var roomIndex = 0; roomIndex < checkpointRoomsObj.length; roomIndex++){
-            var roomName = checkpointRoomsObj[roomIndex];
+            var roomName = checkpointRoomsObj[roomIndex].debugRoomName;
             var roomStats = getRoomStatsByNameOrDefault(roomName);
             var roomElement = currentChapterElements[roomName];
+            if(roomElement == null){
+                continue;
+            }
             var classColor = getColorClass(roomStats);
             roomElement.classList.remove("light-green");
             roomElement.classList.remove("light-green-colorblind");
@@ -903,6 +919,8 @@ function getRoomStatsByNameOrDefault(roomDebugName){
     //If roomObjs has a key with the same name as roomDebugName, return that room
     if(currentChapterStats.rooms[roomDebugName]){
         return currentChapterStats.rooms[roomDebugName];
+    } else {
+        console.log("[getRoomStatsByNameOrDefault] Room "+roomDebugName+" not found in stats, returning default.");
     }
 
     return {

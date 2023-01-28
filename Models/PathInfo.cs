@@ -10,6 +10,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
     [Serializable]
     public class PathInfo {
 
+        [JsonProperty("campaignName")]
+        public string CampaignName { get; set; }
+
+        [JsonProperty("chapterName")]
+        public string ChapterName { get; set; }
+
+        [JsonProperty("chapterSID")]
+        public string ChapterSID { get; set; }
+
+        [JsonProperty("sideName")]
+        public string SideName { get; set; }
+
+
         [JsonProperty("checkpoints")]
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
 
@@ -71,6 +84,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return pathInfo;
         }
+
+        public void SetCheckpointRefs() {
+            foreach (CheckpointInfo cpInfo in Checkpoints) {
+                cpInfo.SetCheckpointRefs();
+            }
+        }
     }
 
     [Serializable]
@@ -126,13 +145,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return cpInfo;
         }
+
+        public void SetCheckpointRefs() {
+            foreach (RoomInfo rInfo in Rooms) {
+                rInfo.Checkpoint = this;
+            }
+        }
     }
 
     [Serializable]
     public class RoomInfo {
 
         [JsonIgnore]
-        public CheckpointInfo Checkpoint;
+        public CheckpointInfo Checkpoint { get; set; }
 
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
