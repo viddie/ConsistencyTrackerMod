@@ -93,9 +93,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(RoomAttempts, "Count of at max. X last attempts"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("success-rate", $"Room SR: {RoomSuccessRate} ({RoomSuccesses}/{RoomAttempts}) | CP: {CheckpointSuccessRate} | Total: {ChapterSuccessRate}")
+                new StatFormat("basic-success-rate", $"Success Rate: {RoomSuccessRate} ({RoomSuccesses}/{RoomAttempts}) | CP: {CheckpointSuccessRate} | Total: {ChapterSuccessRate}")
             };
         }
     }

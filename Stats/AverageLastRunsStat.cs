@@ -30,12 +30,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public static ValuePlaceholder<int> ListRollingAverageRunDistances = new ValuePlaceholder<int>(@"\{list:rollingAverageRunDistances#(.*?)\}", "{list:rollingAverageRunDistances#(.*?)}");
 
-        public static List<string> IDs = new List<string>() { ChapterAverageRunDistance, ChapterAverageRunDistanceSession };
+        public static List<string> IDs = new List<string>() { ChapterAverageRunDistance, ChapterAverageRunDistanceSession, ChapterHighestAverageOver10Runs };
 
         public AverageLastRunsStat() : base(IDs) {}
 
         public override bool ContainsIdentificator(string format) {
-            if (format.Contains(ChapterAverageRunDistance) || format.Contains(ChapterAverageRunDistanceSession)) return true;
+            if (format.Contains(ChapterAverageRunDistance) || format.Contains(ChapterAverageRunDistanceSession) || format.Contains(ChapterHighestAverageOver10Runs)) return true;
 
             return ListRollingAverageRunDistances.HasMatch(format) || Regex.IsMatch(format, ChapterAverageRunDistanceSessionOverX) || Regex.IsMatch(format, ChapterLastRunDistanceOverX);
         }
@@ -44,6 +44,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             if (chapterPath == null) { //Player doesnt have path
                 format = StatManager.MissingPathFormat(format, ChapterAverageRunDistance);
                 format = StatManager.MissingPathFormat(format, ChapterAverageRunDistanceSession);
+                format = StatManager.MissingPathFormat(format, ChapterHighestAverageOver10Runs);
 
                 format = Regex.Replace(format, ChapterAverageRunDistanceSessionOverX, StatManager.MissingPathOutput);
                 format = Regex.Replace(format, ChapterLastRunDistanceOverX, StatManager.MissingPathOutput);
@@ -273,18 +274,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>("{chapter:lastRunDistance#X}", "The room number of last run nr. X (e.g. {chapter:lastRunDistance#1} would give you the room number of the most recent golden run, #2 of the 2nd most recent, ...)"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("avg-run-distance", $"Avg. run distance: {ChapterAverageRunDistance}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\nAvg. run distance: {ChapterAverageRunDistanceSession}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\nAvg. over last 10 runs: {{chapter:averageRunDistanceSession#10}}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\nHighest 10-run-average: {ChapterHighestAverageOver10Runs}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\n\nLast runs (most recent run first):" +
-                $"\n{{chapter:lastRunDistance#1}}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\n{{chapter:lastRunDistance#2}}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\n{{chapter:lastRunDistance#3}}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\n{{chapter:lastRunDistance#4}}/{LiveProgressStat.ChapterRoomCount}" +
-                $"\n{{chapter:lastRunDistance#5}}/{LiveProgressStat.ChapterRoomCount}")
+                new StatFormat("basic-avg-distance", $"Avg. run distance: {ChapterAverageRunDistance}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat("basic-avg-distance-session", $"Avg. run distance (Session): {ChapterAverageRunDistanceSession}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat("basic-avg-distance-last-10", $"Avg. over last 10 runs: {{chapter:averageRunDistanceSession#10}}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat("basic-avg-distance-best-10", $"Best 10-run-average: {ChapterHighestAverageOver10Runs}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat("basic-last-5-runs", $"Last 5 runs: {{chapter:lastRunDistance#1}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#2}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#3}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#4}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#5}}/{LiveProgressStat.ChapterRoomCount}"),
+                
             };
         }
     }

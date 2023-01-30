@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.Enums {
     public enum StatTextPosition {
         TopLeft,
-        //TopCenter,
+        TopCenter,
         TopRight,
-        //MiddleLeft,
-        //MiddleCenter,
-        //MiddleRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
         BottomLeft,
-        //BottomCenter,
+        BottomCenter,
         BottomRight,
     }
 }

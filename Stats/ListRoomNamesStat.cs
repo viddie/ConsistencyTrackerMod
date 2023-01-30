@@ -63,7 +63,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(StreakStat.ListRoomStreaks, "Outputs the current streaks for all rooms on the current path as list"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
                 new StatFormat("list-room-names", $"Names: {ListRoomNames}\\nSuccess Rates: {ListSuccessRatesStat.ListSuccessRates}\\nChoke Rates: {ListChokeRatesStat.ListChokeRates}\\n"),
             };

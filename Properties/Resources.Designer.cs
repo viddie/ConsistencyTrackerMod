@@ -19,7 +19,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,22 +61,24 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
+        ///   Looks up a localized string similar to function SplitVersionNumber(version){
+        ///    var split = version.split(&quot;.&quot;);
         ///
-        ///function parseRoomData(roomString, hasState, targetLogId){
-        ///    //Example roomString: &quot;name;rate5;rate10;rate20;rateMax;CSV,of,booleans\nchapterName;isTrackingPaused;isRecordingEnabled;version;holdingGolden&quot;
+        ///    return {
+        ///        &quot;major&quot;: parseInt(split[0]),
+        ///        &quot;minor&quot;: parseInt(split[1]),
+        ///        &quot;patch&quot;: parseInt(split[2])
+        ///    };
+        ///}
         ///
-        ///    var roomLine = null;
-        ///    var roomObj = {};
-        ///
-        ///    if(hasState){
-        ///        var splitData = roomString.split(&quot;\n&quot;);
-        ///        roomLine = splitData[0];
-        ///        var state = splitData[1].trim();
-        ///        roomObj.state = {};
-        ///
-        ///        var stateSplit = state.split(&quot;;&quot;);
-        ///        roomObj.state.chapt [rest of string was truncated]&quot;;.
+        ///function areRoomsEqual(roomNew, roomOld) {
+        ///    if(roomNew.debugRoomName != roomOld.debugRoomName){
+        ///        return false;
+        ///    }
+        ///    if(roomNew.previousAttempts.length != roomOld.previousAttempts.length){
+        ///        return false;
+        ///    }
+        ///    for(var i = 0; i &lt; roomNew.previousAttempts.length;  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CCT_common_JS {
             get {
@@ -85,7 +87,12 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to body {
+        ///   Looks up a localized string similar to html {
+        ///    width: 100%;
+        ///    height: 100%;
+        ///}
+        ///
+        ///body {
         ///    height: 100%;
         ///    width: 100%;
         ///    display: flex;
@@ -108,8 +115,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///    color: white;
         ///    font-weight: bold;
         ///    font-size: 2rem;
-        ///    text-shadow: #000 0px 0px 2px,   #000 0px 0px 2px,   #000 0px 0px 2px,
-        ///                 #000 0px 0px 2px [rest of string was truncated]&quot;;.
+        ///    text-shadow: #000 0px 0px 2px,   #000 0px 0px 2px,   #0 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CCTOverlay_CSS {
             get {
@@ -118,7 +124,8 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;html&gt;
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
         ///&lt;head&gt;
         ///	&lt;title&gt;Consistency Overlay&lt;/title&gt;
         ///	&lt;script src=&quot;common.js&quot;&gt;&lt;/script&gt;
@@ -133,9 +140,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///		&lt;div id=&quot;stats-right&quot;&gt;&lt;/div&gt;
         ///	&lt;/div&gt;
         ///	&lt;div id=&quot;room-attempts-container&quot;&gt;
-        ///		&lt;div class=&quot;room-attempts-start-end&quot;&gt;
-        ///			New ➔
-        ///		&lt;/di [rest of string was truncated]&quot;;.
+        ///		&lt;div class=&quot;room-attempts-start-end&quot;&gt;        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CCTOverlay_HTML {
             get {
@@ -149,8 +154,9 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///    &quot;base&quot;: {
         ///        &quot;attempts&quot;: &quot;20&quot;,
         ///        &quot;refresh-time-ms&quot;: 1000,
-        ///        &quot;text-format-left&quot;: &quot;GB Total: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]&lt;br&gt;Choke Rate: {room:goldenChokeRate}%&lt;br&gt;PB: {pb:checkpointAbbreviation}-{pb:checkpointRoomNumber} (Session: {pb:checkpointAbbreviationSession}-{pb:checkpointRoomNumberSession})&quot;,
-        ///        &quot;text-format-center&quot;: &quot;{checkpoint:abbreviation}-{checkpoint:roomNumber}: {room:rate} [rest of string was truncated]&quot;;.
+        ///        &quot;text-format-left&quot;: &quot;Attempts: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]&lt;br&gt;Choke Rate: {room:chokeRate}&lt;br&gt;PB: {pb:best} (Session: {pb:bestSession})&quot;,
+        ///        &quot;text-format-center&quot;: &quot;{room:name}: {room:successRate} ({room:successes}/{room:attempts})&lt;br&gt;CP: {checkpoint:successRate}&lt;br&gt;Total: {chapter:successRate}&quot;,
+        ///        &quot;text-format-right&quot;: &quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CCTOverlay_JS {
             get {
@@ -159,10 +165,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;5;00,01,02,02b,03
-        ///Contraption;CT;5;04,05,05b,06,07
-        ///Scrap Pit;SP;6;08,08b,09,10,11,end
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Forsaken City&quot;,&quot;chapterSID&quot;:&quot;Celeste/1-ForsakenCity&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;},{&quot;debugRoomName&quot;:&quot;02b&quot;},{&quot;debugRoomName&quot;:&quot;03&quot;}]},{&quot;name&quot;:&quot;Contraption&quot;,&quot;abbreviation&quot;:&quot;CT&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;04&quot;},{&quot;debugRoomName&quot;:&quot;05&quot;},{&quot;debugRoomName&quot;:&quot;05b&quot;},{&quot;debugRoomName&quot;:&quot;06&quot;},{&quot;debugRoomName&quot;:&quot;07&quot;}]},{&quot;name&quot;:&quot;Scrap Pit&quot;,&quot;ab [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_1_ForsakenCity_BSide {
             get {
@@ -171,8 +174,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Forsaken City&quot;,&quot;chapterSID&quot;:&quot;Celeste/1-ForsakenCity&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_1_ForsakenCity_CSide {
             get {
@@ -181,10 +183,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;6;1,2,3,4,3b,5
-        ///Crossing;CR;8;6,6a,6b,6c,7,8,8b,9
-        ///Chasm;CH;6;9b,10a,11,12,12a,end
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Forsaken City&quot;,&quot;chapterSID&quot;:&quot;Celeste/1-ForsakenCity&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:6,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;1&quot;},{&quot;debugRoomName&quot;:&quot;2&quot;},{&quot;debugRoomName&quot;:&quot;3&quot;},{&quot;debugRoomName&quot;:&quot;4&quot;},{&quot;debugRoomName&quot;:&quot;3b&quot;},{&quot;debugRoomName&quot;:&quot;5&quot;}]},{&quot;name&quot;:&quot;Crossing&quot;,&quot;abbreviation&quot;:&quot;CR&quot;,&quot;roomCount&quot;:8,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;6&quot;},{&quot;debugRoomName&quot;:&quot;6a&quot;},{&quot;debugRoomName&quot;:&quot;6b&quot;},{&quot;debugRoomName&quot;:&quot;6c&quot;},{&quot;debugRoomName&quot;:&quot;7&quot;},{&quot;debugRoomNam [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_1_ForsakenCity_Normal {
             get {
@@ -193,10 +192,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;6;start,00,01,01b,02b,02
-        ///Combination Lock;CL;5;03,04,05,06,07
-        ///Dream Altar;DA;6;08b,08,09,10,11,end
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Old Site&quot;,&quot;chapterSID&quot;:&quot;Celeste/2-OldSite&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:6,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;start&quot;},{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;01b&quot;},{&quot;debugRoomName&quot;:&quot;02b&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]},{&quot;name&quot;:&quot;Combination Lock&quot;,&quot;abbreviation&quot;:&quot;CL&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;03&quot;},{&quot;debugRoomName&quot;:&quot;04&quot;},{&quot;debugRoomName&quot;:&quot;05&quot;},{&quot;debugRoomName&quot;:&quot;06&quot;},{&quot;debugRoomName&quot;:&quot;07&quot;}]},{&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_2_OldSite_BSide {
             get {
@@ -205,8 +201,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Old Site&quot;,&quot;chapterSID&quot;:&quot;Celeste/2-OldSite&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_2_OldSite_CSide {
             get {
@@ -215,9 +210,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;9;start,0,1,d0,d7,d8,d3,d2,3x
-        ///Intervention;IV;13;3,4,5,6,7,8,9,10,2,11,12b,12,13
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Old Site&quot;,&quot;chapterSID&quot;:&quot;Celeste/2-OldSite&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:9,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;start&quot;},{&quot;debugRoomName&quot;:&quot;0&quot;},{&quot;debugRoomName&quot;:&quot;1&quot;},{&quot;debugRoomName&quot;:&quot;d0&quot;},{&quot;debugRoomName&quot;:&quot;d7&quot;},{&quot;debugRoomName&quot;:&quot;d8&quot;},{&quot;debugRoomName&quot;:&quot;d3&quot;},{&quot;debugRoomName&quot;:&quot;d2&quot;},{&quot;debugRoomName&quot;:&quot;3x&quot;}]},{&quot;name&quot;:&quot;CP2&quot;,&quot;abbreviation&quot;:&quot;CP2&quot;,&quot;roomCount&quot;:15,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;3&quot;},{&quot;debugRoomName&quot;:&quot;4&quot;},{&quot;debugRoomName&quot;:&quot;5&quot;} [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_2_OldSite_Normal {
             get {
@@ -226,11 +219,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;6;00,01,02,03,04,05
-        ///Staff Quarters;SQ;5;06,07,08,09,10
-        ///Library;LB;5;11,13,14,15,12
-        ///Rooftop;RT;7;16,17,18,19,21,20,end
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Celestial Resort&quot;,&quot;chapterSID&quot;:&quot;Celeste/3-CelestialResort&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:6,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;},{&quot;debugRoomName&quot;:&quot;03&quot;},{&quot;debugRoomName&quot;:&quot;04&quot;},{&quot;debugRoomName&quot;:&quot;05&quot;}]},{&quot;name&quot;:&quot;Staff Quarters&quot;,&quot;abbreviation&quot;:&quot;SQ&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;06&quot;},{&quot;debugRoomName&quot;:&quot;07&quot;},{&quot;debugRoomName&quot;:&quot;08&quot;},{&quot;debugRoomName&quot;:&quot;09&quot;},{&quot;debugRoomName&quot;:&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_3_CelestialResort_BSide {
             get {
@@ -239,8 +228,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Celestial Resort&quot;,&quot;chapterSID&quot;:&quot;Celeste/3-CelestialResort&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_3_CelestialResort_CSide {
             get {
@@ -249,11 +237,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;17;s0,s1,s2,s3,0x-a,00-a,02-a,02-b,03-a,05-a,06-a,07-a,07-b,06-b,06-c,08-c,08-b
-        ///Huge Mess;HM;21;08-a,09-b,10-x,11-x,11-y,11-z,10-z,10-y,10-c,11-c,12-c,12-d,11-d,10-d,11-b,12-b,13-b,13-a,13-x,12-x,11-a
-        ///Elevator Shaft;ES;7;09-d,08-d,06-d,04-d,04-c,02-c,02-d
-        ///Presidential Suite;PS;9;00-d,roof00,roof01,roof02,roof03,roof04,roof05,roof06b,roof06
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Celestial Resort&quot;,&quot;chapterSID&quot;:&quot;Celeste/3-CelestialResort&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:17,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;s0&quot;},{&quot;debugRoomName&quot;:&quot;s1&quot;},{&quot;debugRoomName&quot;:&quot;s2&quot;},{&quot;debugRoomName&quot;:&quot;s3&quot;},{&quot;debugRoomName&quot;:&quot;0x-a&quot;},{&quot;debugRoomName&quot;:&quot;00-a&quot;},{&quot;debugRoomName&quot;:&quot;02-a&quot;},{&quot;debugRoomName&quot;:&quot;02-b&quot;},{&quot;debugRoomName&quot;:&quot;03-a&quot;},{&quot;debugRoomName&quot;:&quot;05-a&quot;},{&quot;debugRoomName&quot;:&quot;06-a&quot;},{&quot;debugRoomName&quot;:&quot;07-a&quot;},{&quot;debugRoomName&quot;:&quot;07-b&quot;}, [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_3_CelestialResort_Normal {
             get {
@@ -262,11 +246,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;5;a-00,a-01,a-02,a-03,a-04
-        ///Stepping Stones;SS;5;b-00,b-01,b-02,b-03,b-04
-        ///Gusty Canyon;GC;5;c-00,c-01,c-02,c-03,c-04
-        ///Eye of the Storm;EOTS;5;d-00,d-01,d-02,d-03,end
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Golden Ridge&quot;,&quot;chapterSID&quot;:&quot;Celeste/4-GoldenRidge&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;}]},{&quot;name&quot;:&quot;Stepping Stones&quot;,&quot;abbreviation&quot;:&quot;SS&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-03&quot;},{&quot;debugRoomName&quot;:&quot;b-04&quot;}]},{&quot;n [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_4_GoldenRidge_BSide {
             get {
@@ -275,8 +255,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Golden Ridge&quot;,&quot;chapterSID&quot;:&quot;Celeste/4-GoldenRidge&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_4_GoldenRidge_CSide {
             get {
@@ -285,11 +264,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;11;a-00,a-01,a-01x,a-02,a-03,a-04,a-05,a-06,a-07,a-08,a-09
-        ///Shrine;SH;5;b-00,b-02,b-05,b-08b,b-08
-        ///Old Trail;OT;8;c-00,c-02,c-04,c-05,c-06,c-09,c-07,c-08
-        ///Cliff Face;CF;10;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08,d-09
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Golden Ridge&quot;,&quot;chapterSID&quot;:&quot;Celeste/4-GoldenRidge&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:11,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-01x&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;},{&quot;debugRoomName&quot;:&quot;a-05&quot;},{&quot;debugRoomName&quot;:&quot;a-06&quot;},{&quot;debugRoomName&quot;:&quot;a-07&quot;},{&quot;debugRoomName&quot;:&quot;a-08&quot;},{&quot;debugRoomName&quot;:&quot;a-09&quot;}]},{&quot;name&quot;:&quot;Shrine&quot;,&quot;abbreviation&quot;:&quot;SH&quot;,&quot;roomCount [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_4_GoldenRidge_Normal {
             get {
@@ -298,11 +273,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;4;start,a-00,a-01,a-02
-        ///Central Chamber;CC;3;b-00,b-01,b-04,b-02,b-06,b-07,b-03,b-08
-        ///Through the Mirror;TTM;5;b-09,c-01,c-02,c-03,c-04
-        ///Mix Master;MM;6;d-00,d-01,d-02,d-03,d-04,d-05
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Mirror Temple&quot;,&quot;chapterSID&quot;:&quot;Celeste/5-MirrorTemple&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:4,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;start&quot;},{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;}]},{&quot;name&quot;:&quot;Central Chamber&quot;,&quot;abbreviation&quot;:&quot;CC&quot;,&quot;roomCount&quot;:8,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-04&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-06&quot;},{&quot;debugRoomName&quot;:&quot;b-07&quot;},{&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_5_MirrorTemple_BSide {
             get {
@@ -311,8 +282,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Mirror Temple&quot;,&quot;chapterSID&quot;:&quot;Celeste/5-MirrorTemple&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_5_MirrorTemple_CSide {
             get {
@@ -321,12 +291,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;8;a-00b,a-00d,a-00c,a-00,a-01,a-08,a-12,a-13
-        ///Depths;DP;7;b-00,b-01,b-01b,b-02,b-06,b-19,b-14
-        ///Unravelling;UR;12;b-16,c-01,c-01b,c-01c,c-08b,c-08,c-10,c-12,c-07,c-11,c-09,c-13
-        ///Search;SC;7;d-00,d-01,d-04,d-19b,d-19,d-10,d-20
-        ///Rescue;RS;12;e-00,e-01,e-02,e-03,e-04,e-06,e-05,e-07,e-08,e-09,e-10,e-11
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Mirror Temple&quot;,&quot;chapterSID&quot;:&quot;Celeste/5-MirrorTemple&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:8,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00b&quot;},{&quot;debugRoomName&quot;:&quot;a-00d&quot;},{&quot;debugRoomName&quot;:&quot;a-00c&quot;},{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-08&quot;},{&quot;debugRoomName&quot;:&quot;a-12&quot;},{&quot;debugRoomName&quot;:&quot;a-13&quot;}]},{&quot;name&quot;:&quot;Depths&quot;,&quot;abbreviation&quot;:&quot;DP&quot;,&quot;roomCount&quot;:7,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRo [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_5_MirrorTemple_Normal {
             get {
@@ -335,11 +300,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;7;a-00,a-01,a-02,a-03,a-04,a-05,a-06
-        ///Reflection;RF;10;b-00,b-01,b-02,b-03,b-04,b-05,b-06,b-07,b-08,b-10
-        ///Rock Bottom;RB;5;c-00,c-01,c-02,c-03,c-04
-        ///Reprieve;RP;6;d-00,d-01,d-02,d-03,d-04,d-05
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Reflection&quot;,&quot;chapterSID&quot;:&quot;Celeste/6-Reflection&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:7,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;},{&quot;debugRoomName&quot;:&quot;a-05&quot;},{&quot;debugRoomName&quot;:&quot;a-06&quot;}]},{&quot;name&quot;:&quot;Reflection&quot;,&quot;abbreviation&quot;:&quot;RF&quot;,&quot;roomCount&quot;:10,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomN [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_6_Reflection_BSide {
             get {
@@ -348,8 +309,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Reflection&quot;,&quot;chapterSID&quot;:&quot;Celeste/6-Reflection&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_6_Reflection_CSide {
             get {
@@ -358,11 +318,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Lake;LK;5;00,01,02,03,02b
-        ///Hollows;HL;17;04,05,06,07,08b,09,10b,11,12b,13,14a,15,16b,17,18b,19,20
-        ///Reflection;RF;5;b-00,b-01,b-02,b-02b,b-03
-        ///Rock Bottom;RB;21;boss-00,boss-01,boss-02,boss-03,boss-04,boss-05,boss-06,boss-07,boss-08,boss-09,boss-10,boss-11,boss-12,boss-13,boss-14,boss-15,boss-16,boss-17,boss-18,boss-19,boss-20
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Reflection&quot;,&quot;chapterSID&quot;:&quot;Celeste/6-Reflection&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Lake&quot;,&quot;abbreviation&quot;:&quot;LK&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;},{&quot;debugRoomName&quot;:&quot;03&quot;},{&quot;debugRoomName&quot;:&quot;02b&quot;}]},{&quot;name&quot;:&quot;Hollows&quot;,&quot;abbreviation&quot;:&quot;HL&quot;,&quot;roomCount&quot;:17,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;04&quot;},{&quot;debugRoomName&quot;:&quot;05&quot;},{&quot;debugRoomName&quot;:&quot;06&quot;},{&quot;debugRoomName&quot;:&quot;07&quot;},{&quot;debugRoomName&quot;:&quot;08b&quot;},{&quot;debugRoomName&quot;:&quot;09&quot;},{&quot;debugRoom [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_6_Reflection_Normal {
             get {
@@ -371,14 +327,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0 M;0M;4;a-00,a-01,a-02,a-03
-        ///500 M;500M;4;b-00,b-01,b-02,b-03
-        ///1000 M;1K;4;c-01,c-00,c-02,c-03
-        ///1500 M;1.5K;4;d-00,d-01,d-02,d-03
-        ///2000 M;2K;4;e-00,e-01,e-02,e-03
-        ///2500 M;2.5K;4;f-00,f-01,f-02,f-03
-        ///3000 M;3K;4;g-00,g-01,g-02,g-03
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;The Summit&quot;,&quot;chapterSID&quot;:&quot;Celeste/7-Summit&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;0 M&quot;,&quot;abbreviation&quot;:&quot;0M&quot;,&quot;roomCount&quot;:4,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;}]},{&quot;name&quot;:&quot;500 M&quot;,&quot;abbreviation&quot;:&quot;500M&quot;,&quot;roomCount&quot;:4,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-03&quot;}]},{&quot;name&quot;:&quot;1000 M&quot;,&quot;abbreviation&quot;:&quot;1K&quot;,&quot;roomCount&quot;:4,&quot;rooms&quot;:[{&quot;debugRoo [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_7_Summit_BSide {
             get {
@@ -387,8 +336,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;01,02,03
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;The Summit&quot;,&quot;chapterSID&quot;:&quot;Celeste/7-Summit&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;},{&quot;debugRoomName&quot;:&quot;03&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_7_Summit_CSide {
             get {
@@ -397,14 +345,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0 M;0M;7;a-00,a-01,a-02,a-03,a-04,a-05,a-06
-        ///500 M;500M;9;b-00,b-01,b-02,b-03,b-05,b-06,b-07,b-08,b-09
-        ///1000 M;1K;9;c-00,c-01,c-02,c-03,c-04,c-06,c-07,c-08,c-09
-        ///1500 M;1.5K;11;d-00,d-01,d-01b,d-02,d-03,d-04,d-05,d-06,d-08,d-10,d-11
-        ///2000 M;2K;12;e-00b,e-00,e-02,e-03,e-04,e-05,e-06,e-07,e-08,e-10,e-10b,e-13
-        ///2500 M;2.5K;11;f-00,f-02,f-04,f-03,f-05,f-07,f-08,f-09,f-10,f-10b,f-11
-        ///3000 M;3K;5;g-00,g-00b,g-01,g-02,g-03
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;The Summit&quot;,&quot;chapterSID&quot;:&quot;Celeste/7-Summit&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;0 M&quot;,&quot;abbreviation&quot;:&quot;0M&quot;,&quot;roomCount&quot;:7,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;},{&quot;debugRoomName&quot;:&quot;a-05&quot;},{&quot;debugRoomName&quot;:&quot;a-06&quot;}]},{&quot;name&quot;:&quot;500 M&quot;,&quot;abbreviation&quot;:&quot;500M&quot;,&quot;roomCount&quot;:9,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-03 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_7_Summit_Normal {
             get {
@@ -413,10 +354,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Into the Core;ITC;6;a-00,a-01,a-02,a-03,a-04,a-05
-        ///Burning or Freezing;BOF;6;b-00,b-01,b-02,b-03,b-04,b-05
-        ///Heartbeat;HB;9;c-01,c-02,c-03,c-04,c-05,c-06,c-08,c-07,space
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Core&quot;,&quot;chapterSID&quot;:&quot;Celeste/9-Core&quot;,&quot;sideName&quot;:&quot;B-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Into the Core&quot;,&quot;abbreviation&quot;:&quot;ITC&quot;,&quot;roomCount&quot;:6,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;},{&quot;debugRoomName&quot;:&quot;a-05&quot;}]},{&quot;name&quot;:&quot;Burning or Freezing&quot;,&quot;abbreviation&quot;:&quot;BOF&quot;,&quot;roomCount&quot;:6,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-03&quot;},{&quot;debu [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_9_Core_BSide {
             get {
@@ -425,8 +363,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start;ST;3;00,01,02
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Core&quot;,&quot;chapterSID&quot;:&quot;Celeste/9-Core&quot;,&quot;sideName&quot;:&quot;C-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Start&quot;,&quot;abbreviation&quot;:&quot;ST&quot;,&quot;roomCount&quot;:3,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;00&quot;},{&quot;debugRoomName&quot;:&quot;01&quot;},{&quot;debugRoomName&quot;:&quot;02&quot;}]}],&quot;roomCount&quot;:3}.
         /// </summary>
         internal static string Celeste_9_Core_CSide {
             get {
@@ -435,10 +372,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Into the Core;ITC;7;a-00,a-01,a-02,a-03,b-00,b-07b,b-07
-        ///Hot and Cold;HAC;5;c-00,c-01,c-02,c-03,c-04
-        ///Heart of the Mountain;HOTM;14;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08,d-09,d-10,d-10b,d-10c,d-11
-        ///.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Core&quot;,&quot;chapterSID&quot;:&quot;Celeste/9-Core&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Into the Core&quot;,&quot;abbreviation&quot;:&quot;ITC&quot;,&quot;roomCount&quot;:7,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-07b&quot;},{&quot;debugRoomName&quot;:&quot;b-07&quot;}]},{&quot;name&quot;:&quot;Hot and Cold&quot;,&quot;abbreviation&quot;:&quot;HAC&quot;,&quot;roomCount&quot;:5,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;c-00&quot;},{&quot;debugRoomName&quot;:&quot;c-01&quot;},{&quot;debugRoomName&quot;:&quot;c-02&quot;},{&quot;debugRoomN [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_9_Core_Normal {
             get {
@@ -447,13 +381,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Singular;SI;14;a-00,a-01,a-02,a-03,a-04,a-05,b-00,b-01,b-02,b-03,b-04,b-05,b-06,b-07
-        ///Power Source;PS;9;c-00,c-00b,c-01,c-02,c-03,d-00,d-05,e-00y,e-00yb
-        ///Remembered;RM;13;e-00z,e-00,e-00b,e-01,e-02,e-03,e-04,e-05,e-05b,e-05c,e-06,e-07,e-08
-        ///Event Horizon;EH;18;f-door,f-00,f-01,f-02,f-03,f-04,f-05,f-06,f-07,f-08,f-09,g-00,g-01,g-03,g-02,g-04,g-05,g-06
-        ///Determination;DT;14;h-00b,h-00,h-01,h-02,h-03,h-03b,h-04,h-05,h-06,h-06b,h-07,h-08,h-09,h-10
-        ///Stubbornness;ST;7;i-00,i-00b,i-01,i-02,i-03,i-04,i-05
-        ///Reconciliation; [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to {&quot;campaignName&quot;:&quot;Celeste&quot;,&quot;chapterName&quot;:&quot;Farewell&quot;,&quot;chapterSID&quot;:&quot;Celeste/LostLevels&quot;,&quot;sideName&quot;:&quot;A-Side&quot;,&quot;checkpoints&quot;:[{&quot;name&quot;:&quot;Singular&quot;,&quot;abbreviation&quot;:&quot;SG&quot;,&quot;roomCount&quot;:14,&quot;rooms&quot;:[{&quot;debugRoomName&quot;:&quot;a-00&quot;},{&quot;debugRoomName&quot;:&quot;a-01&quot;},{&quot;debugRoomName&quot;:&quot;a-02&quot;},{&quot;debugRoomName&quot;:&quot;a-03&quot;},{&quot;debugRoomName&quot;:&quot;a-04&quot;},{&quot;debugRoomName&quot;:&quot;a-05&quot;},{&quot;debugRoomName&quot;:&quot;b-00&quot;},{&quot;debugRoomName&quot;:&quot;b-01&quot;},{&quot;debugRoomName&quot;:&quot;b-02&quot;},{&quot;debugRoomName&quot;:&quot;b-03&quot;},{&quot;debugRoomName&quot;:&quot;b-04&quot;},{&quot;debugRoomName&quot;:&quot;b-05&quot;},{&quot;debugRoomName&quot;:&quot;b-06&quot;},{&quot;de [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Celeste_LostLevels_Normal {
             get {
@@ -468,91 +396,6 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
             get {
                 object obj = ResourceManager.GetObject("goldberry_GIF", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;ST;7;a-01,a-02,a-03,a-04,a-05,a-06,a-07
-        ///Alleyway;AW;8;b-01,b-02,b-03,b-04,b-05,b-06,c-01,c-02.
-        /// </summary>
-        internal static string nameguysdsidespack_0_1_City {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_1_City", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;ST;7;a-01,a-02,a-03,a-04,a-05,a-06,a-07
-        ///Alleyway;AW;8;b-01,b-02,b-03,b-04,b-05,b-06,c-01,c-02
-        ///.
-        /// </summary>
-        internal static string nameguysdsidespack_0_1_City_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_1_City_Normal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;ST;6;a-01,a-02,a-03,a-04,a-05,a-06
-        ///Memory;ME;4;b-01,b-02,b-03,b-04
-        ///Back Exit;BE;4;b-05,c-01,c-02,c-03.
-        /// </summary>
-        internal static string nameguysdsidespack_0_2_Oldsite_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_2_Oldsite_Normal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;ST;7;a-00,a-01,a-02,a-03,a-04,a-05,a-06
-        ///Spring Cleaning;SC;10;b-00,b-02a,b-02b,b-02c,b-03a,b-03b,b-03c,b-01a,b-01b,b-01c
-        ///Elevator Hell;EH;8;c-01,c-02,c-03,c-04,c-05,c-06,c-07,c-08
-        ///Ruin;RU;9;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08
-        ///.
-        /// </summary>
-        internal static string nameguysdsidespack_0_3_Resort_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_3_Resort_Normal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;ST;8;a-01,a-02,a-03,a-04,a-05,a-06,a-07,a-08
-        ///Heavywinds;HW;6;b-01s,b-03n,b-04w,b-05w,b-06,b-07
-        ///Snowstorm;SS;9;c-01n,c-02n,c-03n,c-04n,c-05w,c-06w,c-07,c-08,c-09
-        ///.
-        /// </summary>
-        internal static string nameguysdsidespack_0_4_Ridge_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_4_Ridge_Normal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Start;0M;5;a-00,a-01,a-02,a-03,a-04
-        ///500 M;500M;5;b-01,b-02,b-03,b-04,b-05
-        ///1000 M;1k;5;c-01,c-02,c-03,c-04,c-05
-        ///1500 M;1.5k;5;d-01,d-02,d-03,d-04,d-05
-        ///2000 M;2k;5;e-01n,e-02h,e-03r,e-04r,e-05h
-        ///2500 M;2.5k;5;f-01,f-02,f-03,f-04,f-05
-        ///3000 M;3k;4;g-01,g-02,g-03,g-04
-        ///.
-        /// </summary>
-        internal static string nameguysdsidespack_0_7_Summit_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_7_Summit_Normal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CP1;CP1;7;a-00,a-01,a-02,a-03,a-04,a-05,a-06
-        ///CP2;CP2;6;b-01,b-02,b-03,b-04,b-05,b-06
-        ///CP3;CP3;12;c-01,c-02,c-03,c-04,c-05,d-01,d-02,d-03,d-04,d-05,d-06,space
-        ///.
-        /// </summary>
-        internal static string nameguysdsidespack_0_8_Core_Normal {
-            get {
-                return ResourceManager.GetString("nameguysdsidespack_0_8_Core_Normal", resourceCulture);
             }
         }
     }

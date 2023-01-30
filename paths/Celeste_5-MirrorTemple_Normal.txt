@@ -1,5 +1,182 @@
-Start;ST;8;a-00b,a-00d,a-00c,a-00,a-01,a-08,a-12,a-13
-Depths;DP;7;b-00,b-01,b-01b,b-02,b-06,b-19,b-14
-Unravelling;UR;12;b-16,c-01,c-01b,c-01c,c-08b,c-08,c-10,c-12,c-07,c-11,c-09,c-13
-Search;SC;7;d-00,d-01,d-04,d-19b,d-19,d-10,d-20
-Rescue;RS;12;e-00,e-01,e-02,e-03,e-04,e-06,e-05,e-07,e-08,e-09,e-10,e-11
+{
+  "campaignName": "Celeste",
+  "chapterName": "Mirror Temple",
+  "chapterSID": "Celeste/5-MirrorTemple",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 8,
+      "rooms": [
+        {
+          "debugRoomName": "a-00b"
+        },
+        {
+          "debugRoomName": "a-00d"
+        },
+        {
+          "debugRoomName": "a-00c"
+        },
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-08"
+        },
+        {
+          "debugRoomName": "a-12"
+        },
+        {
+          "debugRoomName": "a-13"
+        }
+      ]
+    },
+    {
+      "name": "Depths",
+      "abbreviation": "DP",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-01b"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-06"
+        },
+        {
+          "debugRoomName": "b-19"
+        },
+        {
+          "debugRoomName": "b-14"
+        }
+      ]
+    },
+    {
+      "name": "Unravelling",
+      "abbreviation": "UR",
+      "roomCount": 12,
+      "rooms": [
+        {
+          "debugRoomName": "b-16"
+        },
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-01b"
+        },
+        {
+          "debugRoomName": "c-01c"
+        },
+        {
+          "debugRoomName": "c-08b"
+        },
+        {
+          "debugRoomName": "c-08"
+        },
+        {
+          "debugRoomName": "c-10"
+        },
+        {
+          "debugRoomName": "c-12"
+        },
+        {
+          "debugRoomName": "c-07"
+        },
+        {
+          "debugRoomName": "c-11"
+        },
+        {
+          "debugRoomName": "c-09"
+        },
+        {
+          "debugRoomName": "c-13"
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "abbreviation": "SC",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "d-00"
+        },
+        {
+          "debugRoomName": "d-01"
+        },
+        {
+          "debugRoomName": "d-04"
+        },
+        {
+          "debugRoomName": "d-19b"
+        },
+        {
+          "debugRoomName": "d-19"
+        },
+        {
+          "debugRoomName": "d-10"
+        },
+        {
+          "debugRoomName": "d-20"
+        }
+      ]
+    },
+    {
+      "name": "Rescue",
+      "abbreviation": "RS",
+      "roomCount": 12,
+      "rooms": [
+        {
+          "debugRoomName": "e-00"
+        },
+        {
+          "debugRoomName": "e-01"
+        },
+        {
+          "debugRoomName": "e-02"
+        },
+        {
+          "debugRoomName": "e-03"
+        },
+        {
+          "debugRoomName": "e-04"
+        },
+        {
+          "debugRoomName": "e-06"
+        },
+        {
+          "debugRoomName": "e-05"
+        },
+        {
+          "debugRoomName": "e-07"
+        },
+        {
+          "debugRoomName": "e-08"
+        },
+        {
+          "debugRoomName": "e-09"
+        },
+        {
+          "debugRoomName": "e-10"
+        },
+        {
+          "debugRoomName": "e-11"
+        }
+      ]
+    }
+  ],
+  "roomCount": 46
+}

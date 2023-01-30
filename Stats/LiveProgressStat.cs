@@ -99,9 +99,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(RunCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("live-progress", $"Room {RunChapterProgressNumber}/{ChapterRoomCount} ({RunChapterProgressPercent})" +
+                new StatFormat("basic-chapter-progress", $"Room {RunChapterProgressNumber}/{ChapterRoomCount} ({RunChapterProgressPercent})" +
                     $" | Room in CP: {RunCheckpointProgressNumber}/{CheckpointRoomCount} ({RunCheckpointProgressPercent})")
             };
         }

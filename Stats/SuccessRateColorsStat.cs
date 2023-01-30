@@ -18,10 +18,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
     public class SuccessRateColorsStat : Stat {
 
-        public static string ColorRed = "{chapter:color-red}";
-        public static string ColorYellow = "{chapter:color-yellow}";
-        public static string ColorGreen = "{chapter:color-green}";
-        public static string ColorLightGreen = "{chapter:color-lightGreen}";
+        public static string ChapterColorRed = "{chapter:color-red}";
+        public static string ChapterColorYellow = "{chapter:color-yellow}";
+        public static string ChapterColorGreen = "{chapter:color-green}";
+        public static string ChapterColorLightGreen = "{chapter:color-lightGreen}";
 
         public static string CheckpointColorRed = "{checkpoint:color-red}";
         public static string CheckpointColorYellow = "{checkpoint:color-yellow}";
@@ -32,7 +32,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string CheckpointListColorRed = "{checkpoint:listColor-red}";
 
         public static List<string> IDs = new List<string>() {
-            ColorRed, ColorYellow, ColorGreen, ColorLightGreen,
+            ChapterColorRed, ChapterColorYellow, ChapterColorGreen, ChapterColorLightGreen,
             CheckpointColorRed, CheckpointColorYellow, CheckpointColorGreen, CheckpointColorLightGreen,
             ChapterListColorRed, CheckpointListColorRed,
         };
@@ -41,10 +41,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             if (chapterPath == null) {
-                format = StatManager.MissingPathFormat(format, ColorRed);
-                format = StatManager.MissingPathFormat(format, ColorYellow);
-                format = StatManager.MissingPathFormat(format, ColorGreen);
-                format = StatManager.MissingPathFormat(format, ColorLightGreen);
+                format = StatManager.MissingPathFormat(format, ChapterColorRed);
+                format = StatManager.MissingPathFormat(format, ChapterColorYellow);
+                format = StatManager.MissingPathFormat(format, ChapterColorGreen);
+                format = StatManager.MissingPathFormat(format, ChapterColorLightGreen);
 
                 format = StatManager.MissingPathFormat(format, CheckpointColorRed);
                 format = StatManager.MissingPathFormat(format, CheckpointColorYellow);
@@ -106,10 +106,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
             }
 
-            format = format.Replace(ColorLightGreen, $"{colorCounts[0]}");
-            format = format.Replace(ColorGreen, $"{colorCounts[1]}");
-            format = format.Replace(ColorYellow, $"{colorCounts[2]}");
-            format = format.Replace(ColorRed, $"{colorCounts[3]}");
+            format = format.Replace(ChapterColorLightGreen, $"{colorCounts[0]}");
+            format = format.Replace(ChapterColorGreen, $"{colorCounts[1]}");
+            format = format.Replace(ChapterColorYellow, $"{colorCounts[2]}");
+            format = format.Replace(ChapterColorRed, $"{colorCounts[3]}");
 
             if (chapterPath.CurrentRoom == null) {
                 format = StatManager.NotOnPathFormat(format, CheckpointColorLightGreen);
@@ -140,10 +140,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //color-tracker;Reds: {chapter:color-red}, Yellows: {chapter:color-yellow}, Greens: {chapter:color-green}, Light-Greens: {chapter:color-lightGreen}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ColorRed, "Count of red rooms (success rate <50%)"),
-                new KeyValuePair<string, string>(ColorYellow, "Count of yellow rooms (success rate 50%-80%)"),
-                new KeyValuePair<string, string>(ColorGreen, "Count of green rooms (success rate 80%-95%)"),
-                new KeyValuePair<string, string>(ColorLightGreen, "Count of light green rooms (success rate 95%-100%)"),
+                new KeyValuePair<string, string>(ChapterColorRed, "Count of red rooms (success rate <50%)"),
+                new KeyValuePair<string, string>(ChapterColorYellow, "Count of yellow rooms (success rate 50%-80%)"),
+                new KeyValuePair<string, string>(ChapterColorGreen, "Count of green rooms (success rate 80%-95%)"),
+                new KeyValuePair<string, string>(ChapterColorLightGreen, "Count of light green rooms (success rate 95%-100%)"),
 
                 new KeyValuePair<string, string>(CheckpointColorRed, "Count of red rooms in the current checkpoint"),
                 new KeyValuePair<string, string>(CheckpointColorYellow, "Count of yellow rooms in the current checkpoint"),
@@ -154,9 +154,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(CheckpointListColorRed, "Lists all red rooms in the current checkpoint by name"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("color-tracker", $"Reds: {ColorRed}, Yellows: {ColorYellow}, Greens: {ColorGreen}, Light-Greens: {ColorLightGreen}"),
+                new StatFormat("color-tracker", $"Reds: {ChapterColorRed}, Yellows: {ChapterColorYellow}, Greens: {ChapterColorGreen}, Light-Greens: {ChapterColorLightGreen}"),
                 new StatFormat("color-tracker-cp", $"Checkpoint: Reds: {CheckpointColorRed}, Yellows: {CheckpointColorYellow}, Greens: {CheckpointColorGreen}, Light-Greens: {CheckpointColorLightGreen}"),
                 new StatFormat("red-rooms-list", $"All red rooms: {ChapterListColorRed}\\nIn CP: {CheckpointListColorRed}")
             };

@@ -150,10 +150,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(RunTopXPercentSession, $"Opposite percentage of {RunCurrentPbStatusPercentSession}"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("current-run-pb", $"Current run: #{RunCurrentPbStatus}, better than {RunCurrentPbStatusPercent} of all runs (Top {RunTopXPercent})"),
-                new StatFormat("current-run-pb-session", $"Current run (Session): #{RunCurrentPbStatusSession}, better than {RunCurrentPbStatusPercentSession} of all runs this session (Top {RunTopXPercentSession})")
+                new StatFormat("basic-current-run", $"Current run: #{RunCurrentPbStatus} (Top {RunTopXPercent})"),
+                new StatFormat("basic-current-run-session", $"Current run (Session): #{RunCurrentPbStatusSession} (Top {RunTopXPercentSession})")
             };
         }
     }

@@ -430,7 +430,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public bool IsUnplayed { get => PreviousAttempts.Count == 0; }
 
         [JsonIgnore]
-        public bool LastAttempt { get => PreviousAttempts[PreviousAttempts.Count - 1]; }
+        public bool LastAttempt {
+            get {
+                if (IsUnplayed) return false;
+                return PreviousAttempts[PreviousAttempts.Count - 1];
+            } 
+        }
 
         [JsonProperty("lastFiveRate")]
         public float LastFiveRate { get => AverageSuccessOverN(5); }

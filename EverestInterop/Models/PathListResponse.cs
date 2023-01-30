@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
     public class PathListResponse : Response {
-        public List<string> availablePaths { get; set; }
+        public List<string> mapNames { get; set; }
     }
 }

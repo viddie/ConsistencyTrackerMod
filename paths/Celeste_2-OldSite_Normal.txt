@@ -1,2 +1,117 @@
-Start;ST;9;start,0,1,d0,d7,d8,d3,d2,3x
-Intervention;IV;13;3,4,5,6,7,8,9,10,2,11,12b,12,13
+{
+  "campaignName": "Celeste",
+  "chapterName": "Old Site",
+  "chapterSID": "Celeste/2-OldSite",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 9,
+      "rooms": [
+        {
+          "debugRoomName": "start"
+        },
+        {
+          "debugRoomName": "0"
+        },
+        {
+          "debugRoomName": "1"
+        },
+        {
+          "debugRoomName": "d0"
+        },
+        {
+          "debugRoomName": "d7"
+        },
+        {
+          "debugRoomName": "d8"
+        },
+        {
+          "debugRoomName": "d3"
+        },
+        {
+          "debugRoomName": "d2"
+        },
+        {
+          "debugRoomName": "3x"
+        }
+      ]
+    },
+    {
+      "name": "Intervention",
+      "abbreviation": "IV",
+      "roomCount": 15,
+      "rooms": [
+        {
+          "debugRoomName": "3"
+        },
+        {
+          "debugRoomName": "4"
+        },
+        {
+          "debugRoomName": "5"
+        },
+        {
+          "debugRoomName": "6"
+        },
+        {
+          "debugRoomName": "7"
+        },
+        {
+          "debugRoomName": "8"
+        },
+        {
+          "debugRoomName": "9"
+        },
+        {
+          "debugRoomName": "10"
+        },
+        {
+          "debugRoomName": "2"
+        },
+        {
+          "debugRoomName": "11"
+        },
+        {
+          "debugRoomName": "12b"
+        },
+        {
+          "debugRoomName": "12"
+        },
+        {
+          "debugRoomName": "13"
+        },
+        {
+          "debugRoomName": "end_1"
+        },
+        {
+          "debugRoomName": "end_2"
+        }
+      ]
+    },
+    {
+      "name": "Awake",
+      "abbreviation": "AW",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "end_3"
+        },
+        {
+          "debugRoomName": "end_4"
+        },
+        {
+          "debugRoomName": "end_3b"
+        },
+        {
+          "debugRoomName": "end_5"
+        },
+        {
+          "debugRoomName": "end_6"
+        }
+      ]
+    }
+  ],
+  "roomCount": 29
+}

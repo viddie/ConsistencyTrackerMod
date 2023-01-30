@@ -1,3 +1,108 @@
-Into the Core;ITC;7;a-00,a-01,a-02,a-03,b-00,b-07b,b-07
-Hot and Cold;HAC;5;c-00,c-01,c-02,c-03,c-04
-Heart of the Mountain;HOTM;14;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08,d-09,d-10,d-10b,d-10c,d-11
+{
+  "campaignName": "Celeste",
+  "chapterName": "Core",
+  "chapterSID": "Celeste/9-Core",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Into the Core",
+      "abbreviation": "ItC",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-02"
+        },
+        {
+          "debugRoomName": "a-03"
+        },
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-07b"
+        },
+        {
+          "debugRoomName": "b-07"
+        }
+      ]
+    },
+    {
+      "name": "Hot and Cold",
+      "abbreviation": "HaC",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "c-00"
+        },
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-02"
+        },
+        {
+          "debugRoomName": "c-03"
+        },
+        {
+          "debugRoomName": "c-04"
+        }
+      ]
+    },
+    {
+      "name": "Heart of the Mountain",
+      "abbreviation": "HotM",
+      "roomCount": 14,
+      "rooms": [
+        {
+          "debugRoomName": "d-00"
+        },
+        {
+          "debugRoomName": "d-01"
+        },
+        {
+          "debugRoomName": "d-02"
+        },
+        {
+          "debugRoomName": "d-03"
+        },
+        {
+          "debugRoomName": "d-04"
+        },
+        {
+          "debugRoomName": "d-05"
+        },
+        {
+          "debugRoomName": "d-06"
+        },
+        {
+          "debugRoomName": "d-07"
+        },
+        {
+          "debugRoomName": "d-08"
+        },
+        {
+          "debugRoomName": "d-09"
+        },
+        {
+          "debugRoomName": "d-10"
+        },
+        {
+          "debugRoomName": "d-10b"
+        },
+        {
+          "debugRoomName": "d-10c"
+        },
+        {
+          "debugRoomName": "d-11"
+        }
+      ]
+    }
+  ],
+  "roomCount": 26
+}

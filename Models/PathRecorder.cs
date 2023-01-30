@@ -16,6 +16,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public HashSet<Vector2> CheckpointsVisited { get; set; } = new HashSet<Vector2>();
 
+        public int TotalRecordedRooms => VisitedRooms.Count;
+
         public void AddRoom(string name) {
             if (VisitedRooms.Contains(name)) return;
 

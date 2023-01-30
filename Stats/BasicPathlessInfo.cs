@@ -66,6 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //public static string CheckpointGoldenChance = "{checkpoint:goldenChance}";
 
         public static string ChapterName = "{chapter:name}";
+        public static string ChapterSideName = "{chapter:sideName}";
         public static string ChapterSID = "{chapter:sid}";
         public static string ChapterSanitizedSID = "{chapter:sidSanitized}";
         public static string ChapterDebugName = "{chapter:debugName}";
@@ -80,7 +81,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             PlayerHoldingGolden, PlayerGoldenDone, PlayerChapterCompleted,
             ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
-            ChapterName, ChapterDebugName, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
+            ChapterName, ChapterSideName, ChapterDebugName, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
             CampaignName
         };
 
@@ -103,6 +104,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterDebugName}");
             format = format.Replace(ChapterName, $"{chapterStats.ChapterName}");
+            format = format.Replace(ChapterSideName, $"{chapterStats.SideName}");
             format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
             format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");
             format = format.Replace(ChapterSanitizedSID, $"{chapterStats.ChapterSIDDialogSanitized}");
@@ -123,9 +125,53 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
+                //Add important formats here
+
+                new StatFormat("full-success-rate", $"{BasicInfoStat.RoomName}: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
+                $"\\nCP: {SuccessRateStat.CheckpointSuccessRate}" +
+                $"\\nTotal: {SuccessRateStat.ChapterSuccessRate}"),
+
+                new StatFormat("full-golden-attempts-info", $"Attempts: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) [{BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})]" +
+                $"\\nPB: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\nSession PB: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
+
+                new StatFormat("full-viddie-style", $"Current: {BasicInfoStat.RoomName} ({LiveProgressStat.RunChapterProgressNumber}/{LiveProgressStat.ChapterRoomCount}) " +
+                $"| SR: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
+                $"\\nRoom Choke Rate: {ChokeRateStat.RoomChokeRate} | Streak: {StreakStat.RoomCurrentStreak}" +
+                $"\\nRun: #{CurrentRunPbStat.RunCurrentPbStatus} (Session: #{CurrentRunPbStat.RunCurrentPbStatusSession})" +
+                $"\\nSession avg | Last 10 avg | Best 10 avg:" +
+                $"\\n({AverageLastRunsStat.ChapterAverageRunDistanceSession} | {{chapter:averageRunDistanceSession#10}} | {AverageLastRunsStat.ChapterHighestAverageOver10Runs}) " +
+                $"/ {LiveProgressStat.ChapterRoomCount}"),
+
+                new StatFormat("full-parrot-style", $"Current: {BasicInfoStat.RoomName} | Room: ({LiveProgressStat.RunChapterProgressNumber}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\nCurrent run: #{CurrentRunPbStat.RunCurrentPbStatus} (Top {CurrentRunPbStat.RunTopXPercent})" +
+                $"\\nPB: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount}) | Session: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
+
+                new StatFormat("full-golden-run-info", $"Current Run: #{CurrentRunPbStat.RunCurrentPbStatus} (Session: #{CurrentRunPbStat.RunCurrentPbStatusSession})" +
+                $"\\nChoke Rate: {ChokeRateStat.RoomChokeRate} (CP: {ChokeRateStat.CheckpointChokeRate})" +
+                $"\\nCP Golden Chance: {BasicInfoStat.CheckpointGoldenChance}" +
+                $"\\nChapter Golden Chance: {BasicInfoStat.ChapterGoldenChance}"),
+
+                new StatFormat("full-room-info", $"{BasicInfoStat.CheckpointName} | {BasicInfoStat.RoomName} ({LiveProgressStat.RunChapterProgressNumber}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\nSuccess Rate: {SuccessRateStat.RoomSuccessRate} | Choke Rate: {ChokeRateStat.RoomChokeRate} ({ChokeRateStat.RoomChokeRateSession}) | Golden Deaths: {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession}) | Rarity: {RunGoldenChanceStat.RunGoldenChanceFromStart}"),
+
+                new StatFormat("full-checkpoint-info", $"{BasicInfoStat.CheckpointName} ({BasicInfoStat.CheckpointAbbreviation}) | {LiveProgressStat.CheckpointRoomCount} Rooms" +
+                $"\\nSuccess Rate: {SuccessRateStat.CheckpointSuccessRate} | Choke Rate: {ChokeRateStat.CheckpointChokeRate} ({ChokeRateStat.CheckpointChokeRateSession}) | Golden Deaths: {BasicInfoStat.CheckpointGoldenDeaths} ({BasicInfoStat.CheckpointGoldenDeathsSession})" +
+                $"\\nLight greens (95%+ rooms): {SuccessRateColorsStat.CheckpointColorLightGreen} | Greens (80-95% rooms): {SuccessRateColorsStat.CheckpointColorGreen} | Yellows (50-80% rooms): {SuccessRateColorsStat.CheckpointColorYellow} | Reds (<50% rooms): {SuccessRateColorsStat.CheckpointColorRed}"),
+               
+                new StatFormat("full-chapter-info", $"{BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterSideName})" +
+                $"\\nGolden Deaths: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) | Golden Chance: {BasicInfoStat.ChapterGoldenChance}" +
+                $"\\nLight greens (95%+ rooms): {SuccessRateColorsStat.ChapterColorLightGreen} | Greens (80-95% rooms): {SuccessRateColorsStat.ChapterColorGreen}" +
+                $"\\nYellows (50-80% rooms): {SuccessRateColorsStat.ChapterColorYellow} | Reds (<50% rooms): {SuccessRateColorsStat.ChapterColorRed}" +
+                $"\\nChapter reds: {SuccessRateColorsStat.ChapterListColorRed}"),
+
+
                 
+                new StatFormat("basic-current-map", $"Map: {ChapterName} {ChapterSideName}"),
+                new StatFormat("basic-current-map-no-side", $"Map: {ChapterName}"),
+                new StatFormat("basic-current-map-campaign", $"Map: '{ChapterName}' from '{CampaignName}'"),
             };
         }
     }

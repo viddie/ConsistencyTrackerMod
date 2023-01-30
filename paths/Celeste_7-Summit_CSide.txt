@@ -1,1 +1,25 @@
-Start;ST;3;01,02,03
+{
+  "campaignName": "Celeste",
+  "chapterName": "The Summit",
+  "chapterSID": "Celeste/7-Summit",
+  "sideName": "C-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 3,
+      "rooms": [
+        {
+          "debugRoomName": "01"
+        },
+        {
+          "debugRoomName": "02"
+        },
+        {
+          "debugRoomName": "03"
+        }
+      ]
+    }
+  ],
+  "roomCount": 3
+}

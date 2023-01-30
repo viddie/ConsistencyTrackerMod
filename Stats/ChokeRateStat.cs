@@ -153,9 +153,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(CheckpointChokeRateSession, "Choke Rate of the current checkpoint in the current session"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("choke-rate", $"Room Choke Rate: {RoomChokeRate} (CP: {CheckpointChokeRate})")
+                new StatFormat("basic-choke-rate", $"Choke Rate: {RoomChokeRate} (CP: {CheckpointChokeRate})")
             };
         }
     }

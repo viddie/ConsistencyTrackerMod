@@ -1,3 +1,0 @@
-Start;ST;6;a-01,a-02,a-03,a-04,a-05,a-06
-Memory;ME;4;b-01,b-02,b-03,b-04
-Back Exit;BE;4;b-05,c-01,c-02,c-03

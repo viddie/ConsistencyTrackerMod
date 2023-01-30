@@ -1,3 +1,93 @@
-Into the Core;ITC;6;a-00,a-01,a-02,a-03,a-04,a-05
-Burning or Freezing;BOF;6;b-00,b-01,b-02,b-03,b-04,b-05
-Heartbeat;HB;9;c-01,c-02,c-03,c-04,c-05,c-06,c-08,c-07,space
+{
+  "campaignName": "Celeste",
+  "chapterName": "Core",
+  "chapterSID": "Celeste/9-Core",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "Into the Core",
+      "abbreviation": "ItC",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-02"
+        },
+        {
+          "debugRoomName": "a-03"
+        },
+        {
+          "debugRoomName": "a-04"
+        },
+        {
+          "debugRoomName": "a-05"
+        }
+      ]
+    },
+    {
+      "name": "Burning or Freezing",
+      "abbreviation": "BoF",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-03"
+        },
+        {
+          "debugRoomName": "b-04"
+        },
+        {
+          "debugRoomName": "b-05"
+        }
+      ]
+    },
+    {
+      "name": "Heartbeat",
+      "abbreviation": "HB",
+      "roomCount": 9,
+      "rooms": [
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-02"
+        },
+        {
+          "debugRoomName": "c-03"
+        },
+        {
+          "debugRoomName": "c-04"
+        },
+        {
+          "debugRoomName": "c-05"
+        },
+        {
+          "debugRoomName": "c-06"
+        },
+        {
+          "debugRoomName": "c-08"
+        },
+        {
+          "debugRoomName": "c-07"
+        },
+        {
+          "debugRoomName": "space"
+        }
+      ]
+    }
+  ],
+  "roomCount": 21
+}

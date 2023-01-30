@@ -36,7 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public virtual List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return null;
         }
-        public virtual List<StatFormat> GetStatExamples() {
+        public virtual List<StatFormat> GetDefaultFormats() {
             return null;
         }
         

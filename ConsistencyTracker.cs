@@ -22,7 +22,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private static readonly int LOG_FILE_COUNT = 10;
 
         public static readonly string OverlayVersion = "2.0.0";
-        public static readonly string ModVersion = "1.4.0";
+        public static readonly string ModVersion = "2.0.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -45,9 +45,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             set {
                 if (value) {
                     if (DisabledInRoomName != CurrentRoomName) {
-                        Path = new PathRecorder();
+                        PathRec = new PathRecorder();
                         InsertCheckpointIntoPath(null, LastRoomWithCheckpoint);
-                        Path.AddRoom(CurrentRoomName);
+                        PathRec.AddRoom(CurrentRoomName);
                     }
                 } else {
                     SaveRecordedRoomPath();
@@ -57,7 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
         private bool _DoRecordPath = false;
-        private PathRecorder Path;
+        private PathRecorder PathRec;
         private string DisabledInRoomName;
 
         #endregion
@@ -78,6 +78,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private bool _CurrentRoomCompleted = false;
         private bool _CurrentRoomCompletedResetOnDeath = false;
+        public bool PlayerIsHoldingGolden {
+            get => _PlayerIsHoldingGolden; 
+            set { 
+                _PlayerIsHoldingGolden = value;
+                if (IngameOverlay != null) {
+                    IngameOverlay.SetGoldenState(value);
+                }
+            } 
+        }
         private bool _PlayerIsHoldingGolden = false;
 
         #endregion
@@ -104,7 +113,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             bool overlayFolderExisted = CheckFolderExists(GetPathToFolder(ExternalOverlayFolder));
             if (!overlayFolderExisted) {
-                CreateExternalOverlay();
+                CreateExternalOverlayAndTools();
             }
 
             LogInit();
@@ -115,6 +124,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             StatsManager = new StatManager();
 
             DebugRcPage.Load();
+
+            //https://github.com/EverestAPI/CelesteTAS-EverestInterop/blob/master/CelesteTAS-EverestInterop/Source/Communication/StudioCommunicationClient.cs
+            //idk how to use this class to get GameBananaId
+            //ModUpdateInfo updateInfo = new ModUpdateInfo();
         }
 
         public override void Unload() {
@@ -318,7 +331,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"[Level.OnComplete] Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || _PlayerIsHoldingGolden))
+            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || PlayerIsHoldingGolden))
                 CurrentChapterStats?.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
@@ -417,18 +430,18 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (CurrentChapterPath != null) {
                 CurrentChapterPath.SetCheckpointRefs();
 
-                if (CurrentChapterPath.ChapterName == null) {
+                if (CurrentChapterPath.ChapterName == null && CurrentChapterStats != null) {
                     CurrentChapterPath.CampaignName = CurrentChapterStats.CampaignName;
                     CurrentChapterPath.ChapterName = CurrentChapterStats.ChapterName;
                     CurrentChapterPath.ChapterSID = CurrentChapterStats.ChapterSID;
                     CurrentChapterPath.SideName = CurrentChapterStats.SideName;
-                    SaveCurrentPathToFile();
+                    SavePathToFile();
                 }
             }
         }
 
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
-            _PlayerIsHoldingGolden = holdingGolden;
+            PlayerIsHoldingGolden = holdingGolden;
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
             if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) { //Don't complete if entering previous room and current room was not completed
@@ -448,7 +461,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             _CurrentRoomCompleted = false;
 
             if (DoRecordPath) {
-                Path.AddRoom(newRoomName);
+                PathRec.AddRoom(newRoomName);
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
@@ -549,10 +562,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             string path = GetPathToFile($"{PathsFolder}/{CurrentChapterDebugName}.txt");
             return File.Exists(path);
         }
-        public PathInfo GetPathInputInfo() {
-            Log($"[GetPathInputInfo] Fetching path info for chapter '{CurrentChapterDebugName}'");
+        public PathInfo GetPathInputInfo(string pathName = null) {
+            if(pathName == null) {
+                pathName = CurrentChapterDebugName;
+            }
+            Log($"[GetPathInputInfo] Fetching path info for chapter '{pathName}'");
 
-            string path = GetPathToFile($"{PathsFolder}/{CurrentChapterDebugName}.txt");
+            string path = GetPathToFile($"{PathsFolder}/{pathName}.txt");
             Log($"\tSearching for path '{path}'");
 
             if (File.Exists(path)) { //Parse File
@@ -569,8 +585,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 //[Try 2] Old file format: selfmade text format
                 try {
                     PathInfo parsedOldFormat = PathInfo.ParseString(content);
-                    Log($"\tSaving path for map '{CurrentChapterDebugName}' in new format!");
-                    SaveCurrentPathToFile(parsedOldFormat); //Save in new format
+                    Log($"\tSaving path for map '{pathName}' in new format!");
+                    SavePathToFile(parsedOldFormat, pathName); //Save in new format
                     return parsedOldFormat;
                 } catch (Exception) {
                     Log($"\tCouldn't read old path info. Old path info content:\n{content}");
@@ -635,8 +651,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentUpdateFrame++;
 
-            CurrentChapterStats.ModState.PlayerIsHoldingGolden = _PlayerIsHoldingGolden;
-            CurrentChapterStats.ModState.GoldenDone = _PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
+            CurrentChapterStats.ModState.PlayerIsHoldingGolden = PlayerIsHoldingGolden;
+            CurrentChapterStats.ModState.GoldenDone = PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
 
             CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
             CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
@@ -646,7 +662,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
             string path = GetPathToFile($"{StatsFolder}/{CurrentChapterDebugName}.txt");
-            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats));
+            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats, Formatting.Indented));
 
             string modStatePath = GetPathToFile($"{StatsFolder}/modState.txt");
 
@@ -728,13 +744,19 @@ namespace Celeste.Mod.ConsistencyTracker {
             File.WriteAllText(path, content);
         }
 
-        public void CreateExternalOverlay() {
+        public void CreateExternalOverlayAndTools() {
+            //Overlay files
             CreateOverlayFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
             CreateOverlayFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
             CreateOverlayFile("CCTOverlay.js", Resources.CCTOverlay_JS);
             CreateOverlayFile("common.js", Resources.CCT_common_JS);
             CheckFolderExists(GetPathToFolder($"{ExternalOverlayFolder}/img"));
             Resources.goldberry_GIF.Save(GetPathToFile($"{ExternalOverlayFolder}/img/goldberry.gif"));
+
+            //Path Edit Tool files
+
+            //Format Edit Tool files
+            
         }
         private void CreateOverlayFile(string name, string content) {
             string path = GetPathToFile($"{ExternalOverlayFolder}/{name}");
@@ -841,19 +863,27 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void SaveRecordedRoomPath() {
             Log($"[{nameof(SaveRecordedRoomPath)}] Saving recorded path...");
+            if (PathRec.TotalRecordedRooms <= 1) {
+                Log($"[{nameof(SaveRecordedRoomPath)}] Path is too short to save. ({PathRec.TotalRecordedRooms} rooms)");
+                return;
+            }
+            
             DisabledInRoomName = CurrentRoomName;
-            SetCurrentChapterPath(Path.ToPathInfo());
+            SetCurrentChapterPath(PathRec.ToPathInfo());
             Log($"[{nameof(SaveRecordedRoomPath)}] Recorded path:\n{CurrentChapterPath.ToString()}");
-            SaveCurrentPathToFile();
+            SavePathToFile();
         }
-        public void SaveCurrentPathToFile(PathInfo path = null) {
+        public void SavePathToFile(PathInfo path = null, string pathName = null) {
             if (path == null) {
                 path = CurrentChapterPath;
             }
+            if (pathName == null) {
+                pathName = CurrentChapterDebugName;
+            }
 
-            string relativeOutPath = $"{PathsFolder}/{CurrentChapterDebugName}.txt";
+            string relativeOutPath = $"{PathsFolder}/{pathName}.txt";
             string outPath = GetPathToFile(relativeOutPath);
-            File.WriteAllText(outPath, JsonConvert.SerializeObject(path));
+            File.WriteAllText(outPath, JsonConvert.SerializeObject(path, Formatting.Indented));
             Log($"Wrote path data to '{relativeOutPath}'");
         }
 
@@ -877,7 +907,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (foundRoom) {
-                SaveCurrentPathToFile();
+                SavePathToFile();
             }
         }
 
@@ -921,7 +951,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void InsertCheckpointIntoPath(Checkpoint cp, string roomName) {
             if (roomName == null) {
-                Path.AddCheckpoint(cp, PathRecorder.DefaultCheckpointName);
+                PathRec.AddCheckpoint(cp, PathRecorder.DefaultCheckpointName);
                 return;
             }
 
@@ -933,604 +963,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
             if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
-            Path.AddCheckpoint(cp, cpName);
+            PathRec.AddCheckpoint(cp, cpName);
         }
         #endregion
-
-
-        public class ConsistencyTrackerSettings : EverestModuleSettings {
-            public bool Enabled { get; set; } = true;
-
-            public bool PauseDeathTracking {
-                get => _PauseDeathTracking;
-                set {
-                    _PauseDeathTracking = value;
-                    Instance.SaveChapterStats();
-                }
-            }
-            private bool _PauseDeathTracking { get; set; } = false;
-
-            public bool OnlyTrackWithGoldenBerry { get; set; } = false;
-            public void CreateOnlyTrackWithGoldenBerryEntry(TextMenu menu, bool inGame) {
-                menu.Add(new TextMenu.OnOff("Only Track Deaths With Golden Berry", this.OnlyTrackWithGoldenBerry) {
-                    OnValueChange = v => {
-                        this.OnlyTrackWithGoldenBerry = v;
-                    }
-                });
-            }
-
-            public bool RecordPath { get; set; } = false;
-            public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
-                if (!inGame) return;
-
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
-
-                subMenu.Add(new TextMenu.SubHeader("!!! The existing path will be overwritten !!!"));
-                subMenu.Add(new TextMenu.OnOff("Record Path", Instance.DoRecordPath) {
-                    OnValueChange = v => {
-                        if (v)
-                            Instance.Log($"Recording chapter path...");
-                        else
-                            Instance.Log($"Stopped recording path. Outputting info...");
-
-                        this.RecordPath = v;
-                        Instance.DoRecordPath = v;
-                        Instance.SaveChapterStats();
-                    }
-                });
-
-                TextMenu.Item menuItem;
-                subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the external overlay"));
-                subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
-                    OnPressed = Instance.RemoveRoomFromChapter
-                });
-                subMenu.Add(new TextMenu.Button("Export path to Clipboard").Pressed(() => {
-                    if (ConsistencyTrackerModule.Instance.CurrentChapterPath == null) return;
-                    TextInput.SetClipboardText(JsonConvert.SerializeObject(ConsistencyTrackerModule.Instance.CurrentChapterPath));
-                }));
-                subMenu.Add(menuItem = new TextMenu.Button("Import path from Clipboard").Pressed(() => {
-                    string text = TextInput.GetClipboardText();
-                    try {
-                        PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
-                        ConsistencyTrackerModule.Instance.SetCurrentChapterPath(path);
-                        ConsistencyTrackerModule.Instance.SaveCurrentPathToFile();
-                        ConsistencyTrackerModule.Instance.SaveChapterStats();
-                    } catch (Exception ex) {
-                        Instance.Log($"Couldn't import path from clipboard: {ex}");
-                    }
-                }));
-                subMenu.AddDescription(menu, menuItem, "!!! The existing path will be overwritten !!!");
-
-                menu.Add(subMenu);
-            }
-
-
-            public bool WipeChapter { get; set; } = false;
-            public void CreateWipeChapterEntry(TextMenu menu, bool inGame) {
-                if (!inGame) return;
-
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
-                subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
-
-
-                subMenu.Add(new TextMenu.SubHeader("Current Room"));
-                subMenu.Add(new TextMenu.Button("Remove Last Attempt") {
-                    OnPressed = () => {
-                        Instance.RemoveLastAttempt();
-                    }
-                });
-
-                subMenu.Add(new TextMenu.Button("Remove Last Death Streak") {
-                    OnPressed = () => {
-                        Instance.RemoveLastDeathStreak();
-                    }
-                });
-
-                subMenu.Add(new TextMenu.Button("Remove All Attempts") {
-                    OnPressed = () => {
-                        Instance.WipeRoomData();
-                    }
-                });
-
-                subMenu.Add(new TextMenu.Button("Remove Golden Berry Deaths") {
-                    OnPressed = () => {
-                        Instance.RemoveRoomGoldenBerryDeaths();
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("Current Chapter"));
-                subMenu.Add(new TextMenu.Button("Reset All Attempts") {
-                    OnPressed = () => {
-                        Instance.WipeChapterData();
-                    }
-                });
-
-                subMenu.Add(new TextMenu.Button("Reset All Golden Berry Deaths") {
-                    OnPressed = () => {
-                        Instance.WipeChapterGoldenBerryDeaths();
-                    }
-                });
-
-
-                menu.Add(subMenu);
-            }
-
-
-            public bool CreateSummary { get; set; } = false;
-            public int SummarySelectedAttemptCount { get; set; } = 20;
-            public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
-                if (!inGame) return;
-
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Tracker Summary", false);
-                subMenu.Add(new TextMenu.SubHeader("Outputs some cool data of the current chapter in a readable .txt format"));
-
-
-                subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
-                List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(5, "5"),
-                    new KeyValuePair<int, string>(10, "10"),
-                    new KeyValuePair<int, string>(20, "20"),
-                    new KeyValuePair<int, string>(100, "100"),
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
-                    OnValueChange = (value) => {
-                        SummarySelectedAttemptCount = value;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.Button("Create Chapter Summary") {
-                    OnPressed = () => {
-                        Instance.CreateChapterSummary(SummarySelectedAttemptCount);
-                    }
-                });
-
-                menu.Add(subMenu);
-            }
-
-
-
-            //Live Data Settings:
-            //- Percentages digit cutoff (default: 2)
-            //- Stats over X Attempts
-            //- Reload format file
-            //- Toggle name/abbreviation for e.g. PB Display
-            public bool LiveData { get; set; } = false;
-            public int LiveDataDecimalPlaces { get; set; } = 2;
-            public int LiveDataSelectedAttemptCount { get; set; } = 20;
-
-            //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
-            [SettingIgnore]
-            public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
-
-            //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
-            [SettingIgnore]
-            public ListFormat LiveDataListOutputFormat { get; set; } = ListFormat.Json;
-
-            [SettingIgnore]
-            public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
-
-            [SettingIgnore]
-            public bool LiveDataIgnoreUnplayedRooms { get; set; } = false;
-
-            public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
-
-
-                subMenu.Add(new TextMenu.SubHeader("Floating point numbers will be rounded to this decimal"));
-                List<KeyValuePair<int, string>> DigitCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(0, "0"),
-                    new KeyValuePair<int, string>(1, "1"),
-                    new KeyValuePair<int, string>(2, "2"),
-                    new KeyValuePair<int, string>(3, "3"),
-                    new KeyValuePair<int, string>(4, "4"),
-                    new KeyValuePair<int, string>(5, "5"),
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
-                    OnValueChange = (value) => {
-                        LiveDataDecimalPlaces = value;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("When calculating room consistency stats, only the last X attempts in each room will be counted"));
-                List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(5, "5"),
-                    new KeyValuePair<int, string>(10, "10"),
-                    new KeyValuePair<int, string>(20, "20"),
-                    new KeyValuePair<int, string>(100, "100"),
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
-                    OnValueChange = (value) => {
-                        LiveDataSelectedAttemptCount = value;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("Whether you want checkpoint names to be full or abbreviated in the room name"));
-                List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "EH-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Event-Horizon-3"),
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
-                    OnValueChange = (value) => {
-                        LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("Output format for lists. Plain is easily readable, JSON is for programming purposes"));
-                List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)ListFormat.Plain, "Plain"),
-                    new KeyValuePair<int, string>((int)ListFormat.Json, "JSON"),
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<int>("List Output Format", ListTypes, (int)LiveDataListOutputFormat) {
-                    OnValueChange = (value) => {
-                        LiveDataListOutputFormat = (ListFormat)value;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("If a format depends on path information and no path is set, the format will be blanked out"));
-                subMenu.Add(new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
-                    OnValueChange = v => {
-                        LiveDataHideFormatsWithoutPath = v;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader("For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms"));
-                subMenu.Add(new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
-                    OnValueChange = v => {
-                        LiveDataIgnoreUnplayedRooms = v;
-                    }
-                });
-
-
-                subMenu.Add(new TextMenu.SubHeader($"After editing '{StatManager.BaseFolder}/{StatManager.FormatFileName}' use this to update the live data format"));
-                subMenu.Add(new TextMenu.Button("Reload format file") {
-                    OnPressed = () => {
-                        Instance.StatsManager.LoadFormats();
-                    }
-                });
-
-                menu.Add(subMenu);
-            }
-
-
-            // ===== External Overlay Settings =====
-            public bool ExternalOverlay { get; set; } = false;
-
-            [SettingIgnore]
-            public int ExternalOverlayRefreshTimeSeconds { get; set; } = 2;
-            [SettingIgnore]
-            public int ExternalOverlayAttemptsCount { get; set; } = 20;
-            [SettingIgnore]
-            public int ExternalOverlayTextOutlineSize { get; set; } = 10;
-            [SettingIgnore]
-            public bool ExternalOverlayColorblindMode { get; set; } = false;
-            [SettingIgnore]
-            public string ExternalOverlayFontFamily { get; set; } = "Renogare";
-
-            [SettingIgnore]
-            public bool ExternalOverlayTextDisplayEnabled { get; set; } = true;
-            [SettingIgnore]
-            public string ExternalOverlayTextDisplayPreset { get; set; } = "Default";
-            [SettingIgnore]
-            public bool ExternalOverlayTextDisplayLeftEnabled { get; set; } = true;
-            [SettingIgnore]
-            public bool ExternalOverlayTextDisplayMiddleEnabled { get; set; } = true;
-            [SettingIgnore]
-            public bool ExternalOverlayTextDisplayRightEnabled { get; set; } = true;
-
-            [SettingIgnore]
-            public bool ExternalOverlayRoomAttemptsDisplayEnabled { get; set; } = true;
-
-            [SettingIgnore]
-            public bool ExternalOverlayGoldenShareDisplayEnabled { get; set; } = true;
-            [SettingIgnore]
-            public bool ExternalOverlayGoldenShareDisplayShowSession { get; set; } = true;
-
-            [SettingIgnore]
-            public bool ExternalOverlayGoldenPBDisplayEnabled { get; set; } = true;
-
-            [SettingIgnore]
-            public bool ExternalOverlayChapterBarEnabled { get; set; } = true;
-            [SettingIgnore]
-            public int ExternalOverlayChapterBarLightGreenPercent { get; set; } = 95;
-            [SettingIgnore]
-            public int ExternalOverlayChapterBarGreenPercent { get; set; } = 80;
-            [SettingIgnore]
-            public int ExternalOverlayChapterBarYellowPercent { get; set; } = 50;
-            [SettingIgnore]
-            public int ExternalOverlayChapterBorderWidthMultiplier { get; set; } = 2;
-
-            public void CreateExternalOverlayEntry(TextMenu menu, bool inGame) {
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("External Overlay Settings", false);
-                TextMenu.Item menuItem;
-
-                subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
-                    string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalOverlayFolder}/CCTOverlay.html"));
-                    Process.Start("explorer", path);
-                }));
-
-
-                subMenu.Add(new TextMenu.SubHeader("REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS"));
-                //General Settings
-                subMenu.Add(new TextMenu.SubHeader("General Settings"));
-                subMenu.Add(menuItem = new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayRefreshTimeSeconds = value;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "The delay between two updates of the overlay.");
-                List<int> attemptsList = new List<int>() { 5, 10, 20, 100 };
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayAttemptsCount = value;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts will be used for calculation");
-                subMenu.Add(new TextMenu.Slider("Text Outline Size", (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayTextOutlineSize = value;
-                    }
-                });
-                List<string> fontList = new List<string>() {
-                    "Renogare",
-                    "Helvetica",
-                    "Verdana",
-                    "Arial",
-                    "Times New Roman",
-                    "Courier",
-                    "Impact",
-                    "Comic Sans MS",
-                };
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
-                    OnValueChange = v => {
-                        ExternalOverlayFontFamily = v;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "If a font doesn't show up on the overlay, you might need to install it first (just google font name lol)");
-                subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
-                    OnValueChange = v => {
-                        ExternalOverlayColorblindMode = v;
-                    }
-                });
-
-
-                //Text Segment Display
-                subMenu.Add(new TextMenu.SubHeader("The text stats segment at the top left / top middle / top right"));
-                subMenu.Add(new TextMenu.OnOff("Text Stats Display Enabled (All)", ExternalOverlayTextDisplayEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayTextDisplayEnabled = v;
-                    }
-                });
-                List<string> availablePresets = new List<string>() {
-                    "Default",
-                    "Low Death",
-                    "Golden Attempts",
-                };
-                subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Stats Preset", availablePresets, ExternalOverlayTextDisplayPreset) {
-                    OnValueChange = v => {
-                        ExternalOverlayTextDisplayPreset = v;
-                    }
-                });
-                subMenu.Add(new TextMenu.OnOff("Text Stats Left Enabled", ExternalOverlayTextDisplayLeftEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayTextDisplayLeftEnabled = v;
-                    }
-                });
-                subMenu.Add(new TextMenu.OnOff("Text Stats Middle Enabled", ExternalOverlayTextDisplayMiddleEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayTextDisplayMiddleEnabled = v;
-                    }
-                });
-                subMenu.Add(new TextMenu.OnOff("Text Stats Right Enabled", ExternalOverlayTextDisplayRightEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayTextDisplayRightEnabled = v;
-                    }
-                });
-
-                //Chapter Bar
-                subMenu.Add(new TextMenu.SubHeader("The bars representing the rooms and checkpoints in a map"));
-                subMenu.Add(new TextMenu.OnOff("Chapter Bar Enabled", ExternalOverlayChapterBarEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayChapterBarEnabled = v;
-                    }
-                });
-
-                //subMenu.Add(new TextMenu.SubHeader($"The width of the black bars between rooms on the chapter display"));
-                subMenu.Add(new TextMenuExt.IntSlider("Chapter Bar Border Width", 1, 10, ExternalOverlayChapterBorderWidthMultiplier) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayChapterBorderWidthMultiplier = value;
-                    }
-                });
-
-                //subMenu.Add(new TextMenu.SubHeader($"Success rate in a room to get a certain color (default: light green 95%, green 80%, yellow 50%)"));
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), ExternalOverlayChapterBarLightGreenPercent) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayChapterBarLightGreenPercent = value;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "Default: 95%");
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), ExternalOverlayChapterBarGreenPercent) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayChapterBarGreenPercent = value;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "Default: 80%");
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), ExternalOverlayChapterBarYellowPercent) {
-                    OnValueChange = (value) => {
-                        ExternalOverlayChapterBarYellowPercent = value;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "Default: 50%");
-
-
-                //Room Attempts Display
-                subMenu.Add(new TextMenu.SubHeader("The red/green dots that show the last X attempts in a room"));
-                subMenu.Add(new TextMenu.OnOff("Room Attempts Display Enabled", ExternalOverlayRoomAttemptsDisplayEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayRoomAttemptsDisplayEnabled = v;
-                    }
-                });
-
-
-                //Golden Share Display
-                subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-                subMenu.Add(new TextMenu.OnOff("Golden Share Display Enabled", ExternalOverlayGoldenShareDisplayEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayGoldenShareDisplayEnabled = v;
-                    }
-                });
-                subMenu.Add(menuItem = new TextMenu.OnOff("Golden Share Show Session Deaths", ExternalOverlayGoldenShareDisplayShowSession) {
-                    OnValueChange = v => {
-                        ExternalOverlayGoldenShareDisplayShowSession = v;
-                    }
-                });
-                subMenu.AddDescription(menu, menuItem, "Shown in parenthesis after the total checkpoint death count");
-
-
-                //Golden PB Display
-                subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-                subMenu.Add(new TextMenu.OnOff("Golden PB Display Enabled", ExternalOverlayGoldenPBDisplayEnabled) {
-                    OnValueChange = v => {
-                        ExternalOverlayGoldenPBDisplayEnabled = v;
-                    }
-                });
-
-
-                menu.Add(subMenu);
-            }
-
-
-
-            // ===== Ingame Overlay Settings =====
-            public bool IngameOverlay { get; set; } = false;
-
-            [SettingIgnore]
-            public bool IngameOverlayTextEnabled { get; set; } = false;
-
-            [SettingIgnore]
-            public StatTextPosition IngameOverlayTextPosition { get; set; } = StatTextPosition.TopRight;
-
-            [SettingIgnore]
-            public string IngameOverlayTextFormat { get; set; }
-
-            [SettingIgnore]
-            public int IngameOverlayTextSize { get; set; } = 100;
-
-            [SettingIgnore]
-            public int IngameOverlayTextOffset { get; set; } = 5;
-
-
-            [SettingIgnore]
-            public int IngameOverlayTestStyle { get; set; } = 1;
-
-            [SettingIgnore]
-            public bool IngameOverlayTextDebugPositionEnabled { get; set; } = false;
-
-            public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
-                TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Ingame Overlay Settings", false);
-                TextMenu.Item menuItem;
-
-                subMenu.Add(new TextMenu.SubHeader("Text Overlay"));
-                subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
-                    OnValueChange = v => {
-                        IngameOverlayTextEnabled = v;
-                        Instance.IngameOverlay.Visible = v;
-                    }
-                });
-                subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayTextPosition) {
-                    OnValueChange = v => {
-                        IngameOverlayTextPosition = v;
-                        Instance.IngameOverlay.SetTextPosition(v);
-                    }
-                });
-                List<string> availableFormats = new List<string>(Instance.StatsManager.Formats.Select((kv) => kv.Key.Name));
-                if (IngameOverlayTextFormat == null || !availableFormats.Contains(IngameOverlayTextFormat)) {
-                    IngameOverlayTextFormat = availableFormats[0];
-                }
-                subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayTextFormat) {
-                    OnValueChange = v => {
-                        IngameOverlayTextFormat = v;
-                        KeyValuePair<StatFormat, string> stat = Instance.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
-                        if (stat.Key != null) {
-                            Instance.IngameOverlay.SetText(stat.Value);
-                        }
-                    }
-                });
-                subMenu.Add(new TextMenuExt.IntSlider("Offset", 0, 500, IngameOverlayTextOffset) {
-                    OnValueChange = (value) => {
-                        IngameOverlayTextOffset = value;
-                        Instance.IngameOverlay.SetTextOffset(value);
-                    }
-                });
-                subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 300), IngameOverlayTextSize) {
-                    OnValueChange = (value) => {
-                        IngameOverlayTextSize = value;
-                        Instance.IngameOverlay.SetTextSize(value);
-                    }
-                });
-
-
-
-                subMenu.Add(new TextMenu.SubHeader("[Developement Only] Debug Features"));
-                //subMenu.Add(new TextMenuExt.IntSlider("Text Overlay Style Test", 1, 9, IngameOverlayTestStyle) {
-                //    OnValueChange = (value) => {
-                //        IngameOverlayTestStyle = value;
-                //        Instance.IngameOverlay.TestStyle(value);
-                //    }
-                //});
-                subMenu.Add(new TextMenu.OnOff("Text Overlay Debug Position", IngameOverlayTextDebugPositionEnabled) {
-                    OnValueChange = v => {
-                        IngameOverlayTextDebugPositionEnabled = v;
-                        Instance.IngameOverlay.StatText.DebugShowPosition = v;
-                    }
-                });
-
-                //subMenu.Add(new TextMenu.Button("PosX+100") {
-                //    OnPressed = () => {
-                //        Instance.IngameOverlay.StatText.PosX += 100;
-                //    }
-                //});
-                //subMenu.Add(new TextMenu.Button("PosX-100") {
-                //    OnPressed = () => {
-                //        Instance.IngameOverlay.StatText.PosX -= 100;
-                //    }
-                //});
-                //subMenu.Add(new TextMenu.Button("PosY+100") {
-                //    OnPressed = () => {
-                //        Instance.IngameOverlay.StatText.PosY += 100;
-                //    }
-                //});
-                //subMenu.Add(new TextMenu.Button("PosY-100") {
-                //    OnPressed = () => {
-                //        Instance.IngameOverlay.StatText.PosY -= 100;
-                //    }
-                //});
-
-                menu.Add(subMenu);
-            }
-
-
-
-
-
-
-
-
-            private List<KeyValuePair<int, string>> PercentageSlider(int stepSize = 5, int min = 0, int max = 100) {
-                List<KeyValuePair<int, string>> toRet = new List<KeyValuePair<int, string>>();
-
-                for (int i = min; i <= max; i += stepSize) {
-                    toRet.Add(new KeyValuePair<int, string>(i, $"{i}%"));
-                }
-
-                return toRet;
-            }
-        }
     }
 }

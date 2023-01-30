@@ -1,4 +1,106 @@
-Start;ST;4;start,a-00,a-01,a-02
-Central Chamber;CC;3;b-00,b-01,b-04,b-02,b-06,b-07,b-03,b-08
-Through the Mirror;TTM;5;b-09,c-01,c-02,c-03,c-04
-Mix Master;MM;6;d-00,d-01,d-02,d-03,d-04,d-05
+{
+  "campaignName": "Celeste",
+  "chapterName": "Mirror Temple",
+  "chapterSID": "Celeste/5-MirrorTemple",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "start"
+        },
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-02"
+        }
+      ]
+    },
+    {
+      "name": "Central Chamber",
+      "abbreviation": "CC",
+      "roomCount": 8,
+      "rooms": [
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-04"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-06"
+        },
+        {
+          "debugRoomName": "b-07"
+        },
+        {
+          "debugRoomName": "b-03"
+        },
+        {
+          "debugRoomName": "b-08"
+        }
+      ]
+    },
+    {
+      "name": "Through the Mirror",
+      "abbreviation": "TtM",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "b-09"
+        },
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-02"
+        },
+        {
+          "debugRoomName": "c-03"
+        },
+        {
+          "debugRoomName": "c-04"
+        }
+      ]
+    },
+    {
+      "name": "Mix Master",
+      "abbreviation": "MM",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "d-00"
+        },
+        {
+          "debugRoomName": "d-01"
+        },
+        {
+          "debugRoomName": "d-02"
+        },
+        {
+          "debugRoomName": "d-03"
+        },
+        {
+          "debugRoomName": "d-04"
+        },
+        {
+          "debugRoomName": "d-05"
+        }
+      ]
+    }
+  ],
+  "roomCount": 23
+}

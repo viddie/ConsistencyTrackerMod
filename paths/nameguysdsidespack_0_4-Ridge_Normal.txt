@@ -1,3 +1,0 @@
-Start;ST;8;a-01,a-02,a-03,a-04,a-05,a-06,a-07,a-08
-Heavywinds;HW;6;b-01s,b-03n,b-04w,b-05w,b-06,b-07
-Snowstorm;SS;9;c-01n,c-02n,c-03n,c-04n,c-05w,c-06w,c-07,c-08,c-09

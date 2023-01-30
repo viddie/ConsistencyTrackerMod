@@ -1,4 +1,199 @@
-Start;ST;17;s0,s1,s2,s3,0x-a,00-a,02-a,02-b,03-a,05-a,06-a,07-a,07-b,06-b,06-c,08-c,08-b
-Huge Mess;HM;21;08-a,09-b,10-x,11-x,11-y,11-z,10-z,10-y,10-c,11-c,12-c,12-d,11-d,10-d,11-b,12-b,13-b,13-a,13-x,12-x,11-a
-Elevator Shaft;ES;7;09-d,08-d,06-d,04-d,04-c,02-c,02-d
-Presidential Suite;PS;9;00-d,roof00,roof01,roof02,roof03,roof04,roof05,roof06b,roof06
+{
+  "campaignName": "Celeste",
+  "chapterName": "Celestial Resort",
+  "chapterSID": "Celeste/3-CelestialResort",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 17,
+      "rooms": [
+        {
+          "debugRoomName": "s0"
+        },
+        {
+          "debugRoomName": "s1"
+        },
+        {
+          "debugRoomName": "s2"
+        },
+        {
+          "debugRoomName": "s3"
+        },
+        {
+          "debugRoomName": "0x-a"
+        },
+        {
+          "debugRoomName": "00-a"
+        },
+        {
+          "debugRoomName": "02-a"
+        },
+        {
+          "debugRoomName": "02-b"
+        },
+        {
+          "debugRoomName": "03-a"
+        },
+        {
+          "debugRoomName": "05-a"
+        },
+        {
+          "debugRoomName": "06-a"
+        },
+        {
+          "debugRoomName": "07-a"
+        },
+        {
+          "debugRoomName": "07-b"
+        },
+        {
+          "debugRoomName": "06-b"
+        },
+        {
+          "debugRoomName": "06-c"
+        },
+        {
+          "debugRoomName": "08-c"
+        },
+        {
+          "debugRoomName": "08-b"
+        }
+      ]
+    },
+    {
+      "name": "Huge Mess",
+      "abbreviation": "HM",
+      "roomCount": 21,
+      "rooms": [
+        {
+          "debugRoomName": "08-a"
+        },
+        {
+          "debugRoomName": "09-b"
+        },
+        {
+          "debugRoomName": "10-x"
+        },
+        {
+          "debugRoomName": "11-x"
+        },
+        {
+          "debugRoomName": "11-y"
+        },
+        {
+          "debugRoomName": "11-z"
+        },
+        {
+          "debugRoomName": "10-z"
+        },
+        {
+          "debugRoomName": "10-y"
+        },
+        {
+          "debugRoomName": "10-c"
+        },
+        {
+          "debugRoomName": "11-c"
+        },
+        {
+          "debugRoomName": "12-c"
+        },
+        {
+          "debugRoomName": "12-d"
+        },
+        {
+          "debugRoomName": "11-d"
+        },
+        {
+          "debugRoomName": "10-d"
+        },
+        {
+          "debugRoomName": "11-b"
+        },
+        {
+          "debugRoomName": "12-b"
+        },
+        {
+          "debugRoomName": "13-b"
+        },
+        {
+          "debugRoomName": "13-a"
+        },
+        {
+          "debugRoomName": "13-x"
+        },
+        {
+          "debugRoomName": "12-x"
+        },
+        {
+          "debugRoomName": "11-a"
+        }
+      ]
+    },
+    {
+      "name": "Elevator Shaft",
+      "abbreviation": "ES",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "09-d"
+        },
+        {
+          "debugRoomName": "08-d"
+        },
+        {
+          "debugRoomName": "06-d"
+        },
+        {
+          "debugRoomName": "04-d"
+        },
+        {
+          "debugRoomName": "04-c"
+        },
+        {
+          "debugRoomName": "02-c"
+        },
+        {
+          "debugRoomName": "02-d"
+        }
+      ]
+    },
+    {
+      "name": "Presidential Suite",
+      "abbreviation": "PS",
+      "roomCount": 9,
+      "rooms": [
+        {
+          "debugRoomName": "00-d"
+        },
+        {
+          "debugRoomName": "roof00"
+        },
+        {
+          "debugRoomName": "roof01"
+        },
+        {
+          "debugRoomName": "roof02"
+        },
+        {
+          "debugRoomName": "roof03"
+        },
+        {
+          "debugRoomName": "roof04"
+        },
+        {
+          "debugRoomName": "roof05"
+        },
+        {
+          "debugRoomName": "roof06b"
+        },
+        {
+          "debugRoomName": "roof06"
+        }
+      ]
+    }
+  ],
+  "roomCount": 54
+}

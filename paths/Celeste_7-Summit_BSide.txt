@@ -1,7 +1,142 @@
-0 M;0M;4;a-00,a-01,a-02,a-03
-500 M;500M;4;b-00,b-01,b-02,b-03
-1000 M;1K;4;c-01,c-00,c-02,c-03
-1500 M;1.5K;4;d-00,d-01,d-02,d-03
-2000 M;2K;4;e-00,e-01,e-02,e-03
-2500 M;2.5K;4;f-00,f-01,f-02,f-03
-3000 M;3K;4;g-00,g-01,g-02,g-03
+{
+  "campaignName": "Celeste",
+  "chapterName": "The Summit",
+  "chapterSID": "Celeste/7-Summit",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "0 M",
+      "abbreviation": "0M",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-02"
+        },
+        {
+          "debugRoomName": "a-03"
+        }
+      ]
+    },
+    {
+      "name": "500 M",
+      "abbreviation": "500M",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-03"
+        }
+      ]
+    },
+    {
+      "name": "1000 M",
+      "abbreviation": "1K",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-00"
+        },
+        {
+          "debugRoomName": "c-02"
+        },
+        {
+          "debugRoomName": "c-03"
+        }
+      ]
+    },
+    {
+      "name": "1500 M",
+      "abbreviation": "1.5K",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "d-00"
+        },
+        {
+          "debugRoomName": "d-01"
+        },
+        {
+          "debugRoomName": "d-02"
+        },
+        {
+          "debugRoomName": "d-03"
+        }
+      ]
+    },
+    {
+      "name": "2000 M",
+      "abbreviation": "2K",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "e-00"
+        },
+        {
+          "debugRoomName": "e-01"
+        },
+        {
+          "debugRoomName": "e-02"
+        },
+        {
+          "debugRoomName": "e-03"
+        }
+      ]
+    },
+    {
+      "name": "2500 M",
+      "abbreviation": "2.5K",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "f-00"
+        },
+        {
+          "debugRoomName": "f-01"
+        },
+        {
+          "debugRoomName": "f-02"
+        },
+        {
+          "debugRoomName": "f-03"
+        }
+      ]
+    },
+    {
+      "name": "3000 M",
+      "abbreviation": "3K",
+      "roomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "g-00"
+        },
+        {
+          "debugRoomName": "g-01"
+        },
+        {
+          "debugRoomName": "g-02"
+        },
+        {
+          "debugRoomName": "g-03"
+        }
+      ]
+    }
+  ],
+  "roomCount": 28
+}

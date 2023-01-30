@@ -1,8 +1,344 @@
-Singular;SI;14;a-00,a-01,a-02,a-03,a-04,a-05,b-00,b-01,b-02,b-03,b-04,b-05,b-06,b-07
-Power Source;PS;9;c-00,c-00b,c-01,c-02,c-03,d-00,d-05,e-00y,e-00yb
-Remembered;RM;13;e-00z,e-00,e-00b,e-01,e-02,e-03,e-04,e-05,e-05b,e-05c,e-06,e-07,e-08
-Event Horizon;EH;18;f-door,f-00,f-01,f-02,f-03,f-04,f-05,f-06,f-07,f-08,f-09,g-00,g-01,g-03,g-02,g-04,g-05,g-06
-Determination;DT;14;h-00b,h-00,h-01,h-02,h-03,h-03b,h-04,h-05,h-06,h-06b,h-07,h-08,h-09,h-10
-Stubbornness;ST;7;i-00,i-00b,i-01,i-02,i-03,i-04,i-05
-Reconciliation;RC;18;j-00,j-00b,j-01,j-02,j-03,j-04,j-05,j-06,j-07,j-08,j-09,j-10,j-11,j-12,j-13,j-14,j-14b,j-15
-Farewell;FW;1;j-16
+{
+  "campaignName": "Celeste",
+  "chapterName": "Farewell",
+  "chapterSID": "Celeste/LostLevels",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Singular",
+      "abbreviation": "SG",
+      "roomCount": 14,
+      "rooms": [
+        {
+          "debugRoomName": "a-00"
+        },
+        {
+          "debugRoomName": "a-01"
+        },
+        {
+          "debugRoomName": "a-02"
+        },
+        {
+          "debugRoomName": "a-03"
+        },
+        {
+          "debugRoomName": "a-04"
+        },
+        {
+          "debugRoomName": "a-05"
+        },
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-03"
+        },
+        {
+          "debugRoomName": "b-04"
+        },
+        {
+          "debugRoomName": "b-05"
+        },
+        {
+          "debugRoomName": "b-06"
+        },
+        {
+          "debugRoomName": "b-07"
+        }
+      ]
+    },
+    {
+      "name": "Power Source",
+      "abbreviation": "PS",
+      "roomCount": 8,
+      "rooms": [
+        {
+          "debugRoomName": "c-00"
+        },
+        {
+          "debugRoomName": "c-00b"
+        },
+        {
+          "debugRoomName": "c-01"
+        },
+        {
+          "debugRoomName": "c-02"
+        },
+        {
+          "debugRoomName": "c-03"
+        },
+        {
+          "debugRoomName": "d-00"
+        },
+        {
+          "debugRoomName": "d-05"
+        },
+        {
+          "debugRoomName": "e-00y"
+        }
+      ]
+    },
+    {
+      "name": "Remembered",
+      "abbreviation": "RM",
+      "roomCount": 13,
+      "rooms": [
+        {
+          "debugRoomName": "e-00z"
+        },
+        {
+          "debugRoomName": "e-00"
+        },
+        {
+          "debugRoomName": "e-00b"
+        },
+        {
+          "debugRoomName": "e-01"
+        },
+        {
+          "debugRoomName": "e-02"
+        },
+        {
+          "debugRoomName": "e-03"
+        },
+        {
+          "debugRoomName": "e-04"
+        },
+        {
+          "debugRoomName": "e-05"
+        },
+        {
+          "debugRoomName": "e-05b"
+        },
+        {
+          "debugRoomName": "e-05c"
+        },
+        {
+          "debugRoomName": "e-06"
+        },
+        {
+          "debugRoomName": "e-07"
+        },
+        {
+          "debugRoomName": "e-08"
+        }
+      ]
+    },
+    {
+      "name": "Event Horizon",
+      "abbreviation": "EH",
+      "roomCount": 18,
+      "rooms": [
+        {
+          "debugRoomName": "f-door"
+        },
+        {
+          "debugRoomName": "f-00"
+        },
+        {
+          "debugRoomName": "f-01"
+        },
+        {
+          "debugRoomName": "f-02"
+        },
+        {
+          "debugRoomName": "f-03"
+        },
+        {
+          "debugRoomName": "f-04"
+        },
+        {
+          "debugRoomName": "f-05"
+        },
+        {
+          "debugRoomName": "f-06"
+        },
+        {
+          "debugRoomName": "f-07"
+        },
+        {
+          "debugRoomName": "f-08"
+        },
+        {
+          "debugRoomName": "f-09"
+        },
+        {
+          "debugRoomName": "g-00"
+        },
+        {
+          "debugRoomName": "g-01"
+        },
+        {
+          "debugRoomName": "g-03"
+        },
+        {
+          "debugRoomName": "g-02"
+        },
+        {
+          "debugRoomName": "g-04"
+        },
+        {
+          "debugRoomName": "g-05"
+        },
+        {
+          "debugRoomName": "g-06"
+        }
+      ]
+    },
+    {
+      "name": "Determination",
+      "abbreviation": "DT",
+      "roomCount": 14,
+      "rooms": [
+        {
+          "debugRoomName": "h-00b"
+        },
+        {
+          "debugRoomName": "h-00"
+        },
+        {
+          "debugRoomName": "h-01"
+        },
+        {
+          "debugRoomName": "h-02"
+        },
+        {
+          "debugRoomName": "h-03"
+        },
+        {
+          "debugRoomName": "h-03b"
+        },
+        {
+          "debugRoomName": "h-04"
+        },
+        {
+          "debugRoomName": "h-05"
+        },
+        {
+          "debugRoomName": "h-06"
+        },
+        {
+          "debugRoomName": "h-06b"
+        },
+        {
+          "debugRoomName": "h-07"
+        },
+        {
+          "debugRoomName": "h-08"
+        },
+        {
+          "debugRoomName": "h-09"
+        },
+        {
+          "debugRoomName": "h-10"
+        }
+      ]
+    },
+    {
+      "name": "Stubbornness",
+      "abbreviation": "ST",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "i-00"
+        },
+        {
+          "debugRoomName": "i-00b"
+        },
+        {
+          "debugRoomName": "i-01"
+        },
+        {
+          "debugRoomName": "i-02"
+        },
+        {
+          "debugRoomName": "i-03"
+        },
+        {
+          "debugRoomName": "i-04"
+        },
+        {
+          "debugRoomName": "i-05"
+        }
+      ]
+    },
+    {
+      "name": "Reconciliation",
+      "abbreviation": "RC",
+      "roomCount": 18,
+      "rooms": [
+        {
+          "debugRoomName": "j-00"
+        },
+        {
+          "debugRoomName": "j-00b"
+        },
+        {
+          "debugRoomName": "j-01"
+        },
+        {
+          "debugRoomName": "j-02"
+        },
+        {
+          "debugRoomName": "j-03"
+        },
+        {
+          "debugRoomName": "j-04"
+        },
+        {
+          "debugRoomName": "j-05"
+        },
+        {
+          "debugRoomName": "j-06"
+        },
+        {
+          "debugRoomName": "j-07"
+        },
+        {
+          "debugRoomName": "j-08"
+        },
+        {
+          "debugRoomName": "j-09"
+        },
+        {
+          "debugRoomName": "j-10"
+        },
+        {
+          "debugRoomName": "j-11"
+        },
+        {
+          "debugRoomName": "j-12"
+        },
+        {
+          "debugRoomName": "j-13"
+        },
+        {
+          "debugRoomName": "j-14"
+        },
+        {
+          "debugRoomName": "j-14b"
+        },
+        {
+          "debugRoomName": "j-15"
+        }
+      ]
+    },
+    {
+      "name": "Farewell",
+      "abbreviation": "FWFW",
+      "roomCount": 1,
+      "rooms": [
+        {
+          "debugRoomName": "j-16"
+        }
+      ]
+    }
+  ],
+  "roomCount": 93
+}

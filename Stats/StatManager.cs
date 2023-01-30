@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Exceptions;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Microsoft.SqlServer.Server;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,22 +12,24 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class StatManager {
 
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+
         public static List<Stat> AllStats = new List<Stat>() {
+            new BasicPathlessInfo(),
             new SuccessRateStat(),
             new LiveProgressStat(),
+            new ListCheckpointDeathsStat(),
             new CurrentRunPbStat(),
             new PersonalBestStat(),
             new ChokeRateStat(),
-            new BasicInfoStat(),
-            new BasicPathlessInfo(),
             new RunGoldenChanceStat(),
+            new StreakStat(),
+            new AverageLastRunsStat(),
             new SuccessRateColorsStat(),
+            new BasicInfoStat(),
             new ListRoomNamesStat(),
             new ListSuccessRatesStat(),
             new ListChokeRatesStat(),
-            new ListCheckpointDeathsStat(),
-            new StreakStat(),
-            new AverageLastRunsStat(),
         };
 
         public static string BaseFolder = "live-data";
@@ -36,12 +39,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string NotOnPathOutput = "-";
         public static string ValueNotAvailable = "-";
 
-        public static bool HideFormatsWithoutPath { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataHideFormatsWithoutPath; }
-        public static RoomNameDisplayType RoomNameType { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataRoomNameDisplayType; }
-        public static int AttemptCount { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount; }
-        public static int DecimalPlaces { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces; }
-        public static bool IgnoreUnplayedRooms { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataIgnoreUnplayedRooms; }
-        public static ListFormat ListOutputFormat { get => ConsistencyTrackerModule.Instance.ModSettings.LiveDataListOutputFormat; }
+        public static bool HideFormatsWithoutPath { get => Mod.ModSettings.LiveDataHideFormatsWithoutPath; }
+        public static RoomNameDisplayType RoomNameType { get => Mod.ModSettings.LiveDataRoomNameDisplayType; }
+        public static int AttemptCount { get => Mod.ModSettings.LiveDataSelectedAttemptCount; }
+        public static int DecimalPlaces { get => Mod.ModSettings.LiveDataDecimalPlaces; }
+        public static bool IgnoreUnplayedRooms { get => Mod.ModSettings.LiveDataIgnoreUnplayedRooms; }
+        public static ListFormat ListOutputFormat { get => Mod.ModSettings.LiveDataListOutputFormat; }
 
 
         public Dictionary<StatFormat, List<Stat>> Formats;
@@ -56,22 +59,44 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void LoadFormats() {
-            ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Loading live-data formats...");
+            Mod.Log($"[LoadFormats] Loading live-data formats...");
             string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
             if (File.Exists(formatFilePath)) {
-                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Found {FormatFileName}...");
+                Mod.Log($"[LoadFormats] Found {FormatFileName}...");
                 string content = File.ReadAllText(formatFilePath);
-                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Parsing {FormatFileName}");
+                Mod.Log($"[LoadFormats] Parsing {FormatFileName}");
                 Formats = ParseFormatsFile(content);
-                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Read '{Formats.Count}' formats from {FormatFileName}");
+                Mod.Log($"[LoadFormats] Read '{Formats.Count}' formats from {FormatFileName}");
 
             } else {
-                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Did not find {FormatFileName}, creating new...");
+                Mod.Log($"[LoadFormats] Did not find {FormatFileName}, creating new...");
                 Formats = CreateDefaultFormatFile(formatFilePath);
-                ConsistencyTrackerModule.Instance.Log($"[LoadFormats] Read '{Formats.Count}' formats from default format file");
+                Mod.Log($"[LoadFormats] Read '{Formats.Count}' formats from default format file");
             }
 
             FindStatsForFormats();
+        }
+
+        public void ResetFormats() {
+            Mod.Log($"[ResetFormats] Requested resetting of live-data formats, will perform backup first...");
+            
+            string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
+            string fileName = Path.GetFileNameWithoutExtension(formatFilePath);
+            string fileExt = Path.GetExtension(formatFilePath);
+            string backupPath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{fileName}_backup_{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}{fileExt}");
+
+            if (File.Exists(formatFilePath)) {
+                File.Copy(formatFilePath, backupPath);
+                Mod.Log($"[ResetFormats] Backed up {FormatFileName} to {backupPath}");
+                File.Delete(formatFilePath);
+                Mod.Log($"[ResetFormats] Deleted {FormatFileName}");
+
+            } else {
+                Mod.Log($"[LoadFormats] Did not find {FormatFileName} to delete, skipping backup");
+            }
+
+            LoadFormats();
+            Mod.SaveChapterStats();
         }
 
         public void FindStatsForFormats() {
@@ -86,7 +111,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void OutputFormats(PathInfo pathInfo, ChapterStats chapterStats) {
-            ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Starting output");
+            Mod.Log($"[OutputFormats] Starting output");
             DateTime startTime = DateTime.Now;
 
             try {
@@ -108,19 +133,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                         formattedData = stat.FormatStat(pathInfo, chapterStats, formattedData);
                     }
 
-                    if (format.Name == ConsistencyTrackerModule.Instance.ModSettings.IngameOverlayTextFormat) {
-                        ConsistencyTrackerModule.Instance.IngameOverlay.SetText(formattedData);
-                    }
+                    UpdateOverlayTexts(format.Name, formattedData);
 
                     LastResults.Add(format, formattedData);
-                    File.WriteAllText(outFilePath, formattedData);
+
+                    if (Mod.ModSettings.LiveDataFileOutputEnabled) { 
+                        File.WriteAllText(outFilePath, formattedData);
+                    }
                 }
             } catch (Exception ex) {
-                ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Exception during aggregate pass or stat calculation: {ex}");
+                Mod.Log($"[OutputFormats] Exception during aggregate pass or stat calculation: {ex}");
             }
 
             DateTime endTime = DateTime.Now;
-            ConsistencyTrackerModule.Instance.Log($"[OutputFormats] Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
+            Mod.Log($"[OutputFormats] Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
         }
         public string FormatVariableFormat(string format) {
             if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
@@ -130,7 +156,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     try {
                         format = stat.FormatStat(LastPassPathInfo, LastPassChapterStats, format);
                     } catch (Exception ex) {
-                        ConsistencyTrackerModule.Instance.Log($"[FormatVariableFormat] Exception during stat calculation: Stat '{stat.GetType().Name}' with format '{format}' caused exception -> {ex}");
+                        Mod.Log($"[FormatVariableFormat] Exception during stat calculation: Stat '{stat.GetType().Name}' with format '{format}' caused exception -> {ex}");
                     }
                 }
             }
@@ -142,7 +168,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public void AggregateStatsPass(PathInfo pathInfo, ChapterStats chapterStats) {
             if (pathInfo == null) return;
 
-            int attemptCount = ConsistencyTrackerModule.Instance.ModSettings.LiveDataSelectedAttemptCount;
+            int attemptCount = Mod.ModSettings.LiveDataSelectedAttemptCount;
 
             if (pathInfo.Stats == null) AggregateStatsPassOnce(pathInfo, chapterStats);
             pathInfo.Stats = new AggregateStats();
@@ -201,6 +227,46 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
         }
 
+        public void UpdateOverlayTexts(string formatName, string formatText) {
+            ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+
+            bool holdingGolden = mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
+            string noneFormat = "<same>";
+
+            if (holdingGolden) {
+                string compareFormat1 = mod.ModSettings.IngameOverlayText1FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText1Format : mod.ModSettings.IngameOverlayText1FormatGolden;
+                string compareFormat2 = mod.ModSettings.IngameOverlayText2FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText2Format : mod.ModSettings.IngameOverlayText2FormatGolden;
+                string compareFormat3 = mod.ModSettings.IngameOverlayText3FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText3Format : mod.ModSettings.IngameOverlayText3FormatGolden;
+                string compareFormat4 = mod.ModSettings.IngameOverlayText4FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText4Format : mod.ModSettings.IngameOverlayText4FormatGolden;
+
+                if (formatName == compareFormat1) {
+                    mod.IngameOverlay.SetText(1, formatText);
+
+                } else if (formatName == compareFormat2) {
+                    mod.IngameOverlay.SetText(2, formatText);
+
+                } else if (formatName == compareFormat3) {
+                    mod.IngameOverlay.SetText(3, formatText);
+
+                } else if (formatName == compareFormat4) {
+                    mod.IngameOverlay.SetText(4, formatText);
+                }
+            } else {
+                if (formatName == mod.ModSettings.IngameOverlayText1Format) {
+                    mod.IngameOverlay.SetText(1, formatText);
+
+                } else if (formatName == mod.ModSettings.IngameOverlayText2Format) {
+                    mod.IngameOverlay.SetText(2, formatText);
+
+                } else if (formatName == mod.ModSettings.IngameOverlayText3Format) {
+                    mod.IngameOverlay.SetText(3, formatText);
+
+                } else if (formatName == mod.ModSettings.IngameOverlayText4Format) {
+                    mod.IngameOverlay.SetText(4, formatText);
+                }
+            }
+        }
+
 
         public static string MissingPathFormat(string format, string id) {
             if (HideFormatsWithoutPath) {
@@ -244,7 +310,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 if (stat.GetPlaceholderExplanations().Count > 0)
                     prelude += $"# \n";
 
-                foreach (StatFormat statFormat in stat.GetStatExamples()) {
+                foreach (StatFormat statFormat in stat.GetDefaultFormats()) {
                     formats.Add(statFormat, new List<Stat>());
                 }
             }

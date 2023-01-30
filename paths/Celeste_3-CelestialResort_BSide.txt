@@ -1,4 +1,106 @@
-Start;ST;6;00,01,02,03,04,05
-Staff Quarters;SQ;5;06,07,08,09,10
-Library;LB;5;11,13,14,15,12
-Rooftop;RT;7;16,17,18,19,21,20,end
+{
+  "campaignName": "Celeste",
+  "chapterName": "Celestial Resort",
+  "chapterSID": "Celeste/3-CelestialResort",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "00"
+        },
+        {
+          "debugRoomName": "01"
+        },
+        {
+          "debugRoomName": "02"
+        },
+        {
+          "debugRoomName": "03"
+        },
+        {
+          "debugRoomName": "04"
+        },
+        {
+          "debugRoomName": "05"
+        }
+      ]
+    },
+    {
+      "name": "Staff Quarters",
+      "abbreviation": "SQ",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "06"
+        },
+        {
+          "debugRoomName": "07"
+        },
+        {
+          "debugRoomName": "08"
+        },
+        {
+          "debugRoomName": "09"
+        },
+        {
+          "debugRoomName": "10"
+        }
+      ]
+    },
+    {
+      "name": "Library",
+      "abbreviation": "LB",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "11"
+        },
+        {
+          "debugRoomName": "13"
+        },
+        {
+          "debugRoomName": "14"
+        },
+        {
+          "debugRoomName": "15"
+        },
+        {
+          "debugRoomName": "12"
+        }
+      ]
+    },
+    {
+      "name": "Rooftop",
+      "abbreviation": "RT",
+      "roomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "16"
+        },
+        {
+          "debugRoomName": "17"
+        },
+        {
+          "debugRoomName": "18"
+        },
+        {
+          "debugRoomName": "19"
+        },
+        {
+          "debugRoomName": "21"
+        },
+        {
+          "debugRoomName": "20"
+        },
+        {
+          "debugRoomName": "end"
+        }
+      ]
+    }
+  ],
+  "roomCount": 23
+}

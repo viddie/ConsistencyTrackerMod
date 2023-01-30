@@ -1,4 +1,181 @@
-Lake;LK;5;00,01,02,03,02b
-Hollows;HL;17;04,05,06,07,08b,09,10b,11,12b,13,14a,15,16b,17,18b,19,20
-Reflection;RF;5;b-00,b-01,b-02,b-02b,b-03
-Rock Bottom;RB;21;boss-00,boss-01,boss-02,boss-03,boss-04,boss-05,boss-06,boss-07,boss-08,boss-09,boss-10,boss-11,boss-12,boss-13,boss-14,boss-15,boss-16,boss-17,boss-18,boss-19,boss-20
+{
+  "campaignName": "Celeste",
+  "chapterName": "Reflection",
+  "chapterSID": "Celeste/6-Reflection",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Lake",
+      "abbreviation": "LK",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "00"
+        },
+        {
+          "debugRoomName": "01"
+        },
+        {
+          "debugRoomName": "02"
+        },
+        {
+          "debugRoomName": "03"
+        },
+        {
+          "debugRoomName": "02b"
+        }
+      ]
+    },
+    {
+      "name": "Hollows",
+      "abbreviation": "HL",
+      "roomCount": 17,
+      "rooms": [
+        {
+          "debugRoomName": "04"
+        },
+        {
+          "debugRoomName": "05"
+        },
+        {
+          "debugRoomName": "06"
+        },
+        {
+          "debugRoomName": "07"
+        },
+        {
+          "debugRoomName": "08b"
+        },
+        {
+          "debugRoomName": "09"
+        },
+        {
+          "debugRoomName": "10b"
+        },
+        {
+          "debugRoomName": "11"
+        },
+        {
+          "debugRoomName": "12b"
+        },
+        {
+          "debugRoomName": "13"
+        },
+        {
+          "debugRoomName": "14a"
+        },
+        {
+          "debugRoomName": "15"
+        },
+        {
+          "debugRoomName": "16b"
+        },
+        {
+          "debugRoomName": "17"
+        },
+        {
+          "debugRoomName": "18b"
+        },
+        {
+          "debugRoomName": "19"
+        },
+        {
+          "debugRoomName": "20"
+        }
+      ]
+    },
+    {
+      "name": "Reflection",
+      "abbreviation": "RF",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "b-00"
+        },
+        {
+          "debugRoomName": "b-01"
+        },
+        {
+          "debugRoomName": "b-02"
+        },
+        {
+          "debugRoomName": "b-02b"
+        },
+        {
+          "debugRoomName": "b-03"
+        }
+      ]
+    },
+    {
+      "name": "Rock Bottom",
+      "abbreviation": "RB",
+      "roomCount": 21,
+      "rooms": [
+        {
+          "debugRoomName": "boss-00"
+        },
+        {
+          "debugRoomName": "boss-01"
+        },
+        {
+          "debugRoomName": "boss-02"
+        },
+        {
+          "debugRoomName": "boss-03"
+        },
+        {
+          "debugRoomName": "boss-04"
+        },
+        {
+          "debugRoomName": "boss-05"
+        },
+        {
+          "debugRoomName": "boss-06"
+        },
+        {
+          "debugRoomName": "boss-07"
+        },
+        {
+          "debugRoomName": "boss-08"
+        },
+        {
+          "debugRoomName": "boss-09"
+        },
+        {
+          "debugRoomName": "boss-10"
+        },
+        {
+          "debugRoomName": "boss-11"
+        },
+        {
+          "debugRoomName": "boss-12"
+        },
+        {
+          "debugRoomName": "boss-13"
+        },
+        {
+          "debugRoomName": "boss-14"
+        },
+        {
+          "debugRoomName": "boss-15"
+        },
+        {
+          "debugRoomName": "boss-16"
+        },
+        {
+          "debugRoomName": "boss-17"
+        },
+        {
+          "debugRoomName": "boss-18"
+        },
+        {
+          "debugRoomName": "boss-19"
+        },
+        {
+          "debugRoomName": "boss-20"
+        }
+      ]
+    }
+  ],
+  "roomCount": 48
+}

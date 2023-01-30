@@ -276,11 +276,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>("{pb:bestRoomNumberSession#<num>}", $"Same as {PBBestRoomNumber} for current session, but for the <num>'s best run. {{pb:bestRoomNumberSession#1}} is equivalent to {PBBestRoomNumberSession}"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("pbs", $"Best runs: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
-                new StatFormat("pbs-session", $"Best runs (Session): {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
-                new StatFormat("pb-only", $"PB: {PBBest} ({PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})"),
+                new StatFormat("basic-pbs", $"Best runs: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
+                new StatFormat("basic-pbs-session", $"Best runs (Session): {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+                new StatFormat("basic-pbs-combined", $"Best runs: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}\\n" 
+                                             + $"Best runs (Session): {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+                new StatFormat("basic-pb-only", $"PB: {PBBest} ({PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})"),
             };
         }
     }

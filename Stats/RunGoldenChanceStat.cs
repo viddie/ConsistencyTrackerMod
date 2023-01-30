@@ -80,9 +80,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(RunGoldenChanceToEnd, "The chance for a run to get to the end from the current room"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("run-golden-chance", $"Start->Room: {RunGoldenChanceFromStart}\\nRoom->End: {RunGoldenChanceToEnd}")
+                new StatFormat("basic-run-golden-chance", $"Start->Room: {RunGoldenChanceFromStart}\\nRoom->End: {RunGoldenChanceToEnd}")
             };
         }
     }

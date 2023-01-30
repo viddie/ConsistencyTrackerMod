@@ -93,9 +93,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(CheckpointCurrentStreak, "Current streak of beating the current checkpoint deathless"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("current-streak", $"Current Room Streak: {RoomCurrentStreak}, Checkpoint: {CheckpointCurrentStreak}")
+                new StatFormat("basic-current-streak", $"Current Room Streak: {RoomCurrentStreak}, Checkpoint: {CheckpointCurrentStreak}")
             };
         }
     }

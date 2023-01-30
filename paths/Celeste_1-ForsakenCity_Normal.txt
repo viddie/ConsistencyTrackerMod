@@ -1,3 +1,90 @@
-Start;ST;6;1,2,3,4,3b,5
-Crossing;CR;8;6,6a,6b,6c,7,8,8b,9
-Chasm;CH;6;9b,10a,11,12,12a,end
+{
+  "campaignName": "Celeste",
+  "chapterName": "Forsaken City",
+  "chapterSID": "Celeste/1-ForsakenCity",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "1"
+        },
+        {
+          "debugRoomName": "2"
+        },
+        {
+          "debugRoomName": "3"
+        },
+        {
+          "debugRoomName": "4"
+        },
+        {
+          "debugRoomName": "3b"
+        },
+        {
+          "debugRoomName": "5"
+        }
+      ]
+    },
+    {
+      "name": "Crossing",
+      "abbreviation": "CR",
+      "roomCount": 8,
+      "rooms": [
+        {
+          "debugRoomName": "6"
+        },
+        {
+          "debugRoomName": "6a"
+        },
+        {
+          "debugRoomName": "6b"
+        },
+        {
+          "debugRoomName": "6c"
+        },
+        {
+          "debugRoomName": "7"
+        },
+        {
+          "debugRoomName": "8"
+        },
+        {
+          "debugRoomName": "8b"
+        },
+        {
+          "debugRoomName": "9"
+        }
+      ]
+    },
+    {
+      "name": "Chasm",
+      "abbreviation": "CH",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "9b"
+        },
+        {
+          "debugRoomName": "10a"
+        },
+        {
+          "debugRoomName": "11"
+        },
+        {
+          "debugRoomName": "12"
+        },
+        {
+          "debugRoomName": "12a"
+        },
+        {
+          "debugRoomName": "end"
+        }
+      ]
+    }
+  ],
+  "roomCount": 20
+}

@@ -1,3 +1,78 @@
-Start;ST;5;00,01,02,02b,03
-Contraption;CT;5;04,05,05b,06,07
-Scrap Pit;SP;6;08,08b,09,10,11,end
+{
+  "campaignName": "Celeste",
+  "chapterName": "Forsaken City",
+  "chapterSID": "Celeste/1-ForsakenCity",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "00"
+        },
+        {
+          "debugRoomName": "01"
+        },
+        {
+          "debugRoomName": "02"
+        },
+        {
+          "debugRoomName": "02b"
+        },
+        {
+          "debugRoomName": "03"
+        }
+      ]
+    },
+    {
+      "name": "Contraption",
+      "abbreviation": "CT",
+      "roomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "04"
+        },
+        {
+          "debugRoomName": "05"
+        },
+        {
+          "debugRoomName": "05b"
+        },
+        {
+          "debugRoomName": "06"
+        },
+        {
+          "debugRoomName": "07"
+        }
+      ]
+    },
+    {
+      "name": "Scrap Pit",
+      "abbreviation": "SP",
+      "roomCount": 6,
+      "rooms": [
+        {
+          "debugRoomName": "08"
+        },
+        {
+          "debugRoomName": "08b"
+        },
+        {
+          "debugRoomName": "09"
+        },
+        {
+          "debugRoomName": "10"
+        },
+        {
+          "debugRoomName": "11"
+        },
+        {
+          "debugRoomName": "end"
+        }
+      ]
+    }
+  ],
+  "roomCount": 16
+}

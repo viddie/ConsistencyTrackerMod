@@ -106,7 +106,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 //new KeyValuePair<string, string>(PathSuccessRatesJson, "Outputs the current path as JSON array"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
                 //new StatFormat("path-json", $"{PathSuccessRatesJson}"),
             };

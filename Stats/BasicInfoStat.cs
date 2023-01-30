@@ -121,6 +121,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(BasicPathlessInfo.CampaignName, "Name of the campaign"),
 
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, "Name of the chapter"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, "Name of the side of the chapter (A/B/C-Side"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterDebugName, "[DEV] Debug name of the chapter"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSID, "[DEV] SID of chapter"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, "[DEV] Dialog sanitized SID of chapter"),
@@ -146,13 +147,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModOverlayVersion, "Most recent version of the overlay"),
             };
         }
-        public override List<StatFormat> GetStatExamples() {
+        public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-info", $"--- Chapter ---\nName: {BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterDebugName})\nCampaign Name: {BasicPathlessInfo.CampaignName}\nPath available: {BasicPathlessInfo.ChapterHasPath}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
+                new StatFormat("basic-info", $"--- Chapter ---\nName: {BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterDebugName})\nSide: {BasicPathlessInfo.ChapterSideName}\nCampaign Name: {BasicPathlessInfo.CampaignName}\nPath available: {BasicPathlessInfo.ChapterHasPath}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
                 $"\n--- Checkpoint ---\nName: {CheckpointName} ({CheckpointAbbreviation})\nGolden Deaths: {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\nGolden Chance: {CheckpointGoldenChance}\n" +
                 $"\n--- Room ---\nName: {RoomName} ({BasicPathlessInfo.RoomDebugName})\nGolden Deaths: {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})\n" +
                 $"\n--- Mod State ---\nTracking Paused: {BasicPathlessInfo.ModTrackingPaused}\nRecording Path: {BasicPathlessInfo.ModRecordingPath}\nPlayer Holding Golden: {BasicPathlessInfo.PlayerHoldingGolden} | Chapter completed: {BasicPathlessInfo.PlayerChapterCompleted} | Golden done: {BasicPathlessInfo.PlayerGoldenDone}\nMod Version: {BasicPathlessInfo.ModModVersion}\nOverlay Version: {BasicPathlessInfo.ModOverlayVersion}"),
-                new StatFormat("current-map", $"Map: '{BasicPathlessInfo.ChapterName}' from '{BasicPathlessInfo.CampaignName}'"),
             };
         }
     }

@@ -262,92 +262,6 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         };
         #endregion
 
-        #region Format Endpoints
-        // +------------------------------------------+
-        // |            /cct/parseFormat              |
-        // +------------------------------------------+
-        private static readonly RCEndPoint ParseFormatEndPoint = new RCEndPoint() {
-            Path = "/cct/parseFormat",
-            PathHelp = "/cct/parseFormat?format={format}",
-            Name = "Consistency Tracker Parse Live-Data Format",
-            InfoHTML = "Parses any arbitrary live-data format. If the format is too long for a GET request, put it in the body of a POST request.",
-            Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
-
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-                string responseStr = null;
-
-                bool isGetRequest = c.Request.HttpMethod == "GET";
-                string getFormat = null;
-                ParseFormatRequest postRequest = null;
-
-                if (c.Request.HttpMethod == "GET") {
-                    getFormat = GetQueryParameter(c, "format");
-
-                } else if (c.Request.HttpMethod == "POST") {
-                    if (c.Request.HasEntityBody) {
-                        string body = GetBodyAsString(c);
-                        try {
-                            postRequest = JsonConvert.DeserializeObject<ParseFormatRequest>(body);
-                        } catch (Exception ex) {
-                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
-                            return;
-                        }
-                    } else {
-                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
-                        return;
-                    }
-                } else {
-                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
-                    return;
-                }
-
-                if (isGetRequest && getFormat == null) { //Missing parameter "format"
-                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "format");
-                    return;
-
-                } else if (!isGetRequest && postRequest.formats == null) { //Missing parameter "format"
-                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "formats");
-                    return;
-                }
-
-                List<string> requestedFormats = new List<string>();
-
-                if (isGetRequest) {
-                    requestedFormats.Add(getFormat);
-                } else {
-                    requestedFormats = postRequest.formats;
-                }
-
-                DateTime startTime = DateTime.Now;
-                try {
-                    for (int i = 0; i < requestedFormats.Count; i++) {
-                        requestedFormats[i] = mod.StatsManager.FormatVariableFormat(requestedFormats[i]);
-                    }
-                } catch (NoStatPassException) {
-                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
-                    return;
-                }
-                DateTime endTime = DateTime.Now;
-
-                if (requestedJson) {
-                    ParseFormatResponse response = new ParseFormatResponse() {
-                        formats = requestedFormats,
-                        calculationTime = (endTime - startTime).TotalMilliseconds,
-                    };
-                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
-
-                } else {
-                    string content = string.Join(PlainLineSplitToken, requestedFormats);
-                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
-                }
-
-                WriteResponse(c, responseStr);
-            }
-        };
-        #endregion
-
         #region Path Endpoints
         // +------------------------------------------+
         // |         /cct/currentChapterPath          |
@@ -411,11 +325,11 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 string pathsFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
                 string[] allPathFiles = Directory.GetFiles(pathsFolder);
-                List<string> allPathFilesNames = new List<string>(allPathFiles.Select((path) => Path.GetFileNameWithoutExtension(path)));
+                List<string> allMapNames = new List<string>(allPathFiles.Select((path) => Path.GetFileNameWithoutExtension(path)));
 
                 //if (requestedJson) {
                 PathListResponse response = new PathListResponse() {
-                    availablePaths = allPathFilesNames,
+                    mapNames = allMapNames,
                 };
                 responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
@@ -466,11 +380,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
                     return;
                 }
-
-                string content = File.ReadAllText(combinedPath);
+                
                 PathInfo pathInfo = null;
                 try {
-                    pathInfo = PathInfo.ParseString(content);
+                    pathInfo = mod.GetPathInputInfo(map);
                 } catch (Exception) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse contents of path file '{map}'");
                     return;
@@ -553,6 +466,92 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 //Response
                 responseStr = FormatResponseJson(RCErrorCode.OK);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+        #endregion
+
+        #region Format Endpoints
+        // +------------------------------------------+
+        // |            /cct/parseFormat              |
+        // +------------------------------------------+
+        private static readonly RCEndPoint ParseFormatEndPoint = new RCEndPoint() {
+            Path = "/cct/parseFormat",
+            PathHelp = "/cct/parseFormat?format={format}",
+            Name = "Consistency Tracker Parse Live-Data Format",
+            InfoHTML = "Parses any arbitrary live-data format. If the format is too long for a GET request, put it in the body of a POST request.",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                bool isGetRequest = c.Request.HttpMethod == "GET";
+                string getFormat = null;
+                ParseFormatRequest postRequest = null;
+
+                if (c.Request.HttpMethod == "GET") {
+                    getFormat = GetQueryParameter(c, "format");
+
+                } else if (c.Request.HttpMethod == "POST") {
+                    if (c.Request.HasEntityBody) {
+                        string body = GetBodyAsString(c);
+                        try {
+                            postRequest = JsonConvert.DeserializeObject<ParseFormatRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
+                        }
+                    } else {
+                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
+                        return;
+                    }
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
+                    return;
+                }
+
+                if (isGetRequest && getFormat == null) { //Missing parameter "format"
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "format");
+                    return;
+
+                } else if (!isGetRequest && postRequest.formats == null) { //Missing parameter "format"
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "formats");
+                    return;
+                }
+
+                List<string> requestedFormats = new List<string>();
+
+                if (isGetRequest) {
+                    requestedFormats.Add(getFormat);
+                } else {
+                    requestedFormats = postRequest.formats;
+                }
+
+                DateTime startTime = DateTime.Now;
+                try {
+                    for (int i = 0; i < requestedFormats.Count; i++) {
+                        requestedFormats[i] = mod.StatsManager.FormatVariableFormat(requestedFormats[i]);
+                    }
+                } catch (NoStatPassException) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
+                    return;
+                }
+                DateTime endTime = DateTime.Now;
+
+                if (requestedJson) {
+                    ParseFormatResponse response = new ParseFormatResponse() {
+                        formats = requestedFormats,
+                        calculationTime = (endTime - startTime).TotalMilliseconds,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                } else {
+                    string content = string.Join(PlainLineSplitToken, requestedFormats);
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
+                }
 
                 WriteResponse(c, responseStr);
             }
