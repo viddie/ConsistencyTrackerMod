@@ -195,6 +195,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
                         pathInfo.CurrentRoom = rInfo;
                     }
+                    if (rInfo.DebugRoomName == Mod.SpeedrunToolSaveStateRoomName) {
+                        pathInfo.SpeedrunToolSaveStateRoom = rInfo;
+                    }
                 }
 
 
@@ -279,6 +282,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public static string NotOnPathFormatPercent(string format, string id) {
             return NotOnPathFormat(format, id, "%");
+        }
+        public static string MissingValueFormat(string format, string id, string addition = "") {
+            return format.Replace(id, $"{ValueNotAvailable}{addition}");
+        }
+        public static string MissingValueFormatPercent(string format, string id) {
+            return MissingValueFormat(format, id, "%");
         }
 
         //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})

@@ -73,6 +73,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public string CurrentChapterDebugName;
         public string PreviousRoomName;
         public string CurrentRoomName;
+        public string SpeedrunToolSaveStateRoomName;
 
         private string LastRoomWithCheckpoint = null;
 
@@ -511,6 +512,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 savedvalues[type][nameof(_CurrentRoomCompleted)] = _CurrentRoomCompleted;
                 savedvalues[type][nameof(_CurrentRoomCompletedResetOnDeath)] = _CurrentRoomCompletedResetOnDeath;
             }
+
+            SpeedrunToolSaveStateRoomName = CurrentRoomName;
+            SaveChapterStats();
         }
 
         public void SpeedrunToolLoadState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
@@ -519,6 +523,17 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Logger.Log(nameof(ConsistencyTrackerModule), "Trying to load state without prior saving a state...");
                 return;
             }
+
+            level.Tracker.LogEntities();
+            bool isTracked = level.Tracker.IsEntityTracked<TextOverlay>();
+            Log($"[SpeedrunToolLoadState] level.Tracker.IsEntityTracked<TextOverlay>() -> {isTracked}");
+            TextOverlay textOverlayEntity = level.Tracker.GetEntity<TextOverlay>();
+            if (textOverlayEntity == null) {
+                Log($"[SpeedrunToolLoadState] level.Tracker.GetEntity<TextOverlay>() -> null");
+            } else {
+                Log($"[SpeedrunToolLoadState] level.Tracker.GetEntity<TextOverlay>() -> {textOverlayEntity.GetStatText(1).Text}");
+            }
+            IngameOverlay = textOverlayEntity;
 
             PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
             CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];
@@ -530,7 +545,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void SpeedrunToolClearState() {
-            //No action
+            SpeedrunToolSaveStateRoomName = null;
         }
 
         #endregion

@@ -61,7 +61,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 goldenDeathsAndSessionList += $"{cpInfo.Stats.GoldenBerryDeaths} ({cpInfo.Stats.GoldenBerryDeathsSession}) | ";
 
                 string indicator = $"{cpDeaths}";
-                if (cpInfo == chapterPath.CurrentRoom.Checkpoint) {
+                if (chapterPath.CurrentRoom != null && cpInfo == chapterPath.CurrentRoom.Checkpoint) {
                     indicator = $">{indicator}<";
                 }
                 

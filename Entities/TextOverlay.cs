@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities {
+
+    [Tracked]
     public class TextOverlay : Entity {
 
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
@@ -63,6 +65,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetTextOffsetX(4, settings.IngameOverlayText4OffsetX);
             SetTextOffsetY(4, settings.IngameOverlayText4OffsetY);
             SetTextSize(4, settings.IngameOverlayText4Size);
+        }
+        public void ApplyTexts() { 
+            
         }
 
         public override void Update() {
@@ -128,6 +133,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public void SetTextSize(int textNum, int size) {
             StatTextComponent statText = GetStatText(textNum);
             statText.Scale = (float)size / 100;
+        }
+        
+        //size in percent as int
+        public void SetTextAlpha(int textNum, int alpha) {
+            StatTextComponent statText = GetStatText(textNum);
+            statText.Alpha = (float)alpha / 100;
         }
 
 

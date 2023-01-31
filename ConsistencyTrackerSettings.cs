@@ -193,7 +193,9 @@ namespace Celeste.Mod.ConsistencyTracker
         //- Reload format file
         //- Toggle name/abbreviation for e.g. PB Display
         public bool LiveData { get; set; } = false;
-        public bool LiveDataFileOutputEnabled { get; set; } = true;
+        
+        [SettingIgnore]
+        public bool LiveDataFileOutputEnabled { get; set; } = false;
         public int LiveDataDecimalPlaces { get; set; } = 2;
         public int LiveDataSelectedAttemptCount { get; set; } = 20;
 
@@ -222,6 +224,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Disabling this might improve performance. Ingame Overlay is unaffected by this.");
+            subMenu.AddDescription(menu, menuItem, "DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.");
 
             List<int> DigitCounts = new List<int>() { 1, 2, 3, 4, 5 };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
@@ -292,6 +295,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button("Reload format file") {
                 OnPressed = () => {
                     Mod.StatsManager.LoadFormats();
+                    Mod.SaveChapterStats();
                 }
             });
 

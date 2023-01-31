@@ -96,7 +96,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public RoomStats GetRoom(string debugRoomName) {
-            RoomStats targetRoom = null;
+            RoomStats targetRoom;
             if (Rooms.ContainsKey(debugRoomName)) {
                 targetRoom = Rooms[debugRoomName];
             } else {

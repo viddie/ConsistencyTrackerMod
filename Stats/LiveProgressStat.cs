@@ -22,14 +22,29 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class LiveProgressStat : Stat {
 
         public static string ChapterRoomCount = "{chapter:roomCount}";
+        
         public static string CheckpointRoomCount = "{checkpoint:roomCount}";
-        public static string RunChapterProgressNumber = "{room:roomNumberInChapter}";
-        public static string RunCheckpointProgressNumber = "{room:roomNumberInCheckpoint}";
-        public static string RunChapterProgressPercent = "{room:chapterProgressPercent}";
-        public static string RunCheckpointProgressPercent = "{room:checkpointProgressPercent}";
+        public static string RoomNumberInChapter = "{room:roomNumberInChapter}";
+        public static string RoomNumberInCheckpoint = "{room:roomNumberInCheckpoint}";
+        public static string RoomChapterProgressPercent = "{room:chapterProgressPercent}";
+        public static string RoomCheckpointProgressPercent = "{room:checkpointProgressPercent}";
+
+        public static string SaveStateCheckpointRoomCount = "{savestate:checkpointRoomCount}";
+        public static string SaveStateRoomNumberInChapter = "{savestate:roomNumberInChapter}";
+        public static string SaveStateRoomNumberInCheckpoint = "{savestate:roomNumberInCheckpoint}";
+        public static string SaveStateChapterProgressPercent = "{savestate:chapterProgressPercent}";
+        public static string SaveStateCheckpointProgressPercent = "{savestate:checkpointProgressPercent}";
+
         public static List<string> IDs = new List<string>() {
-            ChapterRoomCount, CheckpointRoomCount, RunChapterProgressNumber,
-            RunCheckpointProgressNumber, RunChapterProgressPercent, RunCheckpointProgressPercent
+            ChapterRoomCount,
+            
+            CheckpointRoomCount,
+            RoomNumberInChapter, RoomNumberInCheckpoint,
+            RoomChapterProgressPercent, RoomCheckpointProgressPercent,
+            
+            SaveStateCheckpointRoomCount,
+            SaveStateRoomNumberInChapter, SaveStateRoomNumberInCheckpoint,
+            SaveStateChapterProgressPercent, SaveStateCheckpointProgressPercent
         };
 
         public LiveProgressStat() : base(IDs) { }
@@ -37,13 +52,22 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, ChapterRoomCount);
+                
                 format = StatManager.MissingPathFormat(format, CheckpointRoomCount);
-                format = StatManager.MissingPathFormat(format, RunChapterProgressNumber);
-                format = StatManager.MissingPathFormat(format, RunCheckpointProgressNumber);
-                format = StatManager.MissingPathFormat(format, RunChapterProgressPercent);
-                format = StatManager.MissingPathFormat(format, RunCheckpointProgressPercent);
+                format = StatManager.MissingPathFormat(format, RoomNumberInChapter);
+                format = StatManager.MissingPathFormat(format, RoomNumberInCheckpoint);
+                format = StatManager.MissingPathFormat(format, RoomChapterProgressPercent);
+                format = StatManager.MissingPathFormat(format, RoomCheckpointProgressPercent);
+
+                format = StatManager.MissingPathFormat(format, SaveStateCheckpointRoomCount);
+                format = StatManager.MissingPathFormat(format, SaveStateRoomNumberInChapter);
+                format = StatManager.MissingPathFormat(format, SaveStateRoomNumberInCheckpoint);
+                format = StatManager.MissingPathFormat(format, SaveStateChapterProgressPercent);
+                format = StatManager.MissingPathFormat(format, SaveStateCheckpointProgressPercent);
                 return format;
             }
+            
+            int decimalPlaces = StatManager.DecimalPlaces;
 
             int chapterRoomCount = chapterPath.RoomCount;
             format = format.Replace(ChapterRoomCount, $"{chapterRoomCount}");
@@ -51,31 +75,53 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             if (chapterPath.CurrentRoom == null) { //Player is not on path
                 format = StatManager.NotOnPathFormat(format, CheckpointRoomCount);
-                format = StatManager.NotOnPathFormat(format, RunChapterProgressNumber);
-                format = StatManager.NotOnPathFormat(format, RunCheckpointProgressNumber);
-                format = StatManager.NotOnPathFormatPercent(format, RunChapterProgressPercent);
-                format = StatManager.NotOnPathFormatPercent(format, RunCheckpointProgressPercent);
+
+                format = StatManager.NotOnPathFormat(format, RoomNumberInChapter);
+                format = StatManager.NotOnPathFormat(format, RoomNumberInCheckpoint);
+                format = StatManager.NotOnPathFormatPercent(format, RoomChapterProgressPercent);
+                format = StatManager.NotOnPathFormatPercent(format, RoomCheckpointProgressPercent);
 
                 return format;
+                
             } else {
                 int checkpointRoomCount = chapterPath.CurrentRoom.Checkpoint.Rooms.Count;
 
                 int roomNumberInChapter = chapterPath.CurrentRoom.RoomNumberInChapter;
                 int roomNumberInCP = chapterPath.CurrentRoom.RoomNumberInCP;
 
-
                 format = format.Replace(CheckpointRoomCount, $"{checkpointRoomCount}");
-                format = format.Replace(RunChapterProgressNumber, $"{roomNumberInChapter}");
-                format = format.Replace(RunCheckpointProgressNumber, $"{roomNumberInCP}");
+                format = format.Replace(RoomNumberInChapter, $"{roomNumberInChapter}");
+                format = format.Replace(RoomNumberInCheckpoint, $"{roomNumberInCP}");
 
-                int decimalPlaces = ConsistencyTrackerModule.Instance.ModSettings.LiveDataDecimalPlaces;
                 double chapterProgressPercent = Math.Round(((double)roomNumberInChapter / chapterRoomCount) * 100, decimalPlaces);
                 double checkpointProgressPercent = Math.Round(((double)roomNumberInCP / checkpointRoomCount) * 100, decimalPlaces);
 
-                format = format.Replace(RunChapterProgressPercent, $"{chapterProgressPercent}%");
-                format = format.Replace(RunCheckpointProgressPercent, $"{checkpointProgressPercent}%");
+                format = format.Replace(RoomChapterProgressPercent, $"{chapterProgressPercent}%");
+                format = format.Replace(RoomCheckpointProgressPercent, $"{checkpointProgressPercent}%");
             }
 
+            //Save State
+            if (chapterPath.SpeedrunToolSaveStateRoom == null) {
+                format = StatManager.NotOnPathFormat(format, SaveStateRoomNumberInChapter);
+                format = StatManager.NotOnPathFormat(format, SaveStateRoomNumberInCheckpoint);
+                format = StatManager.NotOnPathFormatPercent(format, SaveStateChapterProgressPercent);
+                format = StatManager.NotOnPathFormatPercent(format, SaveStateCheckpointProgressPercent);
+                
+            } else { 
+                int ssCpRoomCount = chapterPath.SpeedrunToolSaveStateRoom.Checkpoint.Rooms.Count;
+                int ssNumberInChapter = chapterPath.SpeedrunToolSaveStateRoom.RoomNumberInChapter;
+                int ssNumberInCp = chapterPath.SpeedrunToolSaveStateRoom.RoomNumberInCP;
+
+                format = format.Replace(SaveStateCheckpointRoomCount, $"{ssCpRoomCount}");
+                format = format.Replace(SaveStateRoomNumberInChapter, $"{ssNumberInChapter}");
+                format = format.Replace(SaveStateRoomNumberInCheckpoint, $"{ssNumberInCp}");
+
+                double chapterProgressPercent = Math.Round(((double)ssNumberInChapter / chapterRoomCount) * 100, decimalPlaces);
+                double checkpointProgressPercent = Math.Round(((double)ssNumberInCp / ssCpRoomCount) * 100, decimalPlaces);
+
+                format = format.Replace(SaveStateChapterProgressPercent, $"{chapterProgressPercent}%");
+                format = format.Replace(SaveStateCheckpointProgressPercent, $"{checkpointProgressPercent}%");
+            }
 
 
             return format;
@@ -85,24 +131,16 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
-
-        //live-progress;Room {room:roomNumberInChapter}/{chapter:roomCount} ({room:chapterProgressPercent})
-        // | Room in CP: {room:roomNumberInCheckpoint}/{checkpoint:roomCount} ({room:checkpointProgressPercent})
+        
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RunChapterProgressNumber, "Number of the room within the entire chapter"),
-                new KeyValuePair<string, string>(ChapterRoomCount, "Count of rooms in the chapter"),
-                new KeyValuePair<string, string>(RunChapterProgressPercent, "Percent completion of the chapter given the current room"),
-
-                new KeyValuePair<string, string>(RunCheckpointProgressNumber, "Number of the room within the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointRoomCount, "Count of rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(RunCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
+                //Moved to BasicInfoStat
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-chapter-progress", $"Room {RunChapterProgressNumber}/{ChapterRoomCount} ({RunChapterProgressPercent})" +
-                    $" | Room in CP: {RunCheckpointProgressNumber}/{CheckpointRoomCount} ({RunCheckpointProgressPercent})")
+                new StatFormat("basic-chapter-progress", $"Room {RoomNumberInChapter}/{ChapterRoomCount} ({RoomChapterProgressPercent})" +
+                    $" | Room in CP: {RoomNumberInCheckpoint}/{CheckpointRoomCount} ({RoomCheckpointProgressPercent})")
             };
         }
     }

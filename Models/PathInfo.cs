@@ -35,8 +35,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;
+        
         [JsonIgnore]
         public RoomInfo CurrentRoom { get; set; } = null;
+        
+        [JsonIgnore]
+        public RoomInfo SpeedrunToolSaveStateRoom { get; set; } = null;
 
         [JsonIgnore]
         public string ParseError { get; set; }

@@ -52,6 +52,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ChapterGoldenDeaths = "{chapter:goldenDeaths}";
         public static string ChapterGoldenDeathsSession = "{chapter:goldenDeathsSession}";
         public static string ChapterGoldenChance = "{chapter:goldenChance}";
+        
+        public static string SaveStateRoomName = "{savestate:roomName}";
 
         public static List<string> IDs = new List<string>() {
             //PlayerHoldingGolden,
@@ -79,6 +81,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.MissingPathFormat(format, ChapterGoldenChance);
                 return format;
             }
+            
+            RoomNameDisplayType nameType = StatManager.RoomNameType;
 
             format = format.Replace(ChapterGoldenDeaths, $"{chapterPath.Stats.GoldenBerryDeaths}");
             format = format.Replace(ChapterGoldenDeathsSession, $"{chapterPath.Stats.GoldenBerryDeathsSession}");
@@ -92,21 +96,27 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.NotOnPathFormat(format, CheckpointGoldenDeaths);
                 format = StatManager.NotOnPathFormat(format, CheckpointGoldenDeathsSession);
                 format = StatManager.NotOnPathFormatPercent(format, CheckpointGoldenChance);
-                return format;
+                
+            } else {
+                RoomInfo rInfo = chapterPath.CurrentRoom;
+
+                format = format.Replace(RoomName, $"{chapterPath.CurrentRoom.GetFormattedRoomName(nameType)}");
+
+                CheckpointInfo cpInfo = rInfo.Checkpoint;
+
+                format = format.Replace(CheckpointName, $"{cpInfo.Name}");
+                format = format.Replace(CheckpointAbbreviation, $"{cpInfo.Abbreviation}");
+                format = format.Replace(CheckpointGoldenDeaths, $"{cpInfo.Stats.GoldenBerryDeaths}");
+                format = format.Replace(CheckpointGoldenDeathsSession, $"{cpInfo.Stats.GoldenBerryDeathsSession}");
+                format = format.Replace(CheckpointGoldenChance, $"{StatManager.FormatPercentage(cpInfo.Stats.GoldenChance)}");
             }
 
-            RoomInfo rInfo = chapterPath.CurrentRoom;
-
-            RoomNameDisplayType nameType = StatManager.RoomNameType;
-            format = format.Replace(RoomName, $"{chapterPath.CurrentRoom.GetFormattedRoomName(nameType)}");
-
-            CheckpointInfo cpInfo = rInfo.Checkpoint;
-
-            format = format.Replace(CheckpointName, $"{cpInfo.Name}");
-            format = format.Replace(CheckpointAbbreviation, $"{cpInfo.Abbreviation}");
-            format = format.Replace(CheckpointGoldenDeaths, $"{cpInfo.Stats.GoldenBerryDeaths}");
-            format = format.Replace(CheckpointGoldenDeathsSession, $"{cpInfo.Stats.GoldenBerryDeathsSession}");
-            format = format.Replace(CheckpointGoldenChance, $"{StatManager.FormatPercentage(cpInfo.Stats.GoldenChance)}");
+            if (chapterPath.SpeedrunToolSaveStateRoom == null) {
+                format = StatManager.NotOnPathFormat(format, SaveStateRoomName, "--");
+            } else {
+                format = format.Replace(SaveStateRoomName, $"{chapterPath.SpeedrunToolSaveStateRoom.GetFormattedRoomName(nameType)}");
+            }
+            
 
             return format;
         }
@@ -128,18 +138,34 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(ChapterGoldenDeaths, "Golden Deaths in the chapter"),
                 new KeyValuePair<string, string>(ChapterGoldenDeathsSession, "Golden Deaths in the chapter in the current session"),
                 new KeyValuePair<string, string>(ChapterGoldenChance, "Golden Chance of the chapter"),
+                new KeyValuePair<string, string>(LiveProgressStat.ChapterRoomCount, "Count of rooms in the chapter"),
 
                 new KeyValuePair<string, string>(CheckpointName, "Name of the current checkpoint"),
                 new KeyValuePair<string, string>(CheckpointAbbreviation, "Abbreviation of the current checkpoint's name"),
                 new KeyValuePair<string, string>(CheckpointGoldenDeaths, "Golden Deaths in the current checkpoint"),
                 new KeyValuePair<string, string>(CheckpointGoldenDeathsSession, "Golden Deaths in the current checkpoint in the current session"),
                 new KeyValuePair<string, string>(CheckpointGoldenChance, "Golden Chance of the current checkpoint"),
+                new KeyValuePair<string, string>(LiveProgressStat.CheckpointRoomCount, "Count of rooms in the current checkpoint"),
 
                 new KeyValuePair<string, string>(RoomName, "Name of the room. Display format can be changed via Mod Options -> Consistency Tracker -> Live Data -> Room Name Format"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.RoomDebugName, "Debug name of the current room"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeaths, "Golden Deaths in the current room"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeathsSession, "Golden Deaths in the current room in the current session"),
 
+                //Live Progress stats
+                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInChapter, "Number of the room within the entire chapter"),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressPercent, "Percent completion of the chapter given the current room"),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInCheckpoint, "Number of the room within the current checkpoint"),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
+
+                new KeyValuePair<string, string>(SaveStateRoomName, "Name of the savestate room"),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointRoomCount, "Count of rooms in the checkpoint where the savestate is placed"),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInChapter, "Number of the savestate room in the entire chapter"),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInCheckpoint, "Number of the savestate room within the checkpoint"),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateChapterProgressPercent, "Percent completion of the chapter given the savestate room"),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointProgressPercent, "Percent completion of the savestate checkpoint given the savestate room"),
+                
+                //Mod State
                 new KeyValuePair<string, string>(BasicPathlessInfo.PlayerHoldingGolden, "Whether the player is holding a golden berry"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModTrackingPaused, "Whether death tracking is currently paused"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModRecordingPath, "Whether the path is currently being recorded"),
