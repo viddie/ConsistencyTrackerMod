@@ -970,10 +970,8 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Hotkeys
-        [DefaultButtonBinding(0, Keys.P)]
         public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
         
-        [DefaultButtonBinding(0, Keys.O)]
         public ButtonBinding ButtonToggleTextOverlayEnabled { get; set; }
         #endregion
 
