@@ -546,6 +546,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void SpeedrunToolClearState() {
             SpeedrunToolSaveStateRoomName = null;
+            if (CurrentChapterPath != null) {
+                CurrentChapterPath.SpeedrunToolSaveStateRoom = null;
+            }
+            SaveChapterStats();
         }
 
         #endregion
