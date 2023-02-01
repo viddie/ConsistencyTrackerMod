@@ -667,6 +667,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"[SaveChapterStats] Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
+            if (!ModSettings.Enabled) {
+                return;
+            }
 
             CurrentUpdateFrame++;
 

@@ -19,7 +19,20 @@ namespace Celeste.Mod.ConsistencyTracker
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         #region General Settings
-        public bool Enabled { get; set; } = true;
+        public bool Enabled {
+            get => _Enabled;
+            set {
+                _Enabled = value;
+                Mod.Log($"Mod is now {(value ? "enabled" : "disabled")}.");
+                //Other hooks
+                if (Mod.IngameOverlay != null) { 
+                    Mod.IngameOverlay.Visible = value;
+                }
+            }
+        }
+
+        [SettingIgnore]
+        private bool _Enabled { get; set; } = true;
 
         public bool PauseDeathTracking {
             get => _PauseDeathTracking;

@@ -36,7 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public void ApplyModSettings() {
             ConsistencyTrackerSettings settings = Mod.ModSettings;
 
-            Visible = settings.IngameOverlayTextEnabled;
+            Visible = settings.IngameOverlayTextEnabled && settings.Enabled;
 
             SetTextVisible(1, settings.IngameOverlayText1Enabled);
             SetTextHideInGolden(1, settings.IngameOverlayText1HideWithGolden);
