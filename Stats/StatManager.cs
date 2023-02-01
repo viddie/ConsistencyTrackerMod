@@ -244,27 +244,27 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 if (formatName == compareFormat1) {
                     mod.IngameOverlay.SetText(1, formatText);
-
-                } else if (formatName == compareFormat2) {
+                }
+                if (formatName == compareFormat2) {
                     mod.IngameOverlay.SetText(2, formatText);
-
-                } else if (formatName == compareFormat3) {
+                }
+                if (formatName == compareFormat3) {
                     mod.IngameOverlay.SetText(3, formatText);
-
-                } else if (formatName == compareFormat4) {
+                }
+                if (formatName == compareFormat4) {
                     mod.IngameOverlay.SetText(4, formatText);
                 }
             } else {
                 if (formatName == mod.ModSettings.IngameOverlayText1Format) {
                     mod.IngameOverlay.SetText(1, formatText);
-
-                } else if (formatName == mod.ModSettings.IngameOverlayText2Format) {
+                }
+                if (formatName == mod.ModSettings.IngameOverlayText2Format) {
                     mod.IngameOverlay.SetText(2, formatText);
-
-                } else if (formatName == mod.ModSettings.IngameOverlayText3Format) {
+                }
+                if (formatName == mod.ModSettings.IngameOverlayText3Format) {
                     mod.IngameOverlay.SetText(3, formatText);
-
-                } else if (formatName == mod.ModSettings.IngameOverlayText4Format) {
+                }
+                if (formatName == mod.ModSettings.IngameOverlayText4Format) {
                     mod.IngameOverlay.SetText(4, formatText);
                 }
             }
