@@ -66,8 +66,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetTextOffsetY(4, settings.IngameOverlayText4OffsetY);
             SetTextSize(4, settings.IngameOverlayText4Size);
         }
-        public void ApplyTexts() { 
-            
+        public void ApplyTexts() {
+
+        }
+        
+        public void SetVisibility(bool visible) {
+            Visible = visible && Mod.ModSettings.Enabled;
         }
 
         public override void Update() {
@@ -81,7 +85,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
                 bool currentVisible = Mod.ModSettings.IngameOverlayTextEnabled;
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
-                Visible = !currentVisible;
+                SetVisibility(!currentVisible);
 
                 Mod.Log($"[TextOverlay.Update] Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
             }

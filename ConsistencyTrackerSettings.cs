@@ -657,7 +657,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
                 OnValueChange = v => {
                     IngameOverlayTextEnabled = v;
-                    Mod.IngameOverlay.Visible = v;
+                    Mod.IngameOverlay.SetVisibility(v);
                 }
             });
 
