@@ -309,7 +309,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         // +------------------------------------------+
         private static readonly RCEndPoint ListAllPathsEndPoint = new RCEndPoint() {
             Path = "/cct/listAllPaths",
-            Name = "Consistency Tracker List All Paths [JSON only]",
+            Name = "Consistency Tracker List All Paths [JSON]",
             InfoHTML = "Get a list of all available paths",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
@@ -350,7 +350,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         private static readonly RCEndPoint GetPathFileEndPoint = new RCEndPoint() {
             Path = "/cct/getPathFile",
             PathHelp = "/cct/getPathFile?map={map}",
-            Name = "Consistency Tracker Get Path File [GET] [JSON only]",
+            Name = "Consistency Tracker Get Path File [GET] [JSON]",
             InfoHTML = "Get the path file for a map",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
@@ -406,7 +406,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         private static readonly RCEndPoint SetPathFileEndPoint = new RCEndPoint() {
             Path = "/cct/setPathFile",
             PathHelp = "/cct/setPathFile?map={map}",
-            Name = "Consistency Tracker Set Path File [POST] [JSON only]",
+            Name = "Consistency Tracker Set Path File [POST] [JSON]",
             InfoHTML = "Set the path file for a map. Put path info object in the body of the POST request ",
             Handle = c => {
                 bool requestedJson = HasRequestedJson(c);
@@ -559,7 +559,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
 
         // +------------------------------------------+
-        // |            /cct/getFormat              |
+        // |             /cct/getFormat               |
         // +------------------------------------------+
         private static readonly RCEndPoint GetFormatEndPoint = new RCEndPoint() {
             Path = "/cct/getFormat",
@@ -572,7 +572,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
-                
+
                 string format = GetQueryParameter(c, "format");
 
                 if (format == null) {
@@ -592,7 +592,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     return;
                 }
 
-                
+
                 if (requestedJson) {
                     GetFormatResponse response = new GetFormatResponse() {
                         format = format,
@@ -608,6 +608,33 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 WriteResponse(c, responseStr);
             }
         };
+
+
+        // +------------------------------------------+
+        // |         /cct/getPlaceholderList          |
+        // +------------------------------------------+
+        private static readonly RCEndPoint GetPlaceholderListEndPoint = new RCEndPoint() {
+            Path = "/cct/getPlaceholderList",
+            PathHelp = "/cct/getPlaceholderList",
+            Name = "Consistency Tracker Get Placeholder List [JSON]",
+            InfoHTML = "Gets all available placeholders for live-data formatting.",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                GetPlaceholderListResponse response = new GetPlaceholderListResponse() {
+                    placeholders = mod.StatsManager.GetPlaceholderExplanationList(),
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+
+
         #endregion
 
 
@@ -771,16 +798,25 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         //because of static initialization order, otherwise the list elements are just new RCEndPoint() objects (with null fields)
         private static readonly List<RCEndPoint> EndPoints = new List<RCEndPoint>() {
             InfoEndPoint,
+
+            //General
             SettingsEndPoint,
             StateEndPoint,
+
+            //Stats
             CurrentChapterStatsEndPoint,
             AddGoldenDeathEndPoint,
+
+            //Paths
             CurrentChapterPathEndPoint,
             ListAllPathsEndPoint,
             GetPathFileEndPoint,
             SetPathFileEndPoint,
+            
+            //Live-Data
             ParseFormatEndPoint,
-            GetFormatEndPoint
+            GetFormatEndPoint,
+            GetPlaceholderListEndPoint
         };
 
         private class UpdateCache {

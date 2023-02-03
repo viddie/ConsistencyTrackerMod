@@ -131,7 +131,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(BasicPathlessInfo.CampaignName, "Name of the campaign"),
 
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, "Name of the chapter"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, "Name of the side of the chapter (A/B/C-Side"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, "Name of the side of the chapter (A/B/C-Side)"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterDebugName, "[DEV] Debug name of the chapter"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSID, "[DEV] SID of chapter"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, "[DEV] Dialog sanitized SID of chapter"),

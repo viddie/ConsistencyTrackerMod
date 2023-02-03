@@ -147,7 +147,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //choke-rate;Room Choke Rate: {room:chokeRate} (CP: {checkpoint:chokeRate})
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many runs died to this room / how many runs passed this room)"),
+                new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many golden runs died to this room / how many golden runs passed this room)"),
                 new KeyValuePair<string, string>(RoomChokeRateSession, "Choke Rate of the current room in the current session"),
                 new KeyValuePair<string, string>(CheckpointChokeRate, "Choke Rate of the current checkpoint"),
                 new KeyValuePair<string, string>(CheckpointChokeRateSession, "Choke Rate of the current checkpoint in the current session"),

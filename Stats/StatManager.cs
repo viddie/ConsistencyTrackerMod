@@ -165,22 +165,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return format;
         }
 
-        /// <summary>
-        /// Gets a format's text from the most recent stats pass
-        /// </summary>
-        /// <param name="format">The format to get</param>
-        /// <returns>The text if a successful stats pass has been done before, null if not or the format name wasn't found</returns>
-        public string GetLastPassFormatText(string format) {
-            if (!HadPass) return null;
-
-            KeyValuePair<StatFormat, string> stat = LastResults.FirstOrDefault((kv) => kv.Key.Name == format);
-            if (stat.Key == null) {
-                return null;
-            }
-
-            return stat.Value;
-        }
-
+        #region Stats Passes
         /// <summary>To summarize some data that many stats need.</summary>
         public void AggregateStatsPass(PathInfo pathInfo, ChapterStats chapterStats) {
             if (pathInfo == null) return;
@@ -246,7 +231,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
             }
         }
+        #endregion
 
+        #region Overlay Hooks
         public void UpdateOverlayTexts(string formatName, string formatText) {
             ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
 
@@ -286,29 +273,38 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
             }
         }
+        #endregion
 
+        #region Util
+        /// <summary>
+        /// Gets a format's text from the most recent stats pass
+        /// </summary>
+        /// <param name="format">The format to get</param>
+        /// <returns>The text if a successful stats pass has been done before, null if not or the format name wasn't found</returns>
+        public string GetLastPassFormatText(string format) {
+            if (!HadPass) return null;
 
-        public static string MissingPathFormat(string format, string id) {
-            if (HideFormatsWithoutPath) {
-                return "";
+            KeyValuePair<StatFormat, string> stat = LastResults.FirstOrDefault((kv) => kv.Key.Name == format);
+            if (stat.Key == null) {
+                return null;
             }
-            return format.Replace(id, MissingPathOutput);
-        }
-        public static string NotOnPathFormat(string format, string id, string addition="") {
-            return format.Replace(id, $"{NotOnPathOutput}{addition}");
-        }
-        public static string NotOnPathFormatPercent(string format, string id) {
-            return NotOnPathFormat(format, id, "%");
-        }
-        public static string MissingValueFormat(string format, string id, string addition = "") {
-            return format.Replace(id, $"{ValueNotAvailable}{addition}");
-        }
-        public static string MissingValueFormatPercent(string format, string id) {
-            return MissingValueFormat(format, id, "%");
+
+            return stat.Value;
         }
 
-        //basic-info;--- Chapter ---\nName: {chapter:debugName}\nGolden Deaths: {chapter:goldenDeaths} ({chapter:goldenDeathsSession})\nGolden Chance: {chapter:goldenChance}\n\n--- Checkpoint ---\nName: {checkpoint:name} ({checkpoint:abbreviation})\nGolden Deaths: {checkpoint:goldenDeaths} ({checkpoint:goldenDeathsSession})\nGolden Chance: {checkpoint:goldenChance}\n\n--- Room ---\nName: {room:name} ({room:debugName})\nGolden Deaths: {room:goldenDeaths} ({room:goldenDeathsSession})
+        public List<KeyValuePair<string, string>> GetPlaceholderExplanationList() {
+            List<KeyValuePair<string, string>> explanations = new List<KeyValuePair<string, string>>();
+            foreach (Stat stat in AllStats) {
+                foreach (KeyValuePair<string, string> explanation in stat.GetPlaceholderExplanations()) {
+                    explanations.Add(explanation);
+                }
+            }
 
+            return explanations;
+        }
+        #endregion
+
+        #region Format file IO
         public Dictionary<StatFormat, List<Stat>> CreateDefaultFormatFile(string path) {
             Dictionary <StatFormat, List <Stat>> formats = new Dictionary<StatFormat, List<Stat>>();
 
@@ -394,8 +390,30 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             return toRet;
         }
+        #endregion
 
-
+        #region Formatting
+        public static string MissingPathFormat(string format, string id) {
+            if (HideFormatsWithoutPath) {
+                return "";
+            }
+            return format.Replace(id, MissingPathOutput);
+        }
+        public static string NotOnPathFormat(string format, string id, string addition = "") {
+            return format.Replace(id, $"{NotOnPathOutput}{addition}");
+        }
+        public static string NotOnPathFormatPercent(string format, string id) {
+            return NotOnPathFormat(format, id, "%");
+        }
+        public static string MissingValueFormat(string format, string id, string addition = "") {
+            return format.Replace(id, $"{ValueNotAvailable}{addition}");
+        }
+        public static string MissingValueFormatPercent(string format, string id) {
+            return MissingValueFormat(format, id, "%");
+        }
+        
+        
+        
         public static string FormatPercentage(int a, int b, int decimals=int.MaxValue) {
             if (decimals == int.MaxValue) {
                 decimals = DecimalPlaces;
@@ -429,5 +447,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string GetFormattedRoomName(RoomInfo rInfo) {
             return rInfo.GetFormattedRoomName(RoomNameType);
         }
+        #endregion
     }
 }
