@@ -556,6 +556,58 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 WriteResponse(c, responseStr);
             }
         };
+
+
+        // +------------------------------------------+
+        // |            /cct/getFormat              |
+        // +------------------------------------------+
+        private static readonly RCEndPoint GetFormatEndPoint = new RCEndPoint() {
+            Path = "/cct/getFormat",
+            PathHelp = "/cct/getFormat?format={formatName}",
+            Name = "Consistency Tracker Get Live-Data Format",
+            InfoHTML = "Gets the result of an existing live-data format.",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+                
+                string format = GetQueryParameter(c, "format");
+
+                if (format == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "format");
+                    return;
+                }
+
+                if (!mod.StatsManager.HadPass) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
+                    return;
+                }
+
+                string text = mod.StatsManager.GetLastPassFormatText(format);
+
+                if (text == null) { //format didnt exist
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Live-Data format '{format}' does not exist");
+                    return;
+                }
+
+                
+                if (requestedJson) {
+                    GetFormatResponse response = new GetFormatResponse() {
+                        format = format,
+                        text = text,
+                    };
+                    responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                } else {
+                    string content = text;
+                    responseStr = FormatResponsePlain(RCErrorCode.OK, content);
+                }
+
+                WriteResponse(c, responseStr);
+            }
+        };
         #endregion
 
 
@@ -719,15 +771,16 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         //because of static initialization order, otherwise the list elements are just new RCEndPoint() objects (with null fields)
         private static readonly List<RCEndPoint> EndPoints = new List<RCEndPoint>() {
             InfoEndPoint,
+            SettingsEndPoint,
             StateEndPoint,
             CurrentChapterStatsEndPoint,
+            AddGoldenDeathEndPoint,
             CurrentChapterPathEndPoint,
-            ParseFormatEndPoint,
             ListAllPathsEndPoint,
             GetPathFileEndPoint,
-            AddGoldenDeathEndPoint,
-            SettingsEndPoint,
-            SetPathFileEndPoint
+            SetPathFileEndPoint,
+            ParseFormatEndPoint,
+            GetFormatEndPoint
         };
 
         private class UpdateCache {

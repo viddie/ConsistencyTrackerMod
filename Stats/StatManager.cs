@@ -47,9 +47,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static ListFormat ListOutputFormat { get => Mod.ModSettings.LiveDataListOutputFormat; }
 
 
-        public Dictionary<StatFormat, List<Stat>> Formats;
-        public Dictionary<StatFormat, string> LastResults = new Dictionary<StatFormat, string>();
+        public Dictionary<StatFormat, List<Stat>> Formats { get; set; }
+        public Dictionary<StatFormat, string> LastResults { get; set; } = new Dictionary<StatFormat, string>();
 
+        public bool HadPass => LastPassChapterStats != null;
         public ChapterStats LastPassChapterStats = null;
         public PathInfo LastPassPathInfo = null;
 
@@ -162,6 +163,22 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             return format;
+        }
+
+        /// <summary>
+        /// Gets a format's text from the most recent stats pass
+        /// </summary>
+        /// <param name="format">The format to get</param>
+        /// <returns>The text if a successful stats pass has been done before, null if not or the format name wasn't found</returns>
+        public string GetLastPassFormatText(string format) {
+            if (!HadPass) return null;
+
+            KeyValuePair<StatFormat, string> stat = LastResults.FirstOrDefault((kv) => kv.Key.Name == format);
+            if (stat.Key == null) {
+                return null;
+            }
+
+            return stat.Value;
         }
 
         /// <summary>To summarize some data that many stats need.</summary>

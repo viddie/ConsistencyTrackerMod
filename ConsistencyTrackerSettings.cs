@@ -554,6 +554,9 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText1Size { get; set; } = 100;
 
+        //[SettingIgnore]
+        //public int IngameOverlayText1Alpha { get; set; } = 100;
+
         [SettingIgnore]
         public int IngameOverlayText1OffsetX { get; set; } = 5;
 
@@ -579,6 +582,9 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public int IngameOverlayText2Size { get; set; } = 100;
+
+        //[SettingIgnore]
+        //public int IngameOverlayText2Alpha { get; set; } = 100;
 
         [SettingIgnore]
         public int IngameOverlayText2OffsetX { get; set; } = 5;
@@ -606,6 +612,9 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText3Size { get; set; } = 100;
 
+        //[SettingIgnore]
+        //public int IngameOverlayText3Alpha { get; set; } = 100;
+
         [SettingIgnore]
         public int IngameOverlayText3OffsetX { get; set; } = 5;
 
@@ -631,6 +640,9 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public int IngameOverlayText4Size { get; set; } = 100;
+
+        //[SettingIgnore]
+        //public int IngameOverlayText4Alpha { get; set; } = 100;
 
         [SettingIgnore]
         public int IngameOverlayText4OffsetX { get; set; } = 5;
@@ -696,9 +708,9 @@ namespace Celeste.Mod.ConsistencyTracker
                     if (hasStats && holdingGolden && IngameOverlayText1FormatGolden != noneFormat) {
                         return;
                     }
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(1, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(v);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(1, text);
                     }
                 }
             });
@@ -710,9 +722,9 @@ namespace Celeste.Mod.ConsistencyTracker
                         return;
                     }
                     string formatName = v == noneFormat ? IngameOverlayText1Format : v;
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == formatName);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(1, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(1, text);
                     }
                 }
             });
@@ -724,6 +736,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
+                OnValueChange = (value) => {
+                    IngameOverlayText1Size = value;
+                    Mod.IngameOverlay.SetTextSize(1, value);
+                }
+            });
+            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText1Alpha) {
+            //    OnValueChange = (value) => {
+            //        IngameOverlayText1Alpha = value;
+            //        Mod.IngameOverlay.SetTextAlpha(1, value);
+            //    }
+            //});
             subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText1OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetX = value;
@@ -736,14 +760,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextOffsetY(1, value);
                 }
             });
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
-                OnValueChange = (value) => {
-                    IngameOverlayText1Size = value;
-                    Mod.IngameOverlay.SetTextSize(1, value);
-                }
-            });
 
-            
+
             // ========== Text 2 ==========
             subMenu.Add(new TextMenu.SubHeader("Text 2"));
             subMenu.Add(new TextMenu.OnOff("Text 2 Enabled", IngameOverlayText2Enabled) {
@@ -766,9 +784,9 @@ namespace Celeste.Mod.ConsistencyTracker
                     if (hasStats && holdingGolden && IngameOverlayText2FormatGolden != noneFormat) {
                         return;
                     }
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(2, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(v);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(2, text);
                     }
                 }
             });
@@ -780,9 +798,9 @@ namespace Celeste.Mod.ConsistencyTracker
                         return;
                     }
                     string formatName = v == noneFormat ? IngameOverlayText2Format : v;
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == formatName);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(2, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(2, text);
                     }
                 }
             });
@@ -794,6 +812,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
+                OnValueChange = (value) => {
+                    IngameOverlayText2Size = value;
+                    Mod.IngameOverlay.SetTextSize(2, value);
+                }
+            });
+            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText2Alpha) {
+            //    OnValueChange = (value) => {
+            //        IngameOverlayText2Alpha = value;
+            //        Mod.IngameOverlay.SetTextAlpha(2, value);
+            //    }
+            //});
             subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText2OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetX = value;
@@ -806,13 +836,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextOffsetY(2, value);
                 }
             });
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
-                OnValueChange = (value) => {
-                    IngameOverlayText2Size = value;
-                    Mod.IngameOverlay.SetTextSize(2, value);
-                }
-            });
-            
+
             // ========== Text 3 ==========
             subMenu.Add(new TextMenu.SubHeader("Text 3"));
             subMenu.Add(new TextMenu.OnOff("Text 3 Enabled", IngameOverlayText3Enabled) {
@@ -835,9 +859,9 @@ namespace Celeste.Mod.ConsistencyTracker
                     if (hasStats && holdingGolden && IngameOverlayText3FormatGolden != noneFormat) {
                         return;
                     }
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(3, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(v);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(3, text);
                     }
                 }
             });
@@ -849,9 +873,9 @@ namespace Celeste.Mod.ConsistencyTracker
                         return;
                     }
                     string formatName = v == noneFormat ? IngameOverlayText3Format : v;
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == formatName);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(3, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(3, text);
                     }
                 }
             });
@@ -863,6 +887,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
+                OnValueChange = (value) => {
+                    IngameOverlayText3Size = value;
+                    Mod.IngameOverlay.SetTextSize(3, value);
+                }
+            });
+            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText3Alpha) {
+            //    OnValueChange = (value) => {
+            //        IngameOverlayText3Alpha = value;
+            //        Mod.IngameOverlay.SetTextAlpha(3, value);
+            //    }
+            //});
             subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText3OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetX = value;
@@ -875,14 +911,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextOffsetY(3, value);
                 }
             });
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
-                OnValueChange = (value) => {
-                    IngameOverlayText3Size = value;
-                    Mod.IngameOverlay.SetTextSize(3, value);
-                }
-            });
 
-            
+
             // ========== Text 4 ==========
             subMenu.Add(new TextMenu.SubHeader("Text 4"));
             subMenu.Add(new TextMenu.OnOff("Text 4 Enabled", IngameOverlayText4Enabled) {
@@ -905,9 +935,9 @@ namespace Celeste.Mod.ConsistencyTracker
                     if (hasStats && holdingGolden && IngameOverlayText4FormatGolden != noneFormat) {
                         return;
                     }
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == v);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(4, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(v);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(4, text);
                     }
                 }
             });
@@ -919,9 +949,9 @@ namespace Celeste.Mod.ConsistencyTracker
                         return;
                     }
                     string formatName = v == noneFormat ? IngameOverlayText4Format : v;
-                    KeyValuePair<StatFormat, string> stat = Mod.StatsManager.LastResults.FirstOrDefault((kv) => kv.Key.Name == formatName);
-                    if (stat.Key != null) {
-                        Mod.IngameOverlay.SetText(4, stat.Value);
+                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
+                    if (text != null) {
+                        Mod.IngameOverlay.SetText(4, text);
                     }
                 }
             });
@@ -933,6 +963,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
+                OnValueChange = (value) => {
+                    IngameOverlayText4Size = value;
+                    Mod.IngameOverlay.SetTextSize(4, value);
+                }
+            });
+            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText4Alpha) {
+            //    OnValueChange = (value) => {
+            //        IngameOverlayText4Alpha = value;
+            //        Mod.IngameOverlay.SetTextAlpha(4, value);
+            //    }
+            //});
             subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText4OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetX = value;
@@ -945,14 +987,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextOffsetY(4, value);
                 }
             });
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
-                OnValueChange = (value) => {
-                    IngameOverlayText4Size = value;
-                    Mod.IngameOverlay.SetTextSize(4, value);
-                }
-            });
 
-            
+
 
             //subMenu.Add(new TextMenu.SubHeader("[Developement Only] Debug Features"));
             //subMenu.Add(new TextMenu.OnOff("Text Overlay Debug Position", IngameOverlayTextDebugPositionEnabled) {

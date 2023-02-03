@@ -27,7 +27,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public PixelFont Font { get; set; }
         public float FontFaceSize { get; set; }
         public Color TextColor { get; set; } = Color.White;
-        private Color DisplayTextColor { get; set; } = Color.White;
         public float StrokeSize { get; set; } = 2f;
         public Color StrokeColor { get; set; } = Color.Black;
 
@@ -115,6 +114,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
         private void UpdateColor() {
             TextColor = new Color(1f, 1f, 1f, Alpha);
+            StrokeColor = new Color(0f, 0f, 0f, Alpha);
         }
 
         public override void Render() {

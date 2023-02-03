@@ -354,3 +354,5 @@ MigrationBackup/
 
 # JetBrains
 .idea/
+/ConsistencyTrackerMod.zip
+/ConsistencyTracker/mockups
