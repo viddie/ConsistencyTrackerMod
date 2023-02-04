@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Path Editing Tool</title>
+        <script src="common.js"></script>
+        <script src="LiveDataEditTool.js"></script>
+        <link rel="stylesheet" href="LiveDataEditTool.css">
+    </head>
+    <body class="flex-center">
+        <div id="main-view" class="flex-center">
+            <div class="flex-center-column">
+                <h1>Live-Data Format Tool</h1>
+                <p></p>
+                <h2>Loading formats...</h2>
+            </div>
+        </div>
+
+
+
+        <div id="format-view" class="flex-center">
+            <div id="sidebar-left">
+                <h3>Formats</h3>
+                <hr>
+                <div id="format-list">
+                    <a class="button">full-golden-attempts</a>
+                    <a class="button">full-viddie-style</a>
+                    <a class="button">full-parrot-style</a>
+                    <a class="button">full-room-info</a>
+                    <a class="button">full-checkpoint-info</a>
+                    <a class="button">full-chapter-info</a>
+                </div>
+                <hr>
+                <div id="format-buttons" class="flex-center">
+                    <a id="create-format-button" class="button">Create Format</a>
+                </div>
+            </div>
+
+            <div id="main-container">
+                <h2>Editor</h2>
+                <p>Format Name</p>
+                <input id="format-name" type="text" placeholder="Name">
+                <p>Format Text</p>
+                <textarea id="format-text" placeholder="Text"></textarea>
+                <hr>
+                <p>Preview</p>
+                <textarea id="format-preview" disabled></textarea>
+                <hr>
+                <a id="format-save-button" class="button">Save</a>
+            </div>
+
+            <div id="sidebar-right" class="flex-center-column">
+                <h3>Placeholders</h3>
+                <div id="placeholder-list">
+                    <ul>
+                        <li>{room:successRate}</li>
+                        <li>{campaign:name}</li>
+                        <li>{chapter:name}</li>
+                        <li>{chapter:sideName}</li>
+                        <li>{chapter:debugName}</li>
+                        <li>{chapter:sid}</li>
+                        <li>{chapter:goldenDeaths}</li>
+                        <li>{chapter:goldenDeathsSession}</li>
+                    </ul>
+                </div>
+                <div id="placeholder-explanation">
+                    <h3 id="placeholder-explanation-name">{savestate:checkpointProgressPercent}</h3>
+                    <p id="placeholder-explanation-description">Percent completion of the savestate checkpoint given the savestate room</p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

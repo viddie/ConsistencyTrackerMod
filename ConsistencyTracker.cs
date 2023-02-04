@@ -348,9 +348,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (levelDataNext.HasCheckpoint) {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
-
+            
             string roomName = SanitizeRoomName(levelDataNext.Name);
-            Log($"[Level.OnTransitionTo] levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}");
+            Log($"[Level.OnTransitionTo] levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, level.Session.StartCheckpoint->{level.Session.StartCheckpoint}, levelDataNext.Position->{levelDataNext.Position}, levelDataNext.Bounds->{levelDataNext.Bounds}");
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
             SetNewRoom(roomName, true, holdingGolden);
         }
@@ -421,7 +421,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = null;
             }
 
-            if (!DoRecordPath && ModSettings.RecordPath) {
+            if (!DoRecordPath && ModSettings.RecordPath) { // TODO figure out why i did this
                 DoRecordPath = true;
             }
         }

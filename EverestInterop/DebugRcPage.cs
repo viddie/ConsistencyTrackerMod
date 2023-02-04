@@ -635,6 +635,29 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         };
 
 
+        // +------------------------------------------+
+        // |            /cct/getFormatsList           |
+        // +------------------------------------------+
+        private static readonly RCEndPoint GetFormatListEndPoint = new RCEndPoint() {
+            Path = "/cct/getFormatsList",
+            PathHelp = "/cct/getFormatsList",
+            Name = "Consistency Tracker Get Formats List [JSON]",
+            InfoHTML = "Gets all available formats for live-data.",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                GetFormatListResponse response = new GetFormatListResponse() {
+                    formats = new List<StatFormat>(mod.StatsManager.Formats.Select((kv) => kv.Key)),
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
         #endregion
 
 
@@ -816,7 +839,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             //Live-Data
             ParseFormatEndPoint,
             GetFormatEndPoint,
-            GetPlaceholderListEndPoint
+            GetPlaceholderListEndPoint,
+            GetFormatListEndPoint,
         };
 
         private class UpdateCache {

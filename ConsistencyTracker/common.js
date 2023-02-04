@@ -32,3 +32,14 @@ function escapeRegExp(string) {
 function replaceAll(str, find, replace) {
     return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 }
+
+
+//Helper for loading elements by ids
+function loadElements(elementIdsObject){
+    for(var key in elementIdsObject){
+        if(!elementIdsObject.hasOwnProperty(key)){
+            continue;
+        }
+        elementIdsObject[key] = document.getElementById(elementIdsObject[key]);
+    }
+}
