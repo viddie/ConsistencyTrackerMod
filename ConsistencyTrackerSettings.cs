@@ -232,13 +232,13 @@ namespace Celeste.Mod.ConsistencyTracker
 
             
             subMenu.Add(new TextMenu.SubHeader($"Format Editing"));
-            subMenu.Add(new TextMenu.Button("Open Format Edit Tool In Browser") {
+            subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
                 OnPressed = () => {
                     string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/LiveDataEditTool.html"));
                     Process.Start("explorer", path);
                 },
             });
-            subMenu.Add(new TextMenu.Button("Open Format File In Text Editor").Pressed(() => {
+            subMenu.Add(new TextMenu.Button("Open Format Text File").Pressed(() => {
                 string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}"));
                 Process.Start("explorer", path);
             }));
