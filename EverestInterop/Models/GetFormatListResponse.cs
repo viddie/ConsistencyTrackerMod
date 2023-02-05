@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
     public class GetFormatListResponse : Response {
-        public List<StatFormat> formats { get; set; }
+        public List<StatFormat> customFormats { get; set; }
+        public List<StatFormat> defaultFormats { get; set; }
     }
 }

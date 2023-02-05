@@ -5,7 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    internal class GetPlaceholderListResponse : Response {
-        public List<KeyValuePair<string, string>> placeholders { get; set; }
+    public class GetPlaceholderListResponse : Response {
+        public List<Placeholder> placeholders { get; set; }
+
+        public class Placeholder {
+            public string name { get; set; }
+            public string description { get; set; }
+        }
     }
 }

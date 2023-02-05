@@ -39,6 +39,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string NotOnPathOutput = "-";
         public static string ValueNotAvailable = "-";
 
+        private static string FormatFilePath => ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
+
         public static bool HideFormatsWithoutPath { get => Mod.ModSettings.LiveDataHideFormatsWithoutPath; }
         public static RoomNameDisplayType RoomNameType { get => Mod.ModSettings.LiveDataRoomNameDisplayType; }
         public static int AttemptCount { get => Mod.ModSettings.LiveDataSelectedAttemptCount; }
@@ -61,7 +63,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public void LoadFormats() {
             Mod.Log($"[LoadFormats] Loading live-data formats...");
-            string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
+            string formatFilePath = FormatFilePath;
+            
             if (File.Exists(formatFilePath)) {
                 Mod.Log($"[LoadFormats] Found {FormatFileName}...");
                 string content = File.ReadAllText(formatFilePath);
@@ -71,7 +74,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             } else {
                 Mod.Log($"[LoadFormats] Did not find {FormatFileName}, creating new...");
-                Formats = CreateDefaultFormatFile(formatFilePath);
+                Formats = CreateDefaultFormatsObject();
+                SaveFormatFile();
                 Mod.Log($"[LoadFormats] Read '{Formats.Count}' formats from default format file");
             }
 
@@ -101,13 +105,16 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void FindStatsForFormats() {
-            foreach (StatFormat format in Formats.Keys) {
-                List<Stat> statList = Formats[format];
+            List<StatFormat> keys = Formats.Keys.ToList();
+            foreach (StatFormat format in keys) {
+                List<Stat> statList = new List<Stat>();
 
                 foreach (Stat stat in AllStats) {
                     if (stat.ContainsIdentificator(format.Format))
                         statList.Add(stat);
                 }
+
+                Formats[format] = statList;
             }
         }
 
@@ -302,12 +309,99 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             return explanations;
         }
+
+        public List<StatFormat> GetFormatListSorted() {
+            List<StatFormat> formats = new List<StatFormat>();
+
+            List<StatFormat> customFormats = GetCustomFormatList();
+            List<StatFormat> defaultFormats = GetDefaultFormatList();
+
+            foreach (StatFormat format in customFormats) {
+                formats.Add(format);
+            }
+            foreach (StatFormat format in defaultFormats) {
+                formats.Add(format);
+            }
+
+            return formats;
+        }
+        public List<StatFormat> GetCustomFormatList() {
+            List<StatFormat> formats = new List<StatFormat>();
+
+            List<StatFormat> defaultFormats = GetDefaultFormatList();
+            
+            foreach (StatFormat format in Formats.Keys) {
+                if (defaultFormats.Any((f) => f.Name == format.Name)) {
+                    
+                } else {
+                    formats.Add(format);
+                }
+            }
+
+            return formats;
+        }
+
+        public List<StatFormat> GetDefaultFormatList() {
+            List<StatFormat> formats = new List<StatFormat>();
+            foreach (Stat stat in AllStats) {
+                foreach (StatFormat statFormat in stat.GetDefaultFormats()) {
+                    formats.Add(statFormat);
+                }
+            }
+            return formats;
+        }
+        public List<StatFormat> GetAvailableDefaultFormatList() {
+            List<StatFormat> formats = new List<StatFormat>();
+
+            List<StatFormat> defaultFormats = GetDefaultFormatList();
+
+            foreach (StatFormat format in Formats.Keys) {
+                if (defaultFormats.Any((f) => f.Name == format.Name)) {
+                    formats.Add(format);
+                }
+            }
+
+            return formats;
+        }
+
+        public bool HasFormat(string formatName) {
+            return Formats.Keys.Any((f) => f.Name == formatName);
+        }
+
+        public void CreateFormat(string formatName, string formatText) {
+            StatFormat stat = new StatFormat(formatName, formatText);
+            Formats.Add(stat, null);
+            FindStatsForFormats();
+            SaveFormatFile();
+            Mod.SaveChapterStats();
+        }
+        public bool UpdateFormat(string formatName, string formatText) {
+            StatFormat stat = Formats.Keys.FirstOrDefault((f) => f.Name == formatName);
+            if (stat == null) {
+                return false;
+            }
+            stat.Format = formatText;
+            FindStatsForFormats();
+            SaveFormatFile();
+            Mod.SaveChapterStats();
+            return true;
+        }
+        public bool DeleteFormat(string formatName) {
+            StatFormat stat = Formats.Keys.FirstOrDefault((f) => f.Name == formatName);
+            if (stat == null) {
+                return false;
+            }
+            Formats.Remove(stat);
+            SaveFormatFile();
+            Mod.SaveChapterStats();
+            return true;
+        }
         #endregion
 
         #region Format file IO
-        public Dictionary<StatFormat, List<Stat>> CreateDefaultFormatFile(string path) {
-            Dictionary <StatFormat, List <Stat>> formats = new Dictionary<StatFormat, List<Stat>>();
+        /// <summary>Only invoking this after CREATE/DELETE/UPDATE format requests</summary>
 
+        public void SaveFormatFile(bool resetDefaultFormats = false) {
             string prelude = $"# Lines starting with a # are ignored\n" +
                 $"# \n" +
                 $"# Each line in this file corresponds to one output file following this scheme:\n" +
@@ -331,10 +425,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 if (stat.GetPlaceholderExplanations().Count > 0)
                     prelude += $"# \n";
-
-                foreach (StatFormat statFormat in stat.GetDefaultFormats()) {
-                    formats.Add(statFormat, new List<Stat>());
-                }
             }
 
 
@@ -342,23 +432,40 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 $"# Predefined Formats\n" +
                 $"# ";
 
-            string content = FormatsToFile(formats);
+            string content;
+            if (resetDefaultFormats) {
+                content = FormatsToString(GetDefaultFormatList());
+            } else {
+                content = FormatsToString(GetAvailableDefaultFormatList());
+            }
 
             string afterCustomFormatHeader = $"# \n" +
                 $"# Custom Formats\n" +
-                $"# \n";
+                $"# ";
 
-            string combined = $"{prelude}\n{afterExplanationHeader}\n{content}\n{afterCustomFormatHeader}";
+            string customFormats = FormatsToString(GetCustomFormatList());
 
+            string combined = $"{prelude}\n{afterExplanationHeader}\n{content}\n{afterCustomFormatHeader}\n{customFormats}";
+
+            string path = FormatFilePath;
             File.WriteAllText(path, combined);
+        }
+
+        private Dictionary<StatFormat, List<Stat>> CreateDefaultFormatsObject() {
+            Dictionary<StatFormat, List<Stat>> formats = new Dictionary<StatFormat, List<Stat>>();
+            foreach (Stat stat in AllStats) {
+                foreach (StatFormat statFormat in stat.GetDefaultFormats()) {
+                    formats.Add(statFormat, new List<Stat>());
+                }
+            }
 
             return formats;
         }
 
-        public static string FormatsToFile(Dictionary<StatFormat, List<Stat>> formats) {
+        public static string FormatsToString(List<StatFormat> formats) {
             string toRet = $"";
 
-            foreach (StatFormat format in formats.Keys) {
+            foreach (StatFormat format in formats) {
                 string formatText = format.Format;
                 formatText = formatText.Replace("\n", "\\n");
                 toRet += $"{format.Name}{FormatSeparator}{formatText}\n\n";

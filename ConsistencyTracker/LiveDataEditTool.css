@@ -33,6 +33,11 @@ a.button:hover {
     background-color: rgb(55, 55, 55);
     color: rgb(255, 255, 255);
 }
+#main-container > a.button[disabled] {
+    background-color: rgb(45, 45, 45);
+    color: rgb(200, 200, 200);
+    cursor: not-allowed;
+}
 
 .flex-center {
     display: flex;
@@ -71,6 +76,9 @@ a.button:hover {
     padding: 0 10px;
     text-align: center;
 }
+#sidebar-left > h3 {
+    margin-top: 15px;
+}
 #format-list {
     width: 100%;
     height: 60%;
@@ -80,6 +88,9 @@ a.button:hover {
 }
 #format-list > a.button {
     font-size: 60%;
+}
+#format-list > h5 {
+    margin: 5px 0;
 }
 
 
@@ -122,6 +133,9 @@ a.button:hover {
     padding: 0 10px;
     font-size: 60%;
 }
+#sidebar-right > h3 {
+    margin-top: 15px;
+}
 #placeholder-list {
     width: 100%;
     flex: 80;
@@ -131,8 +145,20 @@ a.button:hover {
 #placeholder-list > h3 {
     text-align: center;
 }
+#placeholder-list > h5 {
+    margin-bottom: 5px;
+    margin-top: 15px;
+    padding-left: 5px;
+    
+    text-align: left;
+    text-decoration: underline;
+    font-size: 100%;
+}
 #placeholder-list > ul {
     list-style-type: none;
+    padding-left: 30px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 #placeholder-list > ul > li {
     padding: 3px 0;

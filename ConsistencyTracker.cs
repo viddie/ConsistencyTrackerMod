@@ -21,14 +21,14 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static ConsistencyTrackerModule Instance;
         private static readonly int LOG_FILE_COUNT = 10;
 
-        public static readonly string ModVersion = "2.0.1";
+        public static readonly string ModVersion = "2.1.0";
         public static readonly string OverlayVersion = "2.0.0";
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
 
         public static string BaseFolderPath = "./ConsistencyTracker/";
-        public static string ExternalOverlayFolder = "external-overlay";
+        public static string ExternalToolsFolder = "external-tools";
         public static string LogsFolder = "logs";
         public static string PathsFolder = "paths";
         public static string StatsFolder = "stats";
@@ -112,9 +112,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             CheckFolderExists(GetPathToFolder(LogsFolder));
             CheckFolderExists(GetPathToFolder(SummariesFolder));
 
-            bool overlayFolderExisted = CheckFolderExists(GetPathToFolder(ExternalOverlayFolder));
-            if (!overlayFolderExisted) {
-                CreateExternalOverlayAndTools();
+            bool toolsFolderExisted = CheckFolderExists(GetPathToFolder(ExternalToolsFolder));
+            if (!toolsFolderExisted) {
+                CreateExternalTools();
             }
 
             LogInit();
@@ -766,22 +766,24 @@ namespace Celeste.Mod.ConsistencyTracker {
             File.WriteAllText(path, content);
         }
 
-        public void CreateExternalOverlayAndTools() {
+        public void CreateExternalTools() {
             //Overlay files
-            CreateOverlayFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
-            CreateOverlayFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
-            CreateOverlayFile("CCTOverlay.js", Resources.CCTOverlay_JS);
-            CreateOverlayFile("common.js", Resources.CCT_common_JS);
-            CheckFolderExists(GetPathToFolder($"{ExternalOverlayFolder}/img"));
-            Resources.goldberry_GIF.Save(GetPathToFile($"{ExternalOverlayFolder}/img/goldberry.gif"));
+            CreateExternalToolFile("common.js", Resources.CCT_common_JS);
+            CreateExternalToolFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
+            CreateExternalToolFile("CCTOverlay.js", Resources.CCTOverlay_JS);
+            CreateExternalToolFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
+            CheckFolderExists(GetPathToFolder($"{ExternalToolsFolder}/img"));
+            Resources.goldberry_GIF.Save(GetPathToFile($"{ExternalToolsFolder}/img/goldberry.gif"));
 
             //Path Edit Tool files
 
             //Format Edit Tool files
-            
+            CreateExternalToolFile("LiveDataEditTool.html", Resources.LiveDataEditTool_HTML);
+            CreateExternalToolFile("LiveDataEditTool.js", Resources.LiveDataEditTool_JS);
+            CreateExternalToolFile("LiveDataEditTool.css", Resources.LiveDataEditTool_CSS);
         }
-        private void CreateOverlayFile(string name, string content) {
-            string path = GetPathToFile($"{ExternalOverlayFolder}/{name}");
+        private void CreateExternalToolFile(string name, string content) {
+            string path = GetPathToFile($"{ExternalToolsFolder}/{name}");
             File.WriteAllText(path, content);
         }
 

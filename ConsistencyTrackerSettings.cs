@@ -231,6 +231,20 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
 
             
+            subMenu.Add(new TextMenu.SubHeader($"Format Editing"));
+            subMenu.Add(new TextMenu.Button("Open Format Edit Tool In Browser") {
+                OnPressed = () => {
+                    string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/LiveDataEditTool.html"));
+                    Process.Start("explorer", path);
+                },
+            });
+            subMenu.Add(new TextMenu.Button("Open Format File In Text Editor").Pressed(() => {
+                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}"));
+                Process.Start("explorer", path);
+            }));
+
+
+            subMenu.Add(new TextMenu.SubHeader($"Settings"));
             subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
                 OnValueChange = (value) => {
                     LiveDataFileOutputEnabled = value;
@@ -297,19 +311,18 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
 
 
+            
             subMenu.Add(new TextMenu.SubHeader($"Reload the format file, after editing 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'!"));
-            subMenu.Add(new TextMenu.Button("Open Format Edit Tool In Browser (Coming Soon...)") {
-                Disabled = true,
-            });
-            subMenu.Add(new TextMenu.Button("Open format file in text editor").Pressed(() => {
-                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}"));
-                Process.Start("explorer", path);
-            }));
             subMenu.Add(new TextMenu.Button("Reload format file") {
                 OnPressed = () => {
                     Mod.StatsManager.LoadFormats();
                     Mod.SaveChapterStats();
                 }
+            });
+            subMenu.Add(new TextMenu.Button("Update Live-Data Edit Tool") {
+                OnPressed = () => {
+                    Mod.CreateExternalTools();
+                },
             });
 
             menu.Add(subMenu);
@@ -368,7 +381,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
 
             subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
-                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalOverlayFolder}/CCTOverlay.html"));
+                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/CCTOverlay.html"));
                 Process.Start("explorer", path);
             }));
 
@@ -521,7 +534,7 @@ namespace Celeste.Mod.ConsistencyTracker
             //Update Overlay/Tools buttons
             subMenu.Add(new TextMenu.SubHeader("===== Updating ====="));
             subMenu.Add(new TextMenu.Button("Update External Overlay").Pressed(() => {
-                Mod.CreateExternalOverlayAndTools();
+                Mod.CreateExternalTools();
             }));
 
 
@@ -674,7 +687,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             //Get all formats
-            List<string> availableFormats = new List<string>(Mod.StatsManager.Formats.Select((kv) => kv.Key.Name));
+            List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
             List<string> availableFormatsGolden = new List<string>(availableFormats);
             string noneFormat = "<same>";
             availableFormatsGolden.Insert(0, noneFormat);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Path Editing Tool</title>
+        <title>Live-Data Format Tool</title>
         <script src="common.js"></script>
         <script src="LiveDataEditTool.js"></script>
         <link rel="stylesheet" href="LiveDataEditTool.css">
@@ -11,7 +11,7 @@
             <div class="flex-center-column">
                 <h1>Live-Data Format Tool</h1>
                 <p></p>
-                <h2>Loading formats...</h2>
+                <h2 id="loading-formats-text">Loading formats...</h2>
             </div>
         </div>
 
@@ -31,7 +31,7 @@
                 </div>
                 <hr>
                 <div id="format-buttons" class="flex-center">
-                    <a id="create-format-button" class="button">Create Format</a>
+                    <a id="create-format-button" class="button">New Format</a>
                 </div>
             </div>
 
@@ -45,7 +45,7 @@
                 <p>Preview</p>
                 <textarea id="format-preview" disabled></textarea>
                 <hr>
-                <a id="format-save-button" class="button">Save</a>
+                <a id="format-save-button" class="button" disabled>Select a format</a>
             </div>
 
             <div id="sidebar-right" class="flex-center-column">

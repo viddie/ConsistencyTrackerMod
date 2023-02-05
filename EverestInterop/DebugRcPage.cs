@@ -625,8 +625,16 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
+                
+                List<GetPlaceholderListResponse.Placeholder> placeholders = new List<GetPlaceholderListResponse.Placeholder>();
+                foreach (var kvp in mod.StatsManager.GetPlaceholderExplanationList()) {
+                    placeholders.Add(new GetPlaceholderListResponse.Placeholder() {
+                        name = kvp.Key,
+                        description = kvp.Value,
+                    });
+                }
                 GetPlaceholderListResponse response = new GetPlaceholderListResponse() {
-                    placeholders = mod.StatsManager.GetPlaceholderExplanationList(),
+                    placeholders = placeholders,
                 };
                 responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
@@ -651,10 +659,84 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 string responseStr = null;
 
                 GetFormatListResponse response = new GetFormatListResponse() {
-                    formats = new List<StatFormat>(mod.StatsManager.Formats.Select((kv) => kv.Key)),
+                    defaultFormats = mod.StatsManager.GetAvailableDefaultFormatList(),
+                    customFormats = mod.StatsManager.GetCustomFormatList(),
                 };
                 responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
+                WriteResponse(c, responseStr);
+            }
+        };
+
+
+        // +------------------------------------------+
+        // |              /cct/saveFormat             |
+        // +------------------------------------------+
+        private static readonly RCEndPoint SaveFormatEndPoint = new RCEndPoint() {
+            Path = "/cct/saveFormat",
+            PathHelp = "/cct/saveFormat",
+            Name = "Consistency Tracker Save Live-Data Format [POST] [JSON]",
+            InfoHTML = "Saves or deletes Live-Data Format. Body must contain 'name' and 'format', if format is empty, the request is treated as delete operation",
+            Handle = c => {
+                bool requestedJson = HasRequestedJson(c);
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                SaveFormatRequest postRequest = null;
+
+                if (c.Request.HttpMethod == "POST") {
+                    if (c.Request.HasEntityBody) {
+                        string body = GetBodyAsString(c);
+                        try {
+                            postRequest = JsonConvert.DeserializeObject<SaveFormatRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
+                        }
+                    } else {
+                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
+                        return;
+                    }
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
+                    return;
+                }
+
+                if (postRequest.name == null || postRequest.name == "") {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "Name must not be empty");
+                    return;
+                }
+
+                bool isDelete = postRequest.format == "";
+
+                if (isDelete) {
+                    bool success = mod.StatsManager.DeleteFormat(postRequest.name);
+                    if (success) {
+                        responseStr = FormatResponseJson(RCErrorCode.OK);
+                    } else {
+                        WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't delete format '{postRequest.name}' as it doesn't exist");
+                        return;
+                    }
+                } else {
+                    bool exists = mod.StatsManager.HasFormat(postRequest.name);
+                    if (exists) {
+                        bool success = mod.StatsManager.UpdateFormat(postRequest.name, postRequest.format);
+                        if (success) {
+                            responseStr = FormatResponseJson(RCErrorCode.OK);
+                        } else {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't update format '{postRequest.name}' as it doesn't exist");
+                            return;
+                        }
+                    } else {
+                        mod.StatsManager.CreateFormat(postRequest.name, postRequest.format);
+                        responseStr = FormatResponseJson(RCErrorCode.OK);
+                    }
+                }
+
+
+                responseStr = FormatResponseJson(RCErrorCode.OK);
                 WriteResponse(c, responseStr);
             }
         };
@@ -839,6 +921,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             //Live-Data
             ParseFormatEndPoint,
             GetFormatEndPoint,
+            SaveFormatEndPoint,
             GetPlaceholderListEndPoint,
             GetFormatListEndPoint,
         };
