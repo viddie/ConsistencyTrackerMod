@@ -27,16 +27,16 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
 
-        public static string BaseFolderPath = "./ConsistencyTracker/";
-        public static string ExternalToolsFolder = "external-tools";
-        public static string LogsFolder = "logs";
-        public static string PathsFolder = "paths";
-        public static string StatsFolder = "stats";
-        public static string SummariesFolder = "summaries";
+        public static readonly string BaseFolderPath = "./ConsistencyTracker/";
+        public static readonly string ExternalToolsFolder = "external-tools";
+        public static readonly string LogsFolder = "logs";
+        public static readonly string PathsFolder = "paths";
+        public static readonly string StatsFolder = "stats";
+        public static readonly string SummariesFolder = "summaries";
 
 
-        private bool DidRestart = false;
-        private HashSet<string> ChaptersThisSession = new HashSet<string>();
+        private bool DidRestart { get; set; } = false;
+        private HashSet<string> ChaptersThisSession { get; set; } = new HashSet<string>();
 
         #region Path Recording Variables
 
