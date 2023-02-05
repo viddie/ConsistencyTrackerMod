@@ -88,6 +88,11 @@ function fetchAvailableFormats(then){
 
             customFormats = responseObj.customFormats;
             defaultFormats = responseObj.defaultFormats;
+
+            if(CurrentState === ViewStates.EditView){
+                changedFormatName();
+            }
+
             then();
         }).catch(error => showError(-1, "Could not fetch formats (is CCT running?)"));
 }

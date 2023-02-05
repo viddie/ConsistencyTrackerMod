@@ -80,8 +80,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.NotOnPathFormat(format, RoomNumberInCheckpoint);
                 format = StatManager.NotOnPathFormatPercent(format, RoomChapterProgressPercent);
                 format = StatManager.NotOnPathFormatPercent(format, RoomCheckpointProgressPercent);
-
-                return format;
                 
             } else {
                 int checkpointRoomCount = chapterPath.CurrentRoom.Checkpoint.Rooms.Count;

@@ -73,7 +73,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     RoomStats rStats = chapterStats.GetRoom(rInfo.DebugRoomName);
 
-                    float successRate = rStats.AverageSuccessOverSelectedN();
+                    float successRate = rStats.AverageSuccessOverN(StatManager.AttemptCount);
 
                     if (successRate >= 0.949999) {
                         colorCounts[0]++;

@@ -18,25 +18,31 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     
     public class StreakStat : Stat {
         public static string RoomCurrentStreak = "{room:currentStreak}";
+        public static string RoomCurrentStreakBest = "{room:currentStreakBest}";
         public static string CheckpointCurrentStreak = "{checkpoint:currentStreak}";
         public static string ListRoomStreaks = "{list:roomStreaks}";
 
-        public static List<string> IDs = new List<string>() { RoomCurrentStreak, CheckpointCurrentStreak, ListRoomStreaks };
+        public static List<string> IDs = new List<string>() { RoomCurrentStreak, RoomCurrentStreakBest, CheckpointCurrentStreak, ListRoomStreaks };
 
         public StreakStat() : base(IDs) {}
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             if (chapterPath == null) { //Player doesnt have path
                 format = StatManager.MissingPathFormat(format, RoomCurrentStreak);
+                format = StatManager.MissingPathFormat(format, RoomCurrentStreakBest);
                 format = StatManager.MissingPathFormat(format, CheckpointCurrentStreak);
+                format = StatManager.MissingPathFormat(format, ListRoomStreaks);
                 return format;
             } else if (chapterPath.CurrentRoom == null) { //or is not on the path
                 format = StatManager.NotOnPathFormat(format, RoomCurrentStreak);
+                format = StatManager.NotOnPathFormat(format, RoomCurrentStreakBest);
                 format = StatManager.NotOnPathFormat(format, CheckpointCurrentStreak);
+                format = StatManager.NotOnPathFormat(format, ListRoomStreaks);
                 return format;
             }
 
             int streak = chapterStats.GetRoom(chapterPath.CurrentRoom.DebugRoomName).SuccessStreak;
+            int bestStreak = chapterStats.GetRoom(chapterPath.CurrentRoom.DebugRoomName).SuccessStreakBest;
 
             List<int> roomStreaks = new List<int>();
             //Checkpoint
@@ -66,6 +72,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
 
             format = format.Replace(RoomCurrentStreak, $"{streak}");
+            format = format.Replace(RoomCurrentStreakBest, $"{bestStreak}");
             format = format.Replace(CheckpointCurrentStreak, $"{cpLowestStreak}");
 
 
@@ -90,6 +97,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
                 new KeyValuePair<string, string>(RoomCurrentStreak, "Current streak of beating the current room deathless"),
+                new KeyValuePair<string, string>(RoomCurrentStreakBest, "Best streak of beating the current room deathless"),
                 new KeyValuePair<string, string>(CheckpointCurrentStreak, "Current streak of beating the current checkpoint deathless"),
             };
         }
