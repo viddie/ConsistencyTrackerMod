@@ -27,6 +27,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
     public static class DebugRcPage {
 
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+        
         private static readonly UpdateCache CurrentStateCache = new UpdateCache();
         private static readonly UpdateCache CurrentChapterStatsCache = new UpdateCache();
         //private static readonly UpdateCache CurrentChapterPathCache = new UpdateCache();
@@ -40,10 +42,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Info",
             InfoHTML = "List some CCT info.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
                 string content = "CCT API up and running :thumbsup_emoji:";
 
@@ -51,9 +51,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     InfoResponse response = new InfoResponse() {
                         message = content,
                         modVersion = ConsistencyTrackerModule.ModVersion,
-                        hasPath = mod.CurrentChapterPath != null,
-                        hasStats = mod.CurrentChapterStats != null,
-                        formatsLoaded = new List<StatFormat>(mod.StatsManager.Formats.Select((kv) => kv.Key)),
+                        hasPath = Mod.CurrentChapterPath != null,
+                        hasStats = Mod.CurrentChapterStats != null,
+                        formatsLoaded = new List<StatFormat>(Mod.StatsManager.Formats.Select((kv) => kv.Key)),
                     };
 
                     responseStr = FormatResponseJson(RCErrorCode.OK, response);
@@ -75,8 +75,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker State",
             InfoHTML = "Fetches the current state of the mod.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
@@ -119,8 +118,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Settings",
             InfoHTML = "Gets the current overlay settings from the mod.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 if (!requestedJson) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
@@ -182,8 +180,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Current Chapter Stats",
             InfoHTML = "Fetches the stats of the current chapter.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
@@ -224,8 +221,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Add Golden Death",
             InfoHTML = "Adds a golden death to the specified room.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string response = null;
@@ -271,10 +267,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Current Chapter Path",
             InfoHTML = "Fetches the stats of the current chapter.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 //if (mod.CurrentUpdateFrame <= CurrentChapterPathCache.LastUpdateFrame && CurrentChapterPathCache.LastRequestedJson == requestedJson) {
@@ -282,7 +276,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 //    return;
                 //}
 
-                if (mod.CurrentChapterPath == null || mod.CurrentChapterPath.RoomCount == 0) {
+                if (Mod.CurrentChapterPath == null || Mod.CurrentChapterPath.RoomCount == 0) {
                     WriteErrorResponse(c, RCErrorCode.PathNotFound, requestedJson);
                     return;
                 }
@@ -290,12 +284,12 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 if (requestedJson) {
                     ChapterPathResponse response = new ChapterPathResponse() {
-                        path = mod.CurrentChapterPath,
+                        path = Mod.CurrentChapterPath,
                     };
                     responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
-                    string chapterPathString = mod.CurrentChapterPath.ToString();
+                    string chapterPathString = Mod.CurrentChapterPath.ToString();
                     responseStr = FormatResponsePlain(RCErrorCode.OK, chapterPathString);
                 }
 
@@ -312,15 +306,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker List All Paths [JSON]",
             InfoHTML = "Get a list of all available paths",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 if (!requestedJson) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
                     return;
                 }
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 string pathsFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
@@ -353,15 +345,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Get Path File [GET] [JSON]",
             InfoHTML = "Get the path file for a map",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 if (!requestedJson) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
                     return;
                 }
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 string map = GetQueryParameter(c, "map");
@@ -383,7 +373,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 
                 PathInfo pathInfo = null;
                 try {
-                    pathInfo = mod.GetPathInputInfo(map);
+                    pathInfo = Mod.GetPathInputInfo(map);
                 } catch (Exception) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse contents of path file '{map}'");
                     return;
@@ -409,15 +399,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Set Path File [POST] [JSON]",
             InfoHTML = "Set the path file for a map. Put path info object in the body of the POST request ",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
                 if (!requestedJson) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
                     return;
                 }
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 string map = GetQueryParameter(c, "map");
@@ -482,10 +470,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Parse Live-Data Format",
             InfoHTML = "Parses any arbitrary live-data format. If the format is too long for a GET request, put it in the body of a POST request.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 bool isGetRequest = c.Request.HttpMethod == "GET";
@@ -533,7 +519,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 DateTime startTime = DateTime.Now;
                 try {
                     for (int i = 0; i < requestedFormats.Count; i++) {
-                        requestedFormats[i] = mod.StatsManager.FormatVariableFormat(requestedFormats[i]);
+                        requestedFormats[i] = Mod.StatsManager.FormatVariableFormat(requestedFormats[i]);
                     }
                 } catch (NoStatPassException) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
@@ -567,10 +553,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Get Live-Data Format",
             InfoHTML = "Gets the result of an existing live-data format.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 string format = GetQueryParameter(c, "format");
@@ -580,12 +564,12 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     return;
                 }
 
-                if (!mod.StatsManager.HadPass) {
+                if (!Mod.StatsManager.HadPass) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "No stat pass has been done yet (enter a map first)");
                     return;
                 }
 
-                string text = mod.StatsManager.GetLastPassFormatText(format);
+                string text = Mod.StatsManager.GetLastPassFormatText(format);
 
                 if (text == null) { //format didnt exist
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Live-Data format '{format}' does not exist");
@@ -619,15 +603,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Get Placeholder List [JSON]",
             InfoHTML = "Gets all available placeholders for live-data formatting.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 
                 List<GetPlaceholderListResponse.Placeholder> placeholders = new List<GetPlaceholderListResponse.Placeholder>();
-                foreach (var kvp in mod.StatsManager.GetPlaceholderExplanationList()) {
+                foreach (var kvp in Mod.StatsManager.GetPlaceholderExplanationList()) {
                     placeholders.Add(new GetPlaceholderListResponse.Placeholder() {
                         name = kvp.Key,
                         description = kvp.Value,
@@ -652,15 +634,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Get Formats List [JSON]",
             InfoHTML = "Gets all available formats for live-data.",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 GetFormatListResponse response = new GetFormatListResponse() {
-                    defaultFormats = mod.StatsManager.GetAvailableDefaultFormatList(),
-                    customFormats = mod.StatsManager.GetCustomFormatList(),
+                    defaultFormats = Mod.StatsManager.GetAvailableDefaultFormatList(),
+                    customFormats = Mod.StatsManager.GetCustomFormatList(),
                 };
                 responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
@@ -678,10 +658,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             Name = "Consistency Tracker Save Live-Data Format [POST] [JSON]",
             InfoHTML = "Saves or deletes Live-Data Format. Body must contain 'name' and 'format', if format is empty, the request is treated as delete operation",
             Handle = c => {
-                bool requestedJson = HasRequestedJson(c);
-                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                bool requestedJson = CheckRequest(c);
 
-                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
                 string responseStr = null;
 
                 SaveFormatRequest postRequest = null;
@@ -712,7 +690,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 bool isDelete = postRequest.format == "";
 
                 if (isDelete) {
-                    bool success = mod.StatsManager.DeleteFormat(postRequest.name);
+                    bool success = Mod.StatsManager.DeleteFormat(postRequest.name);
                     if (success) {
                         responseStr = FormatResponseJson(RCErrorCode.OK);
                     } else {
@@ -720,9 +698,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                         return;
                     }
                 } else {
-                    bool exists = mod.StatsManager.HasFormat(postRequest.name);
+                    bool exists = Mod.StatsManager.HasFormat(postRequest.name);
                     if (exists) {
-                        bool success = mod.StatsManager.UpdateFormat(postRequest.name, postRequest.format);
+                        bool success = Mod.StatsManager.UpdateFormat(postRequest.name, postRequest.format);
                         if (success) {
                             responseStr = FormatResponseJson(RCErrorCode.OK);
                         } else {
@@ -730,7 +708,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                             return;
                         }
                     } else {
-                        mod.StatsManager.CreateFormat(postRequest.name, postRequest.format);
+                        Mod.StatsManager.CreateFormat(postRequest.name, postRequest.format);
                         responseStr = FormatResponseJson(RCErrorCode.OK);
                     }
                 }
@@ -815,7 +793,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             }
         }
 
-        private static bool HasRequestedJson(HttpListenerContext c) {
+        /// <summary>
+        /// Checks for the Accept header and returns true if it's application/json
+        /// </summary>
+        private static bool CheckRequest(HttpListenerContext c, bool allowCrossOrigin = true) {
             bool requestedJson = true;
             string responseType = "application/json";
 
@@ -830,7 +811,13 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
             }
 
+            Mod.LogVerbose($"API request to '{c.Request.RawUrl}', Content-Type: '{responseType}'");
+            
             c.Response.AddHeader("Content-Type", responseType);
+            if (allowCrossOrigin) { 
+                c.Response.AddHeader("Access-Control-Allow-Origin", "*");
+            }
+            
             return requestedJson;
         }
 

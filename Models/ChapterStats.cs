@@ -66,7 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// <summary>Adds the attempt to the specified room.</summary>
         /// <param name="debugRoomName">debug name of the room.</param>
         /// <param name="success">if the attempt was successful.</param>
-        public void AddAttempt(string debugRoomName, bool success) {
+        public void AddAttempt(bool success, string debugRoomName) {
             RoomStats targetRoom = GetRoom(debugRoomName);
             targetRoom.AddAttempt(success);
         }

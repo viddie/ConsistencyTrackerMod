@@ -76,7 +76,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return string.Join("\n", lines);
         }
         public static PathInfo ParseString(string content) {
-            ConsistencyTrackerModule.Instance.Log($"[PathInfo.ParseString] Parsing path info string");
+            ConsistencyTrackerModule.Instance.Log($"Parsing path info string");
             List<string> lines = content.Trim().Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
 
             PathInfo pathInfo = new PathInfo();

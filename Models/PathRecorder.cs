@@ -26,31 +26,31 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public void AddCheckpoint(Checkpoint cp, string name) {
-            ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 1 | cp = '{cp}', name = '{name}'");
+            ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 1 | cp = '{cp}', name = '{name}'");
             if (Checkpoints.Count != 0) {
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 2.1");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1");
                 if (cp != null && CheckpointsVisited.Contains(cp.Position)) return;
                 CheckpointsVisited.Add(cp.Position);
 
 
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 2.1.1");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1.1");
                 string lastRoom = Checkpoints.Last().Last();
                 Checkpoints.Last().Remove(lastRoom);
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 2.1.2");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1.2");
                 Checkpoints.Add(new List<string>() { lastRoom });
             } else {
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 2.2");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.2");
                 Checkpoints.Add(new List<string>() { });
             }
 
-            ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 3");
+            ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 3");
 
             if (name == null) {
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 4.1");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 4.1");
                 CheckpointNames.Add($"CP{Checkpoints.Count}");
                 CheckpointAbbreviations.Add($"CP{Checkpoints.Count}");
             } else {
-                ConsistencyTrackerModule.Instance.Log($"[{nameof(PathRecorder)}] In AddCheckpoint: 4.2");
+                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 4.2");
                 CheckpointNames.Add(name);
                 CheckpointAbbreviations.Add(AbbreviateName(name));
             }

@@ -72,6 +72,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         
         public void SetVisibility(bool visible) {
             Visible = visible && Mod.ModSettings.Enabled;
+            Mod.LogVerbose($"Set text overlay visibility to '{visible}'");
         }
 
         public override void Update() {
@@ -79,7 +80,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             
             if (Mod.ModSettings.ButtonTogglePauseDeathTracking.Pressed) {
                 Mod.ModSettings.PauseDeathTracking = !Mod.ModSettings.PauseDeathTracking;
-                Mod.Log($"[TextOverlay.Update] Toggled pause death tracking to {Mod.ModSettings.PauseDeathTracking}");
+                Mod.Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {Mod.ModSettings.PauseDeathTracking}");
             }
 
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
@@ -87,7 +88,28 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
                 SetVisibility(!currentVisible);
 
-                Mod.Log($"[TextOverlay.Update] Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
+                Mod.Log($"ButtonToggleTextOverlayEnabled: Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
+            }
+
+            if (Mod.ModSettings.ButtonAddRoomSuccess.Pressed) {
+                if (Mod.CurrentChapterStats != null) {
+                    Mod.Log($"ButtonAddRoomSuccess: Adding room attempt success");
+                    Mod.AddRoomAttempt(true);
+                }
+            }
+
+            if (Mod.ModSettings.ButtonRemoveRoomLastAttempt.Pressed) {
+                if (Mod.CurrentChapterStats != null) {
+                    Mod.Log($"ButtonRemoveRoomLastAttempt: Removing last room attempt");
+                    Mod.RemoveLastAttempt();
+                }
+            }
+
+            if (Mod.ModSettings.ButtonRemoveRoomDeathStreak.Pressed) {
+                if (Mod.CurrentChapterStats != null) {
+                    Mod.Log($"ButtonRemoveRoomDeathStreak: Removing room death streak");
+                    Mod.RemoveLastDeathStreak();
+                }
             }
         }
 
@@ -109,34 +131,41 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             StatTextComponent statText = GetStatText(textNum);
             statText.OptionVisible = visible;
             UpdateTextVisibility();
+            Mod.LogVerbose($"Text '{textNum}' -> Set text visibility to '{visible}'");
         }
         public void SetTextHideInGolden(int textNum, bool visible) {
             StatTextComponent statText = GetStatText(textNum);
             statText.HideInGolden = visible;
+            Mod.LogVerbose($"Text '{textNum}' -> Set text hide in golden run to '{visible}'");
         }
         public void SetText(int textNum, string text) {
             StatTextComponent statText = GetStatText(textNum);
             statText.Text = text.Replace("\\n", "\n");
+            Mod.LogVerbose($"Text '{textNum}' -> Set text to '{text.Replace("\n", "\\n")}'");
         }
         public void SetTextPosition(int textNum, StatTextPosition pos) {
             StatTextComponent statText = GetStatText(textNum);
             statText.SetPosition(pos);
+            Mod.LogVerbose($"Text '{textNum}' -> Set text position to '{pos}'");
         }
         public void SetTextOffsetX(int textNum, int offset) {
             StatTextComponent statText = GetStatText(textNum);
             statText.OffsetX = offset;
             statText.SetPosition();
+            Mod.LogVerbose($"Text '{textNum}' -> Set text X offset to '{offset}'");
         }
         public void SetTextOffsetY(int textNum, int offset)
         {
             StatTextComponent statText = GetStatText(textNum);
             statText.OffsetY = offset;
             statText.SetPosition();
+            Mod.LogVerbose($"Text '{textNum}' -> Set text Y offset to '{offset}'");
         }
         //size in percent as int
         public void SetTextSize(int textNum, int size) {
             StatTextComponent statText = GetStatText(textNum);
             statText.Scale = (float)size / 100;
+            Mod.LogVerbose($"Text '{textNum}' -> Set text size to '{size}%'");
         }
         
         //size in percent as int
@@ -164,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetGoldenState(holdingGolden);
         }
 
-            public void SetGoldenState(bool playerHasGolden) {
+        public void SetGoldenState(bool playerHasGolden) {
             if (playerHasGolden) {
                 GetStatText(1).Visible = GetStatText(1).OptionVisible && !(GetStatText(1).HideInGolden);
                 GetStatText(2).Visible = GetStatText(2).OptionVisible && !(GetStatText(2).HideInGolden);

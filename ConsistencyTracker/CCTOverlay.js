@@ -44,6 +44,16 @@ let defaultSettings = {
             "text-format-left": "Attempts: {chapter:goldenDeaths} ({chapter:goldenDeathsSession}) [{room:goldenDeaths}]<br>PB: {pb:best} ({pb:bestRoomNumber}/{chapter:roomCount})<br>Session PB: {pb:bestSession} ({pb:bestRoomNumberSession}/{chapter:roomCount})",
             "text-format-center": "{room:name}: {room:successRate} ({room:successes}/{room:attempts})<br>CP: {checkpoint:successRate}<br>Total: {chapter:successRate}",
             "text-format-right": "Current Run: #{run:currentPbStatus} (Session: #{run:currentPbStatusSession})<br>Choke Rate: {room:chokeRate} (CP: {checkpoint:chokeRate})<br>CP Golden Chance: {checkpoint:goldenChance}<br> Chapter Golden Chance: {chapter:goldenChance}",
+        },
+        "Custom Style 1": {
+            "text-format-left": "All: #{run:currentPbStatus}<br>Session: #{run:currentPbStatusSession}",
+            "text-format-center": "",
+            "text-format-right": "All: #{run:currentPbStatus}<br>Session: #{run:currentPbStatusSession}",
+        },
+        "Custom Style 2": {
+            "text-format-left": "",
+            "text-format-center": "",
+            "text-format-right": "",
         }
     }
 }

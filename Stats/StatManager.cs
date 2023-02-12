@@ -62,28 +62,28 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void LoadFormats() {
-            Mod.Log($"[LoadFormats] Loading live-data formats...");
+            Mod.Log($"Loading live-data formats...");
             string formatFilePath = FormatFilePath;
             
             if (File.Exists(formatFilePath)) {
-                Mod.Log($"[LoadFormats] Found {FormatFileName}...");
+                Mod.Log($"Found {FormatFileName}...", true);
                 string content = File.ReadAllText(formatFilePath);
-                Mod.Log($"[LoadFormats] Parsing {FormatFileName}");
+                Mod.Log($"Parsing {FormatFileName}", true);
                 Formats = ParseFormatsFile(content);
-                Mod.Log($"[LoadFormats] Read '{Formats.Count}' formats from {FormatFileName}");
+                Mod.Log($"Read '{Formats.Count}' formats from {FormatFileName}", true);
 
             } else {
-                Mod.Log($"[LoadFormats] Did not find {FormatFileName}, creating new...");
+                Mod.Log($"Did not find {FormatFileName}, creating new...", true);
                 Formats = CreateDefaultFormatsObject();
                 SaveFormatFile();
-                Mod.Log($"[LoadFormats] Read '{Formats.Count}' formats from default format file");
+                Mod.Log($"Read '{Formats.Count}' formats from default format file", true);
             }
 
             FindStatsForFormats();
         }
 
         public void ResetFormats() {
-            Mod.Log($"[ResetFormats] Requested resetting of live-data formats, will perform backup first...");
+            Mod.Log($"Requested resetting of live-data formats, will perform backup first...");
             
             string formatFilePath = ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
             string fileName = Path.GetFileNameWithoutExtension(formatFilePath);
@@ -92,12 +92,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             if (File.Exists(formatFilePath)) {
                 File.Copy(formatFilePath, backupPath);
-                Mod.Log($"[ResetFormats] Backed up {FormatFileName} to {backupPath}");
+                Mod.Log($"Backed up {FormatFileName} to {backupPath}", true);
                 File.Delete(formatFilePath);
-                Mod.Log($"[ResetFormats] Deleted {FormatFileName}");
+                Mod.Log($"Deleted {FormatFileName}", true);
 
             } else {
-                Mod.Log($"[LoadFormats] Did not find {FormatFileName} to delete, skipping backup");
+                Mod.Log($"Did not find {FormatFileName} to delete, skipping backup", true);
             }
 
             LoadFormats();
@@ -119,7 +119,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public void OutputFormats(PathInfo pathInfo, ChapterStats chapterStats) {
-            Mod.Log($"[OutputFormats] Starting output");
+            Mod.Log($"Starting output");
             DateTime startTime = DateTime.Now;
 
             try {
@@ -150,11 +150,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     }
                 }
             } catch (Exception ex) {
-                Mod.Log($"[OutputFormats] Exception during aggregate pass or stat calculation: {ex}");
+                Mod.Log($"Exception during aggregate pass or stat calculation: {ex}");
             }
 
             DateTime endTime = DateTime.Now;
-            Mod.Log($"[OutputFormats] Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
+            Mod.Log($"Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
         }
         public string FormatVariableFormat(string format) {
             if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
@@ -164,7 +164,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     try {
                         format = stat.FormatStat(LastPassPathInfo, LastPassChapterStats, format);
                     } catch (Exception ex) {
-                        Mod.Log($"[FormatVariableFormat] Exception during stat calculation: Stat '{stat.GetType().Name}' with format '{format}' caused exception -> {ex}");
+                        Mod.Log($"Exception during stat calculation: Stat '{stat.GetType().Name}' with format '{format}' caused exception -> {ex}");
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             int attemptCount = Mod.ModSettings.LiveDataSelectedAttemptCount;
 
-            if (pathInfo.Stats == null) AggregateStatsPassOnce(pathInfo, chapterStats);
+            if (pathInfo.Stats == null) AggregateStatsPassOnce(pathInfo);
             pathInfo.Stats = new AggregateStats();
 
             pathInfo.CurrentRoom = null;
@@ -225,7 +225,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         /// <summary>For data that shouldn't be done on every update but rather once when chapter is changed.</summary>
-        public void AggregateStatsPassOnce(PathInfo pathInfo, ChapterStats chapterStats) {
+        public void AggregateStatsPassOnce(PathInfo pathInfo) {
             //Walk the path
             int cpNumber = 0;
             int roomNumber = 0;
@@ -247,41 +247,39 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         #region Overlay Hooks
         public void UpdateOverlayTexts(string formatName, string formatText) {
-            ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
-
-            bool holdingGolden = mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
+            bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
             string noneFormat = "<same>";
 
             if (holdingGolden) {
-                string compareFormat1 = mod.ModSettings.IngameOverlayText1FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText1Format : mod.ModSettings.IngameOverlayText1FormatGolden;
-                string compareFormat2 = mod.ModSettings.IngameOverlayText2FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText2Format : mod.ModSettings.IngameOverlayText2FormatGolden;
-                string compareFormat3 = mod.ModSettings.IngameOverlayText3FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText3Format : mod.ModSettings.IngameOverlayText3FormatGolden;
-                string compareFormat4 = mod.ModSettings.IngameOverlayText4FormatGolden == noneFormat ? mod.ModSettings.IngameOverlayText4Format : mod.ModSettings.IngameOverlayText4FormatGolden;
+                string compareFormat1 = Mod.ModSettings.IngameOverlayText1FormatGolden == noneFormat ? Mod.ModSettings.IngameOverlayText1Format : Mod.ModSettings.IngameOverlayText1FormatGolden;
+                string compareFormat2 = Mod.ModSettings.IngameOverlayText2FormatGolden == noneFormat ? Mod.ModSettings.IngameOverlayText2Format : Mod.ModSettings.IngameOverlayText2FormatGolden;
+                string compareFormat3 = Mod.ModSettings.IngameOverlayText3FormatGolden == noneFormat ? Mod.ModSettings.IngameOverlayText3Format : Mod.ModSettings.IngameOverlayText3FormatGolden;
+                string compareFormat4 = Mod.ModSettings.IngameOverlayText4FormatGolden == noneFormat ? Mod.ModSettings.IngameOverlayText4Format : Mod.ModSettings.IngameOverlayText4FormatGolden;
 
                 if (formatName == compareFormat1) {
-                    mod.IngameOverlay.SetText(1, formatText);
+                    Mod.IngameOverlay.SetText(1, formatText);
                 }
                 if (formatName == compareFormat2) {
-                    mod.IngameOverlay.SetText(2, formatText);
+                    Mod.IngameOverlay.SetText(2, formatText);
                 }
                 if (formatName == compareFormat3) {
-                    mod.IngameOverlay.SetText(3, formatText);
+                    Mod.IngameOverlay.SetText(3, formatText);
                 }
                 if (formatName == compareFormat4) {
-                    mod.IngameOverlay.SetText(4, formatText);
+                    Mod.IngameOverlay.SetText(4, formatText);
                 }
             } else {
-                if (formatName == mod.ModSettings.IngameOverlayText1Format) {
-                    mod.IngameOverlay.SetText(1, formatText);
+                if (formatName == Mod.ModSettings.IngameOverlayText1Format) {
+                    Mod.IngameOverlay.SetText(1, formatText);
                 }
-                if (formatName == mod.ModSettings.IngameOverlayText2Format) {
-                    mod.IngameOverlay.SetText(2, formatText);
+                if (formatName == Mod.ModSettings.IngameOverlayText2Format) {
+                    Mod.IngameOverlay.SetText(2, formatText);
                 }
-                if (formatName == mod.ModSettings.IngameOverlayText3Format) {
-                    mod.IngameOverlay.SetText(3, formatText);
+                if (formatName == Mod.ModSettings.IngameOverlayText3Format) {
+                    Mod.IngameOverlay.SetText(3, formatText);
                 }
-                if (formatName == mod.ModSettings.IngameOverlayText4Format) {
-                    mod.IngameOverlay.SetText(4, formatText);
+                if (formatName == Mod.ModSettings.IngameOverlayText4Format) {
+                    Mod.IngameOverlay.SetText(4, formatText);
                 }
             }
         }
@@ -452,6 +450,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             string combined = $"{prelude}\n{afterExplanationHeader}\n{content}\n{afterCustomFormatHeader}\n{customFormats}";
 
             string path = FormatFilePath;
+            Mod.Log($"Saving format file to '{path}' (resetDefaultFormats: {resetDefaultFormats})");
             File.WriteAllText(path, combined);
         }
 
@@ -482,6 +481,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             string[] lines = content.Split(new string[] { "\n" }, StringSplitOptions.None);
 
+            Mod.LogVerbose($"All loaded formats:");
+
             foreach (string line in lines) {
                 if (line.Trim() == "" || line.Trim().StartsWith("#")) continue; //Empty line or comment
 
@@ -495,6 +496,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 string formatText = string.Join(FormatSeparator, formatSplit.Skip(1));
 
                 formatText = formatText.Replace("\\n", "\n");
+
+                Mod.LogVerbose($"'{name}' -> '{formatText}'", true);
 
                 toRet.Add(new StatFormat(name, formatText), new List<Stat>());
             }

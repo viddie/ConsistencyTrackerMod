@@ -2,6 +2,7 @@
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Util;
+using IL.Monocle;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using System;
@@ -51,6 +52,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
         }
+
+        public bool VerboseLogging { get; set; } = false;
         #endregion
 
         #region Record Path Settings
@@ -88,6 +91,7 @@ namespace Celeste.Mod.ConsistencyTracker
             }));
             subMenu.Add(menuItem = new TextMenu.Button("Import path from Clipboard").Pressed(() => {
                 string text = TextInput.GetClipboardText();
+                Mod.Log($"Importing path from clipboard...");
                 try {
                     PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
                     Mod.SetCurrentChapterPath(path);
@@ -234,12 +238,16 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"Format Editing"));
             subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
                 OnPressed = () => {
-                    string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/LiveDataEditTool.html"));
+                    string relPath = ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/LiveDataEditTool.html");
+                    string path = System.IO.Path.GetFullPath(relPath);
+                    Mod.LogVerbose($"Opening format editor at '{path}'");
                     Process.Start("explorer", path);
                 },
             });
             subMenu.Add(new TextMenu.Button("Open Format Text File").Pressed(() => {
-                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}"));
+                string relPath = ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}");
+                string path = System.IO.Path.GetFullPath(relPath);
+                Mod.LogVerbose($"Opening format file at '{path}'");
                 Process.Start("explorer", path);
             }));
 
@@ -441,6 +449,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     "Default",
                     "Low Death",
                     "Golden Attempts",
+                    "Custom Style 1",
+                    "Custom Style 2",
                 };
             subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Stats Preset", availablePresets, ExternalOverlayTextDisplayPreset) {
                 OnValueChange = v => {
@@ -718,27 +728,14 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText1Format) {
                 OnValueChange = v => {
                     IngameOverlayText1Format = v;
-                    if (hasStats && holdingGolden && IngameOverlayText1FormatGolden != noneFormat) {
-                        return;
-                    }
-                    string text = Mod.StatsManager.GetLastPassFormatText(v);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(1, text);
-                    }
+                    TextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format With Golden", availableFormatsGolden, IngameOverlayText1FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText1FormatGolden = v;
-                    if (!hasStats || !holdingGolden) {
-                        return;
-                    }
-                    string formatName = v == noneFormat ? IngameOverlayText1Format : v;
-                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(1, text);
-                    }
+                    GoldenTextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
@@ -794,27 +791,14 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText2Format) {
                 OnValueChange = v => {
                     IngameOverlayText2Format = v;
-                    if (hasStats && holdingGolden && IngameOverlayText2FormatGolden != noneFormat) {
-                        return;
-                    }
-                    string text = Mod.StatsManager.GetLastPassFormatText(v);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(2, text);
-                    }
+                    TextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText2FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText2FormatGolden = v;
-                    if (!hasStats || !holdingGolden) {
-                        return;
-                    }
-                    string formatName = v == noneFormat ? IngameOverlayText2Format : v;
-                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(2, text);
-                    }
+                    GoldenTextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
@@ -869,27 +853,14 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText3Format) {
                 OnValueChange = v => {
                     IngameOverlayText3Format = v;
-                    if (hasStats && holdingGolden && IngameOverlayText3FormatGolden != noneFormat) {
-                        return;
-                    }
-                    string text = Mod.StatsManager.GetLastPassFormatText(v);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(3, text);
-                    }
+                    TextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText3FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText3FormatGolden = v;
-                    if (!hasStats || !holdingGolden) {
-                        return;
-                    }
-                    string formatName = v == noneFormat ? IngameOverlayText3Format : v;
-                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(3, text);
-                    }
+                    GoldenTextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
@@ -945,27 +916,14 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText4Format) {
                 OnValueChange = v => {
                     IngameOverlayText4Format = v;
-                    if (hasStats && holdingGolden && IngameOverlayText4FormatGolden != noneFormat) {
-                        return;
-                    }
-                    string text = Mod.StatsManager.GetLastPassFormatText(v);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(4, text);
-                    }
+                    TextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText4FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText4FormatGolden = v;
-                    if (!hasStats || !holdingGolden) {
-                        return;
-                    }
-                    string formatName = v == noneFormat ? IngameOverlayText4Format : v;
-                    string text = Mod.StatsManager.GetLastPassFormatText(formatName);
-                    if (text != null) {
-                        Mod.IngameOverlay.SetText(4, text);
-                    }
+                    GoldenTextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
@@ -1016,12 +974,77 @@ namespace Celeste.Mod.ConsistencyTracker
 
             menu.Add(subMenu);
         }
+
+        private void TextSelectionHelper(bool hasStats, bool holdingGolden, int textNum, string noneFormat, string selectedFormat) {
+            Mod.LogVerbose($"Changed format selection of text '{textNum}' to format '{selectedFormat}'");
+
+            string goldenFormat = null;
+            switch (textNum) {
+                case 1:
+                    goldenFormat = IngameOverlayText1FormatGolden;
+                    break;
+                case 2:
+                    goldenFormat = IngameOverlayText2FormatGolden;
+                    break;
+                case 3:
+                    goldenFormat = IngameOverlayText3FormatGolden;
+                    break;
+                case 4:
+                    goldenFormat = IngameOverlayText4FormatGolden;
+                    break;
+            };
+            
+            if (hasStats && holdingGolden && goldenFormat != noneFormat) {
+                Mod.LogVerbose($"In golden run and golden format is not '{noneFormat}', not updating text");
+                return;
+            }
+            string text = Mod.StatsManager.GetLastPassFormatText(selectedFormat);
+            if (text != null) {
+                Mod.IngameOverlay.SetText(textNum, text);
+            }
+        }
+
+        private void GoldenTextSelectionHelper(bool hasStats, bool holdingGolden, int textNum, string noneFormat, string selectedFormat) {
+            Mod.LogVerbose($"Changed golden format selection of text '{textNum}' to format '{selectedFormat}'");
+
+            string regularFormat = null;
+            switch (textNum) {
+                case 1:
+                    regularFormat = IngameOverlayText1Format;
+                    break;
+                case 2:
+                    regularFormat = IngameOverlayText2Format;
+                    break;
+                case 3:
+                    regularFormat = IngameOverlayText3Format;
+                    break;
+                case 4:
+                    regularFormat = IngameOverlayText4Format;
+                    break;
+            };
+
+            if (!hasStats || !holdingGolden) {
+                Mod.LogVerbose($"Not in golden run, not updating text");
+                return;
+            }
+            string formatName = selectedFormat == noneFormat ? regularFormat : selectedFormat;
+            string text = Mod.StatsManager.GetLastPassFormatText(formatName);
+            if (text != null) {
+                Mod.IngameOverlay.SetText(textNum, text);
+            }
+        }
         #endregion
 
         #region Hotkeys
-        public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
-        
         public ButtonBinding ButtonToggleTextOverlayEnabled { get; set; }
+
+        public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
+
+        public ButtonBinding ButtonAddRoomSuccess { get; set; }
+
+        public ButtonBinding ButtonRemoveRoomLastAttempt { get; set; }
+
+        public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
         #endregion
 
         #region Helpers
