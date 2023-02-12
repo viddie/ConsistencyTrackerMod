@@ -317,7 +317,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             List<StatFormat> formats = new List<StatFormat>();
 
             List<StatFormat> customFormats = GetCustomFormatList();
-            List<StatFormat> defaultFormats = GetDefaultFormatList();
+            List<StatFormat> defaultFormats = GetAvailableDefaultFormatList();
 
             foreach (StatFormat format in customFormats) {
                 formats.Add(format);
