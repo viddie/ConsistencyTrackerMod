@@ -104,10 +104,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public override void Load() {
             CheckFolderExists(BaseFolderPath);
-            bool pathsFolderExisted = CheckFolderExists(GetPathToFolder(PathsFolder));
-            if (!pathsFolderExisted) {
-                CreatePrepackagedPaths();
-            }
+            
+            CheckFolderExists(GetPathToFolder(PathsFolder));
+            CheckPrepackagedPaths();
+            
             CheckFolderExists(GetPathToFolder(StatsFolder));
             CheckFolderExists(GetPathToFolder(LogsFolder));
             CheckFolderExists(GetPathToFolder(SummariesFolder));
@@ -136,6 +136,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Unload() {
             UnHookStuff();
             DebugRcPage.Unload();
+            LogCleanup();
         }
 
         private void HookStuff() {
@@ -173,6 +174,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors?
             //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
+
+            On.Celeste.Player.Update += Player_Update;
         }
 
         private void UnHookStuff() {
@@ -206,6 +209,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Open up key doors
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
+
+            On.Celeste.Player.Update -= Player_Update;
         }
 
         public override void Initialize()
@@ -709,43 +714,43 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Default Path Creation
 
-        public void CreatePrepackagedPaths() {
-            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_Normal), Resources.Celeste_1_ForsakenCity_Normal);
-            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_BSide), Resources.Celeste_1_ForsakenCity_BSide);
-            CreatePathFile(nameof(Resources.Celeste_1_ForsakenCity_CSide), Resources.Celeste_1_ForsakenCity_CSide);
+        public void CheckPrepackagedPaths() {
+            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_Normal), Resources.Celeste_1_ForsakenCity_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_BSide), Resources.Celeste_1_ForsakenCity_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_CSide), Resources.Celeste_1_ForsakenCity_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_2_OldSite_Normal), Resources.Celeste_2_OldSite_Normal);
-            CreatePathFile(nameof(Resources.Celeste_2_OldSite_BSide), Resources.Celeste_2_OldSite_BSide);
-            CreatePathFile(nameof(Resources.Celeste_2_OldSite_CSide), Resources.Celeste_2_OldSite_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_Normal), Resources.Celeste_2_OldSite_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_BSide), Resources.Celeste_2_OldSite_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_CSide), Resources.Celeste_2_OldSite_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_Normal), Resources.Celeste_3_CelestialResort_Normal);
-            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_BSide), Resources.Celeste_3_CelestialResort_BSide);
-            CreatePathFile(nameof(Resources.Celeste_3_CelestialResort_CSide), Resources.Celeste_3_CelestialResort_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_Normal), Resources.Celeste_3_CelestialResort_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_BSide), Resources.Celeste_3_CelestialResort_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_CSide), Resources.Celeste_3_CelestialResort_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_Normal), Resources.Celeste_4_GoldenRidge_Normal);
-            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_BSide), Resources.Celeste_4_GoldenRidge_BSide);
-            CreatePathFile(nameof(Resources.Celeste_4_GoldenRidge_CSide), Resources.Celeste_4_GoldenRidge_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_Normal), Resources.Celeste_4_GoldenRidge_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_BSide), Resources.Celeste_4_GoldenRidge_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_CSide), Resources.Celeste_4_GoldenRidge_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_Normal), Resources.Celeste_5_MirrorTemple_Normal);
-            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_BSide), Resources.Celeste_5_MirrorTemple_BSide);
-            CreatePathFile(nameof(Resources.Celeste_5_MirrorTemple_CSide), Resources.Celeste_5_MirrorTemple_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_Normal), Resources.Celeste_5_MirrorTemple_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_BSide), Resources.Celeste_5_MirrorTemple_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_CSide), Resources.Celeste_5_MirrorTemple_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_6_Reflection_Normal), Resources.Celeste_6_Reflection_Normal);
-            CreatePathFile(nameof(Resources.Celeste_6_Reflection_BSide), Resources.Celeste_6_Reflection_BSide);
-            CreatePathFile(nameof(Resources.Celeste_6_Reflection_CSide), Resources.Celeste_6_Reflection_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_Normal), Resources.Celeste_6_Reflection_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_BSide), Resources.Celeste_6_Reflection_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_CSide), Resources.Celeste_6_Reflection_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_7_Summit_Normal), Resources.Celeste_7_Summit_Normal);
-            CreatePathFile(nameof(Resources.Celeste_7_Summit_BSide), Resources.Celeste_7_Summit_BSide);
-            CreatePathFile(nameof(Resources.Celeste_7_Summit_CSide), Resources.Celeste_7_Summit_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_Normal), Resources.Celeste_7_Summit_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_BSide), Resources.Celeste_7_Summit_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_CSide), Resources.Celeste_7_Summit_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_9_Core_Normal), Resources.Celeste_9_Core_Normal);
-            CreatePathFile(nameof(Resources.Celeste_9_Core_BSide), Resources.Celeste_9_Core_BSide);
-            CreatePathFile(nameof(Resources.Celeste_9_Core_CSide), Resources.Celeste_9_Core_CSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_Normal), Resources.Celeste_9_Core_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_BSide), Resources.Celeste_9_Core_BSide);
+            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_CSide), Resources.Celeste_9_Core_CSide);
 
-            CreatePathFile(nameof(Resources.Celeste_LostLevels_Normal), Resources.Celeste_LostLevels_Normal);
+            CheckDefaultPathFile(nameof(Resources.Celeste_LostLevels_Normal), Resources.Celeste_LostLevels_Normal);
 
         }
-        private void CreatePathFile(string name, string content) {
+        private void CheckDefaultPathFile(string name, string content) {
             if (name != "Celeste_LostLevels_Normal") {
                 string[] split = name.Split('_');
                 string celeste = split[0];
@@ -757,7 +762,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             string path = GetPathToFile($"{PathsFolder}/{name}.txt");
-            File.WriteAllText(path, content);
+
+            if (!File.Exists(path)) { 
+                File.WriteAllText(path, content);
+            }
         }
 
         public void CreateExternalTools() {
@@ -946,29 +954,38 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Logging
-
+        private bool LogInitialized = false;
+        private StreamWriter LogFileWriter = null;
         public void LogInit() {
-            string logFileMax = GetPathToFile($"logs/log_old{LOG_FILE_COUNT}.txt");
+            string logFileMax = GetPathToFile($"{LogsFolder}/log_old{LOG_FILE_COUNT}.txt");
             if (File.Exists(logFileMax)) {
                 File.Delete(logFileMax);
             }
 
             for (int i = LOG_FILE_COUNT - 1; i >= 1; i--) {
-                string logFilePath = GetPathToFile($"logs/log_old{i}.txt");
+                string logFilePath = GetPathToFile($"{LogsFolder}/log_old{i}.txt");
                 if (File.Exists(logFilePath)) {
-                    string logFileNewPath = GetPathToFile($"logs/log_old{i+1}.txt");
+                    string logFileNewPath = GetPathToFile($"{LogsFolder}/log_old{i+1}.txt");
                     File.Move(logFilePath, logFileNewPath);
                 }
             }
 
-            string lastFile = GetPathToFile("logs/log.txt");
+            string lastFile = GetPathToFile($"{LogsFolder}/log.txt");
             if (File.Exists(lastFile)) {
-                string logFileNewPath = GetPathToFile($"logs/log_old{1}.txt");
+                string logFileNewPath = GetPathToFile($"{LogsFolder}/log_old{1}.txt");
                 File.Move(lastFile, logFileNewPath);
             }
+
+            string path = GetPathToFile($"{LogsFolder}/log.txt");
+            LogFileWriter = new StreamWriter(path) {
+                AutoFlush = true
+            };
+            LogInitialized = true;
         }
         public void Log(string log, bool isFollowup = false, bool isComingFromVerbose = false) {
-            string path = GetPathToFile("logs/log.txt");
+            if (!LogInitialized) {
+                return;
+            }
 
             if (!isFollowup) {
                 int frameBack = 1;
@@ -982,9 +999,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 string time = DateTime.Now.ToString("HH:mm:ss.ffff");
 
-                File.AppendAllText(path, $"[{time}]\t[{typeName}.{methodName}]\t{log}\n");
+                LogFileWriter.WriteLine($"[{time}]\t[{typeName}.{methodName}]\t{log}");
             } else {
-                File.AppendAllText(path, $"\t\t{log}\n");
+                LogFileWriter.WriteLine($"\t\t{log}");
             }
         }
 
@@ -994,6 +1011,118 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
+        public void LogCleanup() {
+            LogFileWriter?.Close();
+            LogFileWriter?.Dispose();
+        }
+        #endregion
+
+        #region Physics Logging
+
+        private Vector2 LastExactPos = Vector2.Zero;
+        private bool LastLogPhysics = false;
+        private StreamWriter PhysicsLogWriter = null;
+        private long PhysicsLogFrame = -1;
+        private bool LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogFlags;
+        private void Player_Update(On.Celeste.Player.orig_Update orig, Player self) {
+            orig(self);
+
+            bool logPhysics = ModSettings.LogPhysics;
+            if (logPhysics && !LastLogPhysics) {
+                //should log now, but didnt previously
+                LogPosition = ModSettings.LogPosition;
+                LogSpeed = ModSettings.LogSpeed;
+                LogVelocity = ModSettings.LogVelocity;
+                LogLiftBoost = ModSettings.LogLiftBoost;
+                LogFlags = ModSettings.LogFlags;
+
+                PhysicsLogWriter = new StreamWriter(GetPathToFile($"{LogsFolder}/position_log.txt"));
+                PhysicsLogWriter.WriteLine(getPhysicsLogHeader(LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogFlags));
+                PhysicsLogFrame = 0;
+                LastLogPhysics = logPhysics;
+
+            } else if (!logPhysics && LastLogPhysics) {
+                //previously logged, but shouldnt now
+                //close log file writer
+                PhysicsLogWriter.Close();
+                PhysicsLogWriter.Dispose();
+                PhysicsLogWriter = null;
+                LastLogPhysics = logPhysics;
+                return;
+
+            } else if (logPhysics && LastLogPhysics) {
+                //should log now, and did previously
+                //do nothing
+            } else {
+                //shouldnt log now, and didnt previously
+                return;
+            }
+
+            Vector2 pos = self.ExactPosition;
+            Vector2 speed = self.Speed;
+
+            Vector2 velocity = Vector2.Zero;
+            if (LastExactPos != Vector2.Zero) {
+                velocity = pos - LastExactPos;
+            }
+
+            LastExactPos = pos;
+            Vector2 liftboost = self.LiftSpeed;
+            PhysicsLogFrame++;
+
+            int flipYFactor = ModSettings.LogPhysicsFlipY ? -1 : 1;
+
+            string toWrite = $"{PhysicsLogFrame}";
+            if (LogPosition) {
+                toWrite += $",{pos.X},{pos.Y * flipYFactor}";
+            }
+            if (LogSpeed) {
+                toWrite += $",{speed.X},{speed.Y * flipYFactor}";
+            }
+            if (LogVelocity) {
+                toWrite += $",{velocity.X},{velocity.Y * flipYFactor}";
+            }
+            if (LogLiftBoost) {
+                toWrite += $",{liftboost.X},{liftboost.Y * flipYFactor}";
+            }
+            if (LogFlags) {
+                toWrite += $",{getPlayerFlags(self)}";
+            }
+
+            PhysicsLogWriter.WriteLine(toWrite);
+        }
+
+        public string getPhysicsLogHeader(bool position, bool speed, bool velocity, bool liftBoost, bool flags) {
+            string header = "Frame";
+            if (position) {
+                header += ",Position X,Position Y";
+            }
+            if (speed) {
+                header += ",Speed X,Speed Y";
+            }
+            if (velocity) {
+                header += ",Velocity X,Velocity Y";
+            }
+            if (liftBoost) {
+                header += ",LiftBoost X,LiftBoost Y";
+            }
+            if (flags) {
+                header += ",Flags";
+            }
+            return header;
+        }
+
+        public string getPlayerFlags(Player player) {
+            string flags = "";
+            if (player.Dead) {
+                flags += "Dead ";
+            }
+            if (player.DashAttacking) {
+                flags += "StDash ";
+            }
+            
+            return flags.TrimEnd(' ');
+        }
         #endregion
 
         #region Util

@@ -111,6 +111,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     Mod.RemoveLastDeathStreak();
                 }
             }
+
+            if (Mod.ModSettings.ButtonToggleLogPositionSpeed.Pressed) {
+                Mod.ModSettings.LogPhysics = !Mod.ModSettings.LogPhysics;
+                Mod.Log($"ButtonLogPositionSpeed: Toggled logging of position/speed to {Mod.ModSettings.LogPhysics}");
+            }
         }
 
         public void InitStatTextOptions() {
