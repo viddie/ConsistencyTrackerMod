@@ -481,7 +481,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             string[] lines = content.Split(new string[] { "\n" }, StringSplitOptions.None);
 
-            Mod.LogVerbose($"All loaded formats:");
+            Mod.Log($"All loaded formats:");
 
             foreach (string line in lines) {
                 if (line.Trim() == "" || line.Trim().StartsWith("#")) continue; //Empty line or comment
@@ -495,9 +495,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 string name = formatSplit[0];
                 string formatText = string.Join(FormatSeparator, formatSplit.Skip(1));
 
-                formatText = formatText.Replace("\\n", "\n");
+                Mod.Log($"'{name}' -> '{formatText}'", true);
 
-                Mod.LogVerbose($"'{name}' -> '{formatText}'", true);
+                formatText = formatText.Replace("\\n", "\n");
 
                 toRet.Add(new StatFormat(name, formatText), new List<Stat>());
             }

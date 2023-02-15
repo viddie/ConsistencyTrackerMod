@@ -112,9 +112,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 }
             }
 
-            if (Mod.ModSettings.ButtonToggleLogPositionSpeed.Pressed) {
+            if (Mod.ModSettings.ButtonToggleLogPhysics.Pressed) {
                 Mod.ModSettings.LogPhysics = !Mod.ModSettings.LogPhysics;
-                Mod.Log($"ButtonLogPositionSpeed: Toggled logging of position/speed to {Mod.ModSettings.LogPhysics}");
+                Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {Mod.ModSettings.LogPhysics}");
             }
         }
 

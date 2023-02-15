@@ -107,6 +107,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Data Wipe Settings
+        [JsonIgnore]
         public bool WipeChapter { get; set; } = false;
         public void CreateWipeChapterEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
@@ -169,6 +170,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Summary Settings
+        [JsonIgnore]
         public bool CreateSummary { get; set; } = false;
         public int SummarySelectedAttemptCount { get; set; } = 20;
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
@@ -208,6 +210,8 @@ namespace Celeste.Mod.ConsistencyTracker
         //- Stats over X Attempts
         //- Reload format file
         //- Toggle name/abbreviation for e.g. PB Display
+
+        [JsonIgnore]
         public bool LiveData { get; set; } = false;
         
         [SettingIgnore]
@@ -337,6 +341,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region External Overlay Settings
+        [JsonIgnore]
         public bool ExternalOverlay { get; set; } = false;
 
         [SettingIgnore]
@@ -552,6 +557,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Ingame Overlay Settings
+        [JsonIgnore]
         public bool IngameOverlay { get; set; } = false;
 
         [SettingIgnore]
@@ -1035,6 +1041,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Debug Settings
+        [JsonIgnore]
         public bool DebugSettings { get; set; } = false;
 
         [SettingIgnore]
@@ -1042,6 +1049,9 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool LogPhysics { get; set; } = false;
+
+        [SettingIgnore]
+        public bool LogPhysicsInputsToTasFile { get; set; } = false;
 
         [SettingIgnore]
         public bool LogPhysicsFlipY { get; set; } = false;
@@ -1092,6 +1102,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Logs the selected properties to a .csv file");
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Copy TAS File To Clipboard", LogPhysicsInputsToTasFile) {
+                OnValueChange = v => {
+                    LogPhysicsInputsToTasFile = v;
+                    Mod.Log($"Logging inputs to tas file {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to the clipboard when recording is stopped");
+
+            //Add a header for the physics logging options
+            subMenu.Add(new TextMenu.SubHeader("Physics Logging Options"));
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Log Position", LogPosition) {
                 OnValueChange = v => {
@@ -1158,7 +1179,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
 
-        public ButtonBinding ButtonToggleLogPositionSpeed { get; set; }
+        public ButtonBinding ButtonToggleLogPhysics { get; set; }
         #endregion
 
         #region Helpers
