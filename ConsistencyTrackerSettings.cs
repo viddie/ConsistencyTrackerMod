@@ -1061,6 +1061,9 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool LogFlags { get; set; } = true;
 
+        [SettingIgnore]
+        public bool LogInputs { get; set; } = true;
+
         public void CreateDebugSettingsEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Debug Settings", false);
             TextMenu.Item menuItem;
@@ -1124,8 +1127,15 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Flags logging {(v ? "enabled" : "disabled")}");
                 }
             });
-            
 
+            subMenu.Add(menuItem = new TextMenu.OnOff("Log Inputs", LogInputs) {
+                OnValueChange = v => {
+                    LogInputs = v;
+                    Mod.Log($"Input logging {(v ? "enabled" : "disabled")}");
+                }
+            });
+
+            
 
 
 
