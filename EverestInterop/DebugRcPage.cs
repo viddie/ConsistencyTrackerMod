@@ -720,6 +720,72 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         };
         #endregion
 
+        #region Misc File Endpoints
+        // +------------------------------------------+
+        // |           /cct/getFileContent            |
+        // +------------------------------------------+
+        private static readonly RCEndPoint GetFileContentEndpoint = new RCEndPoint() {
+            Path = "/cct/getFileContent",
+            PathHelp = "/cct/getFileContent?folder={folder}&file={file}",
+            Name = "Consistency Tracker Get Misc File [GET] [JSON]",
+            InfoHTML = "Get any consistency tracker file.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                string responseStr = null;
+
+                string folderName = GetQueryParameter(c, "folder");
+                if (folderName == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "folder");
+                    return;
+                }
+                string fileName = GetQueryParameter(c, "file");
+                if (fileName == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "file");
+                    return;
+                }
+                string extension = GetQueryParameter(c, "extension");
+                if (fileName == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "extension");
+                    return;
+                }
+
+                folderName = SanitizeFolderFileName(folderName);
+                fileName = SanitizeFolderFileName(fileName);
+                extension = SanitizeFolderFileName(extension);
+
+                string baseFolder = ConsistencyTrackerModule.GetPathToFolder(folderName);
+                string combinedPath = Path.Combine(baseFolder, $"{fileName}.{extension}");
+                if (!File.Exists(combinedPath)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
+                    return;
+                }
+
+                string content = File.ReadAllText(combinedPath);
+
+                //Response
+                GetFileContentResponse response = new GetFileContentResponse() {
+                    fileName = $"{fileName}.{extension}",
+                    fileContent = content,
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+
+        private static string SanitizeFolderFileName(string name) { 
+            name = name.Replace(".", "");
+            name = name.Replace("/", "");
+            name = name.Replace("\\", "");
+            return name;
+        }
+        #endregion
 
 
         #region Load / Unload
@@ -911,6 +977,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             SaveFormatEndPoint,
             GetPlaceholderListEndPoint,
             GetFormatListEndPoint,
+
+            //Misc File Reading
+            GetFileContentEndpoint
         };
 
         private class UpdateCache {

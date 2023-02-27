@@ -1,15 +1,15 @@
 
 const ViewStates = {
     MainView: 0,
-    EditView: 1,
+    InspectorView: 1,
 };
 let CurrentState = null;
 
 const Elements = {
     MainContainer: "main-view",
-    LoadingFormatsText: "loading-formats-text",
+    LoadingText: "loading-formats-text",
 
-    FormatContainer: "format-view",
+    InspectorContainer: "format-view",
     FormatList: "format-list",
     CreateFormatButton: "create-format-button",
 
@@ -44,13 +44,13 @@ function ShowState(state) {
     switch (state) {
         case ViewStates.MainView:
             Elements.MainContainer.style.display = "flex";
-            Elements.FormatContainer.style.display = "none";
+            Elements.InspectorContainer.style.display = "none";
             OnShowMainView();
             break;
-        case ViewStates.EditView:
+        case ViewStates.InspectorView:
             Elements.MainContainer.style.display = "none";
-            Elements.FormatContainer.style.display = "flex";
-            OnShowEditView();
+            Elements.InspectorContainer.style.display = "flex";
+            OnShowInspectorView();
             break;
     }
 }
@@ -60,8 +60,8 @@ function showError(errorCode, errorMessage){
     console.log(message);
 
     if(CurrentState === ViewStates.MainView){
-        Elements.LoadingFormatsText.innerText = message;
-    }else if(CurrentState === ViewStates.EditView){
+        Elements.LoadingText.innerText = message;
+    }else if(CurrentState === ViewStates.InspectorView){
         Elements.FormatPreview.value = message;
     }
 }
@@ -71,7 +71,7 @@ function showError(errorCode, errorMessage){
 //#region MainView
 function OnShowMainView() {
     setTimeout(() => {
-        fetchAvailableFormats(afterInitialFormatsFetch);
+        fetchAvailableFormats(afterFetchRoomLayout);
     }, 700);
 }
 
@@ -89,18 +89,18 @@ function fetchAvailableFormats(then){
             customFormats = responseObj.customFormats;
             defaultFormats = responseObj.defaultFormats;
 
-            if(CurrentState === ViewStates.EditView){
+            if(CurrentState === ViewStates.InspectorView){
                 changedFormatName();
             }
 
             then();
         }).catch(error => showError(-1, "Could not fetch formats (is CCT running?)"));
 }
-function afterInitialFormatsFetch(){
-    fetchPlaceholders(goToEditView);
+function afterFetchRoomLayout(){
+    fetchPhysicsLog(goToInspectorView);
 }
 
-function fetchPlaceholders(then){
+function fetchPhysicsLog(then){
     let url = "http://localhost:32270/cct/getPlaceholderList";
     fetch(url)
         .then(response => response.json())
@@ -116,14 +116,14 @@ function fetchPlaceholders(then){
         })
         .catch(error => showError(-1, "Could not fetch placeholders (is CCT running?)"));
 }
-function goToEditView(){
-    ShowState(ViewStates.EditView);
+function goToInspectorView(){
+    ShowState(ViewStates.InspectorView);
 }
 //#endregion
 
 
 //#region EditView
-function OnShowEditView() {
+function OnShowInspectorView() {
     //LEFT SIDEBAR
     createFormatList();
 
