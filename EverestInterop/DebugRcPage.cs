@@ -785,6 +785,40 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             name = name.Replace("\\", "");
             return name;
         }
+
+        // +------------------------------------------+
+        // |          /cct/getPhysicsLogList          |
+        // +------------------------------------------+
+        private static readonly RCEndPoint GetPhysicsLogFileListEndpoint = new RCEndPoint() {
+            Path = "/cct/getPhysicsLogList",
+            PathHelp = "/cct/getPhysicsLogList",
+            Name = "Consistency Tracker Get Physics Log List [GET] [JSON]",
+            InfoHTML = "Lists the available physics log files, acquireable via '/cct/getFileContent' endpoint.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                GetPhysicsLogFileListResponse response = new GetPhysicsLogFileListResponse();
+
+                Mod.PhysicsLog.GetAvailableLayoutFiles().ForEach(x => {
+                    response.PhysicsLogFiles.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
+                        ChapterName = x.ChapterName,
+                        SideName = x.SideName,
+                        FrameCount = x.FrameCount,
+                        RecordingStarted = x.RecordingStarted,
+                    });
+                });
+
+                string responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+        
         #endregion
 
 
@@ -979,7 +1013,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             GetFormatListEndPoint,
 
             //Misc File Reading
-            GetFileContentEndpoint
+            GetFileContentEndpoint,
+            GetPhysicsLogFileListEndpoint,
         };
 
         private class UpdateCache {

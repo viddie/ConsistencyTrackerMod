@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.ConsistencyTracker.Util {
+namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class Extensions {
 
         public static void AddDescription(this TextMenuExt.SubMenu subMenu, TextMenu containingMenu, TextMenu.Item subMenuItem, string description) {
@@ -56,6 +56,18 @@ namespace Celeste.Mod.ConsistencyTracker.Util {
                 X = vec.X,
                 Y = vec.Y
             };
+        }
+
+        public static int ToCeilingFrames(this float seconds) {
+            return (int)Math.Ceiling(seconds / Engine.RawDeltaTime / Engine.TimeRateB);
+        }
+
+        public static int ToFloorFrames(this float seconds) {
+            return (int)Math.Floor(seconds / Engine.RawDeltaTime / Engine.TimeRateB);
+        }
+
+        public static string ToHex(this Color color) {
+            return "#" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
         }
     }
 }

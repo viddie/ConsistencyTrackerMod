@@ -8,12 +8,13 @@ using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Properties;
-using Celeste.Mod.ConsistencyTracker.Util;
+using Celeste.Mod.ConsistencyTracker.Utility;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using Celeste.Mod.ConsistencyTracker.Entities;
 using Monocle;
 using System.Reflection;
+using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -94,6 +95,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public StatManager StatsManager;
         public TextOverlay IngameOverlay;
+        public PhysicsLogger PhysicsLog;
 
 
         public ConsistencyTrackerModule() {
@@ -125,6 +127,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"~~~==============================~~~");
 
             ModSettings.LogPhysics = false;
+            PhysicsLog = new PhysicsLogger();
 
             HookStuff();
 
@@ -180,7 +183,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
 
             //On.Celeste.Player.Update += LogPhysicsUpdate;
-            On.Monocle.Engine.Update += Engine_Update;
+            On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
         }
 
         private void UnHookStuff() {
@@ -216,7 +219,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             //On.Celeste.Player.Update -= LogPhysicsUpdate;
-            On.Monocle.Engine.Update -= Engine_Update;
+            On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
         }
 
         public override void Initialize()
@@ -436,6 +439,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if (!DoRecordPath && ModSettings.RecordPath) { // TODO figure out why i did this
                 DoRecordPath = true;
+            }
+
+            if (ModSettings.LogPhysics) {
+                PhysicsLog.SegmentLog(true);
             }
         }
 
@@ -1023,545 +1030,6 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
         #endregion
 
-        #region Physics Logging
-
-        private Vector2 PhysicsLogLastExactPos = Vector2.Zero;
-        private bool PhysicsLogLastFrameEnabled = false;
-        private StreamWriter PhysicsLogWriter = null;
-        private long PhysicsLogFrame = -1;
-        private bool PhysicsLogPosition, PhysicsLogSpeed, PhysicsLogVelocity, PhysicsLogLiftBoost, PhysicsLogFlags, PhysicsLogInputs;
-        private bool PhysicsLogIsFrozen = false;
-        private Player PhysicsLogLastPlayer = null;
-
-        private int PhysicsLogTasFrameCount = 0;
-        private string PhysicsLogTasInputs = null;
-        private string PhysicsLogTasFileContent = null;
-        
-        private void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
-            PhysicsLogIsFrozen = Engine.FreezeTimer > 0;
-
-            orig(self, gameTime);
-
-            if (Engine.Scene is Level level) {
-                Player player = level.Tracker.GetEntity<Player>();
-                LogPhysicsUpdate(player);
-            }
-        }
-
-        private void LogPhysicsUpdate(Player player) {
-            if (player == null) {
-                if (PhysicsLogLastPlayer == null) return;
-                player = PhysicsLogLastPlayer;
-            }
-            PhysicsLogLastPlayer = player;
-
-
-            bool logPhysics = ModSettings.LogPhysics;
-            if (logPhysics && !PhysicsLogLastFrameEnabled) {
-                //should log now, but didnt previously
-                PhysicsLogPosition = ModSettings.LogPosition;
-                PhysicsLogSpeed = ModSettings.LogSpeed;
-                PhysicsLogVelocity = ModSettings.LogVelocity;
-                PhysicsLogLiftBoost = ModSettings.LogLiftBoost;
-                PhysicsLogFlags = ModSettings.LogFlags;
-                PhysicsLogInputs = ModSettings.LogInputs;
-
-                PhysicsLogWriter = new StreamWriter(GetPathToFile($"{LogsFolder}/position_log.txt"));
-                PhysicsLogWriter.WriteLine(GetPhysicsLogHeader(PhysicsLogPosition, PhysicsLogSpeed, PhysicsLogVelocity, PhysicsLogLiftBoost, PhysicsLogFlags, PhysicsLogInputs));
-                PhysicsLogFrame = 0;
-                PhysicsLogLastFrameEnabled = logPhysics;
-
-                PhysicsLogTasFileContent = "";
-                PhysicsLogFrame = 0;
-                PhysicsLogTasInputs = GetInputsTASFormatted();
-
-                PhysicsLogVisitedRooms = new HashSet<string>();
-                VisitedRoomsLayouts = new List<PhysicsLogRoomLayout>();
-                PhysicsLogLoggedEntities = new HashSet<Entity>();
-
-            } else if (!logPhysics && PhysicsLogLastFrameEnabled) {
-                //previously logged, but shouldnt now
-                //close log file writer
-                PhysicsLogWriter.Close();
-                PhysicsLogWriter.Dispose();
-                PhysicsLogWriter = null;
-                PhysicsLogLastFrameEnabled = logPhysics;
-
-                if (ModSettings.LogPhysicsInputsToTasFile) { 
-                    TextInput.SetClipboardText(PhysicsLogTasFileContent);
-                    PhysicsLogTasFileContent = "";
-                }
-                
-                return;
-
-            } else if (logPhysics && PhysicsLogLastFrameEnabled) {
-                //should log now, and did previously
-                //do nothing
-            } else {
-                //shouldnt log now, and didnt previously
-                return;
-            }
-
-            PhysicsLogSaveRoomLayout();
-
-            Vector2 pos = player.ExactPosition;
-            Vector2 speed = player.Speed;
-
-            Vector2 velocity = Vector2.Zero;
-            if (PhysicsLogLastExactPos != Vector2.Zero) {
-                velocity = pos - PhysicsLogLastExactPos;
-            }
-
-            PhysicsLogLastExactPos = pos;
-            Vector2 liftboost = GetAdjustedLiftboost(player);
-            PhysicsLogFrame++;
-
-            int flipYFactor = ModSettings.LogPhysicsFlipY ? -1 : 1;
-
-            string toWrite = $"{PhysicsLogFrame}";
-            if (PhysicsLogPosition) {
-                toWrite += $",{pos.X},{pos.Y * flipYFactor}";
-            }
-            if (PhysicsLogSpeed) {
-                toWrite += $",{speed.X},{speed.Y * flipYFactor}";
-            }
-            if (PhysicsLogVelocity) {
-                toWrite += $",{velocity.X},{velocity.Y * flipYFactor}";
-            }
-            if (PhysicsLogLiftBoost) {
-                toWrite += $",{liftboost.X},{liftboost.Y * flipYFactor}";
-            }
-            if (PhysicsLogFlags) {
-                toWrite += $",{GetPlayerFlagsFormatted(player)}";
-            }
-
-
-            PhysicsLogUpdateJumpState();
-            
-            if (PhysicsLogInputs) {
-                toWrite += $",{GetInputsFormatted()}";
-            }
-
-            if (ModSettings.LogPhysicsInputsToTasFile) { 
-                string tasInputs = GetInputsTASFormatted();
-                if (tasInputs != PhysicsLogTasInputs) {
-                    //new input combination, write old one to file
-                    PhysicsLogTasFileContent += $"{PhysicsLogTasFrameCount},{PhysicsLogTasInputs}\n";
-                    PhysicsLogTasInputs = tasInputs;
-                    PhysicsLogTasFrameCount = 0;
-                }
-                PhysicsLogTasFrameCount++;
-            }
-
-
-            PhysicsLogWriter.WriteLine(toWrite);
-        }
-
-        public string GetPhysicsLogHeader(bool position, bool speed, bool velocity, bool liftBoost, bool flags, bool inputs) {
-            string header = "Frame";
-            if (position) {
-                header += ",Position X,Position Y";
-            }
-            if (speed) {
-                header += ",Speed X,Speed Y";
-            }
-            if (velocity) {
-                header += ",Velocity X,Velocity Y";
-            }
-            if (liftBoost) {
-                header += ",LiftBoost X,LiftBoost Y";
-            }
-            if (flags) {
-                header += ",Flags";
-            }
-            if (inputs) {
-                header += ",Inputs";
-            }
-            return header;
-        }
-
-        private Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
-            [Player.StAttract] = nameof(Player.StAttract),
-            [Player.StBoost] = nameof(Player.StBoost),
-            [Player.StCassetteFly] = nameof(Player.StCassetteFly),
-            [Player.StClimb] = nameof(Player.StClimb),
-            [Player.StDash] = nameof(Player.StDash),
-            [Player.StDreamDash] = nameof(Player.StDreamDash),
-            [Player.StDummy] = nameof(Player.StDummy),
-            [Player.StFlingBird] = nameof(Player.StFlingBird),
-            [Player.StFrozen] = nameof(Player.StFrozen),
-            [Player.StHitSquash] = nameof(Player.StHitSquash),
-            [Player.StLaunch] = nameof(Player.StLaunch),
-            [Player.StNormal] = nameof(Player.StNormal),
-            [Player.StPickup] = nameof(Player.StPickup),
-            [Player.StRedDash] = nameof(Player.StRedDash),
-            [Player.StReflectionFall] = nameof(Player.StReflectionFall),
-            [Player.StStarFly] = nameof(Player.StStarFly),
-            [Player.StSummitLaunch] = nameof(Player.StSummitLaunch),
-            [Player.StSwim] = nameof(Player.StSwim),
-            [Player.StTempleFall] = nameof(Player.StTempleFall),
-        };
-        public string GetPlayerFlagsFormatted(Player player) {
-            string flags = "";
-            if (player.Dead) {
-                flags += "Dead ";
-            }
-            if (PhysicsLogIsFrozen) {
-                flags += "Frozen ";
-            }
-            if (PhysicsLogStatesToCheck.ContainsKey(player.StateMachine.State)) {
-                flags += $"{PhysicsLogStatesToCheck[player.StateMachine.State]} ";
-            } else {
-                flags += $"StOther ";
-            }
-
-            if (player.Ducking) {
-                flags += "Ducking ";
-            }
-
-            return flags.TrimEnd(' ');
-        }
-
-        private bool PhysicsLogHeldJumpLastFrame = false;
-        private bool PhysicsLogHoldingSecondJump = false;
-        private void PhysicsLogUpdateJumpState() {
-            //Log($"Pre frame: Jump.Check -> {Input.Jump.Check}, Jump.Pressed -> {Input.Jump.Pressed}, Held Jump Last Frame -> {PhysicsLogHeldJumpLastFrame}, Holding Second Jump -> {PhysicsLogHoldingSecondJump}");
-            if (Input.Jump.Check) {
-                if (PhysicsLogHeldJumpLastFrame && Input.Jump.Pressed) {
-                    PhysicsLogHoldingSecondJump = !PhysicsLogHoldingSecondJump;
-                }
-                PhysicsLogHeldJumpLastFrame = true;
-            } else {
-                PhysicsLogHeldJumpLastFrame = false;
-                PhysicsLogHoldingSecondJump = false;
-            }
-        }
-        
-        public string GetInputsFormatted(char separator = ' ') {
-            string inputs = "";
-
-            if (Input.MoveX.Value != 0) {
-                string rightleft = Input.MoveX.Value > 0 ? "R" : "L";
-                inputs += $"{rightleft}{separator}";
-            }
-            if (Input.MoveY.Value != 0) {
-                string updown = Input.MoveY.Value > 0 ? "D" : "U";
-                inputs += $"{updown}{separator}";
-            }
-
-            IngameOverlay.SetText(4, $"Jump.Check: {Input.Jump.Check}\nJump.Pressed: {Input.Jump.Pressed}\nJump.Released: {Input.Jump.Released}\nCheck Last Frame: {PhysicsLogHeldJumpLastFrame}\nHolding Second Jump: {PhysicsLogHoldingSecondJump}");
-
-            if (Input.Jump.Check) {
-                if (PhysicsLogHoldingSecondJump) {
-                    inputs += $"K{separator}";
-                } else {
-                    inputs += $"J{separator}";
-                }
-            }
-            
-            if (Input.Dash.Check) {
-                inputs += $"X{separator}";
-            }
-            if (Input.CrouchDash.Check) {
-                inputs += $"Z{separator}";
-            }
-            if (Input.Grab.Check) {
-                inputs += $"G{separator}";
-            }
-
-            return inputs.TrimEnd(separator);
-        }
-        public string GetInputsTASFormatted() {
-            return GetInputsFormatted(',');
-        }
-
-        public Vector2 GetAdjustedLiftboost(Player player) {
-            Vector2 liftBoost = new Vector2(player.LiftSpeed.X, player.LiftSpeed.Y);
-
-            //liftboost can not be greater than 250 in x or 130 in y direction
-            //also cannot be less than -250 in x or -130 in y direction
-
-            if (liftBoost.X > 250) {
-                liftBoost.X = 250;
-            } else if (liftBoost.X < -250) {
-                liftBoost.X = -250;
-            }
-
-            if (liftBoost.Y > 130) {
-                liftBoost.Y = 130;
-            } else if (liftBoost.Y < -130) {
-                liftBoost.Y = -130;
-            }
-
-            return liftBoost;
-        }
-
-        private HashSet<string> PhysicsLogVisitedRooms;
-        private List<PhysicsLogRoomLayout> VisitedRoomsLayouts;
-        private HashSet<Entity> PhysicsLogLoggedEntities;
-
-        private List<string> EntityNamesOnlyPosition = new List<string>() {
-            "CrystalStaticSpinner",
-            "DustStaticSpinner",
-            "CustomSpinner",
-        };
-        private List<string> EntityNamesHitboxColliders = new List<string>() {
-            "Spikes",
-            "TriggerSpikes",
-            "Lightning",
-            
-            "Refill",
-            "Spring",
-            "DreamBlock",
-            "SwapBlock",
-            "ZipMover",
-            "TouchSwitch",
-            "SwitchGate",
-            "BounceBlock", //Core Block
-            "CrushBlock", //Kevin
-            "DashBlock",
-            //DashSwitch, TempleGate, SeekerBarrier, FlyFeather, MoveBlock, Puffer/StaticPuffer
-            //VariableCrumblePlatform, LinkedZipMover, LinkedZipMoverNoReturn, Booster, ToggleSwapBlock
-            //Cloud, TriggerSpikesOriginal, DashSpring, FloatierSpaceBlock
-
-            "FallingBlock",
-            "JumpThru",
-            "CrumblePlatform",
-
-            "Strawberry",
-            "SilverBerry",
-
-            "Lookout", //Binos
-            "LightningBreakerBox",
-
-            //Modded Entities
-            "Portal",
-            "Glider",
-            "JumpthruPlatform",
-            "AttachedJumpThru",
-            "CrumbleBlockOnTouch",
-            "CrumbleBlock",
-            "CustomSpring",
-            "SidewaysJumpThru",
-            "GroupedDustTriggerSpikes",
-            "GroupedTriggerSpikes",
-            "GroupedFallingBlock",
-            "FloatySpaceBlock",
-            "FlagTouchSwitch",
-            "FlagSwitchGate",
-        };
-
-        /*
-         Entities to add:
-            - SwitchGate
-            - FlagSwitchGate
-         */
-
-        public void PhysicsLogSaveRoomLayout() {
-            if (!(Engine.Scene is Level)) return;
-            Level level = (Level)Engine.Scene;
-
-            string debugRoomName = level.Session.Level;
-            if (PhysicsLogVisitedRooms.Contains(debugRoomName)) return;
-            PhysicsLogVisitedRooms.Add(debugRoomName);
-
-            Log($"Saving room layout for room '{debugRoomName}'");
-
-            string path = GetPathToFile($"{LogsFolder}/RoomLayout.txt");
-            
-            File.WriteAllText(path, $"Room Name '{level.Session.Level}'\n");
-            File.AppendAllText(path, $"level.Bounds: {level.Bounds}\n");
-            File.AppendAllText(path, $"level.TileBounds: {level.TileBounds}\n");
-            File.AppendAllText(path, $"level.LevelOffset: {level.LevelOffset}\n");
-            File.AppendAllText(path, $"level.LevelSolidOffset: {level.LevelSolidOffset}\n");
-            File.AppendAllText(path, $"level.Entities: \n{string.Join("\n", level.Entities.Select((e) => $"{e.GetType().Name} ({e.Position})"))}\n");
-
-            File.AppendAllText(path, $"\n");
-
-            File.AppendAllText(path, $"level.SolidTiles.Grid.Size: {level.SolidTiles.Grid.Size}\n");
-            File.AppendAllText(path, $"level.SolidTiles.Grid.CellsX: {level.SolidTiles.Grid.CellsX}\n");
-            File.AppendAllText(path, $"level.SolidTiles.Grid.CellsY: {level.SolidTiles.Grid.CellsY}\n");
-            File.AppendAllText(path, $"\nlevel.SolidTiles.Grid.Data:\n");
-
-
-            //Draw only our level
-            int offsetX = level.LevelSolidOffset.X;
-            int offsetY = level.LevelSolidOffset.Y;
-
-            int width = level.Bounds.Width / 8;
-            int height = level.Bounds.Height / 8;
-
-            List<int[]> solidTileData = new List<int[]>();
-
-            for (int y = 0; y < height; y++) {
-                int[] row = new int[width];
-                string line = "";
-                for (int x = 0; x < width; x++) {
-                    row[x] = level.SolidTiles.Grid.Data[x + offsetX, y + offsetY] ? 1 : 0;
-                    line += row[x] == 1 ? "1" : " ";
-                }
-                solidTileData.Add(row);
-                File.AppendAllText(path, $"{y}: {line}\n");
-            }
-
-            List<PhysicsLogRoomLayout.LoggedEntity> entities = new List<PhysicsLogRoomLayout.LoggedEntity>();
-            List<PhysicsLogRoomLayout.LoggedEntity> otherEntities = new List<PhysicsLogRoomLayout.LoggedEntity>();
-            foreach (Entity entity in level.Entities) {
-                if (PhysicsLogLoggedEntities.Contains(entity)) continue;
-                PhysicsLogLoggedEntities.Add(entity);
-
-                string entityName = entity.GetType().Name;
-                bool logged = false;
-
-                if (EntityNamesOnlyPosition.Contains(entityName)) {
-                    entities.Add(new PhysicsLogRoomLayout.LoggedEntity() {
-                        Type = entityName,
-                        Position = entity.Position.ToJsonVector2(),
-                    });
-                }
-
-                if (EntityNamesHitboxColliders.Contains(entityName) || entityName == "Solid") {
-                    if (entity.Collider == null) {
-                        Log($"Entity '{entityName}' has no collider!");
-                        continue;
-                    }
-                    if (entity.Collider is Hitbox == false) {
-                        Log($"Entity '{entityName}' has a collider that is not a Hitbox!");
-                        continue;
-                    }
-
-                    Hitbox hitbox = entity.Collider as Hitbox;
-                    PhysicsLogRoomLayout.LoggedEntity loggedEntity = new PhysicsLogRoomLayout.LoggedEntity() {
-                        Type = entityName,
-                        Position = entity.Position.ToJsonVector2(),
-                        Properties = new Dictionary<string, object>() {
-                            ["hitbox"] = new JsonRectangle() {
-                                X = hitbox.Position.X,
-                                Y = hitbox.Position.Y,
-                                Width = hitbox.Width,
-                                Height = hitbox.Height,
-                            },
-                        },
-                    };
-
-                    //Optional properties
-                    if (entityName == "Strawberry") {
-                        Strawberry strawberry = entity as Strawberry;
-                        loggedEntity.Properties.Add("golden", strawberry.Golden);
-                    }
-
-                    if (entityName == "Refill") {
-                        Refill refill = entity as Refill;
-                        
-                        bool twoDashes = GetPrivateProperty<bool>(refill, "twoDashes");
-                        bool oneUse = GetPrivateProperty<bool>(refill, "oneUse");
-
-                        loggedEntity.Properties.Add("twoDashes", twoDashes);
-                        loggedEntity.Properties.Add("oneUse", oneUse);
-                    }
-
-
-                    entities.Add(loggedEntity);
-                    logged = true;
-                }
-
-
-                
-                //Glider, TheoCrystal
-                if (entityName == "Glider" || entityName == "TheoCrystal") {
-                    Holdable hold = null;
-
-                    if (entityName == "Glider")
-                        hold = (entity as Glider).Hold;
-                    else if (entityName == "TheoCrystal")
-                        hold = (entity as TheoCrystal).Hold;
-
-                    //hold.PickupCollider
-                    entities.Add(new PhysicsLogRoomLayout.LoggedEntity() {
-                        Type = entityName,
-                        Position = entity.Position.ToJsonVector2(),
-                        Properties = new Dictionary<string, object>() {
-                            ["hitbox"] = new JsonRectangle() {
-                                X = hold.PickupCollider.Position.X,
-                                Y = hold.PickupCollider.Position.Y,
-                                Width = hold.PickupCollider.Width,
-                                Height = hold.PickupCollider.Height,
-                            },
-                        },
-                    });
-                    logged = true;
-                }
-
-                //FinalBoss, BadelineBoost, FlingBird
-                if (entityName == "FinalBoss" || entityName == "BadelineBoost" || entityName == "FlingBird"){
-                    List<JsonVector2> nodes = new List<JsonVector2>();
-                    Vector2[] nodesEntity = null;
-                    int startIndex = 1;
-
-                    if (entityName == "FinalBoss") {
-                        FinalBoss boss = entity as FinalBoss;
-                        nodesEntity = GetPrivateProperty<Vector2[]>(boss, "nodes");
-
-                    } else if (entityName == "BadelineBoost") {
-                        BadelineBoost boost = entity as BadelineBoost;
-                        nodesEntity = GetPrivateProperty<Vector2[]>(boost, "nodes");
-
-                    } else if (entityName == "FlingBird") {
-                        FlingBird bird = entity as FlingBird;
-                        List<Vector2> allNodes = new List<Vector2>();
-                        for (int i = 0; i < bird.NodeSegments.Count; i++) {
-                            Vector2[] segment = bird.NodeSegments[i];
-                            allNodes.Add(segment[0]);
-                        }
-                        nodesEntity = allNodes.ToArray();
-                    }
-
-                    for (int i = startIndex; i < nodesEntity.Length; i++) {
-                        Vector2 node = nodesEntity[i];
-                        nodes.Add(node.ToJsonVector2());
-                    }
-
-                    Circle circleCollider = entity.Collider as Circle;
-
-                    entities.Add(new PhysicsLogRoomLayout.LoggedEntity() {
-                        Type = entity.GetType().Name,
-                        Position = entity.Position.ToJsonVector2(),
-                        Properties = new Dictionary<string, object>() {
-                            ["hitcircle"] = new JsonCircle() {
-                                X = circleCollider.Position.X,
-                                Y = circleCollider.Position.Y,
-                                Radius = circleCollider.Radius,
-                            },
-                            ["nodes"] = nodes,
-                        },
-                    });
-                    logged = true;
-                }
-
-                if (!logged) {
-                    otherEntities.Add(new PhysicsLogRoomLayout.LoggedEntity() {
-                        Type = entity.GetType().Name,
-                        Position = entity.Position.ToJsonVector2(),
-                    });
-                }
-            }
-
-            string pathJson = GetPathToFile($"{LogsFolder}/room-layout.json");
-            PhysicsLogRoomLayout roomLayout = new PhysicsLogRoomLayout() {
-                DebugRoomName = debugRoomName,
-                LevelBounds = level.Bounds.ToJsonRectangle(),
-                SolidTiles = solidTileData,
-                Entities = entities,
-                OtherEntities = otherEntities,
-            };
-            VisitedRoomsLayouts.Add(roomLayout);
-            
-            File.WriteAllText(pathJson, JsonConvert.SerializeObject(VisitedRoomsLayouts));
-
-            Log($"Room layout saving done!");
-        }
-        #endregion
-
         #region Util
         public static string SanitizeSIDForDialog(string sid) {
             string bsSuffix = "_pqeijpvqie";
@@ -1584,27 +1052,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
             PathRec.AddCheckpoint(cp, cpName);
-        }
-
-        public T GetPrivateProperty<T>(object obj, string propertyName, bool isField = true) {
-            Type type = obj.GetType();
-
-            if (isField) {
-                FieldInfo field = type.GetField(propertyName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (field == null) {
-                    Log($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
-                    return default(T);
-                }
-                return (T)field.GetValue(obj);
-                
-            } else {
-                PropertyInfo property = type.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (property == null) {
-                    Log($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
-                    return default(T);
-                }
-                return (T)property.GetValue(obj, null);
-            }
         }
         #endregion
     }

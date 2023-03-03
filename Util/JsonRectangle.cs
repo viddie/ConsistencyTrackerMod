@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.Util {
+namespace Celeste.Mod.ConsistencyTracker.Utility {
     public class JsonRectangle {
         [JsonProperty("x")]
         public float X { get; set; }

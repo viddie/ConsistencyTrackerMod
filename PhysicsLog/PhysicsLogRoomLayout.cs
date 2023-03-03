@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Util;
+﻿using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System;
@@ -7,12 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.Models {
-    public class PhysicsLogRoomLayout {
+namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
+{
+    public class PhysicsLogRoomLayout
+    {
 
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
-        
+
         [JsonProperty("levelBounds")]
         public JsonRectangle LevelBounds { get; set; }
 
@@ -25,23 +27,5 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("otherEntities")]
         public List<LoggedEntity> OtherEntities { get; set; }
 
-
-
-        public class LoggedEntity {
-            [JsonProperty("type")]
-            public string Type { get; set; }
-
-            //[JsonProperty("x")]
-            //public float X { get; set; }
-
-            //[JsonProperty("y")]
-            //public float Y { get; set; }
-
-            [JsonProperty("position")]
-            public JsonVector2 Position { get; set; }
-
-            [JsonProperty("properties")]
-            public Dictionary<string, object> Properties { get; set; }
-        }
     }
 }

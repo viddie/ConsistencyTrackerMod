@@ -21,6 +21,21 @@
             <div id="canvas-container">
 
             </div>
+            <div id="sidebar-menu">
+                <a class="button" onclick="framePageUp(1)">Frame Page Up</a>
+                <a class="button" onclick="framePageUp(-1)">Frame Page Down</a>
+                <a id="older-recording-button" class="button" onclick="ChangeRecording(1)">Older Recording</a>
+                <a id="newer-recording-button" class="button" onclick="ChangeRecording(-1)" disabled="true">Newer Recording</a>
+                <hr>
+                <p id="recording-details">
+                    Recording: 1<br>
+                    Map: map<br>
+                    Time recorded: 2021-01-01 00:00:00
+                </p>
+                <hr>
+                <h5>Entity Counts</h5>
+                <p id="entity-counts"></p>
+            </div>
         </div>
     </body>
 </html>

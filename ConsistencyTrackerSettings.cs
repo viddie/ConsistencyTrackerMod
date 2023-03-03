@@ -1,7 +1,7 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
-using Celeste.Mod.ConsistencyTracker.Util;
+using Celeste.Mod.ConsistencyTracker.Utility;
 using IL.Monocle;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
@@ -1051,6 +1051,9 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool LogPhysics { get; set; } = false;
 
         [SettingIgnore]
+        public bool LogSegmentOnDeath { get; set; } = false;
+
+        [SettingIgnore]
         public bool LogPhysicsInputsToTasFile { get; set; } = false;
 
         [SettingIgnore]
@@ -1067,6 +1070,12 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool LogLiftBoost { get; set; } = true;
+
+        [SettingIgnore]
+        public bool LogSpeedRetention { get; set; } = true;
+
+        [SettingIgnore]
+        public bool LogStamina { get; set; } = true;
 
         [SettingIgnore]
         public bool LogFlags { get; set; } = true;
@@ -1102,6 +1111,15 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Logs the selected properties to a .csv file");
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Logging On Death", LogSegmentOnDeath) {
+                OnValueChange = v => {
+                    LogSegmentOnDeath = v;
+                    Mod.Log($"Logging segmenting on death {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player dies.");
+
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Copy TAS File To Clipboard", LogPhysicsInputsToTasFile) {
                 OnValueChange = v => {
@@ -1139,6 +1157,20 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnValueChange = v => {
                     LogLiftBoost = v;
                     Mod.Log($"Lift boost logging {(v ? "enabled" : "disabled")}");
+                }
+            });
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed Retention", LogSpeedRetention) {
+                OnValueChange = v => {
+                    LogSpeedRetention = v;
+                    Mod.Log($"Speed retention logging {(v ? "enabled" : "disabled")}");
+                }
+            });
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Log Stamina", LogStamina) {
+                OnValueChange = v => {
+                    LogStamina = v;
+                    Mod.Log($"Stamina logging {(v ? "enabled" : "disabled")}");
                 }
             });
 
