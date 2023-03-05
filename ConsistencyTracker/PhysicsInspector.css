@@ -1,8 +1,55 @@
-a.button[disabled] {
+body {
+    overflow: hidden;
+}
+
+input[type=button], button {
+    display: inline-block;
+    padding: 5px 0;
+    margin: 5px 0;
+    border: 1px solid rgb(5, 5, 5);
+    border-radius: 5px;
+    background-color: rgb(51, 51, 51);
+    color: rgb(245, 245, 245);
+    text-decoration: none;
+    text-align: center;
+    font-family: "Renogare";
+    font-size: 1rem;
+    width: 100%;
+    /* margin: 5px; */
+
+    user-select: none;
+    cursor: pointer;
+}
+input[type=button]:hover, button:hover {
+    background-color: rgb(55, 55, 55);
+    color: rgb(255, 255, 255);
+}
+input[type=button][disabled], button[disabled] {
     background-color: rgb(80, 80, 80);
     color: rgb(200, 200, 200);
     cursor: not-allowed;
 }
+button.slim-button{
+    padding: 0;
+    font-size: 125%;
+}
+
+.flex-start{
+    justify-content: unset;
+}
+input[type=checkbox] {
+    margin: 0;
+    cursor: pointer;
+}
+label {
+    margin-left: 5px;
+    font-size: 70%;
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+
 
 #inspector-view {
     display: none;
@@ -19,10 +66,19 @@ a.button[disabled] {
     left: 0;
     font-size: 80%;
     width: 250px;
+    max-height: 98%;
     background: #2b2b2b;
-    padding: 0px 8px 10px 5px;
+    padding: 5px 8px 10px 5px;
+    border-bottom-right-radius: 5px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    transform: translateX(0%);
+    transition: transform .3s;
 }
 #sidebar-menu > h3, #sidebar-menu > h4, #sidebar-menu > h5 {
+    user-select: none;
     text-align: center;
     margin: 0;
 }
@@ -30,4 +86,16 @@ a.button[disabled] {
     margin-bottom: 0;
     margin-top: 5px;
     font-size: 50%;
+}
+
+#sidebar-toggle-button {
+    position: absolute;
+    background: #2b2b2b;
+    top: 10px;
+    right: 0;
+    transform: translateX(100%);
+    padding: 5px 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    cursor: pointer;
 }

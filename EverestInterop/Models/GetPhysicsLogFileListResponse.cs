@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
     public class GetPhysicsLogFileListResponse : Response {
 
+        [JsonProperty("isInRecording")]
+        public bool IsInRecording { get; set; }
+
         [JsonProperty("count")]
         public int Count => PhysicsLogFiles.Count;
 

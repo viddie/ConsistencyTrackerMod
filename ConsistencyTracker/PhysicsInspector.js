@@ -5,17 +5,85 @@ const ViewStates = {
 };
 let CurrentState = null;
 
+
+const PointLabels = {
+    None: "None",
+
+    DragX: "DragX",
+    DragY: "DragY",
+
+    PositionX: "PositionX",
+    PositionY: "PositionY",
+    PositionCombined: "PositionCombined",
+    SpeedX: "SpeedX",
+    SpeedY: "SpeedY",
+    SpeedCombined: "SpeedCombined",
+    AccelerationX: "AccelerationX",
+    AccelerationY: "AccelerationY",
+    AccelerationCombined: "AccelerationCombined",
+    AbsoluteSpeed: "AbsoluteSpeed",
+    VelocityX: "VelocityX",
+    VelocityY: "VelocityY",
+    VelocityCombined: "VelocityCombined",
+    VelocityDifferenceX: "VelocityDifferenceX",
+    VelocityDifferenceY: "VelocityDifferenceY",
+    VelocityDifferenceCombined: "VelocityDifferenceCombined",
+    LiftBoostX: "LiftBoostX",
+    LiftBoostY: "LiftBoostY",
+    LiftBoostCombined: "LiftBoostCombined",
+    RetainedSpeed: "RetainedSpeed",
+    Stamina: "Stamina",
+    Inputs: "Inputs",
+};
+const PointLabelNames = {
+    None: "None",
+
+    DragX: "Drag X",
+    DragY: "Drag Y",
+
+    PositionX: "Position X",
+    PositionY: "Position Y",
+    PositionCombined: "Position X & Y",
+    SpeedX: "Speed X",
+    SpeedY: "Speed Y",
+    SpeedCombined: "Speed X & Y",
+    AccelerationX: "Acceleration X",
+    AccelerationY: "Acceleration Y",
+    AccelerationCombined: "Acceleration X & Y",
+    AbsoluteSpeed: "Absolute Speed",
+    VelocityX: "Velocity X",
+    VelocityY: "Velocity Y",
+    VelocityCombined: "Velocity X & Y",
+    VelocityDifferenceX: "Velocity Diff X",
+    VelocityDifferenceY: "Velocity Diff Y",
+    VelocityDifferenceCombined: "Velocity Diff X & Y",
+    LiftBoostX: "LiftBoost X",
+    LiftBoostY: "LiftBoost Y",
+    LiftBoostCombined: "LiftBoost X & Y",
+    RetainedSpeed: "Retained Speed",
+    Stamina: "Stamina",
+    Inputs: "Inputs",
+};
+
 const Elements = {
     MainContainer: "main-view",
     LoadingText: "loading-text",
 
     InspectorContainer: "inspector-view",
     CanvasContainer: "canvas-container",
+    SidebarMenu: "sidebar-menu",
 
+    NextFramesButton: "next-frames-button",
+    PreviousFramesButton: "previous-frames-button",
     NewerRecordingButton: "newer-recording-button",
     OlderRecordingButton: "older-recording-button",
     RecordingDetails: "recording-details",
-    EntityCounts: "entity-counts",
+    // EntityCounts: "entity-counts",
+
+    OptionsContainer: "options-container",
+    PointLabels: "point-labels",
+    LayersContainer: "layers-container",
+    TooltipsContainer: "tooltips-container",
 };
 
 //#region Properties
@@ -34,16 +102,40 @@ let konvaPositionLayer = null;
 //#endregion
 
 //#region Settings
+let selectedFile = 0;
 let settings = {
-    frameFollowLineAlwaysEnabled: false,
-    roomNameEnabled: true,
+    alwaysShowFollowLine: false,
+    showRoomNames: true,
     showDragLabels: false,
-    spinnerDrawRectangle: true,
-    frameStepSize: 1000,
-    frameMin: -1,
-    frameMax: -1,
+    showSpinnerRectangle: true,
+    showOnlyRelevantRooms: false,
 
-    selectedFile: 0,
+    frameStepSize: 1000,
+    frameMin: 0,
+    frameMax: 1000,
+
+    menuHidden: false,
+    pointLabels: "None",
+
+    layerVisibleRoomLayout: true,
+    layerVisibleRoomEntities: true,
+    layerVisibleTooltip: true,
+    layerVisiblePosition: true,
+
+    tooltipInfo: {
+        frame: true,
+        position: true,
+        speed: true,
+        acceleration: false,
+        absoluteSpeed: false,
+        velocity: true,
+        velocityDifference: false,
+        liftboost: true,
+        retainedSpeed: true,
+        stamina: true,
+        inputs: true,
+        flags: true,
+    }
 };
 //#endregion
 
@@ -51,8 +143,282 @@ let settings = {
 //#region Startup
 document.addEventListener("DOMContentLoaded", function () {
     loadElements(Elements);
+    loadSettings();
     ShowState(ViewStates.MainView);
 });
+
+
+//#region Settings
+let settingsElements = {
+    alwaysShowFollowLine: "Always Show Follow Line",
+    showRoomNames: "Show Room Names",
+    // showDragLabels: "Show Drag Labels",
+    showSpinnerRectangle: "Show Spinner Rectangle",
+    showOnlyRelevantRooms: "Show Only Relevant Rooms",
+};
+let layerVisibilityElements = {
+    layerVisibleRoomLayout: "Room Layout",
+    layerVisibleRoomEntities: "Room Entities",
+    layerVisibleTooltip: "Tooltip",
+    layerVisiblePosition: "Position",
+};
+let tooltipsInfoElements = {
+    frame: "Frame",
+    position: "Position",
+    speed: "Speed",
+    acceleration: "Acceleration",
+    absoluteSpeed: "Absolute Speed",
+    velocity: "Velocity",
+    velocityDifference: "Velocity Difference",
+    liftboost: "Liftboost",
+    retainedSpeed: "Retained Speed",
+    stamina: "Stamina",
+    inputs: "Inputs",
+    flags: "Flags",
+};
+
+let settingsInited = false;
+function loadSettings(){
+    let settingsStr = localStorage.getItem("settings");
+    if(settingsStr !== null){
+        settings = JSON.parse(settingsStr);
+    }
+
+    settings.frameMin = 0;
+    settings.frameMax = 1000;
+
+    for (const key in settingsElements) {
+        if (settingsElements.hasOwnProperty(key)) {
+            const label = settingsElements[key];
+            let div = createSettingsCheckbox(key, label, settings[key], changedBoolSetting);
+            Elements.OptionsContainer.appendChild(div);
+        }
+    }
+
+    for (const key in layerVisibilityElements) {
+        if (layerVisibilityElements.hasOwnProperty(key)) {
+            const label = layerVisibilityElements[key];
+            let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
+            Elements.LayersContainer.appendChild(div);
+        }
+    }
+
+    for (const key in tooltipsInfoElements) {
+        if (tooltipsInfoElements.hasOwnProperty(key)) {
+            const label = tooltipsInfoElements[key];
+            let div = createSettingsCheckbox(key, label, settings.tooltipInfo[key], changedTooltipInfo);
+            Elements.TooltipsContainer.appendChild(div);
+        }
+    }
+
+    if(settings.menuHidden){
+        refreshSidebarMenuVisibility();
+    }
+
+    //Add PointLabelNames to the combobox in Elements.PointLabels
+    for (const key in PointLabelNames) {
+        if (PointLabels.hasOwnProperty(key)) {
+            const label = PointLabelNames[key];
+            let option = document.createElement("option");
+            option.value = key;
+            option.text = label;
+            Elements.PointLabels.appendChild(option);
+        }
+    }
+
+    Elements.PointLabels.value = settings.pointLabels;
+
+    settingsInited = true;
+}
+
+function createSettingsCheckbox(settingName, settingLabel, currentValue, onChangeFunction){
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = "check-"+settingName;
+    checkbox.checked = currentValue;
+    checkbox.onchange = function(){
+        onChangeFunction(settingName, this.checked);
+    };
+
+    let label = document.createElement("label");
+    label.htmlFor = "check-"+settingName;
+    label.appendChild(document.createTextNode(settingLabel));
+
+    let div = document.createElement("div");
+    div.classList.add("flex-center");
+    div.classList.add("flex-start");
+    div.appendChild(checkbox);
+    div.appendChild(label);
+
+    return div;
+}
+
+function changedBoolSetting(settingName, value){
+    settings[settingName] = value;
+
+    if(settingName === "showDragLabels"){
+        settings.pointLabels = value ? PointLabels.DragX : PointLabels.None;
+    }
+
+    saveSettings();
+    redrawCanvas();
+}
+
+function changedLayerVisibility(layerName, value){
+    let layerToSet = null;
+    switch (layerName) {
+        case "layerVisibleRoomLayout":
+            layerToSet = konvaRoomLayoutLayer;
+            break;
+        case "layerVisibleRoomEntities":
+            layerToSet = konvaRoomEntitiesLayer;
+            break;
+        case "layerVisibleTooltip":
+            layerToSet = konvaTooltipLayer;
+            break;
+        case "layerVisiblePosition":
+            layerToSet = konvaPositionLayer;
+            break;
+    }
+
+    if(value){
+        layerToSet.show();
+    } else {
+        layerToSet.hide();
+    }
+
+    if(layerName === "layerVisibleTooltip"){
+        if(value){
+            konvaLowPrioTooltipLayer.show();
+        } else {
+            konvaLowPrioTooltipLayer.hide();
+        }
+    }
+
+    settings[layerName] = value;
+
+    saveSettings();
+    redrawCanvas();
+}
+function changedTooltipInfo(settingName, value){
+    settings.tooltipInfo[settingName] = value;
+    saveSettings();
+    redrawCanvas();
+}
+function changedPointLabel(pointLabel){
+    if(!settingsInited) return;
+
+    settings.pointLabels = pointLabel;
+    saveSettings();
+    redrawCanvas();
+}
+
+function saveSettings(){
+    localStorage.setItem("settings", JSON.stringify(settings));
+}
+
+
+function applySettings(){
+    if(!settings.layerVisibleRoomLayout){
+        konvaRoomLayoutLayer.hide();
+    }
+    if(!settings.layerVisibleRoomEntities){
+        konvaRoomEntitiesLayer.hide();
+    }
+    if(!settings.layerVisibleTooltip){
+        konvaTooltipLayer.hide();
+        konvaLowPrioTooltipLayer.hide();
+    }
+    if(!settings.layerVisiblePosition){
+        konvaPositionLayer.hide();
+    }
+}
+
+//#region Button Actions
+function framePageUp(mult=1){
+    if(settings.frameMin == -1){
+        settings.frameMin = 1000*(mult-1);
+        settings.frameMax = 1000*mult;
+    } else {
+        settings.frameMin += 1000*mult;
+        settings.frameMax += 1000*mult;
+    }
+
+    if(settings.frameMin < 0){
+        settings.frameMin = 0;
+        settings.frameMax = 1000;
+    }
+
+    updateRecordingInfo();
+    redrawCanvas();
+}
+function resetFramePage(){
+    settings.frameMin = 0;
+    settings.frameMax = 1000;
+    updateRecordingInfo();
+}
+function updateFrameButtonStates(){
+    if(settings.frameMin == 0){
+        Elements.PreviousFramesButton.setAttribute("disabled", true);
+    } else {
+        Elements.PreviousFramesButton.removeAttribute("disabled");
+    }
+    if(settings.frameMax >= roomLayoutRecording.frameCount){
+        Elements.NextFramesButton.setAttribute("disabled", true);
+    } else {
+        Elements.NextFramesButton.removeAttribute("disabled");
+    }
+}
+
+function ChangeRecording(direction){
+    let selectedBefore = selectedFile;
+    selectedFile += direction;
+    if(selectedFile < 0){
+        selectedFile = 0;
+    } else if(selectedFile >= physicsLogFilesList.length){
+        selectedFile = physicsLogFilesList.length-1;
+    }
+
+    if(selectedBefore == selectedFile){
+        return;
+    }
+
+    if(selectedFile == 0){
+        Elements.NewerRecordingButton.setAttribute("disabled", true);
+    } else {
+        Elements.NewerRecordingButton.removeAttribute("disabled");
+    }
+
+    if(selectedFile == physicsLogFilesList.length-1){
+        Elements.OlderRecordingButton.setAttribute("disabled", true);
+    } else {
+        Elements.OlderRecordingButton.removeAttribute("disabled");
+    }
+
+    fetchRoomLayout(afterFetchRoomLayout);
+    resetFramePage();
+}
+
+function toggleSidebarMenuSetting(){
+    settings.menuHidden = !settings.menuHidden;
+    refreshSidebarMenuVisibility();
+    saveSettings();
+}
+function refreshSidebarMenuVisibility(){
+    //Slide the menu out to the left by setting transform: translateX(-100%)
+    if(settings.menuHidden){
+        Elements.SidebarMenu.style.transform = "translateX(-100%)";
+    } else {
+        Elements.SidebarMenu.style.transform = "translateX(0%)";
+    }
+}
+//#endregion
+
+//#endregion
+
+
+
+
 
 function ShowState(state) {
     CurrentState = state;
@@ -83,9 +449,7 @@ function showError(errorCode, errorMessage){
 
 //#region MainView
 function OnShowMainView() {
-    setTimeout(() => {
-        fetchPhysicsLogFileList(afterFetchPhysicsLogFileList);
-    }, 700);
+    fetchPhysicsLogFileList(afterFetchPhysicsLogFileList);
 }
 
 function fetchPhysicsLogFileList(then){
@@ -100,6 +464,12 @@ function fetchPhysicsLogFileList(then){
             }
 
             physicsLogFilesList = responseObj.physicsLogFiles;
+
+            if(responseObj.isInRecording){
+                showError(-1, "Physics recording in progress. Stop the recording to view the inspector.");
+                return;
+            }
+
             then();
         })
         .catch(error => {
@@ -113,7 +483,7 @@ function afterFetchPhysicsLogFileList(){
 }
 
 function fetchRoomLayout(then){
-    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+settings.selectedFile+"_room-layout&extension=json";
+    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+selectedFile+"_room-layout&extension=json";
     fetch(url)
         .then(response => response.json())
         .then(responseObj => {
@@ -140,7 +510,7 @@ function afterFetchRoomLayout(){
 }
 
 function fetchPhysicsLog(then){
-    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+settings.selectedFile+"_position-log&extension=txt";
+    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+selectedFile+"_position-log&extension=txt";
     fetch(url)
         .then(response => {
             //log response
@@ -237,21 +607,7 @@ function OnShowInspectorView() {
     createAllElements();
 
     //Sidemenu things
-    let recordingNumberText = "Recording: "+(settings.selectedFile+1);
-    let frameCountText = roomLayoutRecording.frameCount+" frames";
-
-    let sideAddition = "";
-    if(roomLayoutRecording.sideName !== "A-Side"){
-        sideAddition = " ["+roomLayoutRecording.sideName+"]";
-    }
-    let mapText = "Map: "+roomLayoutRecording.chapterName+sideAddition;
-
-    //parse roomLayoutRecording.recordingStarted from "2020-05-01T20:00:00.0000000+02:00" to "2020-05-01 20:00:00"
-    let date = new Date(roomLayoutRecording.recordingStarted);
-    let dateString = date.getFullYear()+"-"+zeroPad(date.getMonth()+1, 2)+"-"+zeroPad(date.getDate(), 2)+" "+zeroPad(date.getHours(), 2)+":"+zeroPad(date.getMinutes(), 2)+":"+zeroPad(date.getSeconds(), 2);
-    let timeRecordedText = "Time recorded: "+dateString;
-
-    Elements.RecordingDetails.innerText = recordingNumberText+"\n"+frameCountText+"\n"+mapText+"\n"+timeRecordedText;
+    updateRecordingInfo();
 
     let firstFrame = physicsLogFrames[0];
 
@@ -267,6 +623,7 @@ function OnShowInspectorView() {
     }
 
     centerOnPosition(centerX, centerY);
+    applySettings();
 }
 
 function redrawCanvas(){
@@ -278,15 +635,6 @@ function redrawCanvas(){
     konvaTooltipLayer.destroyChildren();
 
     createAllElements();
-}
-
-function createAllElements(){
-    drawRoomBounds();
-    drawStaticEntities();
-    drawPhysicsLog();
-    
-    // draw the image
-    konvaPositionLayer.draw();
 }
 
 function createCanvas(){
@@ -351,6 +699,49 @@ function addMouseHandlers(){
     });
 }
 
+function createAllElements(){
+    findRelevantRooms();
+
+    drawRoomBounds();
+    drawStaticEntities();
+    drawPhysicsLog();
+    
+    // draw the image
+    konvaPositionLayer.draw();
+}
+
+let relevantRoomNames = [];
+function findRelevantRooms(){
+    relevantRoomNames = [];
+
+    //Go through all frames
+    for(let i = 0; i < physicsLogFrames.length; i++){
+        let frame = physicsLogFrames[i];
+
+        if(settings.frameMin != -1 && frame.frameNumber < settings.frameMin
+            || settings.frameMax != -1 && frame.frameNumber > settings.frameMax){
+            continue;
+        }
+
+        //Go through all roomLayouts
+        for(let j = 0; j < roomLayouts.length; j++){
+            //Check if frame is in the room, if yes, add room to relevantRoomNames and break
+            if(relevantRoomNames.includes(roomLayouts[j].debugRoomName)){
+                continue;
+            }
+
+            let roomLayout = roomLayouts[j];
+            let levelBounds = roomLayout.levelBounds;
+
+            if(frame.positionX >= levelBounds.x && frame.positionX <= levelBounds.x + levelBounds.width &&
+                frame.positionY >= levelBounds.y && frame.positionY <= levelBounds.y + levelBounds.height){
+                    relevantRoomNames.push(roomLayout.debugRoomName);
+                    break;
+            }
+        }
+    }
+}
+
 function drawRoomBounds(){
     let tileSize = 8;
     let tileOffsetX = 0;
@@ -358,6 +749,11 @@ function drawRoomBounds(){
 
     roomLayouts.forEach(roomLayout => {
         let debugRoomName = roomLayout.debugRoomName;
+        
+        if(settings.showOnlyRelevantRooms && !relevantRoomNames.includes(debugRoomName)){
+            return;
+        }
+
         let levelBounds = roomLayout.levelBounds;
         let solidTiles = roomLayout.solidTiles; //2d array of bools, whether tiles are solid or not
 
@@ -370,7 +766,7 @@ function drawRoomBounds(){
             strokeWidth: 0.5
         }));
 
-        if(settings.roomNameEnabled){
+        if(settings.showRoomNames){
             konvaRoomLayoutLayer.add(new Konva.Text({
                 x: levelBounds.x + 3,
                 y: levelBounds.y + 3,
@@ -449,6 +845,12 @@ let entityCounts = {};
 function drawStaticEntities(){
     entityCounts = {};
     roomLayouts.forEach(roomLayout => {
+        let debugRoomName = roomLayout.debugRoomName;
+
+        if(settings.showOnlyRelevantRooms && !relevantRoomNames.includes(debugRoomName)){
+            return;
+        }
+
         let levelBounds = roomLayout.levelBounds;
         let entities = roomLayout.entities;
         entities.forEach(entity => {
@@ -477,7 +879,7 @@ function drawStaticEntities(){
                     strokeWidth: 0.5,
                 }));
 
-                if(settings.spinnerDrawRectangle){
+                if(settings.showSpinnerRectangle){
                     //Draw white rectangle with width 16, height 4, x offset -8 and y offset -3 on entity position
                     konvaRoomEntitiesLayer.add(new Konva.Rect({
                         x: entityX - 8,
@@ -613,20 +1015,21 @@ function drawStaticEntities(){
     //Write the entity counts to the paragraph element at Elements.EntityCounts
     //entityCounts is a map of entity type to count and exists already
     //Sorting the keys of the map by the count, and then by the entity type
-    Elements.EntityCounts.innerHTML = "";
-    let entityCountsKeys = Object.keys(entityCounts);
-    entityCountsKeys.sort((a, b) => {
-        if(entityCounts[a] === entityCounts[b]){
-            return a.localeCompare(b);
-        }
-        return entityCounts[b] - entityCounts[a];
-    });
-    let total = 0;
-    entityCountsKeys.forEach(entityType => {
-        total += entityCounts[entityType];
-        Elements.EntityCounts.innerHTML += `${entityType}: ${entityCounts[entityType]}<br>`;
-    });
-    Elements.EntityCounts.innerHTML = `Total: ${total}<br>` + Elements.EntityCounts.innerHTML;
+
+    // Elements.EntityCounts.innerHTML = "";
+    // let entityCountsKeys = Object.keys(entityCounts);
+    // entityCountsKeys.sort((a, b) => {
+    //     if(entityCounts[a] === entityCounts[b]){
+    //         return a.localeCompare(b);
+    //     }
+    //     return entityCounts[b] - entityCounts[a];
+    // });
+    // let total = 0;
+    // entityCountsKeys.forEach(entityType => {
+    //     total += entityCounts[entityType];
+    //     Elements.EntityCounts.innerHTML += `${entityType}: ${entityCounts[entityType]}<br>`;
+    // });
+    // Elements.EntityCounts.innerHTML = `Total: ${total}<br>` + Elements.EntityCounts.innerHTML;
 
 }
 
@@ -656,8 +1059,6 @@ let entityNamesText = {
     "LightningBreakerBox": [0.15, "Breaker\nBox"],
     "FlyFeather": [0.8, "F"],
     "DashSpring": [0.25, "Dash"],
-    "TheoCrystal": [0.25, "Theo"],
-    "CrystalBomb": [0.2, "Crystal"],
     "Cloud": [0.4, "Cloud"],
     "Puffer": [0.25, "Puffer"],
     "StaticPuffer": [0.25, "Puffer"],
@@ -667,6 +1068,10 @@ let entityNamesText = {
     "CassetteBlock": [0.15, "Cassette"],
     "WonkyCassetteBlock": [0.15, "Cassette"],
     "TempleCrackedBlock": [0.15, "Cracked\nBlock"],
+
+    "Glider": [0.25, "Jelly"],
+    "TheoCrystal": [0.25, "Theo"],
+    "CrystalBomb": [0.2, "Crystal"],
 
     "Bumper": [0.8, "B"],
     "Booster": [0.25, "Bubble"],
@@ -871,6 +1276,8 @@ function createLetterEntityTextCircle(entityX, entityY, hitcircle, text, fontSiz
 
 function drawPhysicsLog(){
     let previousFrame = null;
+    pointLabelPreviousValue = null;
+
     for(let i = 0; i < physicsLogFrames.length; i++){
         let frame = physicsLogFrames[i];
 
@@ -891,7 +1298,7 @@ function drawPhysicsLog(){
         });
         konvaPositionLayer.add(posCircle);
 
-        createPhysicsTooltip(posCircle, frame);
+        createPhysicsTooltip(posCircle, frame, previousFrame);
 
         drawAdditionalFrameData(frame, previousFrame);
         previousFrame = frame;
@@ -902,9 +1309,10 @@ function drawAdditionalFrameData(frame, previousFrame){
     let posX = frame.positionX;
     let posY = frame.positionY;
 
-    if(settings.frameFollowLineAlwaysEnabled
+    if(settings.alwaysShowFollowLine
         || (previousFrame !== null && previousFrame.flags.includes('Dead'))
-        || frame.velocityX > 20 || frame.velocityY > 20){
+        || frame.velocityX > 20 || frame.velocityY > 20
+        || frame.velocityX < -20 || frame.velocityY <-20){
         //Draw line to previous position
         if(previousFrame !== null){
             konvaTooltipLayer.add(new Konva.Line({
@@ -917,25 +1325,103 @@ function drawAdditionalFrameData(frame, previousFrame){
         }
     }
 
-    if(settings.showDragLabels && previousFrame !== null){
+    if(settings.pointLabels !== PointLabels.None){
+        drawPointLabels(frame, previousFrame);
+    }
+}
+
+let pointLabelPreviousValue = null;
+let frameDiffPointLabelFields = {
+    PositionX: [(frame) => frame.positionX.toFixed(2), false],
+    PositionY: [(frame) => frame.positionY.toFixed(2), false],
+    PositionCombined: [(frame) => "("+frame.positionX.toFixed(2)+"|"+frame.positionY.toFixed(2)+")", false],
+    SpeedX: [(frame) => frame.speedX.toFixed(2), false],
+    SpeedY: [(frame) => frame.speedY.toFixed(2), false],
+    SpeedCombined: [(frame) => "("+frame.speedX.toFixed(2)+"|"+frame.speedY.toFixed(2)+")", false],
+
+    AbsoluteSpeed: [(frame) => (Math.sqrt(frame.speedX * frame.speedX + frame.speedY * frame.speedY)).toFixed(2), false],
+
+    VelocityX: [(frame) => frame.velocityX.toFixed(2), false],
+    VelocityY: [(frame) => frame.velocityY.toFixed(2), false],
+    VelocityCombined: [(frame) => "("+frame.velocityX.toFixed(2)+"|"+frame.velocityY.toFixed(2)+")", false],
+
+    VelocityDifferenceX: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 ? (frame.velocityX - frame.speedX/60).toFixed(2) : "", true],
+    VelocityDifferenceY: [(frame) => Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? (frame.velocityY - frame.speedY/60).toFixed(2) : "", true],
+    VelocityDifferenceCombined: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 || Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? "("+(frame.velocityX - frame.speedX/60).toFixed(2)+"|"+(frame.velocityY - frame.speedY/60).toFixed(2)+")" : "", true],
+    
+    LiftBoostX: [(frame) => frame.liftBoostX.toFixed(2), false],
+    LiftBoostY: [(frame) => frame.liftBoostY.toFixed(2), false],
+    LiftBoostCombined: [(frame) => "("+frame.liftBoostX.toFixed(2)+"|"+frame.liftBoostY.toFixed(2)+")", false],
+    RetainedSpeed: [(frame) => frame.speedRetention.toFixed(2), false],
+    Stamina: [(frame) => frame.stamina.toFixed(2), false],
+    Inputs: [(frame) => frame.inputs, false],
+};
+let frameDiffDiffPointLabelFields = {
+    AccelerationX: (frame, previousFrame) => (frame.speedX - previousFrame.speedX).toFixed(2),
+    AccelerationY: (frame, previousFrame) => (frame.speedY - previousFrame.speedY).toFixed(2),
+    AccelerationCombined: (frame, previousFrame) => "("+(frame.speedX - previousFrame.speedX).toFixed(2)+"|"+(frame.speedY - previousFrame.speedY).toFixed(2)+")",
+}
+function drawPointLabels(frame, previousFrame){
+    let text = "";
+    
+    if(settings.pointLabels === PointLabels.DragX && previousFrame !== null){
         let dragX = frame.speedX - previousFrame.speedX;
         if(dragX < -15 || dragX > 15 || dragX === 0 || previousFrame.speedX === 0 || /Retained(.)/.test(frame.flags)) {
 
         } else {
-            let fontSize = 1.5;
-            //Draw text over position according to dragX
-            konvaLowPrioTooltipLayer.add(new Konva.Text({
-                x: posX - 0.5 - fontSize,
-                y: posY - 1.5 - fontSize,
-                text: dragX.toFixed(2),
-                fontSize: fontSize,
-                fontFamily: 'Renogare',
-                fill: 'white',
-                stroke: 'black',
-                strokeWidth: fontSize * 0.08,
-            }));
+            text = dragX.toFixed(2);
+        }
+    } else if (settings.pointLabels === PointLabels.DragY && previousFrame !== null){
+        let dragY = frame.speedY - previousFrame.speedY;
+        if(dragY < -16 || dragY > 16 || dragY === 0 || previousFrame.speedY === 0) {
+
+        } else {
+            text = dragY.toFixed(2);
         }
     }
+
+    //if settings.pointLabels is in frameDiffPointLabelFields, then add the value of that field to text
+    if(settings.pointLabels in frameDiffPointLabelFields){
+        let func = frameDiffPointLabelFields[settings.pointLabels][0];
+        let showRepeatValues = frameDiffPointLabelFields[settings.pointLabels][1];
+        let valueThisFrame = func(frame);
+        if(previousFrame === null || showRepeatValues || func(previousFrame) !== valueThisFrame){
+            text = valueThisFrame;
+        }
+    }
+
+    //if settings.pointLabels is in frameDiffDiffPointLabelFields, then add the value of that field to text
+    if(settings.pointLabels in frameDiffDiffPointLabelFields){
+        if(previousFrame === null) return;
+        let func = frameDiffDiffPointLabelFields[settings.pointLabels];
+        let valueThisFrame = func(frame, previousFrame);
+        if(valueThisFrame !== "0.00" && valueThisFrame !== "-0.00"){
+            text = valueThisFrame;
+        }
+    }
+
+    if(text === ""){
+        return;
+    }
+
+    let posX = frame.positionX;
+    let posY = frame.positionY;
+    let boxWidth = 30;
+    let fontSize = 1.5;
+    konvaLowPrioTooltipLayer.add(new Konva.Text({
+        x: posX - boxWidth/2,
+        y: posY - 1.5 - fontSize,
+        width: boxWidth,
+        height: fontSize,
+        align: 'center',
+        verticalAlign: 'middle',
+        text: text,
+        fontSize: fontSize,
+        fontFamily: 'Renogare',
+        fill: 'white',
+        stroke: 'black',
+        strokeWidth: fontSize * 0.08,
+    }));
 }
 
 function getFramePointColor(frame){
@@ -957,7 +1443,7 @@ function getFramePointColor(frame){
     return 'white';
 }
 
-function createPhysicsTooltip(shape, frame){
+function createPhysicsTooltip(shape, frame, previousFrame){
     let posX = frame.positionX;
     let posY = frame.positionY;
 
@@ -999,7 +1485,7 @@ function createPhysicsTooltip(shape, frame){
     konvaTooltipLayer.add(maddyHurtbox);
 
 
-    let tooltipTextContent = formatTooltipText(frame);
+    let tooltipTextContent = formatTooltipText(frame, previousFrame);
     //For every line in the tooltipTextContent, add some height to the tooltip box
     let additionalHeight = (tooltipTextContent.split("\n").length - 1) * tooltipFontSize;
     tooltipBoxHeight = tooltipBoxHeight + additionalHeight;
@@ -1070,13 +1556,30 @@ function createPhysicsTooltip(shape, frame){
     });
 }
 
-function formatTooltipText(frame){
-    let xySeparator = "|";
+function formatTooltipText(frame, previousFrame){
+    if(previousFrame == null){
+        previousFrame = {
+            speedX: 0,
+            speedY: 0,
+        }
+    }
 
+    let accelerationX = frame.speedX - previousFrame.speedX;
+    let accelerationY = frame.speedY - previousFrame.speedY;
+
+    let speedXInPixels = frame.speedX / 60;
+    let speedYInPixels = frame.speedY / 60;
+
+    let velocityDiffX = frame.velocityX - speedXInPixels;
+    let velocityDiffY = frame.velocityY - speedYInPixels;
+    
+    let xySeparator = "|";
     let posText = "(" + frame.positionX.toFixed(2) + xySeparator + frame.positionY.toFixed(2) + ")";
     let speedText = "(" + frame.speedX.toFixed(2) + xySeparator + frame.speedY.toFixed(2) + ")";
+    let accelerationText = "(" + accelerationX.toFixed(2) + xySeparator + accelerationY.toFixed(2) + ")";
     let absSpeed = Math.sqrt(frame.speedX * frame.speedX + frame.speedY * frame.speedY);
     let velocityText = "(" + frame.velocityX.toFixed(2) + xySeparator + frame.velocityY.toFixed(2) + ")";
+    let velocityDiffText = "(" + velocityDiffX.toFixed(2) + xySeparator + velocityDiffY.toFixed(2) + ")";
     let liftBoostText = "(" + frame.liftBoostX.toFixed(2) + xySeparator + frame.liftBoostY.toFixed(2) + ")";
 
     //flags are space separated
@@ -1096,16 +1599,78 @@ function formatTooltipText(frame){
         flagsText = flagsText.slice(0, -1);
     }
 
-    return "    Frame: " + frame.frameNumber + "\n" +
-           "      Pos: " + posText + "\n" +
-           "    Speed: " + speedText + "\n" +
-           "Abs.Speed: " + absSpeed.toFixed(2) + "\n" +
-           " Velocity: " + velocityText + "\n" +
-           "LiftBoost: " + liftBoostText + "\n" +
-           " Retained: " + frame.speedRetention.toFixed(2) + "\n" +
-           "  Stamina: " + frame.stamina.toFixed(2) + "\n" +
-           "   Inputs: " + frame.inputs + "\n" +
-           "    Flags: \n" + flagsText;
+    let lines = [];
+    if(settings.tooltipInfo.frame){
+        lines.push("    Frame: " + frame.frameNumber);
+    }
+    if(settings.tooltipInfo.position){
+        lines.push("      Pos: " + posText);
+    }
+    if(settings.tooltipInfo.speed){
+        lines.push("    Speed: " + speedText);
+    }
+    if(settings.tooltipInfo.acceleration){
+        lines.push("   Accel.: " + accelerationText);
+    }
+    if(settings.tooltipInfo.absoluteSpeed){
+        lines.push("Abs.Speed: " + absSpeed.toFixed(2));
+    }
+    if(settings.tooltipInfo.velocity){
+        lines.push(" Velocity: " + velocityText);
+    }
+    if(settings.tooltipInfo.velocityDifference){
+        lines.push("Vel.Diff.: " + velocityDiffText);
+    }
+    if(settings.tooltipInfo.liftboost){
+        lines.push("LiftBoost: " + liftBoostText);
+    }
+    if(settings.tooltipInfo.retainedSpeed){
+        lines.push(" Retained: " + frame.speedRetention.toFixed(2));
+    }
+    if(settings.tooltipInfo.stamina){
+        lines.push("  Stamina: " + frame.stamina.toFixed(2));
+    }
+    if(settings.tooltipInfo.inputs){
+        lines.push("   Inputs: " + frame.inputs);
+    }
+    if(settings.tooltipInfo.flags){
+        lines.push("    Flags: ");
+        lines.push(flagsText);
+    }
+
+    return lines.join("\n");
+
+    // return "    Frame: " + frame.frameNumber + "\n" +
+    //        "      Pos: " + posText + "\n" +
+    //        "    Speed: " + speedText + "\n" +
+    //        "Abs.Speed: " + absSpeed.toFixed(2) + "\n" +
+    //        " Velocity: " + velocityText + "\n" +
+    //        "LiftBoost: " + liftBoostText + "\n" +
+    //        " Retained: " + frame.speedRetention.toFixed(2) + "\n" +
+    //        "  Stamina: " + frame.stamina.toFixed(2) + "\n" +
+    //        "   Inputs: " + frame.inputs + "\n" +
+    //        "    Flags: \n" + flagsText;
+}
+
+function updateRecordingInfo(){
+    let recordingNumberText = "Recording: ("+(selectedFile+1)+"/"+physicsLogFilesList.length+")";
+    let frameCountText = roomLayoutRecording.frameCount+" frames";
+    let showingFramesText = "(Showing: "+settings.frameMin+" - "+Math.min(settings.frameMax, roomLayoutRecording.frameCount)+")";
+
+    let sideAddition = "";
+    if(roomLayoutRecording.sideName !== "A-Side"){
+        sideAddition = " ["+roomLayoutRecording.sideName+"]";
+    }
+    let mapText = "Map: "+roomLayoutRecording.chapterName+sideAddition;
+
+    //parse roomLayoutRecording.recordingStarted from "2020-05-01T20:00:00.0000000+02:00" to "2020-05-01 20:00:00"
+    let date = new Date(roomLayoutRecording.recordingStarted);
+    let dateString = date.getFullYear()+"-"+zeroPad(date.getMonth()+1, 2)+"-"+zeroPad(date.getDate(), 2)+" "+zeroPad(date.getHours(), 2)+":"+zeroPad(date.getMinutes(), 2)+":"+zeroPad(date.getSeconds(), 2);
+    let timeRecordedText = "Time recorded: "+dateString;
+
+    Elements.RecordingDetails.innerText = recordingNumberText+"\n"+frameCountText+" "+showingFramesText+"\n"+mapText+"\n"+timeRecordedText;
+
+    updateFrameButtonStates();
 }
 //#endregion
 
@@ -1205,58 +1770,5 @@ function zeroPad(num, size) {
     var s = num+"";
     while (s.length < size) s = "0" + s;
     return s;
-}
-//#endregion
-
-//#region Settings
-function framePageUp(mult=1){
-    if(settings.frameMin == -1){
-        settings.frameMin = 1000*(mult-1);
-        settings.frameMax = 1000*mult;
-    } else {
-        settings.frameMin += 1000*mult;
-        settings.frameMax += 1000*mult;
-    }
-
-    if(settings.frameMin < 0){
-        settings.frameMin = 0;
-        settings.frameMax = 1000;
-    }
-
-    redrawCanvas();
-}
-
-function ChangeRecording(direction){
-    if(direction == 1 && Elements.OlderRecordingButton.hasAttribute("disabled")){
-        return;
-    } else if(direction == -1 && Elements.NewerRecordingButton.hasAttribute("disabled")){
-        return;
-    }
-
-    let selectedBefore = settings.selectedFile;
-    settings.selectedFile += direction;
-    if(settings.selectedFile < 0){
-        settings.selectedFile = 0;
-    } else if(settings.selectedFile >= 10){
-        settings.selectedFile = 9;
-    }
-
-    if(selectedBefore == settings.selectedFile){
-        return;
-    }
-
-    if(settings.selectedFile == 0){
-        Elements.NewerRecordingButton.setAttribute("disabled", true);
-    } else {
-        Elements.NewerRecordingButton.removeAttribute("disabled");
-    }
-
-    if(settings.selectedFile == physicsLogFilesList.length-1){
-        Elements.OlderRecordingButton.setAttribute("disabled", true);
-    } else {
-        Elements.OlderRecordingButton.removeAttribute("disabled");
-    }
-
-    fetchRoomLayout(afterFetchRoomLayout);
 }
 //#endregion

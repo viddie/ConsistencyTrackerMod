@@ -22,19 +22,63 @@
 
             </div>
             <div id="sidebar-menu">
-                <a class="button" onclick="framePageUp(1)">Frame Page Up</a>
-                <a class="button" onclick="framePageUp(-1)">Frame Page Down</a>
-                <a id="older-recording-button" class="button" onclick="ChangeRecording(1)">Older Recording</a>
-                <a id="newer-recording-button" class="button" onclick="ChangeRecording(-1)" disabled="true">Newer Recording</a>
+                <div id="sidebar-toggle-button" class="flex-center-column" onclick="toggleSidebarMenuSetting()">
+                    <!-- Draw an SVG image of a burger menu -->
+                    <svg width="30" height="30" viewBox="0 0 100 100">
+                        <path d="M 10,20 L 90,20" stroke="white" stroke-width="10" />
+                        <path d="M 10,50 L 90,50" stroke="white" stroke-width="10" />
+                        <path d="M 10,80 L 90,80" stroke="white" stroke-width="10" />
+                    </svg>
+                </div>
+                <h5>Frame Navigation</h5>
+                <div class="flex-center">
+                    <button id="previous-frames-button" onclick="framePageUp(-1)" style="transform:scaleX(-1)" class="slim-button">➔</button>
+                    <div style="width:10px"></div>
+                    <button id="next-frames-button" onclick="framePageUp(1)" class="slim-button">➔</button>
+                </div>
                 <hr>
+                <h5>Recordings</h5>
+                <div class="flex-center">
+                    <button id="newer-recording-button" onclick="ChangeRecording(-1)" disabled="true">Newer</button>
+                    <div style="width:10px"></div>
+                    <button id="older-recording-button" onclick="ChangeRecording(1)" >Older</button>
+                </div>
+
+                <hr>
+
                 <p id="recording-details">
                     Recording: 1<br>
                     Map: map<br>
                     Time recorded: 2021-01-01 00:00:00
                 </p>
+
                 <hr>
-                <h5>Entity Counts</h5>
-                <p id="entity-counts"></p>
+
+                <h5>Options</h5>
+                <div id="options-container">
+                    
+                </div>
+
+                <hr>
+
+                <div class="flex-center">
+                    <label for="point-labels">Point Labels:</label>
+                    <select id="point-labels" onchange="changedPointLabel(this.value)"></select>
+                </div>
+
+                <hr>
+
+                <h5>Layer Visibility</h5>
+                <div id="layers-container">
+
+                </div>
+
+                <hr>
+
+                <h5>Tooltip Info</h5>
+                <div id="tooltips-container">
+
+                </div>
             </div>
         </div>
     </body>

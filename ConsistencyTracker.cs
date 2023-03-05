@@ -15,6 +15,7 @@ using Celeste.Mod.ConsistencyTracker.Entities;
 using Monocle;
 using System.Reflection;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
+using Celeste.Mod.SpeedrunTool.TeleportRoom;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -126,7 +127,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Mod Settings -> \n{JsonConvert.SerializeObject(ModSettings, Formatting.Indented)}");
             Log($"~~~==============================~~~");
 
-            ModSettings.LogPhysics = false;
+            ModSettings.LogPhysicsEnabled = false;
             PhysicsLog = new PhysicsLogger();
 
             HookStuff();
@@ -298,6 +299,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
             Log($"level.Session.LevelData.Name={SanitizeRoomName(level.Session.LevelData.Name)}");
+
+            
         }
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
@@ -305,10 +308,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
-            if (playerIntro == Player.IntroTypes.Respawn) { //Changing room via golden berry death or debug map teleport
-                if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
-                    SetNewRoom(newCurrentRoom, false, holdingGolden);
-                }
+
+            //Changing room via golden berry death or debug map teleport
+            if (playerIntro == Player.IntroTypes.Respawn && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) { 
+                SetNewRoom(newCurrentRoom, false, holdingGolden);
+            }
+            //Teleporters?
+            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) { 
+                SetNewRoom(newCurrentRoom, true, holdingGolden);
             }
 
             if (DidRestart) {
@@ -368,7 +375,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             string roomName = SanitizeRoomName(levelDataNext.Name);
             Log($"levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, levelDataNext.Bounds->{levelDataNext.Bounds}");
             bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
-            SetNewRoom(roomName, true, holdingGolden);
+
+            if (CurrentRoomName != null && roomName != CurrentRoomName) { 
+                SetNewRoom(roomName, true, holdingGolden);
+            }
         }
 
         private void Player_OnDie(Player player) {
@@ -429,7 +439,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
-
+            
             SetNewRoom(CurrentRoomName, false, false);
             if (session.LevelData.HasCheckpoint) {
                 LastRoomWithCheckpoint = CurrentRoomName;
@@ -441,7 +451,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DoRecordPath = true;
             }
 
-            if (ModSettings.LogPhysics) {
+            if (ModSettings.LogPhysicsEnabled) {
                 PhysicsLog.SegmentLog(true);
             }
         }

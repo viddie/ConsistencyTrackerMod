@@ -22,12 +22,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
         private static ConsistencyTrackerSettings ModSettings => Mod.ModSettings;
+        public static bool IsInRecording => ModSettings.LogPhysicsEnabled;
+        
         private int MaxLogFiles => 10;
         private static string FolderName => ConsistencyTrackerModule.LogsFolder;
         private static readonly string LogFileName = "position-log.txt";
         private static readonly string LayoutFileName = "room-layout.json";
 
         private DateTime RecordingStarted;
+        private string RecordingStartedInChapterName;
+        private string RecordingStartedInSideName;
         private Vector2 LastExactPos = Vector2.Zero;
         private bool LastFrameEnabled = false;
         private StreamWriter LogWriter = null;
@@ -75,7 +79,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
 
-            bool logPhysics = ModSettings.LogPhysics;
+            bool logPhysics = ModSettings.LogPhysicsEnabled;
             if (logPhysics && !LastFrameEnabled) {
                 //should log now, but didnt previously
                 LogPosition = ModSettings.LogPosition;
@@ -103,6 +107,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 LoggedEntitiesRaw = new HashSet<Entity>();
 
                 RecordingStarted = DateTime.Now;
+                RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
+                RecordingStartedInSideName = Mod.CurrentChapterStats.SideName;
 
                 //Type playerType = player.GetType();
                 //Mod.Log($"Fields of player: [{string.Join(", ", playerType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
@@ -127,7 +133,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 if (doSegmentRecording) {
                     doSegmentRecording = false;
                     skipFrameOnSegment = false;
-                    ModSettings.LogPhysics = true;
+                    ModSettings.LogPhysicsEnabled = true;
                 }
 
                 return;
@@ -138,7 +144,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
                 //Disables recording
                 if (doSegmentRecording) {
-                    ModSettings.LogPhysics = false;
+                    ModSettings.LogPhysicsEnabled = false;
                     if (skipFrameOnSegment) {
                         return;
                     }
@@ -512,28 +518,39 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DeathDisplay",
             "DashSequenceDisplay",
 
-            "FloatingDebris",
             "Decal",
+            "SolidTiles",
             "ParticleSystem",
+            "FloatingDebris",
             "BackgroundTiles", "BGTilesRenderer",
             "GlassBlockBg",
             "MirrorSurfaces",
-            "WaterSurface",
-            "ColoredWater", "ColoredWaterfall", "SolidTiles",
+            "WaterSurface", "WaterFloatingObject",
+            "ColoredWater", "ColoredWaterfall",
             "DustEdges",
             "ParticleEmitter",
             "FormationBackdrop",
+            "CustomHangingLamp",
+            "ResortLantern",
+            "StrawberryJamJar",
+            "StaticDoor",
+            "CustomFlagline",
+            "ConfettiTrigger",
+            "LightOccludeBlock",
+            "Moth",
 
             "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
             "SmoothCameraOffsetTrigger", "InstantLockingCameraTrigger", "CameraHitboxEntity",
-            "LookoutBlocker",
+            "LookoutBlocker", "CameraAdvanceTargetTrigger",
 
             "FlagTrigger",
             "TeleportationTrigger", "TeleportationTarget",
             "ChangeRespawnTrigger", "SpawnFacingTrigger",
 
+            "StylegroundMask",
             "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
-            "MadelineSpotlightModifierTrigger", "FlashTrigger",
+            "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
+            "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger",
 
             "MusicParamTrigger",
 
@@ -543,6 +560,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "RainbowSpinnerColorController",
             "TimeController",
             "SeekerEffectsController", "SeekerBarrierRenderer",
+            "StylegroundFadeController",
 
             "PathRenderer",
             "LightningRenderer",
@@ -550,7 +568,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "MoveBlockBarrierRenderer", "PlayerSeekerBarrierRenderer", "PufferBarrierRenderer",
             "CrystalBombDetonatorRenderer", "CrystalBombFieldRenderer",
             "FlagKillBarrierRenderer",
+            "DecalContainerRenderer",
 
+            "TriggerTrigger",
             "Border",
             "SlashFx",
             "Snapshot",
@@ -583,7 +603,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             File.AppendAllText(path, $"level.SolidTiles.Grid.CellsY: {level.SolidTiles.Grid.CellsY}\n");
             File.AppendAllText(path, $"\nlevel.SolidTiles.Grid.Data:\n");
 
-
+            
             //Draw only our level
             int offsetX = level.LevelSolidOffset.X;
             int offsetY = level.LevelSolidOffset.Y;
@@ -617,6 +637,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 };
                 Collider collider = null;
                 bool logged = false;
+
+                if (entityName == "ChapterPanelTrigger") {
+                    Util.GetPrivateProperty<object>(entity, "asd");
+                }
 
                 if (EntityNamesOnlyPosition.Contains(entityName)) {
                     collider = entity.Collider;
@@ -863,8 +887,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             string pathJson = GetFilePath(FileType.Layout, 0);
 
             PhysicsLogLayoutFile file = new PhysicsLogLayoutFile() {
-                ChapterName = Mod.CurrentChapterStats.ChapterName,
-                SideName = Mod.CurrentChapterStats.SideName,
+                ChapterName = RecordingStartedInChapterName,
+                SideName = RecordingStartedInSideName,
                 RecordingStarted = RecordingStarted,
                 FrameCount = FrameNumber,
                 Rooms = rooms,

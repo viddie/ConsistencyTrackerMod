@@ -53,6 +53,8 @@ namespace Celeste.Mod.ConsistencyTracker
             });
         }
 
+        public bool CountTeleportsForRoomTransitions { get; set; } = false;
+
         #endregion
 
         #region Record Path Settings
@@ -1048,7 +1050,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool VerboseLogging { get; set; } = false;
 
         [SettingIgnore]
-        public bool LogPhysics { get; set; } = false;
+        public bool LogPhysicsEnabled { get; set; } = false;
 
         [SettingIgnore]
         public bool LogSegmentOnDeath { get; set; } = false;
@@ -1104,9 +1106,9 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
             subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Logging Physics Enabled", LogPhysics) {
+            subMenu.Add(menuItem = new TextMenu.OnOff("Logging Physics Enabled", LogPhysicsEnabled) {
                 OnValueChange = v => {
-                    LogPhysics = v;
+                    LogPhysicsEnabled = v;
                     Mod.Log($"Logging physics {(v ? "enabled" : "disabled")}");
                 }
             });

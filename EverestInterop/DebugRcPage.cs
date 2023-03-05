@@ -12,6 +12,7 @@ using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.EverestInterop.Models;
 using Newtonsoft.Json;
 using Celeste.Mod.ConsistencyTracker.Stats;
+using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
     public enum RCErrorCode {
@@ -802,7 +803,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     return;
                 }
 
-                GetPhysicsLogFileListResponse response = new GetPhysicsLogFileListResponse();
+                GetPhysicsLogFileListResponse response = new GetPhysicsLogFileListResponse() { 
+                    IsInRecording = PhysicsLogger.IsInRecording,
+                };
 
                 Mod.PhysicsLog.GetAvailableLayoutFiles().ForEach(x => {
                     response.PhysicsLogFiles.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {

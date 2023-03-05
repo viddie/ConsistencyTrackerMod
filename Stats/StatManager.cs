@@ -154,7 +154,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             DateTime endTime = DateTime.Now;
-            Mod.Log($"Outputting formats done! (Time taken: {(endTime - startTime).TotalSeconds}s)");
+            Mod.Log($"Outputting formats done! (Time taken: {(endTime - startTime).TotalMilliseconds}ms)");
         }
         public string FormatVariableFormat(string format) {
             if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
