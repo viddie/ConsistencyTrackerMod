@@ -57,7 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public PathInfo LastPassPathInfo = null;
 
         public StatManager() {
-            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFolder($"{BaseFolder}"));
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}"));
             LoadFormats();
         }
 

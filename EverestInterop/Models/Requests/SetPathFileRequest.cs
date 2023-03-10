@@ -5,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class SetPathFileRequest {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Requests
+{
+    public class SetPathFileRequest
+    {
         public PathInfo path { get; set; }
     }
 }

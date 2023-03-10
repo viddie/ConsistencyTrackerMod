@@ -6,7 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
-    public class PhysicsLogLayoutFile {
+    public class PhysicsLogLayoutsFile {
+
+        [JsonProperty("id")]
+        public int ID { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
         [JsonProperty("chapterName")]
         public string ChapterName { get; set; }

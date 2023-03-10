@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class InfoResponse : Response {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses
+{
+    public class InfoResponse : Response
+    {
         public string message { get; set; }
         public string modVersion { get; set; }
         public List<StatFormat> formatsLoaded { get; set; }

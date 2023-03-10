@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class GetFormatResponse : Response {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Requests
+{
+    public class SaveFormatRequest
+    {
+        public string name { get; set; }
         public string format { get; set; }
-        public string text { get; set; }
     }
 }

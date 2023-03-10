@@ -5,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class GetFormatListResponse : Response {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses
+{
+    public class GetFormatListResponse : Response
+    {
         public List<StatFormat> customFormats { get; set; }
         public List<StatFormat> defaultFormats { get; set; }
     }

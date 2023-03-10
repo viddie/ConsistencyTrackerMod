@@ -84,11 +84,19 @@ const Elements = {
     PointLabels: "point-labels",
     LayersContainer: "layers-container",
     TooltipsContainer: "tooltips-container",
+
+    OfflineNotice: "offline-notice",
+    OfflineNoticeHr: "offline-notice-hr",
 };
+
+const apiBaseUrl = "http://localhost:32270/cct";
 
 //#region Properties
 
-let physicsLogFilesList = null;
+let isOffline = false;
+let isRecording = false;
+let recentPhysicsLogFilesList = null;
+let savedPhysicsRecordingsList = null;
 let roomLayouts = null; //Array
 let physicsLogFrames = null; //Array
 
@@ -106,9 +114,9 @@ let selectedFile = 0;
 let settings = {
     alwaysShowFollowLine: false,
     showRoomNames: true,
-    showDragLabels: false,
     showSpinnerRectangle: true,
     showOnlyRelevantRooms: false,
+    rasterizeMovement: false,
 
     frameStepSize: 1000,
     frameMin: 0,
@@ -145,16 +153,18 @@ document.addEventListener("DOMContentLoaded", function () {
     loadElements(Elements);
     loadSettings();
     ShowState(ViewStates.MainView);
+    
+    Elements.NewerRecordingButton.setAttribute("disabled", true);
 });
 
 
 //#region Settings
 let settingsElements = {
-    alwaysShowFollowLine: "Always Show Follow Line",
+    // alwaysShowFollowLine: "Always Show Follow Line",
     showRoomNames: "Show Room Names",
-    // showDragLabels: "Show Drag Labels",
     showSpinnerRectangle: "Show Spinner Rectangle",
     showOnlyRelevantRooms: "Show Only Relevant Rooms",
+    rasterizeMovement: "Rasterize Movement",
 };
 let layerVisibilityElements = {
     layerVisibleRoomLayout: "Room Layout",
@@ -164,17 +174,17 @@ let layerVisibilityElements = {
 };
 let tooltipsInfoElements = {
     frame: "Frame",
-    position: "Position",
-    speed: "Speed",
-    acceleration: "Acceleration",
-    absoluteSpeed: "Absolute Speed",
-    velocity: "Velocity",
-    velocityDifference: "Velocity Difference",
-    liftboost: "Liftboost",
-    retainedSpeed: "Retained Speed",
     stamina: "Stamina",
+    position: "Position",
     inputs: "Inputs",
+    speed: "Speed",
     flags: "Flags",
+    acceleration: "Acceleration",
+    absoluteSpeed: "Abs. Speed",
+    velocity: "Velocity",
+    liftboost: "Liftboost",
+    velocityDifference: "Velocity Difference",
+    retainedSpeed: "Retained Speed",
 };
 
 let settingsInited = false;
@@ -203,8 +213,35 @@ function loadSettings(){
         }
     }
 
+    let combinedRows = 0;
+    let storedKey = null;
     for (const key in tooltipsInfoElements) {
-        if (tooltipsInfoElements.hasOwnProperty(key)) {
+        if (!tooltipsInfoElements.hasOwnProperty(key)) {
+            continue;
+        }
+
+        if(combinedRows < 5 && storedKey == null){
+            storedKey = key;
+            continue;
+        } else if (storedKey != null){
+            const storedLabel = tooltipsInfoElements[storedKey];
+            let storedDiv = createSettingsCheckbox(storedKey, storedLabel, settings.tooltipInfo[storedKey], changedTooltipInfo);
+            storedDiv.style.width = "50%";
+
+            const label = tooltipsInfoElements[key];
+            let div = createSettingsCheckbox(key, label, settings.tooltipInfo[key], changedTooltipInfo);
+
+            //Combine the two divs into one row
+            let container = document.createElement("div");
+            container.classList.add("flex-center");
+            container.appendChild(storedDiv);
+            container.appendChild(div);
+            container.style.justifyContent = "start";
+            Elements.TooltipsContainer.appendChild(container);
+
+            storedKey = null;
+            combinedRows++;
+        } else {
             const label = tooltipsInfoElements[key];
             let div = createSettingsCheckbox(key, label, settings.tooltipInfo[key], changedTooltipInfo);
             Elements.TooltipsContainer.appendChild(div);
@@ -255,11 +292,6 @@ function createSettingsCheckbox(settingName, settingLabel, currentValue, onChang
 
 function changedBoolSetting(settingName, value){
     settings[settingName] = value;
-
-    if(settingName === "showDragLabels"){
-        settings.pointLabels = value ? PointLabels.DragX : PointLabels.None;
-    }
-
     saveSettings();
     redrawCanvas();
 }
@@ -373,23 +405,26 @@ function updateFrameButtonStates(){
 function ChangeRecording(direction){
     let selectedBefore = selectedFile;
     selectedFile += direction;
-    if(selectedFile < 0){
-        selectedFile = 0;
-    } else if(selectedFile >= physicsLogFilesList.length){
-        selectedFile = physicsLogFilesList.length-1;
+
+    let fileOffset = isRecording ? 1 : 0;
+
+    if(selectedFile < fileOffset){
+        selectedFile = fileOffset;
+    } else if(selectedFile >= recentPhysicsLogFilesList.length+fileOffset){
+        selectedFile = recentPhysicsLogFilesList.length+fileOffset-1;
     }
 
     if(selectedBefore == selectedFile){
         return;
     }
 
-    if(selectedFile == 0){
+    if(selectedFile == fileOffset){
         Elements.NewerRecordingButton.setAttribute("disabled", true);
     } else {
         Elements.NewerRecordingButton.removeAttribute("disabled");
     }
 
-    if(selectedFile == physicsLogFilesList.length-1){
+    if(selectedFile == recentPhysicsLogFilesList.length+fileOffset-1){
         Elements.OlderRecordingButton.setAttribute("disabled", true);
     } else {
         Elements.OlderRecordingButton.removeAttribute("disabled");
@@ -448,34 +483,64 @@ function showError(errorCode, errorMessage){
 
 
 //#region MainView
+let isFirstPull = false;
 function OnShowMainView() {
     fetchPhysicsLogFileList(afterFetchPhysicsLogFileList);
+    isFirstPull = true;
+}
+
+function performRequest(url, localStorageName, then, errorMessage, errorFunction=null){
+    if(isOffline){
+        let storedRequest = localStorage.getItem(localStorageName);
+        if(storedRequest !== null){
+            then(JSON.parse(storedRequest));
+        } else {
+            showError(-1, errorMessage);
+            console.error(error);
+        }
+    } else {
+        fetch(url)
+        .then(response => response.json())
+        .then(responseObj => {
+            localStorage.setItem(localStorageName, JSON.stringify(responseObj));
+            then(responseObj);
+        })
+        .catch(error => {
+            showError(-1, errorMessage);
+            console.error(error);
+            if(errorFunction !== null){
+                errorFunction();
+            }
+        });
+    }
 }
 
 function fetchPhysicsLogFileList(then){
-    let url = "http://localhost:32270/cct/getPhysicsLogList";
-    fetch(url)
-        .then(response => response.json())
-        .then(responseObj => {
-            console.log(responseObj);
-            if(responseObj.errorCode !== 0){
-                showError(responseObj.errorCode, responseObj.errorMessage);
-                return;
-            }
+    let url = apiBaseUrl + "/getPhysicsLogList";
+    function afterFetch(responseObj){
+        console.log(responseObj);
+        if(responseObj.errorCode !== 0){
+            showError(responseObj.errorCode, responseObj.errorMessage);
+            return;
+        }
 
-            physicsLogFilesList = responseObj.physicsLogFiles;
+        recentPhysicsLogFilesList = responseObj.recentPhysicsLogFiles;
+        savedPhysicsRecordingsList = responseObj.savedPhysicsRecordings;
+        isRecording = responseObj.isRecording;
 
-            if(responseObj.isInRecording){
-                showError(-1, "Physics recording in progress. Stop the recording to view the inspector.");
-                return;
-            }
+        if(isRecording){
+            isFirstPull = false;
+            selectedFile = 1;
+        }
 
-            then();
-        })
-        .catch(error => {
-            showError(-1, "Could not fetch physics log files list (is CCT running?)");
-            console.error(error);
-        });
+        then();
+    }
+    function onError(){
+        isOffline = true;
+        OnShowMainView();
+    }
+
+    performRequest(url, "requests.physicsLogFiles", afterFetch, "Failed to fetch physics log file list (is CCT running?)", onError);
 }
 
 function afterFetchPhysicsLogFileList(){
@@ -483,66 +548,65 @@ function afterFetchPhysicsLogFileList(){
 }
 
 function fetchRoomLayout(then){
-    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+selectedFile+"_room-layout&extension=json";
-    fetch(url)
-        .then(response => response.json())
-        .then(responseObj => {
-            console.log(responseObj);
-            if(responseObj.errorCode !== 0){
-                showError(responseObj.errorCode, responseObj.errorMessage);
-                return;
-            }
+    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder=recent-recordings&file="+selectedFile+"_room-layout&extension=json";
+    function afterFetch(responseObj){
+        console.log(responseObj);
+        if(responseObj.errorCode !== 0){
+            showError(responseObj.errorCode, responseObj.errorMessage);
+            return;
+        }
 
-            let fileContentStr = responseObj.fileContent;
+        let fileContentStr = responseObj.fileContent;
 
-            roomLayoutRecording = JSON.parse(fileContentStr);
-            roomLayouts = roomLayoutRecording.rooms;
+        roomLayoutRecording = JSON.parse(fileContentStr);
+        roomLayouts = roomLayoutRecording.rooms;
 
-            then();
-        })
-        .catch(error => {
-            showError(-1, "Could not fetch room layouts (is CCT running?)");
-            console.error(error);
-        });
+        then();
+    }
+    
+    performRequest(url, "requests.roomLayout."+selectedFile, afterFetch, "Failed to fetch room layout (is CCT running?)");
 }
 function afterFetchRoomLayout(){
     fetchPhysicsLog(goToInspectorView);
 }
 
 function fetchPhysicsLog(then){
-    let url = "http://localhost:32270/cct/getFileContent?folder=logs&file="+selectedFile+"_position-log&extension=txt";
-    fetch(url)
-        .then(response => {
-            //log response
-            console.log(response);
-            return response.json();
-        })
-        .then(responseObj => {
-            console.log(responseObj);
-            if(responseObj.errorCode !== 0){
-                showError(responseObj.errorCode, responseObj.errorMessage);
-                return;
-            }
+    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder=recent-recordings&file="+selectedFile+"_position-log&extension=txt";
+    function afterFetch(responseObj){
+        console.log(responseObj);
+        if(responseObj.errorCode !== 0){
+            showError(responseObj.errorCode, responseObj.errorMessage);
+            return;
+        }
 
-            let fileContentStr = responseObj.fileContent;
-            physicsLogFrames = parsePhysicsLogFrames(fileContentStr);
-            filterPhysicsLogFrames();
-            
-            then();
-        })
-        .catch(error => {
-            showError(-1, "Could not fetch physics log (is CCT running?)");
-            console.error(error);
-        });
+        let fileContentStr = responseObj.fileContent;
+        physicsLogFrames = parsePhysicsLogFrames(fileContentStr);
+        filterPhysicsLogFrames();
+        
+        then();
+    }
+
+    performRequest(url, "requests.physicsLog."+selectedFile, afterFetch, "Failed to fetch physics log (is CCT running?)");
 }
 function goToInspectorView(){
+    if(isOffline){
+        Elements.OfflineNotice.style.display = "block";
+        Elements.OfflineNoticeHr.style.display = "block";
+    } else {
+        Elements.OfflineNotice.style.display = "none";
+        Elements.OfflineNoticeHr.style.display = "none";
+    }
+
     ShowState(ViewStates.InspectorView);
 }
 
 function parsePhysicsLogFrames(fileContent){
     //First line is the header
     let lines = fileContent.split("\n");
+
     let header = lines[0];
+
+    let beginIndex = header.indexOf("Frame") ;
 
     //All other lines have the format:
     //FrameNumber, PositionX, PositionY, SpeedX, SpeedY, VelocityX, VelocityY, LiftBoostX, LiftBoostY, Flags, Inputs
@@ -802,43 +866,64 @@ let spinnerRadius = 6;
 let entitiesOffsetX = 0;
 let entitiesOffsetY = 0.5;
 let hitboxEntityNames = {
-    "red": ["Solid", "FloatySpaceBlock", "FloatierSpaceBlock", "StarJumpBlock", "BounceBlock", "LockBlock", "ClutterDoor", "ClutterBlockBase", "TempleCrackedBlock"],
-    "white": ["Spikes", "Lightning", "SeekerBarrier", "CrystalBombDetonator"],
-    "#666666": ["TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes"],
-    "orange": ["JumpThru", "JumpthruPlatform", "AttachedJumpThru", "SidewaysJumpThru", "Puffer", "StaticPuffer", "ClutterSwitch"],
-    "#ff4d00": ["SwapBlock", "ToggleSwapBlock", "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn", "SwitchGate", "FlagSwitchGate"],
-    "green": ["Spring", "CustomSpring", "DashSpring"],
-    "cyan": ["FallingBlock", "GroupedFallingBlock", "RisingBlock", "CrumblePlatform", "CrumbleBlock", "CrumbleBlockOnTouch", "DashBlock", "WallBooster", "IcyFloor"],
-    "yellow": ["Portal", "Glider", "RespawningJellyfish", "TheoCrystal", "CrystalBomb", "LightningBreakerBox", "Lookout", "FlyFeather", "Key"],
+    "red": ["Solid", "FakeWall",
+            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "StarJumpBlock",
+            "BounceBlock",
+            "LockBlock", "ClutterDoor", "ClutterBlockBase",
+            "TempleCrackedBlock",
+            "InvisibleBarrier", "CustomInvisibleBarrier"],
+    "white": ["Spikes", "Lightning",
+              "SeekerBarrier", "CrystalBombDetonator"],
+    "#666666": ["TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "RainbowTriggerSpikes", "TimedTriggerSpikes"],
+    "orange": ["JumpThru", "JumpthruPlatform", "AttachedJumpThru", "SidewaysJumpThru", "UpsideDownJumpThru",
+               "Puffer", "StaticPuffer", "SpeedPreservePuffer",
+               "ClutterSwitch", "HoldableBarrier"],
+    "#ff4d00": ["SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
+                "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
+                "SwitchGate", "FlagSwitchGate"],
+    "green": ["Spring", "CustomSpring", "DashSpring", "SpringGreen"],
+    "cyan": ["FallingBlock", "GroupedFallingBlock", "RisingBlock",
+             "CrumblePlatform", "CrumbleBlock", "CrumbleBlockOnTouch", "FloatyBreakBlock",
+             "DashBlock", "WallBooster", "IcyFloor"],
+    "yellow": ["Portal", "LightningBreakerBox", "Lookout", "CustomPlaybackWatchtower", "FlyFeather", "Key",
+               "Glider", "CustomGlider", "RespawningJellyfish",
+               "TheoCrystal", "CrystalBomb"],
     "#C0C0C0": ["SilverBerry"],
-    "black": ["DreamBlock", "DreamMoveBlock"],
+    "black": ["DreamBlock", "DreamMoveBlock", "CustomDreamBlock", "CustomDreamBlockV2", "DashThroughSpikes", "ConnectedDreamBlock"],
     "blue": ["TouchSwitch", "MovingTouchSwitch", "FlagTouchSwitch", "CrushBlock"],
     "#85e340": ["DashSwitch", "TempleGate"],
-    "#a200ff": ["MoveBlock", "ConnectedMoveBlock"],
-    "Special": ["Refill", "Cloud", "CassetteBlock", "WonkyCassetteBlock"],
+    "#a200ff": ["MoveBlock", "ConnectedMoveBlock", "VitMoveBlock"],
+    "Special": ["Strawberry", "Refill", "RefillWall", "Cloud", "CassetteBlock", "WonkyCassetteBlock"],
 };
 let hitcircleEntityNames = {
-    "#0f58d9": ["Bumper"],
+    "#0f58d9": ["Bumper", "StaticBumper"],
     "white": ["Shield"],
-    "Special": ["Booster"],
+    "#33c3ff": ["BlueBooster"],
+    "Special": ["Booster", "VortexBumper"],
 };
 let specialEntityColorFunctions = {
     "Strawberry": (entity) => { return entity.properties.golden ? "#ffd700" : "#bb0000"; },
-    "Refill": (entity) => { return entity.properties.twoDashes === true ? "#fa7ded" : "#aedc5e"; },
-    "Cloud": (entity) => { return entity.properties.fragile === true ? "#ffa5ff" : "#77cde3"; },
-    "Booster": (entity) => { return entity.properties.red === true ? "#d3170a" : "#219974"; },
+    "Refill": (entity) => { return entity.properties.twoDashes ? "#fa7ded" : "#aedc5e"; },
+    "RefillWall": (entity) => { return entity.properties.twoDashes ? "#fa7ded" : "#aedc5e"; },
+    "Cloud": (entity) => { return entity.properties.fragile ? "#ffa5ff" : "#77cde3"; },
+    "Booster": (entity) => { return entity.properties.red ? "#d3170a" : "#219974"; },
     "CassetteBlock": (entity) => { return entity.properties.color; },
     "WonkyCassetteBlock": (entity) => { return entity.properties.color; },
+    "VortexBumper": (entity) => { return entity.properties.twoDashes ? "#fa7ded" : entity.properties.oneUse ? "#d3170a" : "#0f58d9"; },
 };
 
 let entityNamesDashedOutline = {
+    "FakeWall": 3.5,
     "SeekerBarrier": 0.5,
+    "HoldableBarrier": 0.5,
     "CrystalBombDetonator": 0.5,
     "IcyFloor": 1,
     "WallBooster": 1,
     "Shield": 1,
     "CassetteBlock": 3,
     "WonkyCassetteBlock": 3,
+    "InvisibleBarrier": 5,
+    "CustomInvisibleBarrier": 5,
 };
 
 let entityCounts = {};
@@ -853,13 +938,8 @@ function drawStaticEntities(){
 
         let levelBounds = roomLayout.levelBounds;
         let entities = roomLayout.entities;
-        entities.forEach(entity => {
-            //add type to entityCounts
-            if(entityCounts[entity.type] === undefined){
-                entityCounts[entity.type] = 0;
-            }
-            entityCounts[entity.type]++;
 
+        entities.forEach(entity => {
             let entityX = entity.position.x + entitiesOffsetX;
             let entityY = entity.position.y + entitiesOffsetY;
 
@@ -891,6 +971,17 @@ function drawStaticEntities(){
                     }));
                 }
             }
+        });
+
+        entities.forEach(entity => {
+            //add type to entityCounts
+            if(entityCounts[entity.type] === undefined){
+                entityCounts[entity.type] = 0;
+            }
+            entityCounts[entity.type]++;
+
+            let entityX = entity.position.x + entitiesOffsetX;
+            let entityY = entity.position.y + entitiesOffsetY;
 
             //If the entity type is in any of the value arrays in the hitboxEntityNames map
             let entityColor = Object.keys(hitboxEntityNames).find(color => hitboxEntityNames[color].includes(entity.type));
@@ -1011,26 +1102,6 @@ function drawStaticEntities(){
             }
         });
     });
-
-    //Write the entity counts to the paragraph element at Elements.EntityCounts
-    //entityCounts is a map of entity type to count and exists already
-    //Sorting the keys of the map by the count, and then by the entity type
-
-    // Elements.EntityCounts.innerHTML = "";
-    // let entityCountsKeys = Object.keys(entityCounts);
-    // entityCountsKeys.sort((a, b) => {
-    //     if(entityCounts[a] === entityCounts[b]){
-    //         return a.localeCompare(b);
-    //     }
-    //     return entityCounts[b] - entityCounts[a];
-    // });
-    // let total = 0;
-    // entityCountsKeys.forEach(entityType => {
-    //     total += entityCounts[entityType];
-    //     Elements.EntityCounts.innerHTML += `${entityType}: ${entityCounts[entityType]}<br>`;
-    // });
-    // Elements.EntityCounts.innerHTML = `Total: ${total}<br>` + Elements.EntityCounts.innerHTML;
-
 }
 
 //Objects that map entity names to text properties
@@ -1046,6 +1117,9 @@ let entityNamesText = {
     "BounceBlock": [0.2, "Core\nBlock"],
     "CrushBlock": [0.25, "Kevin"],
 
+    "Refill": [0.2, (entity) => entity.properties.oneUse ? "" : "Refill"],
+    "RefillWall": [0.25, (entity) => entity.properties.oneUse ? "" : "Refill\nWall"],
+
     "CrumblePlatform": [0.8, "C"],
     "CrumbleBlock": [0.8, "C"],
     "CrumbleBlockOnTouch": [0.8, "C"],
@@ -1053,15 +1127,18 @@ let entityNamesText = {
     "RisingBlock": [0.8, "R"],
     "GroupedFallingBlock": [0.8, "F"],
     "DashBlock": [0.8, "D"],
+    "FloatyBreakBlock": [0.2, "Floaty\nBreakBlock"],
 
     "DashSwitch": [0.2, "Switch"],
     "TempleGate": [0.2, "Gate"],
     "LightningBreakerBox": [0.15, "Breaker\nBox"],
     "FlyFeather": [0.8, "F"],
-    "DashSpring": [0.25, "Dash"],
+    "DashSpring": [0.25, "Dash\nSpring"],
+    "SpringGreen": [0.225, "Green\nSpring"],
     "Cloud": [0.4, "Cloud"],
     "Puffer": [0.25, "Puffer"],
     "StaticPuffer": [0.25, "Puffer"],
+    "SpeedPreservePuffer": [0.25, "Speed\nPuffer"],
     "Key": [0.4, "Key"],
     "LockBlock": [0.15, "LockBlock"],
     "ClutterDoor": [0.1, "ClutterDoor"],
@@ -1070,11 +1147,18 @@ let entityNamesText = {
     "TempleCrackedBlock": [0.15, "Cracked\nBlock"],
 
     "Glider": [0.25, "Jelly"],
+    "CustomGlider": [0.25, "Jelly"],
+    "RespawningJellyfish": [0.25, "Jelly"],
     "TheoCrystal": [0.25, "Theo"],
     "CrystalBomb": [0.2, "Crystal"],
 
-    "Bumper": [0.8, "B"],
-    "Booster": [0.25, "Bubble"],
+    "DashThroughSpikes": [0.25, "Dash\nSpikes"],
+
+    "Bumper": [0.2, "Bumper"],
+    "StaticBumper": [0.175, "Static\nBumper"],
+    "VortexBumper": [(entity) => entity.properties.oneUse ? 0.125 : 0.175, (entity) => entity.properties.oneUse ? "Vortex\nBumper\n(One Use)" : "Vortex\nBumper"],
+    "Booster": [0.15, "Bubble"],
+    "BlueBooster": [0.15, "Blue\nBubble"],
 };
 
 function drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity){
@@ -1083,9 +1167,21 @@ function drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity){
     //if entity.type is in entityNamesText, use the text properties from there
     if(entity.type in entityNamesText){
         let textProperties = entityNamesText[entity.type];
-        let fontSize = Math.min(hitbox.width, hitbox.height) * textProperties[0];
-        let offsetY = fontSize * 0.1;
-        konvaRoomEntitiesLayer.add(createLetterEntityText(entityX, entityY + offsetY, hitbox, textProperties[1], fontSize, entityColor));
+        let size = textProperties[0];
+        if(typeof(size) === "function"){
+            size = size(entity);
+        }
+        let text = textProperties[1];
+        if(typeof(text) === "function"){
+            text = text(entity);
+        }
+
+        if(text !== ""){
+            let fontSize = Math.min(hitbox.width, hitbox.height) * size;
+            let offsetY = fontSize * 0.1;
+    
+            konvaRoomEntitiesLayer.add(createLetterEntityText(entityX, entityY + offsetY, hitbox, text, fontSize, entityColor));
+        }
     }
 
     if(entity.type === "Strawberry" || entity.type === "SilverBerry"){
@@ -1141,7 +1237,7 @@ function drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity){
         });
     }
 
-    if(entity.type === "Refill" && entity.properties.oneUse === true){
+    if((entity.type === "Refill" || entity.type === "RefillWall") && entity.properties.oneUse === true){
         //Draw a cross on the refill
         let offset = Math.min(hitbox.width, hitbox.height) * 0.1;
         konvaRoomEntitiesLayer.add(new Konva.Line({
@@ -1199,7 +1295,7 @@ function drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity){
     }
 
 
-    if(entity.type == "Puffer" || entity.type == "StaticPuffer"){
+    if(entity.type == "Puffer" || entity.type == "StaticPuffer" || entity.type == "SpeedPreservePuffer"){
         let circleRadius = 32;
         //Draw a top half circle on the entity position using svg Path
         konvaRoomEntitiesLayer.add(new Konva.Path({
@@ -1235,16 +1331,23 @@ function drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity){
 function drawSimpleHitcircleAdditionalShape(entityColor, entityX, entityY, entity){
     let hitcircle = entity.properties.hitcircle;
 
-    if(entity.type == "Bumper"){
-        let fontSize = hitcircle.radius * 0.8;
-        let offsetY = fontSize * 0.1;
-        konvaRoomEntitiesLayer.add(createLetterEntityTextCircle(entityX, entityY + offsetY, hitcircle, "B", fontSize, entityColor));
-    }
-
-    if(entity.type == "Booster"){
-        let fontSize = hitcircle.radius * 0.25;
-        let offsetY = fontSize * 0.1;
-        konvaRoomEntitiesLayer.add(createLetterEntityTextCircle(entityX, entityY + offsetY, hitcircle, "Bubble", fontSize, entityColor));
+    if(entity.type in entityNamesText){
+        let textProperties = entityNamesText[entity.type];
+        let size = textProperties[0];
+        if(typeof(size) === "function"){
+            size = size(entity);
+        }
+        let text = textProperties[1];
+        if(typeof(text) === "function"){
+            text = text(entity);
+        }
+        
+        if(text !== ""){
+            let fontSize = hitcircle.radius*2 * size;
+            let offsetY = fontSize * 0.1;
+    
+            konvaRoomEntitiesLayer.add(createLetterEntityTextCircle(entityX, entityY + offsetY, hitcircle, text, fontSize, entityColor));
+        }
     }
 }
 
@@ -1273,6 +1376,19 @@ function createLetterEntityTextCircle(entityX, entityY, hitcircle, text, fontSiz
     return createLetterEntityText(entityX - hitcircle.radius, entityY - hitcircle.radius, hitbox, text, fontSize, entityColor);
 }
 
+function getRasterziedPosition(frame){
+    if(settings.rasterizeMovement){
+        return {
+            positionX: Math.round(frame.positionX),
+            positionY: Math.round(frame.positionY),
+        };
+    }
+
+    return {
+        positionX: frame.positionX,
+        positionY: frame.positionY,
+    };
+}
 
 function drawPhysicsLog(){
     let previousFrame = null;
@@ -1284,8 +1400,9 @@ function drawPhysicsLog(){
         if(settings.frameMin != -1 && frame.frameNumber < settings.frameMin) continue;
         if(settings.frameMax != -1 && frame.frameNumber > settings.frameMax) break;
 
-        let posX = frame.positionX;
-        let posY = frame.positionY;
+        let rasterizedPos = getRasterziedPosition(frame);
+        let posX = rasterizedPos.positionX;
+        let posY = rasterizedPos.positionY;
 
         //Draw circle on position
         let posCircle = new Konva.Circle({
@@ -1306,8 +1423,9 @@ function drawPhysicsLog(){
 }
 
 function drawAdditionalFrameData(frame, previousFrame){
-    let posX = frame.positionX;
-    let posY = frame.positionY;
+    let rasterizedPos = getRasterziedPosition(frame);
+    let posX = rasterizedPos.positionX;
+    let posY = rasterizedPos.positionY;
 
     if(settings.alwaysShowFollowLine
         || (previousFrame !== null && previousFrame.flags.includes('Dead'))
@@ -1315,8 +1433,9 @@ function drawAdditionalFrameData(frame, previousFrame){
         || frame.velocityX < -20 || frame.velocityY <-20){
         //Draw line to previous position
         if(previousFrame !== null){
-            konvaTooltipLayer.add(new Konva.Line({
-                points: [previousFrame.positionX, previousFrame.positionY, posX, posY],
+            let rasterizedPreviousPos = getRasterziedPosition(previousFrame);
+            konvaLowPrioTooltipLayer.add(new Konva.Line({
+                points: [rasterizedPreviousPos.positionX, rasterizedPreviousPos.positionY, posX, posY],
                 stroke: 'white',
                 strokeWidth: 0.05,
                 lineCap: 'round',
@@ -1403,9 +1522,10 @@ function drawPointLabels(frame, previousFrame){
     if(text === ""){
         return;
     }
-
-    let posX = frame.positionX;
-    let posY = frame.positionY;
+    
+    let rasterizedPos = getRasterziedPosition(frame);
+    let posX = rasterizedPos.positionX;
+    let posY = rasterizedPos.positionY;
     let boxWidth = 30;
     let fontSize = 1.5;
     konvaLowPrioTooltipLayer.add(new Konva.Text({
@@ -1444,8 +1564,9 @@ function getFramePointColor(frame){
 }
 
 function createPhysicsTooltip(shape, frame, previousFrame){
-    let posX = frame.positionX;
-    let posY = frame.positionY;
+    let rasterizedPos = getRasterziedPosition(frame);
+    let posX = rasterizedPos.positionX;
+    let posY = rasterizedPos.positionY;
 
     let maddyWidth = 7;
     let maddyHeight = 10;
@@ -1653,7 +1774,9 @@ function formatTooltipText(frame, previousFrame){
 }
 
 function updateRecordingInfo(){
-    let recordingNumberText = "Recording: ("+(selectedFile+1)+"/"+physicsLogFilesList.length+")";
+    let fileOffset = isRecording ? 1 : 0;
+    let inRecordingString = isRecording ? " (Recording...)" : "";
+    let recordingNumberText = "Recording: ("+(selectedFile+1)+"/"+(recentPhysicsLogFilesList.length+fileOffset)+")"+inRecordingString;
     let frameCountText = roomLayoutRecording.frameCount+" frames";
     let showingFramesText = "(Showing: "+settings.frameMin+" - "+Math.min(settings.frameMax, roomLayoutRecording.frameCount)+")";
 
@@ -1770,5 +1893,68 @@ function zeroPad(num, size) {
     var s = num+"";
     while (s.length < size) s = "0" + s;
     return s;
+}
+//#endregion
+
+
+//#region API Calls
+function getPhysicsLogAsStrings(){
+    function appendToLine(line, frame, key){
+        if(line.length > 0){
+            line += ",";
+        }
+        line += frame[key];
+        return line;
+    }
+    
+    let arr = [];
+
+    for(let i = 0; i < physicsLogFrames.length; i++){
+        let line = "";
+        let frame = physicsLogFrames[i];
+        
+        appendToLine(line, frame, "frameNumber");
+        appendToLine(line, frame, "positionX");
+        appendToLine(line, frame, "positionY");
+        appendToLine(line, frame, "speedX");
+        appendToLine(line, frame, "speedY");
+        appendToLine(line, frame, "velocityX");
+        appendToLine(line, frame, "velocityY");
+        appendToLine(line, frame, "liftBoostX");
+        appendToLine(line, frame, "liftBoostY");
+        appendToLine(line, frame, "speedRetention");
+        appendToLine(line, frame, "stamina");
+        appendToLine(line, frame, "flags");
+        appendToLine(line, frame, "inputs");
+
+        arr.push(line);
+    }
+
+    return arr;
+}
+
+function saveCurrentRecording(name){
+    let request = {
+        layoutFile: roomLayoutRecording,
+        physicsLog: getPhysicsLogAsStrings(),
+        name: name,
+    };
+
+    let url = apiBaseUrl + "/saveRecording";
+    //Fetch request
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+        },
+        body: JSON.stringify(request)
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(err => {
+            console.log(err);
+        });
 }
 //#endregion

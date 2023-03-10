@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Celeste.Mod.Helpers;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -113,8 +114,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             }
 
             if (Mod.ModSettings.ButtonToggleLogPhysics.Pressed) {
-                Mod.ModSettings.LogPhysicsEnabled = !Mod.ModSettings.LogPhysicsEnabled;
-                Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {Mod.ModSettings.LogPhysicsEnabled}");
+                PhysicsLogger.Settings.IsRecording = !PhysicsLogger.Settings.IsRecording;
+                Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
             }
         }
 

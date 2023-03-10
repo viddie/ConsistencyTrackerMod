@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class PathListResponse : Response {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses
+{
+    public class PathListResponse : Response
+    {
         public List<string> mapNames { get; set; }
     }
 }

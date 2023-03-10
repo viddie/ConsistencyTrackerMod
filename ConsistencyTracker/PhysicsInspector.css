@@ -71,8 +71,8 @@ label {
     padding: 5px 8px 10px 5px;
     border-bottom-right-radius: 5px;
 
-    overflow-x: hidden;
-    overflow-y: auto;
+    /* overflow-x: hidden; */
+    /* overflow-y: auto; */
 
     transform: translateX(0%);
     transition: transform .3s;
@@ -98,4 +98,13 @@ label {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
     cursor: pointer;
+}
+
+
+#offline-notice {
+    display: none;
+    color: rgb(237, 187, 21);
+}
+#offline-notice-hr {
+    display: none;
 }

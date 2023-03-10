@@ -20,21 +20,37 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             Layout
         }
 
+        public enum RecordingType { 
+            Recent,
+            Saved,
+        }
+
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
         private static ConsistencyTrackerSettings ModSettings => Mod.ModSettings;
-        public static bool IsInRecording => ModSettings.LogPhysicsEnabled;
-        
-        private int MaxLogFiles => 10;
-        private static string FolderName => ConsistencyTrackerModule.LogsFolder;
-        private static readonly string LogFileName = "position-log.txt";
-        private static readonly string LayoutFileName = "room-layout.json";
+        public static class Settings {
+            public static bool IsRecording {
+                get => ModSettings.LogPhysicsEnabled;
+                set => ModSettings.LogPhysicsEnabled = value;
+            }
+            public static bool SegmentOnDeath {
+                get => ModSettings.LogSegmentOnDeath;
+                set => ModSettings.LogSegmentOnDeath = value;
+            }
+            public static bool InputsToTasFile {
+                get => ModSettings.LogPhysicsInputsToTasFile;
+                set => ModSettings.LogPhysicsInputsToTasFile = value;
+            }
+            public static bool FlipY {
+                get => ModSettings.LogPhysicsFlipY;
+                set => ModSettings.LogPhysicsFlipY = value;
+            }
+        }
 
         private DateTime RecordingStarted;
         private string RecordingStartedInChapterName;
         private string RecordingStartedInSideName;
         private Vector2 LastExactPos = Vector2.Zero;
         private bool LastFrameEnabled = false;
-        private StreamWriter LogWriter = null;
         private int FrameNumber = -1;
         private bool LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs;
         private Player LastPlayer = null;
@@ -43,7 +59,11 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private string TasInputs = null;
         private string TasFileContent = null;
 
-        private bool IsFirstWriteLayout;
+        public PhysicsRecordingsManager RecordingsManager { get; set; }
+
+        public PhysicsLogger() {
+            RecordingsManager = new PhysicsRecordingsManager();
+        }
 
         public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
             orig(self, gameTime);
@@ -54,10 +74,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
         }
 
+        public bool IsInMap { get; set; }
+        
         private bool playerMarkedDead = false;
         private bool doSegmentRecording = false;
         private bool skipFrameOnSegment = false;
         public void SegmentLog(bool skipFrame) {
+            Mod.Log($"Segmenting log... (FrameNumber: {FrameNumber})");
             doSegmentRecording = true;
             skipFrameOnSegment = skipFrame;
         }
@@ -69,7 +92,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
             LastPlayer = player;
 
-            if (player.Dead && ModSettings.LogSegmentOnDeath && !playerMarkedDead) {
+            if (player.Dead && Settings.SegmentOnDeath && !playerMarkedDead) {
+                Mod.Log($"Player died and recording should segment!");
                 playerMarkedDead = true;
                 doSegmentRecording = true;
             } else if (!doSegmentRecording && !player.Dead) {
@@ -79,63 +103,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
 
-            bool logPhysics = ModSettings.LogPhysicsEnabled;
+            bool logPhysics = Settings.IsRecording;
             if (logPhysics && !LastFrameEnabled) {
                 //should log now, but didnt previously
-                LogPosition = ModSettings.LogPosition;
-                LogSpeed = ModSettings.LogSpeed;
-                LogVelocity = ModSettings.LogVelocity;
-                LogLiftBoost = ModSettings.LogLiftBoost;
-                LogSpeedRetention = ModSettings.LogSpeedRetention;
-                LogStamina = ModSettings.LogStamina;
-                LogFlags = ModSettings.LogFlags;
-                LogInputs = ModSettings.LogInputs;
-
-                IsFirstWriteLayout = true;
-                ShiftFiles(FileType.PhysicsLog);
-
-                LogWriter = new StreamWriter(GetFilePath(FileType.PhysicsLog, 0));
-                LogWriter.WriteLine(GetPhysicsLogHeader(LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs));
-                LastFrameEnabled = logPhysics;
-
-                TasFileContent = "";
-                FrameNumber = 0;
-                TasInputs = GetInputsTASFormatted();
-
-                VisitedRooms = new HashSet<string>();
-                VisitedRoomsLayouts = new List<PhysicsLogRoomLayout>();
-                LoggedEntitiesRaw = new HashSet<Entity>();
-
-                RecordingStarted = DateTime.Now;
-                RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
-                RecordingStartedInSideName = Mod.CurrentChapterStats.SideName;
-
-                //Type playerType = player.GetType();
-                //Mod.Log($"Fields of player: [{string.Join(", ", playerType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
-                //Mod.Log($"Properties of player: [{string.Join(", ", playerType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
+                StartRecording();
 
             } else if (!logPhysics && LastFrameEnabled) {
                 //previously logged, but shouldnt now
-                //close log file writer
-                LogWriter.Close();
-                LogWriter.Dispose();
-                LogWriter = null;
-                LastFrameEnabled = logPhysics;
-
-                if (ModSettings.LogPhysicsInputsToTasFile) {
-                    TextInput.SetClipboardText(TasFileContent);
-                    TasFileContent = "";
-                }
-
-                SaveRoomLayoutsToFile(VisitedRoomsLayouts);
-
-                //Turns recording back on after storing segment
-                if (doSegmentRecording) {
-                    doSegmentRecording = false;
-                    skipFrameOnSegment = false;
-                    ModSettings.LogPhysicsEnabled = true;
-                }
-
+                StopRecording();
                 return;
 
             } else if (logPhysics && LastFrameEnabled) {
@@ -144,7 +119,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
                 //Disables recording
                 if (doSegmentRecording) {
-                    ModSettings.LogPhysicsEnabled = false;
+                    Mod.Log($"Logged last frame and should continue, but should segment!");
+                    Settings.IsRecording = false;
                     if (skipFrameOnSegment) {
                         return;
                     }
@@ -169,7 +145,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             float speedRetention = GetRetainedSpeed(player);
             FrameNumber++;
 
-            int flipYFactor = ModSettings.LogPhysicsFlipY ? -1 : 1;
+            int flipYFactor = Settings.FlipY ? -1 : 1;
 
             string toWrite = $"{FrameNumber}";
             if (LogPosition) {
@@ -201,7 +177,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 toWrite += $",{GetInputsFormatted()}";
             }
 
-            if (ModSettings.LogPhysicsInputsToTasFile) {
+            if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
                 if (tasInputs != TasInputs) {
                     //new input combination, write old one to file
@@ -213,7 +189,58 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
 
-            LogWriter.WriteLine(toWrite);
+            RecordingsManager.LogWriter.WriteLine(toWrite);
+        }
+
+        public void StartRecording() {
+            LogPosition = ModSettings.LogPosition;
+            LogSpeed = ModSettings.LogSpeed;
+            LogVelocity = ModSettings.LogVelocity;
+            LogLiftBoost = ModSettings.LogLiftBoost;
+            LogSpeedRetention = ModSettings.LogSpeedRetention;
+            LogStamina = ModSettings.LogStamina;
+            LogFlags = ModSettings.LogFlags;
+            LogInputs = ModSettings.LogInputs;
+
+            RecordingsManager.StartRecording();
+            RecordingsManager.LogWriter.WriteLine(GetPhysicsLogHeader(LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs));
+            LastFrameEnabled = true;
+
+            TasFileContent = "";
+            FrameNumber = 0;
+            TasInputs = GetInputsTASFormatted();
+
+            VisitedRooms = new HashSet<string>();
+            VisitedRoomsLayouts = new List<PhysicsLogRoomLayout>();
+            LoggedEntitiesRaw = new HashSet<Entity>();
+
+            RecordingStarted = DateTime.Now;
+            RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
+            RecordingStartedInSideName = Mod.CurrentChapterStats.SideName;
+
+            //Type playerType = player.GetType();
+            //Mod.Log($"Fields of player: [{string.Join(", ", playerType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
+            //Mod.Log($"Properties of player: [{string.Join(", ", playerType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
+        }
+
+        public void StopRecording() {
+            RecordingsManager.StopRecording();
+
+            LastFrameEnabled = false;
+
+            if (Settings.InputsToTasFile) {
+                TextInput.SetClipboardText(TasFileContent);
+                TasFileContent = "";
+            }
+
+            RecordingsManager.SaveRoomLayoutsToFile(VisitedRoomsLayouts, RecordingStartedInChapterName, RecordingStartedInSideName, RecordingStarted, FrameNumber);
+
+            //Turns recording back on after storing segment
+            if (doSegmentRecording) {
+                doSegmentRecording = false;
+                skipFrameOnSegment = false;
+                Settings.IsRecording = true;
+            }
         }
 
         public string GetPhysicsLogHeader(bool position, bool speed, bool velocity, bool liftBoost, bool speedRetention, bool stamina, bool flags, bool inputs) {
@@ -279,6 +306,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             if (Engine.FreezeTimer > 0) {
                 flags.Add($"Frozen({Engine.FreezeTimer.ToCeilingFrames()})");
+            }
+
+            if (player.DashAttacking) {
+                flags.Add($"DashAttack");
             }
 
             
@@ -449,14 +480,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CustomSpinner",
         };
         private readonly List<string> EntityNamesHitboxColliders = new List<string>() {
-            "Spikes",
-            "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal",
+            "Spikes", "RainbowSpikes",
+            "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
             "Lightning",
 
-            "Refill", "CustomRefill",
-            "Spring", "CustomSpring", "DashSpring",
-            "DreamBlock",
-            "SwapBlock", "ToggleSwapBlock",
+            "Refill", "CustomRefill", "RefillWall",
+            "Spring", "CustomSpring", "DashSpring", "SpringGreen",
+            "DreamBlock", "CustomDreamBlock", "CustomDreamBlockV2", "ConnectedDreamBlock", "DashThroughSpikes",
+            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
             "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
             "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
             "BounceBlock", //Core Block
@@ -464,20 +495,20 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DashBlock",
             "DashSwitch", "TempleGate",
             "Glider", "RespawningJellyfish",
-            "SeekerBarrier", "CrystalBombDetonator",
+            "SeekerBarrier", "CrystalBombDetonator", "HoldableBarrier",
             "TempleCrackedBlock",
             "FlyFeather",
             "Cloud",
             "WallBooster", "IcyFloor", //Conveyers or IceWalls, depending on Core Mode
-            "MoveBlock", "DreamMoveBlock",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock",
             "CassetteBlock", "WonkyCassetteBlock",
 
-            "Puffer", "StaticPuffer",
+            "Puffer", "StaticPuffer", "SpeedPreservePuffer",
 
             "FallingBlock", "GroupedFallingBlock", "RisingBlock",
-            "JumpThru", "SidewaysJumpThru", "AttachedJumpThru", "JumpthruPlatform",
+            "JumpThru", "SidewaysJumpThru", "AttachedJumpThru", "JumpthruPlatform", "UpsideDownJumpThru",
             "CrumblePlatform", "CrumbleBlock", "CrumbleBlockOnTouch", "VariableCrumblePlatform",
-            "FloatySpaceBlock", "FloatierSpaceBlock",
+            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
             "ClutterBlockBase", "ClutterDoor", "ClutterSwitch",
             "Key", "LockBlock",
             "StarJumpBlock",
@@ -485,17 +516,18 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "Strawberry",
             "SilverBerry",
 
-            "Lookout", //Binos
+            "Lookout", "CustomPlaybackWatchtower", //Binos
             "LightningBreakerBox",
 
             "Killbox",
+            "FakeWall", "InvisibleBarrier", "CustomInvisibleBarrier",
 
             //Modded Entities
             "Portal",
         };
         private readonly List<string> EntityNamesHitcircleColliders = new List<string>() {
-            "Booster",
-            "Bumper",
+            "Booster", "BlueBooster",
+            "Bumper", "StaticBumper", "VortexBumper",
             "Shield",
         };
         private readonly List<string> EntityNamesOther = new List<string>() {
@@ -518,7 +550,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DeathDisplay",
             "DashSequenceDisplay",
 
-            "Decal",
+            "Decal", "FlagDecal",
             "SolidTiles",
             "ParticleSystem",
             "FloatingDebris",
@@ -538,14 +570,24 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "ConfettiTrigger",
             "LightOccludeBlock",
             "Moth",
+            "Clothesline",
+            "CustomNPC",
+            "LightBeam",
+            "CustomPlayerPlayback",
+            "CrumbleWallOnRumble",
 
             "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
             "SmoothCameraOffsetTrigger", "InstantLockingCameraTrigger", "CameraHitboxEntity",
-            "LookoutBlocker", "CameraAdvanceTargetTrigger",
+            "LookoutBlocker", "CameraAdvanceTargetTrigger", "CameraCatchupSpeedTrigger",
+            "OneWayCameraTrigger",
 
             "FlagTrigger",
             "TeleportationTrigger", "TeleportationTarget",
             "ChangeRespawnTrigger", "SpawnFacingTrigger",
+            "LuaCutsceneTrigger", "LuaCutsceneEntity",
+            "DialogCutsceneTrigger", "MiniTextboxTrigger",
+            "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger",
+            "TriggerTrigger", "KillBoxTrigger",
 
             "StylegroundMask",
             "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
@@ -560,22 +602,35 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "RainbowSpinnerColorController",
             "TimeController",
             "SeekerEffectsController", "SeekerBarrierRenderer",
-            "StylegroundFadeController",
+            "StylegroundFadeController", "PhotosensitiveFlagController",
+            "EntityRainbowifyController",
+            "GlowController",
+            "TrailManager",
+            "ParallaxFadeOutController",
 
             "PathRenderer",
             "LightningRenderer",
-            "DreamSpinnerRenderer", "DreamTunnelRenderer", "DreamTunnelEntryRenderer", "DreamJellyfishRenderer",
+            "DreamSpinnerRenderer", "DreamTunnelRenderer", "DreamTunnelEntryRenderer", "DreamJellyfishRenderer", "DreamDashController",
             "MoveBlockBarrierRenderer", "PlayerSeekerBarrierRenderer", "PufferBarrierRenderer",
             "CrystalBombDetonatorRenderer", "CrystalBombFieldRenderer",
             "FlagKillBarrierRenderer",
             "DecalContainerRenderer",
+            "InstantTeleporterRenderer",
 
-            "TriggerTrigger",
+            "OnSpawnActivator",
+            "AttachedContainer",
+
+            "BlockField",
             "Border",
             "SlashFx",
             "Snapshot",
             "Entity", "HelperEntity",
         };
+
+        private readonly List<string> EntityNamesToTest = new List<string>() {
+            
+        };
+
 
         public void SaveRoomLayout() {
             if (!(Engine.Scene is Level)) return;
@@ -587,7 +642,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             Mod.Log($"Saving room layout for room '{debugRoomName}'");
 
-            string path = ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.LogsFolder}/RoomLayout.txt");
+            string path = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "RoomLayout.txt");
 
             File.WriteAllText(path, $"Room Name '{level.Session.Level}'\n");
             File.AppendAllText(path, $"level.Bounds: {level.Bounds}\n");
@@ -638,8 +693,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 Collider collider = null;
                 bool logged = false;
 
-                if (entityName == "ChapterPanelTrigger") {
-                    Util.GetPrivateProperty<object>(entity, "asd");
+                if (EntityNamesToTest.Contains(entityName)) {
+                    Util.GetPrivateProperty<object>(entity, "a");
                 }
 
                 if (EntityNamesOnlyPosition.Contains(entityName)) {
@@ -666,23 +721,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         loggedEntity.Properties.Add("golden", strawberry.Golden);
                     }
 
-                    if (entityName == "Refill") {
-                        Refill refill = entity as Refill;
-
-                        bool twoDashes = Util.GetPrivateProperty<bool>(refill, "twoDashes");
-                        bool oneUse = Util.GetPrivateProperty<bool>(refill, "oneUse");
+                    if (entityName == "Refill" || entityName == "RefillWall") {
+                        bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
+                        bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
 
                         loggedEntity.Properties.Add("twoDashes", twoDashes);
                         loggedEntity.Properties.Add("oneUse", oneUse);
-
-                    }
-                    if (entityName == "CustomRefill") {
-                        Util.GetPrivateProperty<object>(entity, "asd");
                     }
 
-                    if (entityName == "MoveBlock") {
-                        MoveBlock moveBlock = entity as MoveBlock;
-                        MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(moveBlock, "direction");
+                    if (entityName == "MoveBlock" || entityName == "VitMoveBlock") {
+                        MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "direction");
                         loggedEntity.Properties.Add("direction", direction.ToString());
                     }
                     if (entityName == "DreamMoveBlock") {
@@ -691,8 +739,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
 
                     if (entityName == "Cloud") {
-                        Cloud cloud = entity as Cloud;
-                        bool fragile = Util.GetPrivateProperty<bool>(cloud, "fragile");
+                        bool fragile = Util.GetPrivateProperty<bool>(entity, "fragile");
                         loggedEntity.Properties.Add("fragile", fragile);
                     }
 
@@ -709,8 +756,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
 
                     if (entityName == "CassetteBlock") {
-                        CassetteBlock cassetteBlock = entity as CassetteBlock;
-                        Color color = Util.GetPrivateProperty<Color>(cassetteBlock, "color");
+                        Color color = Util.GetPrivateProperty<Color>(entity, "color");
                         loggedEntity.Properties.Add("color", color.ToHex());
                     }
                     if (entityName == "WonkyCassetteBlock") {
@@ -745,7 +791,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     logged = true;
                 }
 
-                //CassetteBlock
 
                 //Hitcircle entities
                 if (EntityNamesHitcircleColliders.Contains(entityName)) {
@@ -765,6 +810,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         Booster booster = entity as Booster;
                         bool red = Util.GetPrivateProperty<bool>(booster, "red");
                         loggedEntity.Properties.Add("red", red);
+                    }
+                    if (entityName == "StaticBumper") {
+                        //public field: NotCoreMode
+                        bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "NotCoreMode", isPublic: true);
+                        loggedEntity.Properties.Add("notCoreMode", notCoreMode);
+                    }
+                    if (entityName == "VortexBumper") {
+                        //Interesting properties: fireMode, twoDashes, oneUse, deadly, notCoreMode
+                        bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
+                        bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
+                        bool deadly = Util.GetPrivateProperty<bool>(entity, "deadly");
+                        bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "notCoreMode");
+
+                        loggedEntity.Properties.Add("twoDashes", twoDashes);
+                        loggedEntity.Properties.Add("oneUse", oneUse);
+                        loggedEntity.Properties.Add("deadly", deadly);
+                        loggedEntity.Properties.Add("notCoreMode", notCoreMode);
                     }
 
                     entities.Add(loggedEntity);
@@ -789,7 +851,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
 
                 //Glider, TheoCrystal
-                if (entityName == "Glider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
+                if (entityName == "Glider" || entityName == "CustomGlider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
                     Holdable hold = null;
 
                     if (entityName == "Glider")
@@ -861,7 +923,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 }
             }
 
-            string pathJson = ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.LogsFolder}/room-layout.json");
+            string pathJson = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "room-layout.json");
             PhysicsLogRoomLayout roomLayout = new PhysicsLogRoomLayout() {
                 DebugRoomName = debugRoomName,
                 LevelBounds = level.Bounds.ToJsonRectangle(),
@@ -875,26 +937,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             //SaveRoomLayoutsToFile(VisitedRoomsLayouts);
 
             Mod.Log($"Room layout saving done!");
-        }
-
-
-        private void SaveRoomLayoutsToFile(List<PhysicsLogRoomLayout> rooms) {
-            if (IsFirstWriteLayout) {
-                IsFirstWriteLayout = false;
-                ShiftFiles(FileType.Layout);
-            }
-
-            string pathJson = GetFilePath(FileType.Layout, 0);
-
-            PhysicsLogLayoutFile file = new PhysicsLogLayoutFile() {
-                ChapterName = RecordingStartedInChapterName,
-                SideName = RecordingStartedInSideName,
-                RecordingStarted = RecordingStarted,
-                FrameCount = FrameNumber,
-                Rooms = rooms,
-            };
-
-            File.WriteAllText(pathJson, JsonConvert.SerializeObject(file));
         }
 
         public static void AddColliderInfoToLoggedEntity(LoggedEntity loggedEntity, Collider collider) {
@@ -919,49 +961,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     Radius = hitcircle.Radius,
                 });
             }
-        }
-
-        private void ShiftFiles(FileType fileType) {
-            //logs are stored in numbered files from 0 to MaxLogFiles
-            //shift all files up by 1, deleting the last one
-
-            for (int i = MaxLogFiles - 1; i >= 0; i--) {
-                string pathFrom = GetFilePath(fileType, i);
-                string pathTo = GetFilePath(fileType, i + 1);
-
-                if (File.Exists(pathFrom)) {
-                    File.Move(pathFrom, pathTo);
-                }
-            }
-
-            //delete the last file
-            string pathDelete = GetFilePath(fileType, MaxLogFiles);
-            if (File.Exists(pathDelete)) {
-                File.Delete(pathDelete);
-            }
-        }
-
-        private string GetFilePath(FileType fileType, int fileNumber) {
-            string fileName = fileType == FileType.PhysicsLog ? LogFileName : LayoutFileName;
-            fileName = $"{fileNumber}_{fileName}";
-
-            return ConsistencyTrackerModule.GetPathToFile($"{FolderName}/{fileName}");
-        }
-
-        public List<PhysicsLogLayoutFile> GetAvailableLayoutFiles() {
-
-            List<PhysicsLogLayoutFile> files = new List<PhysicsLogLayoutFile>();
-
-            for (int i = 0; i < MaxLogFiles; i++) {
-                string path = GetFilePath(FileType.Layout, i);
-                if (File.Exists(path)) {
-                    string content = File.ReadAllText(path);
-                    files.Add(JsonConvert.DeserializeObject<PhysicsLogLayoutFile>(content));
-                } else {
-                    break;
-                }
-            }
-            return files;
         }
     }
 }

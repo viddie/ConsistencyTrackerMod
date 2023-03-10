@@ -108,14 +108,14 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Load() {
             CheckFolderExists(BaseFolderPath);
             
-            CheckFolderExists(GetPathToFolder(PathsFolder));
+            CheckFolderExists(GetPathToFile(PathsFolder));
             CheckPrepackagedPaths();
             
-            CheckFolderExists(GetPathToFolder(StatsFolder));
-            CheckFolderExists(GetPathToFolder(LogsFolder));
-            CheckFolderExists(GetPathToFolder(SummariesFolder));
+            CheckFolderExists(GetPathToFile(StatsFolder));
+            CheckFolderExists(GetPathToFile(LogsFolder));
+            CheckFolderExists(GetPathToFile(SummariesFolder));
 
-            bool toolsFolderExisted = CheckFolderExists(GetPathToFolder(ExternalToolsFolder));
+            bool toolsFolderExisted = CheckFolderExists(GetPathToFile(ExternalToolsFolder));
             if (!toolsFolderExisted) {
                 CreateExternalTools();
             }
@@ -127,7 +127,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Mod Settings -> \n{JsonConvert.SerializeObject(ModSettings, Formatting.Indented)}");
             Log($"~~~==============================~~~");
 
-            ModSettings.LogPhysicsEnabled = false;
+            //PhysicsLogger.Settings.IsRecording = false;
             PhysicsLog = new PhysicsLogger();
 
             HookStuff();
@@ -142,7 +142,13 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public override void Unload() {
+            Log($"Called Unload");
             UnHookStuff();
+            
+            if (PhysicsLogger.Settings.IsRecording) {
+                PhysicsLog.StopRecording();
+            }
+
             DebugRcPage.Unload();
             LogCleanup();
         }
@@ -351,6 +357,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DoRecordPath = false;
                 ModSettings.RecordPath = false;
             }
+
+            if (PhysicsLogger.Settings.IsRecording) {
+                PhysicsLog.StopRecording();
+                PhysicsLog.IsInMap = false;
+            }
         }
 
         private void Level_OnComplete(Level level) {
@@ -451,9 +462,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DoRecordPath = true;
             }
 
-            if (ModSettings.LogPhysicsEnabled) {
+            if (PhysicsLogger.Settings.IsRecording && PhysicsLog.IsInMap) {
                 PhysicsLog.SegmentLog(true);
             }
+
+            PhysicsLog.IsInMap = true;
         }
 
         public void SetCurrentChapterPath(PathInfo path) {
@@ -581,11 +594,15 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region Data Import/Export
 
         public static string GetPathToFile(string file) {
-            return BaseFolderPath + file;
+            return Path.Combine(BaseFolderPath, file);
         }
-        public static string GetPathToFolder(string folder) {
-            return BaseFolderPath + folder + "/";
+        public static string GetPathToFile(string folder, string file) {
+            return Path.Combine(BaseFolderPath, Path.Combine(folder, file));
         }
+        public static string GetPathToFile(string folder, string subfolder, string file) {
+            return Path.Combine(BaseFolderPath, Path.Combine(folder, Path.Combine(subfolder, file)));
+        }
+        
         /// <summary>Checks the folder exists.</summary>
         /// <param name="folderPath">The folder path.</param>
         /// <returns>true when the folder already existed, false when a new folder has been created.</returns>
@@ -600,7 +617,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
         public bool PathInfoExists() {
-            string path = GetPathToFile($"{PathsFolder}/{CurrentChapterDebugName}.txt");
+            string path = GetPathToFile(PathsFolder, $"{CurrentChapterDebugName}.txt");
             return File.Exists(path);
         }
         public PathInfo GetPathInputInfo(string pathName = null) {
@@ -609,7 +626,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             Log($"Fetching path info for chapter '{pathName}'");
 
-            string path = GetPathToFile($"{PathsFolder}/{pathName}.txt");
+            string path = GetPathToFile(PathsFolder, $"{pathName}.txt");
             Log($"\tSearching for path '{path}'", true);
 
             if (File.Exists(path)) { //Parse File
@@ -641,7 +658,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public ChapterStats GetCurrentChapterStats() {
-            string path = GetPathToFile($"{StatsFolder}/{CurrentChapterDebugName}.txt");
+            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
 
             bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
             ChaptersThisSession.Add(CurrentChapterDebugName);
@@ -705,10 +722,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
 
 
-            string path = GetPathToFile($"{StatsFolder}/{CurrentChapterDebugName}.txt");
+            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
             File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats, Formatting.Indented));
 
-            string modStatePath = GetPathToFile($"{StatsFolder}/modState.txt");
+            string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
 
             string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterDebugName};{CurrentChapterStats.ModState}\n";
             File.WriteAllText(modStatePath, content);
@@ -721,8 +738,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             bool hasPathInfo = PathInfoExists();
 
-            string relativeOutPath = $"{SummariesFolder}/{CurrentChapterDebugName}.txt";
-            string outPath = GetPathToFile(relativeOutPath);
+            string outPath = GetPathToFile(SummariesFolder, $"{CurrentChapterDebugName}.txt");
 
             if (!hasPathInfo) {
                 Log($"Called CreateChapterSummary without chapter path info. Please create a path before using this feature");
@@ -784,7 +800,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 name = $"{celeste}_{chapterNum}-{chapterName}_{side}";
             }
 
-            string path = GetPathToFile($"{PathsFolder}/{name}.txt");
+            string path = GetPathToFile(PathsFolder, $"{name}.txt");
 
             if (!File.Exists(path)) { 
                 File.WriteAllText(path, content);
@@ -799,8 +815,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             CreateExternalToolFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
             CreateExternalToolFile("CCTOverlay.js", Resources.CCTOverlay_JS);
             CreateExternalToolFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
-            CheckFolderExists(GetPathToFolder($"{ExternalToolsFolder}/img"));
-            Resources.goldberry_GIF.Save(GetPathToFile($"{ExternalToolsFolder}/img/goldberry.gif"));
+            CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
+            Resources.goldberry_GIF.Save(GetPathToFile(ExternalToolsFolder, "img", "goldberry.gif"));
 
             //Path Edit Tool files
 
@@ -810,7 +826,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CreateExternalToolFile("LiveDataEditTool.css", Resources.LiveDataEditTool_CSS);
         }
         private void CreateExternalToolFile(string name, string content) {
-            string path = GetPathToFile($"{ExternalToolsFolder}/{name}");
+            string path = GetPathToFile(ExternalToolsFolder, name);
             File.WriteAllText(path, content);
         }
 
@@ -980,26 +996,26 @@ namespace Celeste.Mod.ConsistencyTracker {
         private bool LogInitialized = false;
         private StreamWriter LogFileWriter = null;
         public void LogInit() {
-            string logFileMax = GetPathToFile($"{LogsFolder}/log_old{LOG_FILE_COUNT}.txt");
+            string logFileMax = GetPathToFile(LogsFolder, $"log_old{LOG_FILE_COUNT}.txt");
             if (File.Exists(logFileMax)) {
                 File.Delete(logFileMax);
             }
 
             for (int i = LOG_FILE_COUNT - 1; i >= 1; i--) {
-                string logFilePath = GetPathToFile($"{LogsFolder}/log_old{i}.txt");
+                string logFilePath = GetPathToFile(LogsFolder, $"log_old{i}.txt");
                 if (File.Exists(logFilePath)) {
-                    string logFileNewPath = GetPathToFile($"{LogsFolder}/log_old{i+1}.txt");
+                    string logFileNewPath = GetPathToFile(LogsFolder, $"log_old{i+1}.txt");
                     File.Move(logFilePath, logFileNewPath);
                 }
             }
 
-            string lastFile = GetPathToFile($"{LogsFolder}/log.txt");
+            string lastFile = GetPathToFile(LogsFolder, $"log.txt");
             if (File.Exists(lastFile)) {
-                string logFileNewPath = GetPathToFile($"{LogsFolder}/log_old{1}.txt");
+                string logFileNewPath = GetPathToFile(LogsFolder, $"log_old{1}.txt");
                 File.Move(lastFile, logFileNewPath);
             }
 
-            string path = GetPathToFile($"{LogsFolder}/log.txt");
+            string path = GetPathToFile(LogsFolder, $"log.txt");
             LogFileWriter = new StreamWriter(path) {
                 AutoFlush = true
             };

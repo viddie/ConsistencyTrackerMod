@@ -9,12 +9,15 @@ using Celeste.Mod;
 using System.Web;
 using Celeste.Mod.ConsistencyTracker.Exceptions;
 using Celeste.Mod.ConsistencyTracker.Models;
-using Celeste.Mod.ConsistencyTracker.EverestInterop.Models;
 using Newtonsoft.Json;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
+using Monocle;
+using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses;
+using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Requests;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop
+{
     public enum RCErrorCode {
         OK = 0,
         StatsNotFound = 1,
@@ -316,7 +319,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
                 string responseStr = null;
 
-                string pathsFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
+                string pathsFolder = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.PathsFolder);
                 string[] allPathFiles = Directory.GetFiles(pathsFolder);
                 List<string> allMapNames = new List<string>(allPathFiles.Select((path) => Path.GetFileNameWithoutExtension(path)));
 
@@ -365,8 +368,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 map = map.Replace("/", "");
                 map = map.Replace("\\", "");
 
-                string baseFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
-                string combinedPath = Path.Combine(baseFolder, $"{map}.txt");
+                string combinedPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.PathsFolder, $"{map}.txt");
                 if (!File.Exists(combinedPath)) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
                     return;
@@ -419,8 +421,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 map = map.Replace("/", "");
                 map = map.Replace("\\", "");
 
-                string baseFolder = ConsistencyTrackerModule.GetPathToFolder(ConsistencyTrackerModule.PathsFolder);
-                string combinedPath = Path.Combine(baseFolder, $"{map}.txt");
+                string combinedPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.PathsFolder, $"{map}.txt");
 
                 SetPathFileRequest request = null;
                 if (c.Request.HttpMethod == "POST") {
@@ -727,7 +728,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         // +------------------------------------------+
         private static readonly RCEndPoint GetFileContentEndpoint = new RCEndPoint() {
             Path = "/cct/getFileContent",
-            PathHelp = "/cct/getFileContent?folder={folder}&file={file}",
+            PathHelp = "/cct/getFileContent?folder={folder}&file={file}&subfolder=[subfolder]",
             Name = "Consistency Tracker Get Misc File [GET] [JSON]",
             InfoHTML = "Get any consistency tracker file.",
             Handle = c => {
@@ -745,6 +746,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                     WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "folder");
                     return;
                 }
+                string subFolderName = GetQueryParameter(c, "subfolder");
                 string fileName = GetQueryParameter(c, "file");
                 if (fileName == null) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "file");
@@ -757,11 +759,17 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
 
                 folderName = SanitizeFolderFileName(folderName);
+                subFolderName = SanitizeFolderFileName(subFolderName);
                 fileName = SanitizeFolderFileName(fileName);
                 extension = SanitizeFolderFileName(extension);
 
-                string baseFolder = ConsistencyTrackerModule.GetPathToFolder(folderName);
-                string combinedPath = Path.Combine(baseFolder, $"{fileName}.{extension}");
+                string combinedPath;
+                if (subFolderName == null) {
+                    combinedPath = ConsistencyTrackerModule.GetPathToFile(folderName, $"{fileName}.{extension}");
+                } else {
+                    combinedPath = ConsistencyTrackerModule.GetPathToFile(folderName, subFolderName, $"{fileName}.{extension}");
+                }
+                
                 if (!File.Exists(combinedPath)) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
                     return;
@@ -780,13 +788,18 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             }
         };
 
-        private static string SanitizeFolderFileName(string name) { 
+        private static string SanitizeFolderFileName(string name) {
+            if (name == null) return null;
+            
             name = name.Replace(".", "");
             name = name.Replace("/", "");
             name = name.Replace("\\", "");
             return name;
         }
+        
+        #endregion
 
+        #region Physics Log Endpoints
         // +------------------------------------------+
         // |          /cct/getPhysicsLogList          |
         // +------------------------------------------+
@@ -804,24 +817,187 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
                 }
 
                 GetPhysicsLogFileListResponse response = new GetPhysicsLogFileListResponse() { 
-                    IsInRecording = PhysicsLogger.IsInRecording,
+                    IsRecording = PhysicsLogger.Settings.IsRecording && Engine.Scene is Level,
                 };
 
-                Mod.PhysicsLog.GetAvailableLayoutFiles().ForEach(x => {
-                    response.PhysicsLogFiles.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
-                        ChapterName = x.ChapterName,
-                        SideName = x.SideName,
-                        FrameCount = x.FrameCount,
-                        RecordingStarted = x.RecordingStarted,
+                List<PhysicsLogLayoutsFile> recentFiles = Mod.PhysicsLog.RecordingsManager.GetRecentRecordingsLayoutFiles();
+                int recordingOffset = PhysicsRecordingsManager.MostRecentRecording;
+                for (int i = 0; i < recentFiles.Count; i++) {
+                    PhysicsLogLayoutsFile file = recentFiles[i];
+                    response.RecentPhysicsLogFiles.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
+                        ID = i + recordingOffset,
+                        Name = null,
+                        ChapterName = file.ChapterName,
+                        SideName = file.SideName,
+                        FrameCount = file.FrameCount,
+                        RecordingStarted = file.RecordingStarted,
                     });
-                });
+                }
+
+                List<PhysicsRecordingsState.PhysicsRecording> savedRecordings = Mod.PhysicsLog.RecordingsManager.GetSavedRecordings();
+                for (int i = 0; i < savedRecordings.Count; i++) {
+                    PhysicsRecordingsState.PhysicsRecording recording = savedRecordings[i];
+                    response.SavedPhysicsRecordings.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
+                        ID = recording.ID,
+                        Name = recording.Name,
+                        ChapterName = recording.ChapterName,
+                        SideName = recording.SideName,
+                        FrameCount = recording.FrameCount,
+                        RecordingStarted = recording.RecordingStarted,
+                    });
+                }
 
                 string responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 WriteResponse(c, responseStr);
             }
         };
-        
+
+
+        // +------------------------------------------+
+        // |            /cct/saveRecording            |
+        // +------------------------------------------+
+        private static readonly RCEndPoint SaveRecordingEndpoint = new RCEndPoint() {
+            Path = "/cct/saveRecording",
+            PathHelp = "/cct/saveRecording",
+            Name = "Consistency Tracker Save Recording [POST] [JSON]",
+            InfoHTML = "Saves a physics recording to the saved recordings list.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                SaveRecordingRequest postRequest = null;
+
+                if (c.Request.HttpMethod == "POST") {
+                    if (c.Request.HasEntityBody) {
+                        string body = GetBodyAsString(c);
+                        try {
+                            postRequest = JsonConvert.DeserializeObject<SaveRecordingRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
+                        }
+                    } else {
+                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
+                        return;
+                    }
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
+                    return;
+                }
+
+                if (postRequest == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "Couldn't parse request json");
+                    return;
+                }
+
+                int id = Mod.PhysicsLog.RecordingsManager.SaveRecording(postRequest.LayoutFile, postRequest.PhysicsLog, postRequest.Name);
+
+                IdResponse response = new IdResponse() {
+                    ID = id,
+                };
+                string responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+
+
+        // +------------------------------------------+
+        // |           /cct/renameRecording           |
+        // +------------------------------------------+
+        private static readonly RCEndPoint RenameRecordingEndpoint = new RCEndPoint() {
+            Path = "/cct/renameRecording",
+            PathHelp = "/cct/renameRecording",
+            Name = "Consistency Tracker Rename Recording [POST] [JSON]",
+            InfoHTML = "Renames a physics recording in the saved recordings list.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                RenameRecordingRequest postRequest = null;
+
+                if (c.Request.HttpMethod == "POST") {
+                    if (c.Request.HasEntityBody) {
+                        string body = GetBodyAsString(c);
+                        try {
+                            postRequest = JsonConvert.DeserializeObject<RenameRecordingRequest>(body);
+                        } catch (Exception ex) {
+                            WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse request json: {ex}");
+                            return;
+                        }
+                    } else {
+                        WriteErrorResponse(c, RCErrorCode.PostNoBody, requestedJson);
+                        return;
+                    }
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedMethod, requestedJson, c.Request.HttpMethod);
+                    return;
+                }
+
+                if (postRequest == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "Couldn't parse request json");
+                    return;
+                }
+
+                
+                bool success = Mod.PhysicsLog.RecordingsManager.RenameRecording(postRequest.ID, postRequest.Name);
+                if (success) {
+                    WriteResponse(c, RCErrorCode.OK, requestedJson);
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "Couldn't find recording with id " + postRequest.ID);
+                    return;
+                }
+            }
+        };
+
+        // +------------------------------------------+
+        // |            /cct/deleteRecording          |
+        // +------------------------------------------+
+        private static readonly RCEndPoint DeleteRecordingEndpoint = new RCEndPoint() {
+            Path = "/cct/deleteRecording",
+            PathHelp = "/cct/deleteRecording?id={id}",
+            Name = "Consistency Tracker Delete Recording [POST] [JSON]",
+            InfoHTML = "Deletes a physics recording from the saved recordings list.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                string idStr = GetQueryParameter(c, "id");
+                if (idStr == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "id");
+                    return;
+                }
+
+                if (!int.TryParse(idStr, out int id)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse id '{idStr}' to an integer");
+                    return;
+                }
+
+
+                bool success = Mod.PhysicsLog.RecordingsManager.DeleteRecording(id);
+                if (success) {
+                    WriteResponse(c, RCErrorCode.OK, requestedJson);
+                } else {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, "Couldn't find recording with id " + id);
+                    return;
+                }
+            }
+        };
+
+
         #endregion
 
 
@@ -864,6 +1040,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         }
         public static void WriteResponse(HttpListenerContext c, string response) {
             Everest.DebugRC.Write(c, response);
+        }
+        public static void WriteResponse(HttpListenerContext c, RCErrorCode code, bool requestedJson) {
+            WriteErrorResponse(c, code, requestedJson);
         }
 
         public static string GetErrorResponse(RCErrorCode code, bool requestedJson) {
@@ -1017,7 +1196,12 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
             //Misc File Reading
             GetFileContentEndpoint,
+
+            //Physics Logs
             GetPhysicsLogFileListEndpoint,
+            SaveRecordingEndpoint,
+            RenameRecordingEndpoint,
+            DeleteRecordingEndpoint,
         };
 
         private class UpdateCache {

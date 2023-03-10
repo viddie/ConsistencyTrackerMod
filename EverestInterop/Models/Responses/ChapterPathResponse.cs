@@ -5,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models {
-    public class ChapterPathResponse : Response {
+namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses
+{
+    public class ChapterPathResponse : Response
+    {
         public PathInfo path { get; set; }
     }
 }

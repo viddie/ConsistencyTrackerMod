@@ -243,14 +243,14 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"Format Editing"));
             subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
                 OnPressed = () => {
-                    string relPath = ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/LiveDataEditTool.html");
+                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
                     string path = System.IO.Path.GetFullPath(relPath);
                     Mod.LogVerbose($"Opening format editor at '{path}'");
                     Process.Start("explorer", path);
                 },
             });
             subMenu.Add(new TextMenu.Button("Open Format Text File").Pressed(() => {
-                string relPath = ConsistencyTrackerModule.GetPathToFile($"{StatManager.BaseFolder}/{StatManager.FormatFileName}");
+                string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
                 string path = System.IO.Path.GetFullPath(relPath);
                 Mod.LogVerbose($"Opening format file at '{path}'");
                 Process.Start("explorer", path);
@@ -395,7 +395,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
 
             subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
-                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile($"{ConsistencyTrackerModule.ExternalToolsFolder}/CCTOverlay.html"));
+                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "CCTOverlay.html"));
                 Process.Start("explorer", path);
             }));
 
