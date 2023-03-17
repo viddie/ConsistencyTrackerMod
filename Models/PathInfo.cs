@@ -22,7 +22,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("sideName")]
         public string SideName { get; set; }
 
-
         [JsonProperty("checkpoints")]
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
 
@@ -32,6 +31,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return Checkpoints.Sum((cpInfo) => cpInfo.Rooms.Count);
             }
         }
+
+        [JsonProperty("ignoredRooms")]
+        public List<string> IgnoredRooms { get; set; } = new List<string>();
 
         [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;

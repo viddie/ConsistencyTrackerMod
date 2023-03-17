@@ -5,6 +5,8 @@ using System.Linq;
 namespace Celeste.Mod.ConsistencyTracker.Models {
     public class PathRecorder {
 
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+
         public static string DefaultCheckpointName = $"Start";
 
         //Remember all previously visited rooms. Rooms only get added to the first checkpoint they appear in.
@@ -19,38 +21,34 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int TotalRecordedRooms => VisitedRooms.Count;
 
         public void AddRoom(string name) {
-            if (VisitedRooms.Contains(name)) return;
+            if (VisitedRooms.Contains(name)) {
+                return;
+            }
+
+            Mod.Log($"Adding room to path: {name} (checkpoint: {CheckpointNames.Last()})");
 
             VisitedRooms.Add(name);
             Checkpoints.Last().Add(name);
         }
 
         public void AddCheckpoint(Checkpoint cp, string name) {
-            ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 1 | cp = '{cp}', name = '{name}'");
             if (Checkpoints.Count != 0) {
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1");
                 if (cp != null && CheckpointsVisited.Contains(cp.Position)) return;
                 CheckpointsVisited.Add(cp.Position);
 
-
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1.1");
                 string lastRoom = Checkpoints.Last().Last();
                 Checkpoints.Last().Remove(lastRoom);
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.1.2");
                 Checkpoints.Add(new List<string>() { lastRoom });
             } else {
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 2.2");
                 Checkpoints.Add(new List<string>() { });
             }
 
-            ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 3");
-
             if (name == null) {
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 4.1");
+                Mod.Log($"Added checkpoint to path: CP{Checkpoints.Count}");
                 CheckpointNames.Add($"CP{Checkpoints.Count}");
                 CheckpointAbbreviations.Add($"CP{Checkpoints.Count}");
             } else {
-                ConsistencyTrackerModule.Instance.LogVerbose($"In AddCheckpoint: 4.2");
+                Mod.Log($"Added checkpoint to path: {name}");
                 CheckpointNames.Add(name);
                 CheckpointAbbreviations.Add(AbbreviateName(name));
             }
@@ -102,21 +100,5 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return abbr.ToUpper();
             }
         }
-
-        //public override string ToString() {
-        //    List<string> lines = new List<string>();
-
-        //    int checkpointIndex = 0;
-        //    foreach (List<string> checkpoint in Checkpoints) {
-        //        if (checkpointIndex == 0) {
-        //            lines.Add($"Start;ST;{checkpoint.Count};" + string.Join(",", checkpoint));
-        //        } else {
-        //            lines.Add($"CP{checkpointIndex + 1};CP{checkpointIndex + 1};{checkpoint.Count};" + string.Join(",", checkpoint));
-        //        }
-        //        checkpointIndex++;
-        //    }
-
-        //    return string.Join("\n", lines)+"\n";
-        //}
     }
 }

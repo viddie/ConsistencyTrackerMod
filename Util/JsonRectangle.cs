@@ -19,4 +19,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         [JsonProperty("height")]
         public float Height { get; set; }
     }
+
+    public class JsonColliderHitbox {
+        [JsonProperty("type")]
+        public string Type {
+            get => "hitbox";
+            private set => throw new InvalidOperationException("Cannot set type of JsonColliderHitbox");
+        }
+
+        [JsonProperty("hitbox")]
+        public JsonRectangle Hitbox { get; set; }
+    }
 }

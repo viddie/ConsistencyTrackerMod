@@ -52,7 +52,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private Vector2 LastExactPos = Vector2.Zero;
         private bool LastFrameEnabled = false;
         private int FrameNumber = -1;
-        private bool LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs;
+        private long RTAFrameOffset = -1;
+        //private bool LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs;
         private Player LastPlayer = null;
 
         private int TasFrameCount = 0;
@@ -145,37 +146,24 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             float speedRetention = GetRetainedSpeed(player);
             FrameNumber++;
 
+            if (RTAFrameOffset == -1) {
+                RTAFrameOffset = level.Session.Time / 10000 / 17;
+            }
+            long currentRTAFrames = level.Session.Time / 10000 / 17; //Convert from ticks to frames
+
             int flipYFactor = Settings.FlipY ? -1 : 1;
 
-            string toWrite = $"{FrameNumber}";
-            if (LogPosition) {
-                toWrite += $",{pos.X},{pos.Y * flipYFactor}";
-            }
-            if (LogSpeed) {
-                toWrite += $",{speed.X},{speed.Y * flipYFactor}";
-            }
-            if (LogVelocity) {
-                toWrite += $",{velocity.X},{velocity.Y * flipYFactor}";
-            }
-            if (LogLiftBoost) {
-                toWrite += $",{liftboost.X},{liftboost.Y * flipYFactor}";
-            }
-            if (LogSpeedRetention) {
-                toWrite += $",{speedRetention}";
-            }
-            if (LogStamina) {
-                toWrite += $",{player.Stamina}";
-            }
-            if (LogFlags) {
-                toWrite += $",{string.Join(" ", GetPlayerFlags(player, level))}";
-            }
-
+            string toWrite = $"{FrameNumber},{currentRTAFrames - RTAFrameOffset + 1}";
+            toWrite += $",{pos.X},{pos.Y * flipYFactor}";
+            toWrite += $",{speed.X},{speed.Y * flipYFactor}";
+            toWrite += $",{velocity.X},{velocity.Y * flipYFactor}";
+            toWrite += $",{liftboost.X},{liftboost.Y * flipYFactor}";
+            toWrite += $",{speedRetention}";
+            toWrite += $",{player.Stamina}";
+            toWrite += $",{string.Join(" ", GetPlayerFlags(player, level))}";
 
             UpdateJumpState();
-
-            if (LogInputs) {
-                toWrite += $",{GetInputsFormatted()}";
-            }
+            toWrite += $",{GetInputsFormatted()}";
 
             if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
@@ -188,26 +176,17 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 TasFrameCount++;
             }
 
-
             RecordingsManager.LogWriter.WriteLine(toWrite);
         }
 
         public void StartRecording() {
-            LogPosition = ModSettings.LogPosition;
-            LogSpeed = ModSettings.LogSpeed;
-            LogVelocity = ModSettings.LogVelocity;
-            LogLiftBoost = ModSettings.LogLiftBoost;
-            LogSpeedRetention = ModSettings.LogSpeedRetention;
-            LogStamina = ModSettings.LogStamina;
-            LogFlags = ModSettings.LogFlags;
-            LogInputs = ModSettings.LogInputs;
-
             RecordingsManager.StartRecording();
-            RecordingsManager.LogWriter.WriteLine(GetPhysicsLogHeader(LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs));
+            RecordingsManager.LogWriter.WriteLine(GetPhysicsLogHeader());
             LastFrameEnabled = true;
 
             TasFileContent = "";
             FrameNumber = 0;
+            RTAFrameOffset = -1;
             TasInputs = GetInputsTASFormatted();
 
             VisitedRooms = new HashSet<string>();
@@ -243,33 +222,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
         }
 
-        public string GetPhysicsLogHeader(bool position, bool speed, bool velocity, bool liftBoost, bool speedRetention, bool stamina, bool flags, bool inputs) {
-            string header = "Frame";
-            if (position) {
-                header += ",Position X,Position Y";
-            }
-            if (speed) {
-                header += ",Speed X,Speed Y";
-            }
-            if (velocity) {
-                header += ",Velocity X,Velocity Y";
-            }
-            if (liftBoost) {
-                header += ",LiftBoost X,LiftBoost Y";
-            }
-            if (speedRetention) {
-                header += ",Retained";
-            }
-            if (stamina) {
-                header += ",Stamina";
-            }
-            if (flags) {
-                header += ",Flags";
-            }
-            if (inputs) {
-                header += ",Inputs";
-            }
-            return header;
+        public string GetPhysicsLogHeader() {
+            return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs";
         }
 
         private Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
@@ -480,7 +434,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CustomSpinner",
         };
         private readonly List<string> EntityNamesHitboxColliders = new List<string>() {
-            "Spikes", "RainbowSpikes",
+            "Spikes", "RainbowSpikes", "BouncySpikes",
             "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
             "Lightning",
 
@@ -534,6 +488,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "ConnectedMoveBlock",
         };
         private readonly List<string> IgnoreEntityNames = new List<string>() {
+            //UI Entities
             "Player",
             "InputHistoryListener", "InputHistoryListEntity",
             "DashCountIndicator",
@@ -550,56 +505,59 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DeathDisplay",
             "DashSequenceDisplay",
 
-            "Decal", "FlagDecal",
-            "SolidTiles",
-            "ParticleSystem",
-            "FloatingDebris",
-            "BackgroundTiles", "BGTilesRenderer",
-            "GlassBlockBg",
-            "MirrorSurfaces",
-            "WaterSurface", "WaterFloatingObject",
-            "ColoredWater", "ColoredWaterfall",
+            //Deco
+            "SolidTiles", "FG",
+            "Decal", "FlagDecal", "ParticleSystem", "ParticleEmitter", "FloatingDebris", "ForegroundDebris",
+            "BackgroundTiles", "BGTilesRenderer", "GlassBlockBg",
+            "MirrorSurfaces", "WaterSurface", "WaterFloatingObject", "ColoredWater", "ColoredWaterfall",
+            "ColoredBigWaterfall", "CustomParallaxBigWaterfall",
             "DustEdges",
-            "ParticleEmitter",
             "FormationBackdrop",
-            "CustomHangingLamp",
-            "ResortLantern",
-            "StrawberryJamJar",
-            "StaticDoor",
-            "CustomFlagline",
-            "ConfettiTrigger",
-            "LightOccludeBlock",
-            "Moth",
-            "Clothesline",
-            "CustomNPC",
-            "LightBeam",
-            "CustomPlayerPlayback",
-            "CrumbleWallOnRumble",
+            "CustomHangingLamp", "ResortLantern", "WireLamps", "HangingLamp", "CustomTorch2", "LightSource", "LightingMask", "RustyLamp", "Lamp",
+            "LightBeam", "FlickerLightSource", "LightSourceZone", "InvisibleLightSource",
+            "Raindrop", "SpinnerGlow", "PlatformGlow", "RectangleGlow",
+            "StaticDoor", "LightOccludeBlock",
+            "CustomFlagline", "ConfettiTrigger",
+            "Clothesline", "Chain", "Wire", "Moth", "CustomFlutterBird",
+            "CustomPlayerPlayback", "CrumbleWallOnRumble",
+            "PseudoPolyhedron", "PlaybackBillboard",
+            "CustomNPC", "MoreCustomNPC", "StrawberryJamJar",
+            "MoonCreature",
 
+            //Camera
             "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
             "SmoothCameraOffsetTrigger", "InstantLockingCameraTrigger", "CameraHitboxEntity",
             "LookoutBlocker", "CameraAdvanceTargetTrigger", "CameraCatchupSpeedTrigger",
-            "OneWayCameraTrigger",
+            "OneWayCameraTrigger", "MomentumCameraOffsetTrigger", "CameraTargetCornerTrigger",
+            "CameraTargetCrossfadeTrigger",
 
-            "FlagTrigger",
+            //Triggers
+            "FlagTrigger", "FlagIfVisibleTrigger",
             "TeleportationTrigger", "TeleportationTarget",
             "ChangeRespawnTrigger", "SpawnFacingTrigger",
             "LuaCutsceneTrigger", "LuaCutsceneEntity",
             "DialogCutsceneTrigger", "MiniTextboxTrigger",
-            "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger",
-            "TriggerTrigger", "KillBoxTrigger",
+            "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger", "FloatExtendedVariantFadeTrigger", "ExtendedVariantFadeTrigger",
+            "FloatExtendedVariantTrigger", "ResetVariantsTrigger",
+            "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
+            "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
 
+            //Styles & Lighting
             "StylegroundMask",
             "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
             "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
-            "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger",
+            "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
+            "ColoredLightbeam",
 
-            "MusicParamTrigger",
+            //Music
+            "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
 
+            //Controllers/Managers
             "LaserDetectorManager",
             "UnderwaterSwitchController",
             "WindController",
-            "RainbowSpinnerColorController",
+            "CustomSpinnerController",
+            "RainbowSpinnerColorController", "RainbowSpinnerColorAreaController",
             "TimeController",
             "SeekerEffectsController", "SeekerBarrierRenderer",
             "StylegroundFadeController", "PhotosensitiveFlagController",
@@ -607,7 +565,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "GlowController",
             "TrailManager",
             "ParallaxFadeOutController",
+            "CustomizableGlassBlockAreaController",
 
+            //Renderers
             "PathRenderer",
             "LightningRenderer",
             "DreamSpinnerRenderer", "DreamTunnelRenderer", "DreamTunnelEntryRenderer", "DreamJellyfishRenderer", "DreamDashController",
@@ -616,10 +576,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "FlagKillBarrierRenderer",
             "DecalContainerRenderer",
             "InstantTeleporterRenderer",
+            "SpinnerConnectorRenderer",
 
+            //Misc
             "OnSpawnActivator",
             "AttachedContainer",
+            "BurstEffect",
+            "ClutterBlock",
 
+            //Idk
+            "Why",
             "BlockField",
             "Border",
             "SlashFx",
@@ -849,7 +815,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 }
 
 
-
                 //Glider, TheoCrystal
                 if (entityName == "Glider" || entityName == "CustomGlider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
                     Holdable hold = null;
@@ -919,6 +884,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     entities.Add(loggedEntity);
 
                 } else if (IgnoreEntityNames.Contains(entityName) == false) {
+                    AddOtherInfoToLoggedEntity(loggedEntity, entity);
                     otherEntities.Add(loggedEntity);
                 }
             }
@@ -946,20 +912,57 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
             if (collider is Hitbox) {
+                loggedEntity.Properties.Add("hitbox", GetBasicColliderInfo(collider));
+            } else if (collider is Circle) {
+                loggedEntity.Properties.Add("hitcircle", GetBasicColliderInfo(collider));
+            } else if (collider is ColliderList) {
+                List<object> colliderList = new List<object>();
+                
+                ColliderList entityColliders = collider as ColliderList;
+                foreach (Collider actualCollider in entityColliders.colliders) {
+                    if (actualCollider is Hitbox) {
+                        colliderList.Add(new JsonColliderHitbox() {
+                            Hitbox = (JsonRectangle) GetBasicColliderInfo(actualCollider),
+                        });
+                    } else if (actualCollider is Circle) {
+                        colliderList.Add(new JsonColliderCircle() {
+                            HitCircle = (JsonCircle) GetBasicColliderInfo(actualCollider),
+                        });
+                    }
+                }
+
+                loggedEntity.Properties.Add("colliderList", colliderList);
+            }
+        }
+
+        private static object GetBasicColliderInfo(Collider collider) {
+            if (collider == null) return null;
+            
+            if (collider is Hitbox) {
                 Hitbox hitbox = collider as Hitbox;
-                loggedEntity.Properties.Add("hitbox", new JsonRectangle() {
+                return new JsonRectangle() {
                     X = hitbox.Position.X,
                     Y = hitbox.Position.Y,
                     Width = hitbox.Width,
                     Height = hitbox.Height,
-                });
+                };
             } else if (collider is Circle) {
                 Circle hitcircle = collider as Circle;
-                loggedEntity.Properties.Add("hitcircle", new JsonCircle() {
+                return new JsonCircle() {
                     X = hitcircle.Position.X,
                     Y = hitcircle.Position.Y,
                     Radius = hitcircle.Radius,
-                });
+                };
+            }
+
+            return null;
+        }
+
+        public static void AddOtherInfoToLoggedEntity(LoggedEntity loggedEntity, Entity entity) {
+            loggedEntity.Properties.Add("isSolid", entity is Solid);
+            loggedEntity.Properties.Add("hasCollider", entity.Collider != null);
+            if (entity.Collider != null) {
+                AddColliderInfoToLoggedEntity(loggedEntity, entity.Collider);
             }
         }
     }

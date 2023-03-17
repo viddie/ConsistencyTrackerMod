@@ -159,6 +159,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
+
             Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
             On.Celeste.Level.TeleportTo += Level_TeleportTo;
             //Track deaths
@@ -191,6 +192,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //On.Celeste.Player.Update += LogPhysicsUpdate;
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
+            //On.Monocle.Engine.Update += Engine_Update;
         }
 
         private void UnHookStuff() {
@@ -378,16 +380,52 @@ namespace Celeste.Mod.ConsistencyTracker {
             orig(level);
         }
 
+        //**** USE THIS WHEN MORE NON-FUNCTIONING ROOM TRANSITIONS ARE FOUND ****//
+        //private bool engineDelayHadSetTimer = false;
+        //private int engineDelayTimer = 0;
+        //private int engineDelayTime = 3;
+        //public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
+        //    orig(self, gameTime);
+
+
+        //    if (!(Engine.Scene is Level)) return;
+        //    Level level = Engine.Scene as Level;
+        //    Player player = level.Tracker.GetEntity<Player>();
+        //    string roomNameNoSani = level.Session.LevelData.Name;
+
+        //    if (level.Session.LevelData.HasCheckpoint) {
+        //        LastRoomWithCheckpoint = roomNameNoSani;
+        //    }
+
+        //    string roomName = SanitizeRoomName(roomNameNoSani);
+
+        //    if (CurrentRoomName != null && roomName != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) {
+        //        if (!engineDelayHadSetTimer) {
+        //            engineDelayHadSetTimer = true;
+        //            engineDelayTimer = engineDelayTime;
+        //        }
+
+        //        if (engineDelayTimer > 0) {
+        //            engineDelayTimer--;
+        //            return;
+        //        }
+        //        Log($"Engine.Update found a special room transition!");
+
+        //        bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
+        //        SetNewRoom(roomName, true, holdingGolden);
+        //    }
+        //}
+        
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
             if (levelDataNext.HasCheckpoint) {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
-            
-            string roomName = SanitizeRoomName(levelDataNext.Name);
-            Log($"levelData.Name->{roomName}, level.Completed->{level.Completed}, level.NewLevel->{level.NewLevel}, levelDataNext.Bounds->{levelDataNext.Bounds}");
-            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
 
-            if (CurrentRoomName != null && roomName != CurrentRoomName) { 
+            string roomName = SanitizeRoomName(levelDataNext.Name);
+            Log($"levelData.Name->{roomName}");
+
+            if (CurrentRoomName != null && roomName != CurrentRoomName) {
+                bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
                 SetNewRoom(roomName, true, holdingGolden);
             }
         }
@@ -488,7 +526,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             PlayerIsHoldingGolden = holdingGolden;
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
-            if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) { //Don't complete if entering previous room and current room was not completed
+            //If the room is to be ignored, don't update anything
+            if (CurrentChapterPath != null && CurrentChapterPath.IgnoredRooms.Contains(newRoomName)) {
+                Log($"Entered ignored room '{newRoomName}', not updating state!");
+                return;
+            }
+
+            //Don't complete if entering previous room and current room was not completed
+            if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) {
                 Log($"Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
@@ -515,6 +560,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
             }
+
+            //engineDelayTimer = 0;
+            //engineDelayHadSetTimer = false;
         }
 
         private void SetRoomCompleted(bool resetOnDeath=false) {

@@ -16,4 +16,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         [JsonProperty("radius")]
         public float Radius { get; set; }
     }
+
+    public class JsonColliderCircle {
+        [JsonProperty("type")]
+        public string Type {
+            get => "hitcircle";
+            private set => throw new InvalidOperationException("Cannot set type of JsonColliderCircle");
+        }
+
+        [JsonProperty("hitcircle")]
+        public JsonCircle HitCircle { get; set; }
+    }
 }

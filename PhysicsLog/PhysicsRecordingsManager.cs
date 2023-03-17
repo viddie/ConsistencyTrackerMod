@@ -102,8 +102,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
         /// <param name="name">User provided name</param>
         /// <returns>ID of the saved recording</returns>
         public int SaveRecording(PhysicsLogLayoutsFile layoutFile, List<string> physicsLog, string name) {
+            if (physicsLog.Count == 0) {
+                Mod.Log("Not saving recording because physics log is empty.");
+                return -1;
+            }
+
             int id = State.IDCounter++;
-            
+            layoutFile.ID = id;
+
             string pathJson = GetPathToFile(RecordingType.Saved, FileType.Layout, id);
             string pathLog = GetPathToFile(RecordingType.Saved, FileType.PhysicsLog, id);
 
@@ -121,6 +127,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             
             SaveStateFile();
 
+            Mod.Log($"Saved recording with ID '{id}' and name '{name}'!");
+            Mod.Log($"First line from physics log: {physicsLog[0]}", isFollowup:true);
+
             return id;
         }
 
@@ -133,9 +142,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
         public bool RenameRecording(int id, string name) {
             PhysicsRecordingsState.PhysicsRecording recording = State.SavedRecordings.Find(r => r.ID == id);
             if (recording == null) return false;
-            
+
+            string previousName = recording.Name;
             recording.Name = name;
             SaveStateFile();
+
+            Mod.Log($"Renamed recording with ID '{id}' from '{previousName}' to '{name}'!");
+
             return true;
         }
 
@@ -158,6 +171,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             if (File.Exists(pathJson)) File.Delete(pathJson);
             if (File.Exists(pathLog)) File.Delete(pathLog);
 
+            Mod.Log($"Deleted recording with ID '{id}' and name '{recording.Name}'!");
+
             return true;
         }
 
@@ -165,6 +180,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
         /// Get a list of all saved recordings.
         /// </summary>
         public List<PhysicsRecordingsState.PhysicsRecording> GetSavedRecordings() {
+            Mod.Log($"Fetched saved recordings list (Entry Count: {State.SavedRecordings.Count})");
             return State.SavedRecordings;
         }
 

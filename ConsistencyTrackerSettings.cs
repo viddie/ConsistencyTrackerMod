@@ -1044,7 +1044,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         #region Debug Settings
         [JsonIgnore]
-        public bool DebugSettings { get; set; } = false;
+        public bool PhysicsLoggerSettings { get; set; } = false;
 
         [SettingIgnore]
         public bool VerboseLogging { get; set; } = false;
@@ -1061,32 +1061,8 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool LogPhysicsFlipY { get; set; } = false;
 
-        [SettingIgnore]
-        public bool LogPosition { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogSpeed { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogVelocity { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogLiftBoost { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogSpeedRetention { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogStamina { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogFlags { get; set; } = true;
-
-        [SettingIgnore]
-        public bool LogInputs { get; set; } = true;
-
-        public void CreateDebugSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Debug Settings", false);
+        public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Logger Settings", false);
             TextMenu.Item menuItem;
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Verbose Logging", VerboseLogging) {
@@ -1096,15 +1072,6 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Logs additional information and produces bigger log files");
-
-            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Logged Data", LogPhysicsFlipY) {
-                OnValueChange = v => {
-                    LogPhysicsFlipY = v;
-                    Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
-            subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Logging Physics Enabled", LogPhysicsEnabled) {
                 OnValueChange = v => {
@@ -1131,72 +1098,73 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to the clipboard when recording is stopped");
 
+            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Logged Data", LogPhysicsFlipY) {
+                OnValueChange = v => {
+                    LogPhysicsFlipY = v;
+                    Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
+            subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
+
             //Add a header for the physics logging options
-            subMenu.Add(new TextMenu.SubHeader("Physics Logging Options"));
+            //subMenu.Add(new TextMenu.SubHeader("Physics Logging Options"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Position", LogPosition) {
-                OnValueChange = v => {
-                    LogPosition = v;
-                    Mod.Log($"Position logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Position", LogPosition) {
+            //    OnValueChange = v => {
+            //        LogPosition = v;
+            //        Mod.Log($"Position logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed", LogSpeed) {
-                OnValueChange = v => {
-                    LogSpeed = v;
-                    Mod.Log($"Speed logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed", LogSpeed) {
+            //    OnValueChange = v => {
+            //        LogSpeed = v;
+            //        Mod.Log($"Speed logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Velocity", LogVelocity) {
-                OnValueChange = v => {
-                    LogVelocity = v;
-                    Mod.Log($"Velocity logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Velocity", LogVelocity) {
+            //    OnValueChange = v => {
+            //        LogVelocity = v;
+            //        Mod.Log($"Velocity logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Lift Boost", LogLiftBoost) {
-                OnValueChange = v => {
-                    LogLiftBoost = v;
-                    Mod.Log($"Lift boost logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Lift Boost", LogLiftBoost) {
+            //    OnValueChange = v => {
+            //        LogLiftBoost = v;
+            //        Mod.Log($"Lift boost logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed Retention", LogSpeedRetention) {
-                OnValueChange = v => {
-                    LogSpeedRetention = v;
-                    Mod.Log($"Speed retention logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed Retention", LogSpeedRetention) {
+            //    OnValueChange = v => {
+            //        LogSpeedRetention = v;
+            //        Mod.Log($"Speed retention logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Stamina", LogStamina) {
-                OnValueChange = v => {
-                    LogStamina = v;
-                    Mod.Log($"Stamina logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Stamina", LogStamina) {
+            //    OnValueChange = v => {
+            //        LogStamina = v;
+            //        Mod.Log($"Stamina logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Flags", LogFlags) {
-                OnValueChange = v => {
-                    LogFlags = v;
-                    Mod.Log($"Flags logging {(v ? "enabled" : "disabled")}");
-                }
-            });
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Flags", LogFlags) {
+            //    OnValueChange = v => {
+            //        LogFlags = v;
+            //        Mod.Log($"Flags logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Log Inputs", LogInputs) {
-                OnValueChange = v => {
-                    LogInputs = v;
-                    Mod.Log($"Input logging {(v ? "enabled" : "disabled")}");
-                }
-            });
-
-            
-
-
-
-            //subMenu.Add(menuItem = new TextMenu.Button($"Reset '{StatManager.FormatFileName}' file").Pressed(() => {
-            //    Mod.StatsManager.ResetFormats();
-            //}));
+            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Inputs", LogInputs) {
+            //    OnValueChange = v => {
+            //        LogInputs = v;
+            //        Mod.Log($"Input logging {(v ? "enabled" : "disabled")}");
+            //    }
+            //});
 
             menu.Add(subMenu);
         }
