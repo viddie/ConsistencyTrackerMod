@@ -38,10 +38,28 @@
                 </div>
                 <hr>
                 <h5>Recordings</h5>
-                <div class="flex-center">
-                    <button id="newer-recording-button" onclick="ChangeRecording(-1)" disabled="true">Newer</button>
-                    <div style="width:10px"></div>
-                    <button id="older-recording-button" onclick="ChangeRecording(1)" >Older</button>
+                <select id="selected-recording" onchange="ChangeRecording(this.value)" style="width:100%">
+                    <optgroup id="optgroup-recent" label="Recent&nbsp;">
+                        <option>City 1 Branch A</option>
+                        <option>City 1 Branch B</option>
+                        <option>City 1 Branch C</option>
+                    </optgroup>
+                    <optgroup id="optgroup-saved" label="Saved&nbsp;">
+                        <option>City 2 Branch A</option>
+                        <option>City 2 Branch B</option>
+                    </optgroup>
+                </select>
+                <div id="recording-actions" class="flex-center">
+                    <button id="save-recording-button" onclick="openSaveRecordingDialog()" class="slim-button">Save</button>
+                    <div style="width:5px"></div>
+                    <button id="rename-recording-button" onclick="openRenameRecordingDialog()" class="slim-button">Rename</button>
+                    <div style="width:5px"></div>
+                    <button id="delete-recording-button" onclick="openDeleteRecordingDialog()" class="slim-button">Delete</button>
+                </div>
+                <div id="recording-io" class="flex-center">
+                    <button id="export-recording-button" onclick="" class="slim-button">Export</button>
+                    <div style="width:5px"></div>
+                    <button id="import-recording-button" onclick="" class="slim-button">Import</button>
                 </div>
 
                 <hr>
@@ -85,4 +103,7 @@
             </div>
         </div>
     </body>
+    <!-- Dialog lib -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.js"></script>
 </html>

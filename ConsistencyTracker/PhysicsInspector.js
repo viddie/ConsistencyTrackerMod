@@ -5,6 +5,10 @@ const ViewStates = {
 };
 let CurrentState = null;
 
+const RecordingTypes = {
+    Recent: 0,
+    Saved: 1,
+};
 
 const PointLabels = {
     None: "None",
@@ -75,8 +79,18 @@ const Elements = {
 
     NextFramesButton: "next-frames-button",
     PreviousFramesButton: "previous-frames-button",
-    NewerRecordingButton: "newer-recording-button",
-    OlderRecordingButton: "older-recording-button",
+
+    SelectedRecording: "selected-recording",
+    OptgroupRecent: "optgroup-recent",
+    OptgroupSaved: "optgroup-saved",
+
+    SaveRecordingButton: "save-recording-button",
+    DeleteRecordingButton: "delete-recording-button",
+    RenameRecordingButton: "rename-recording-button",
+
+    ImportRecordingButton: "import-recording-button",
+    ExportRecordingButton: "export-recording-button",
+
     RecordingDetails: "recording-details",
     // EntityCounts: "entity-counts",
 
@@ -103,6 +117,8 @@ let physicsLogFrames = null; //Array
 let konvaStage = null;
 let konvaRoomLayoutLayer = null;
 let konvaRoomEntitiesLayer = null;
+let konvaRoomOtherEntitiesLayer = null;
+let konvaMaddyHitboxLayer = null;
 let konvaTooltipLayer = null;
 let konvaLowPrioTooltipLayer = null;
 let konvaPositionLayer = null;
@@ -110,28 +126,34 @@ let konvaPositionLayer = null;
 //#endregion
 
 //#region Settings
-let selectedFile = 0;
+let selectedRecordingType = RecordingTypes.Recent;
+let selectedRecording = 0; //When FileTypes.Recent, this is the index of the file in the list. When FileTypes.Saved, this is the ID of the recording.
 let settings = {
     alwaysShowFollowLine: false,
     showRoomNames: true,
     showSpinnerRectangle: true,
-    showOnlyRelevantRooms: false,
+    showOnlyRelevantRooms: true,
     rasterizeMovement: false,
 
     frameStepSize: 1000,
     frameMin: 0,
     frameMax: 1000,
 
+    decimals: 2,
+
     menuHidden: false,
     pointLabels: "None",
 
     layerVisibleRoomLayout: true,
     layerVisibleRoomEntities: true,
+    layerVisibleRoomOtherEntities: true,
+    layerVisibleMaddyHitbox: true,
     layerVisibleTooltip: true,
     layerVisiblePosition: true,
 
     tooltipInfo: {
         frame: true,
+        frameRTA: true,
         position: true,
         speed: true,
         acceleration: false,
@@ -143,6 +165,7 @@ let settings = {
         stamina: true,
         inputs: true,
         flags: true,
+        subpixelDisplay: false,
     }
 };
 //#endregion
@@ -153,14 +176,11 @@ document.addEventListener("DOMContentLoaded", function () {
     loadElements(Elements);
     loadSettings();
     ShowState(ViewStates.MainView);
-    
-    Elements.NewerRecordingButton.setAttribute("disabled", true);
 });
 
 
 //#region Settings
 let settingsElements = {
-    // alwaysShowFollowLine: "Always Show Follow Line",
     showRoomNames: "Show Room Names",
     showSpinnerRectangle: "Show Spinner Rectangle",
     showOnlyRelevantRooms: "Show Only Relevant Rooms",
@@ -169,22 +189,25 @@ let settingsElements = {
 let layerVisibilityElements = {
     layerVisibleRoomLayout: "Room Layout",
     layerVisibleRoomEntities: "Room Entities",
+    layerVisibleRoomOtherEntities: "Other Entities",
     layerVisibleTooltip: "Tooltip",
     layerVisiblePosition: "Position",
 };
 let tooltipsInfoElements = {
     frame: "Frame",
-    stamina: "Stamina",
+    frameRTA: "RTA Frame",
     position: "Position",
-    inputs: "Inputs",
+    stamina: "Stamina",
     speed: "Speed",
-    flags: "Flags",
+    inputs: "Inputs",
     acceleration: "Acceleration",
     absoluteSpeed: "Abs. Speed",
     velocity: "Velocity",
-    liftboost: "Liftboost",
+    flags: "Flags",
     velocityDifference: "Velocity Difference",
+    liftboost: "Liftboost",
     retainedSpeed: "Retained Speed",
+    subpixelDisplay: "Subpixel Display",
 };
 
 let settingsInited = false;
@@ -305,6 +328,12 @@ function changedLayerVisibility(layerName, value){
         case "layerVisibleRoomEntities":
             layerToSet = konvaRoomEntitiesLayer;
             break;
+        case "layerVisibleRoomOtherEntities":
+            layerToSet = konvaRoomOtherEntitiesLayer;
+            break;
+        case "layerVisibleMaddyHitbox":
+            layerToSet = konvaMaddyHitboxLayer;
+            break;
         case "layerVisibleTooltip":
             layerToSet = konvaTooltipLayer;
             break;
@@ -357,6 +386,12 @@ function applySettings(){
     if(!settings.layerVisibleRoomEntities){
         konvaRoomEntitiesLayer.hide();
     }
+    if(!settings.layerVisibleRoomOtherEntities){
+        konvaRoomOtherEntitiesLayer.hide();
+    }
+    if(!settings.layerVisibleMaddyHitbox){
+        konvaMaddyHitboxLayer.hide();
+    }
     if(!settings.layerVisibleTooltip){
         konvaTooltipLayer.hide();
         konvaLowPrioTooltipLayer.hide();
@@ -402,36 +437,38 @@ function updateFrameButtonStates(){
     }
 }
 
-function ChangeRecording(direction){
-    let selectedBefore = selectedFile;
-    selectedFile += direction;
+function ChangeRecording(selected){
+    //selected is in the form of "recent-0" or "saved-0"
+    let split = selected.split("-");
+    let selectedRecordingTypeStr = split[0];
+    let selectedRecordingId = parseInt(split[1]);
 
-    let fileOffset = isRecording ? 1 : 0;
+    selectedRecordingType = selectedRecordingTypeStr == "recent" ? RecordingTypes.Recent : RecordingTypes.Saved;
+    selectedRecording = selectedRecordingId;
 
-    if(selectedFile < fileOffset){
-        selectedFile = fileOffset;
-    } else if(selectedFile >= recentPhysicsLogFilesList.length+fileOffset){
-        selectedFile = recentPhysicsLogFilesList.length+fileOffset-1;
-    }
+    updateRecordingActionButtonStates();
 
-    if(selectedBefore == selectedFile){
-        return;
-    }
-
-    if(selectedFile == fileOffset){
-        Elements.NewerRecordingButton.setAttribute("disabled", true);
-    } else {
-        Elements.NewerRecordingButton.removeAttribute("disabled");
-    }
-
-    if(selectedFile == recentPhysicsLogFilesList.length+fileOffset-1){
-        Elements.OlderRecordingButton.setAttribute("disabled", true);
-    } else {
-        Elements.OlderRecordingButton.removeAttribute("disabled");
-    }
+    console.log("ChangeRecording -> Selected: ", selected);
 
     fetchRoomLayout(afterFetchRoomLayout);
     resetFramePage();
+}
+function showSavedRecording(id){
+    selectedRecording = id;
+    selectedRecordingType = RecordingTypes.Saved;
+    fetchRoomLayout(afterFetchRoomLayout);
+    resetFramePage();
+}
+function updateRecordingActionButtonStates(){
+    if(selectedRecordingType === RecordingTypes.Recent){
+        Elements.SaveRecordingButton.removeAttribute("disabled");
+        Elements.RenameRecordingButton.setAttribute("disabled", true);
+        Elements.DeleteRecordingButton.setAttribute("disabled", true);
+    } else {
+        Elements.SaveRecordingButton.setAttribute("disabled", true);
+        Elements.RenameRecordingButton.removeAttribute("disabled");
+        Elements.DeleteRecordingButton.removeAttribute("disabled");
+    }
 }
 
 function toggleSidebarMenuSetting(){
@@ -489,30 +526,19 @@ function OnShowMainView() {
     isFirstPull = true;
 }
 
-function performRequest(url, localStorageName, then, errorMessage, errorFunction=null){
-    if(isOffline){
-        let storedRequest = localStorage.getItem(localStorageName);
-        if(storedRequest !== null){
-            then(JSON.parse(storedRequest));
-        } else {
-            showError(-1, errorMessage);
-            console.error(error);
+function performRequest(url, then, errorMessage, errorFunction=null){
+    fetch(url)
+    .then(response => response.json())
+    .then(responseObj => {
+        then(responseObj);
+    })
+    .catch(error => {
+        showError(-1, errorMessage);
+        console.error(error);
+        if(errorFunction !== null){
+            errorFunction();
         }
-    } else {
-        fetch(url)
-        .then(response => response.json())
-        .then(responseObj => {
-            localStorage.setItem(localStorageName, JSON.stringify(responseObj));
-            then(responseObj);
-        })
-        .catch(error => {
-            showError(-1, errorMessage);
-            console.error(error);
-            if(errorFunction !== null){
-                errorFunction();
-            }
-        });
-    }
+    });
 }
 
 function fetchPhysicsLogFileList(then){
@@ -530,17 +556,86 @@ function fetchPhysicsLogFileList(then){
 
         if(isRecording){
             isFirstPull = false;
-            selectedFile = 1;
+            selectedRecording = 1;
         }
+
+        showRecordingList();
+        selectedRecordingType = RecordingTypes.Recent;
+        updateRecordingActionButtonStates();
 
         then();
     }
     function onError(){
-        isOffline = true;
-        OnShowMainView();
+        // isOffline = true;
+        // OnShowMainView();
     }
 
-    performRequest(url, "requests.physicsLogFiles", afterFetch, "Failed to fetch physics log file list (is CCT running?)", onError);
+    performRequest(url, afterFetch, "Failed to fetch physics log file list (is CCT running?)", onError);
+}
+
+function showRecordingList(){
+    //Clear the optgroups
+    Elements.OptgroupRecent.innerHTML = "";
+    Elements.OptgroupSaved.innerHTML = "";
+
+    //Add recent recordings
+    for(let i = 0; i < recentPhysicsLogFilesList.length; i++){
+        let recording = recentPhysicsLogFilesList[i];
+        let id = recording.id;
+
+        let opt = document.createElement("option");
+        opt.value = "recent-"+id;
+        opt.innerText = getRecordingDisplayName(RecordingTypes.Recent, recording);
+        Elements.OptgroupRecent.appendChild(opt);
+    }
+
+    //Add saved recordings
+    for(let i = 0; i < savedPhysicsRecordingsList.length; i++){
+        let recording = savedPhysicsRecordingsList[i];
+        let id = recording.id;
+        let opt = document.createElement("option");
+        opt.value = "saved-"+id;
+        opt.innerText = getRecordingDisplayName(RecordingTypes.Saved, recording);
+        Elements.OptgroupSaved.appendChild(opt);
+    }
+}
+
+function getRecordingDisplayNameByID(recordingType, recordingID){
+    let toSearch = recordingType === RecordingTypes.Recent ? recentPhysicsLogFilesList : savedPhysicsRecordingsList;
+    for(let i = 0; i < toSearch.length; i++){
+        let recording = toSearch[i];
+        if(recording.id === recordingID){
+            return getRecordingDisplayName(recordingType, recording);
+        }
+    }
+}
+function getRecordingDisplayName(recordingType, recordingObj){
+    if(recordingType === RecordingTypes.Recent){
+        let chapterName = recordingObj.chapterName;
+        let sideName = recordingObj.sideName;
+        let recordingStarted = new Date(recordingObj.recordingStarted);
+        let frameCount = recordingObj.frameCount;
+        let id = recordingObj.id;
+
+        //format the date in: "day/month hour:minute", zero padded using the function zeroPad(number, zeros)
+        let date = zeroPad(recordingStarted.getDate(), 2)+"/"+zeroPad(recordingStarted.getMonth()+1, 2)+" "+zeroPad(recordingStarted.getHours(), 2)+":"+zeroPad(recordingStarted.getMinutes(), 2);
+        let mapName = sideName === "A-Side" ? chapterName : chapterName+" ["+sideName[0]+"]";
+
+        return "("+(id+1)+") "+mapName+" - "+formatBigNumber(frameCount)+"f";
+
+    } else {
+        let chapterName = recordingObj.chapterName;
+        let sideName = recordingObj.sideName;
+        let recordingStarted = new Date(recordingObj.recordingStarted);
+        let frameCount = recordingObj.frameCount;
+        let id = recordingObj.id;
+        let name = recordingObj.name;
+
+        let date = zeroPad(recordingStarted.getDate(), 2)+"/"+zeroPad(recordingStarted.getMonth()+1, 2)+" "+zeroPad(recordingStarted.getHours(), 2)+":"+zeroPad(recordingStarted.getMinutes(), 2);
+        let mapName = sideName === "A-Side" ? chapterName : chapterName+" ["+sideName[0]+"]";
+
+        return name+": "+mapName+" - "+formatBigNumber(frameCount)+"f";
+    }
 }
 
 function afterFetchPhysicsLogFileList(){
@@ -548,30 +643,47 @@ function afterFetchPhysicsLogFileList(){
 }
 
 function fetchRoomLayout(then){
-    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder=recent-recordings&file="+selectedFile+"_room-layout&extension=json";
+    let subfolderName = selectedRecordingType === RecordingTypes.Recent ? "recent-recordings" : "saved-recordings";
+
+    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder="+subfolderName+"&file="+selectedRecording+"_room-layout&extension=json";
     function afterFetch(responseObj){
         console.log(responseObj);
         if(responseObj.errorCode !== 0){
             showError(responseObj.errorCode, responseObj.errorMessage);
             return;
         }
-
         let fileContentStr = responseObj.fileContent;
 
         roomLayoutRecording = JSON.parse(fileContentStr);
         roomLayouts = roomLayoutRecording.rooms;
 
+        //Find the id selectedRecording in the list of savedPhysicsRecordingsList
+        if(selectedRecordingType === RecordingTypes.Saved){
+            let recording = null;
+            for(let i = 0; i < savedPhysicsRecordingsList.length; i++){
+                if(savedPhysicsRecordingsList[i].id === selectedRecording){
+                    recording = savedPhysicsRecordingsList[i];
+                    break;
+                }
+            }
+            if(recording !== null){
+                roomLayoutRecording.name = recording.name;
+            }
+        }
+
         then();
     }
     
-    performRequest(url, "requests.roomLayout."+selectedFile, afterFetch, "Failed to fetch room layout (is CCT running?)");
+    performRequest(url, afterFetch, "Failed to fetch room layout (is CCT running?)");
 }
 function afterFetchRoomLayout(){
     fetchPhysicsLog(goToInspectorView);
 }
 
 function fetchPhysicsLog(then){
-    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder=recent-recordings&file="+selectedFile+"_position-log&extension=txt";
+    let subfolderName = selectedRecordingType === RecordingTypes.Recent ? "recent-recordings" : "saved-recordings";
+
+    let url = apiBaseUrl + "/getFileContent?folder=physics-recordings&subfolder="+subfolderName+"&file="+selectedRecording+"_position-log&extension=txt";
     function afterFetch(responseObj){
         console.log(responseObj);
         if(responseObj.errorCode !== 0){
@@ -586,7 +698,7 @@ function fetchPhysicsLog(then){
         then();
     }
 
-    performRequest(url, "requests.physicsLog."+selectedFile, afterFetch, "Failed to fetch physics log (is CCT running?)");
+    performRequest(url, afterFetch, "Failed to fetch physics log (is CCT running?)");
 }
 function goToInspectorView(){
     if(isOffline){
@@ -601,17 +713,16 @@ function goToInspectorView(){
 }
 
 function parsePhysicsLogFrames(fileContent){
-    //First line is the header
     let lines = fileContent.split("\n");
-
+    
+    //First line can be the header
     let header = lines[0];
-
-    let beginIndex = header.indexOf("Frame") ;
+    let beginIndex = header.indexOf("Frame") !== -1 ? 1 : 0;
 
     //All other lines have the format:
     //FrameNumber, PositionX, PositionY, SpeedX, SpeedY, VelocityX, VelocityY, LiftBoostX, LiftBoostY, Flags, Inputs
     let frames = [];
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = beginIndex; i < lines.length; i++) {
         const line = lines[i].trim();
         if(line.length === 0) continue;
         let frame = parsePhysicsLogFrame(line);
@@ -643,18 +754,19 @@ function parsePhysicsLogFrame(line){
     let values = line.split(",");
     let frame = {
         frameNumber: parseInt(values[0]),
-        positionX: parseFloat(values[1]),
-        positionY: parseFloat(values[2]),
-        speedX: parseFloat(values[3]),
-        speedY: parseFloat(values[4]),
-        velocityX: parseFloat(values[5]),
-        velocityY: parseFloat(values[6]),
-        liftBoostX: parseFloat(values[7]),
-        liftBoostY: parseFloat(values[8]),
-        speedRetention: parseFloat(values[9]),
-        stamina: parseFloat(values[10]),
-        flags: values[11],
-        inputs: values[12],
+        frameNumberRTA: parseInt(values[1]),
+        positionX: parseFloat(values[2]),
+        positionY: parseFloat(values[3]),
+        speedX: parseFloat(values[4]),
+        speedY: parseFloat(values[5]),
+        velocityX: parseFloat(values[6]),
+        velocityY: parseFloat(values[7]),
+        liftBoostX: parseFloat(values[8]),
+        liftBoostY: parseFloat(values[9]),
+        speedRetention: parseFloat(values[10]),
+        stamina: parseFloat(values[11]),
+        flags: values[12],
+        inputs: values[13],
     };
     return frame;
 }
@@ -694,6 +806,8 @@ function redrawCanvas(){
     //Clear konva layers
     konvaRoomLayoutLayer.destroyChildren();
     konvaRoomEntitiesLayer.destroyChildren();
+    konvaRoomOtherEntitiesLayer.destroyChildren();
+    konvaMaddyHitboxLayer.destroyChildren();
     konvaPositionLayer.destroyChildren();
     konvaLowPrioTooltipLayer.destroyChildren();
     konvaTooltipLayer.destroyChildren();
@@ -715,6 +829,8 @@ function createLayers(){
     // then create layer
     konvaRoomLayoutLayer = new Konva.Layer({listening: false});
     konvaRoomEntitiesLayer = new Konva.Layer({listening: false});
+    konvaRoomOtherEntitiesLayer = new Konva.Layer({listening: false});
+    konvaMaddyHitboxLayer = new Konva.Layer({listening: false});
     konvaPositionLayer = new Konva.Layer({listening: true});
     konvaLowPrioTooltipLayer = new Konva.Layer({listening: false});
     konvaTooltipLayer = new Konva.Layer({listening: false});
@@ -723,6 +839,8 @@ function createLayers(){
     // add the layer to the stage
     konvaStage.add(konvaRoomLayoutLayer);
     konvaStage.add(konvaRoomEntitiesLayer);
+    konvaStage.add(konvaRoomOtherEntitiesLayer);
+    konvaStage.add(konvaMaddyHitboxLayer);
     konvaStage.add(konvaPositionLayer);
     konvaStage.add(konvaLowPrioTooltipLayer);
     konvaStage.add(konvaTooltipLayer);
@@ -843,21 +961,6 @@ function drawRoomBounds(){
             }));
         }
 
-        // for(let y = 0; y < solidTiles.length; y++){
-        //     for(let x = 0; x < solidTiles[y].length; x++){
-        //         if(solidTiles[y][x]){
-        //             konvaRoomLayoutLayer.add(new Konva.Rect({
-        //                 x: levelBounds.x + x * tileSize + tileOffsetX,
-        //                 y: levelBounds.y + y * tileSize + tileOffsetY,
-        //                 width: tileSize,
-        //                 height: tileSize,
-        //                 stroke: (y+x) % 2 === 0 ? 'red' : 'red',
-        //                 strokeWidth: 0.25
-        //             }));
-        //         }
-        //     }
-        // }
-
         drawSolidTileOutlines(solidTiles, levelBounds);
     });
 }
@@ -893,6 +996,7 @@ let hitboxEntityNames = {
     "blue": ["TouchSwitch", "MovingTouchSwitch", "FlagTouchSwitch", "CrushBlock"],
     "#85e340": ["DashSwitch", "TempleGate"],
     "#a200ff": ["MoveBlock", "ConnectedMoveBlock", "VitMoveBlock"],
+    "#fa7ded": ["BouncySpikes"],
     "Special": ["Strawberry", "Refill", "RefillWall", "Cloud", "CassetteBlock", "WonkyCassetteBlock"],
 };
 let hitcircleEntityNames = {
@@ -951,24 +1055,13 @@ function drawStaticEntities(){
                 }
 
                 //Draw white circle with width 6 on entity position
-                konvaRoomEntitiesLayer.add(new Konva.Circle({
-                    x: entityX,
-                    y: entityY,
-                    radius: spinnerRadius,
-                    stroke: 'white',
-                    strokeWidth: 0.5,
-                }));
+                let hitcircle = { x:0, y:0, radius:6 };
+                konvaRoomEntitiesLayer.add(createHitCircle(entityX, entityY, hitcircle, 'white', 0.5));
 
                 if(settings.showSpinnerRectangle){
                     //Draw white rectangle with width 16, height 4, x offset -8 and y offset -3 on entity position
-                    konvaRoomEntitiesLayer.add(new Konva.Rect({
-                        x: entityX - 8,
-                        y: entityY - 3,
-                        width: 16,
-                        height: 4,
-                        stroke: 'white',
-                        strokeWidth: 0.5,
-                    }));
+                    let hitbox = { x:-8, y:-3, width:16, height:4 };
+                    konvaRoomEntitiesLayer.add(createHitbox(entityX, entityY, hitbox, 'white', 0.5));
                 }
             }
         });
@@ -999,16 +1092,7 @@ function drawStaticEntities(){
                 }
 
                 //Draw hitbox
-                konvaRoomEntitiesLayer.add(new Konva.Rect({
-                    x: entityX + hitbox.x,
-                    y: entityY + hitbox.y,
-                    width: hitbox.width,
-                    height: hitbox.height,
-                    stroke: entityColor,
-                    strokeWidth: 0.25,
-                    dash: dash,
-                }));
-
+                konvaRoomEntitiesLayer.add(createHitbox(entityX, entityY, hitbox, entityColor, 0.25, dash));
                 drawSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity);
             }
             
@@ -1028,15 +1112,7 @@ function drawStaticEntities(){
                 }
 
                 //Draw hitcircle
-                konvaRoomEntitiesLayer.add(new Konva.Circle({
-                    x: entityX + hitcircle.x,
-                    y: entityY + hitcircle.y,
-                    radius: hitcircle.radius,
-                    stroke: entityColor,
-                    strokeWidth: 0.25,
-                    dash: dash,
-                }));
-
+                konvaRoomEntitiesLayer.add(createHitCircle(entityX, entityY, hitcircle, entityColor, 0.25, dash));
                 drawSimpleHitcircleAdditionalShape(entityColor, entityX, entityY, entity);
             }
 
@@ -1046,13 +1122,7 @@ function drawStaticEntities(){
                 let color = entity.type === "FlingBird" ? "cyan" : "#ff00ff";
 
                 //draw the initial position
-                konvaRoomEntitiesLayer.add(new Konva.Circle({
-                    x: entityX + hitcircle.x,
-                    y: entityY + hitcircle.y,
-                    radius: hitcircle.radius,
-                    stroke: color,
-                    strokeWidth: 0.25,
-                }));
+                konvaRoomEntitiesLayer.add(createHitCircle(entityX, entityY, hitcircle, color));
 
                 //loop through properties.nodes, and draw the circle at each node, and a line between each node
                 let nodes = entity.properties.nodes;
@@ -1065,13 +1135,7 @@ function drawStaticEntities(){
                     let nodeY = node.y + hitcircle.y;
 
                     //Draw circle on node position
-                    konvaRoomEntitiesLayer.add(new Konva.Circle({
-                        x: nodeX,
-                        y: nodeY,
-                        radius: hitcircle.radius,
-                        stroke: color,
-                        strokeWidth: 0.25,
-                    }));
+                    konvaRoomEntitiesLayer.add(createHitCircle(node.x, node.y, hitcircle, color));
 
                     //Draw arrow to previous node
                     if(previousNode !== null){
@@ -1101,6 +1165,88 @@ function drawStaticEntities(){
                 }
             }
         });
+
+
+        
+        let otherEntities = roomLayout.otherEntities;
+        otherEntities.forEach(entity => {
+            if(!entity.properties.hasCollider) return;
+
+            let entityColor = entity.isSolid ? "red" : "white";
+            let entityX = entity.position.x + entitiesOffsetX;
+            let entityY = entity.position.y + entitiesOffsetY;
+
+            let properties = entity.properties;
+
+            let textSplit = entity.type.split(/(?=[A-Z])/);
+            let maxWidth = 0;
+            //find the longest string in the array
+            textSplit.forEach(text => { if(text.length > maxWidth){maxWidth = text.length;} });
+            let maxDim = Math.max(textSplit.length, maxWidth);
+            let size = 1 / maxDim;
+            let text = textSplit.join("\n");
+
+            //Draw hitbox
+            if("hitbox" in properties){
+                konvaRoomOtherEntitiesLayer.add(createHitbox(entityX, entityY, properties.hitbox, entityColor));
+                //Text
+                let fontSize = Math.min(properties.hitbox.width, properties.hitbox.height) * size;
+                let offsetY = fontSize * 0.1;
+                konvaRoomOtherEntitiesLayer.add(createLetterEntityText(entityX, entityY + offsetY, properties.hitbox, text, fontSize, entityColor));
+            }
+
+            //Draw hitcircle
+            if("hitcircle" in properties){
+                konvaRoomOtherEntitiesLayer.add(createHitCircle(entityX, entityY, properties.hitcircle, entityColor));
+                //Text
+                let fontSize = properties.hitcircle.radius*2 * size * 0.8;
+                let offsetY = fontSize * 0.1;
+                konvaRoomOtherEntitiesLayer.add(createLetterEntityTextCircle(entityX, entityY + offsetY, properties.hitcircle, text, fontSize, entityColor));
+            }
+
+            //Draw colliderList
+            if("colliderList" in properties){
+                properties.colliderList.forEach(collider => {
+                    if(collider.type === "hitbox"){
+                        konvaRoomOtherEntitiesLayer.add(createHitbox(entityX, entityY, collider.hitbox, entityColor));
+                        if(entity.type.indexOf("Spinner") !== -1) return;
+                        //Text
+                        let fontSize = Math.min(collider.hitbox.width, collider.hitbox.height) * size;
+                        let offsetY = fontSize * 0.1;
+                        konvaRoomOtherEntitiesLayer.add(createLetterEntityText(entityX, entityY + offsetY, collider.hitbox, text, fontSize, entityColor));
+                    } else if(collider.type === "hitcircle"){
+                        konvaRoomOtherEntitiesLayer.add(createHitCircle(entityX, entityY, collider.hitcircle, entityColor));
+                        //Text
+                        let fontSize = collider.hitcircle.radius*2 * size * 0.8;
+                        let offsetY = fontSize * 0.1;
+                        konvaRoomOtherEntitiesLayer.add(createLetterEntityTextCircle(entityX, entityY + offsetY, collider.hitcircle, text, fontSize, entityColor));
+                    }
+                });
+            }
+        });
+    });
+}
+
+function createHitbox(posX, posY, hitbox, entityColor, strokeWidth=0.25, dash=[]){
+    return new Konva.Rect({
+        x: posX + hitbox.x,
+        y: posY + hitbox.y,
+        width: hitbox.width,
+        height: hitbox.height,
+        stroke: entityColor,
+        strokeWidth: strokeWidth,
+        dash: dash,
+    });
+}
+
+function createHitCircle(posX, posY, hitcircle, entityColor, strokeWidth=0.25, dash=[]){
+    return new Konva.Circle({
+        x: posX + hitcircle.x,
+        y: posY + hitcircle.y,
+        radius: hitcircle.radius,
+        stroke: entityColor,
+        strokeWidth: strokeWidth,
+        dash: dash,
     });
 }
 
@@ -1415,7 +1561,12 @@ function drawPhysicsLog(){
         });
         konvaPositionLayer.add(posCircle);
 
-        createPhysicsTooltip(posCircle, frame, previousFrame);
+        let nextFrame = null;
+        if(i < physicsLogFrames.length - 1){
+            nextFrame = physicsLogFrames[i+1];
+        }
+
+        createPhysicsTooltip(posCircle, frame, previousFrame, nextFrame);
 
         drawAdditionalFrameData(frame, previousFrame);
         previousFrame = frame;
@@ -1451,34 +1602,34 @@ function drawAdditionalFrameData(frame, previousFrame){
 
 let pointLabelPreviousValue = null;
 let frameDiffPointLabelFields = {
-    PositionX: [(frame) => frame.positionX.toFixed(2), false],
-    PositionY: [(frame) => frame.positionY.toFixed(2), false],
-    PositionCombined: [(frame) => "("+frame.positionX.toFixed(2)+"|"+frame.positionY.toFixed(2)+")", false],
-    SpeedX: [(frame) => frame.speedX.toFixed(2), false],
-    SpeedY: [(frame) => frame.speedY.toFixed(2), false],
-    SpeedCombined: [(frame) => "("+frame.speedX.toFixed(2)+"|"+frame.speedY.toFixed(2)+")", false],
+    PositionX: [(frame) => frame.positionX.toFixed(settings.decimals), false],
+    PositionY: [(frame) => frame.positionY.toFixed(settings.decimals), false],
+    PositionCombined: [(frame) => "("+frame.positionX.toFixed(settings.decimals)+"|"+frame.positionY.toFixed(settings.decimals)+")", false],
+    SpeedX: [(frame) => frame.speedX.toFixed(settings.decimals), false],
+    SpeedY: [(frame) => frame.speedY.toFixed(settings.decimals), false],
+    SpeedCombined: [(frame) => "("+frame.speedX.toFixed(settings.decimals)+"|"+frame.speedY.toFixed(settings.decimals)+")", false],
 
-    AbsoluteSpeed: [(frame) => (Math.sqrt(frame.speedX * frame.speedX + frame.speedY * frame.speedY)).toFixed(2), false],
+    AbsoluteSpeed: [(frame) => (Math.sqrt(frame.speedX * frame.speedX + frame.speedY * frame.speedY)).toFixed(settings.decimals), false],
 
-    VelocityX: [(frame) => frame.velocityX.toFixed(2), false],
-    VelocityY: [(frame) => frame.velocityY.toFixed(2), false],
-    VelocityCombined: [(frame) => "("+frame.velocityX.toFixed(2)+"|"+frame.velocityY.toFixed(2)+")", false],
+    VelocityX: [(frame) => frame.velocityX.toFixed(settings.decimals), false],
+    VelocityY: [(frame) => frame.velocityY.toFixed(settings.decimals), false],
+    VelocityCombined: [(frame) => "("+frame.velocityX.toFixed(settings.decimals)+"|"+frame.velocityY.toFixed(settings.decimals)+")", false],
 
-    VelocityDifferenceX: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 ? (frame.velocityX - frame.speedX/60).toFixed(2) : "", true],
-    VelocityDifferenceY: [(frame) => Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? (frame.velocityY - frame.speedY/60).toFixed(2) : "", true],
-    VelocityDifferenceCombined: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 || Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? "("+(frame.velocityX - frame.speedX/60).toFixed(2)+"|"+(frame.velocityY - frame.speedY/60).toFixed(2)+")" : "", true],
+    VelocityDifferenceX: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 ? (frame.velocityX - frame.speedX/60).toFixed(settings.decimals) : "", true],
+    VelocityDifferenceY: [(frame) => Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? (frame.velocityY - frame.speedY/60).toFixed(settings.decimals) : "", true],
+    VelocityDifferenceCombined: [(frame) => Math.abs(frame.velocityX - frame.speedX/60) >= 0.005 || Math.abs(frame.velocityY - frame.speedY/60) >= 0.005 ? "("+(frame.velocityX - frame.speedX/60).toFixed(settings.decimals)+"|"+(frame.velocityY - frame.speedY/60).toFixed(settings.decimals)+")" : "", true],
     
-    LiftBoostX: [(frame) => frame.liftBoostX.toFixed(2), false],
-    LiftBoostY: [(frame) => frame.liftBoostY.toFixed(2), false],
-    LiftBoostCombined: [(frame) => "("+frame.liftBoostX.toFixed(2)+"|"+frame.liftBoostY.toFixed(2)+")", false],
-    RetainedSpeed: [(frame) => frame.speedRetention.toFixed(2), false],
-    Stamina: [(frame) => frame.stamina.toFixed(2), false],
+    LiftBoostX: [(frame) => frame.liftBoostX.toFixed(settings.decimals), false],
+    LiftBoostY: [(frame) => frame.liftBoostY.toFixed(settings.decimals), false],
+    LiftBoostCombined: [(frame) => "("+frame.liftBoostX.toFixed(settings.decimals)+"|"+frame.liftBoostY.toFixed(settings.decimals)+")", false],
+    RetainedSpeed: [(frame) => frame.speedRetention.toFixed(settings.decimals), false],
+    Stamina: [(frame) => frame.stamina.toFixed(settings.decimals), false],
     Inputs: [(frame) => frame.inputs, false],
 };
 let frameDiffDiffPointLabelFields = {
-    AccelerationX: (frame, previousFrame) => (frame.speedX - previousFrame.speedX).toFixed(2),
-    AccelerationY: (frame, previousFrame) => (frame.speedY - previousFrame.speedY).toFixed(2),
-    AccelerationCombined: (frame, previousFrame) => "("+(frame.speedX - previousFrame.speedX).toFixed(2)+"|"+(frame.speedY - previousFrame.speedY).toFixed(2)+")",
+    AccelerationX: (frame, previousFrame) => (frame.speedX - previousFrame.speedX).toFixed(settings.decimals),
+    AccelerationY: (frame, previousFrame) => (frame.speedY - previousFrame.speedY).toFixed(settings.decimals),
+    AccelerationCombined: (frame, previousFrame) => "("+(frame.speedX - previousFrame.speedX).toFixed(settings.decimals)+"|"+(frame.speedY - previousFrame.speedY).toFixed(settings.decimals)+")",
 }
 function drawPointLabels(frame, previousFrame){
     let text = "";
@@ -1488,14 +1639,14 @@ function drawPointLabels(frame, previousFrame){
         if(dragX < -15 || dragX > 15 || dragX === 0 || previousFrame.speedX === 0 || /Retained(.)/.test(frame.flags)) {
 
         } else {
-            text = dragX.toFixed(2);
+            text = dragX.toFixed(settings.decimals);
         }
     } else if (settings.pointLabels === PointLabels.DragY && previousFrame !== null){
         let dragY = frame.speedY - previousFrame.speedY;
         if(dragY < -16 || dragY > 16 || dragY === 0 || previousFrame.speedY === 0) {
 
         } else {
-            text = dragY.toFixed(2);
+            text = dragY.toFixed(settings.decimals);
         }
     }
 
@@ -1563,7 +1714,7 @@ function getFramePointColor(frame){
     return 'white';
 }
 
-function createPhysicsTooltip(shape, frame, previousFrame){
+function createPhysicsTooltip(shape, frame, previousFrame, nextFrame){
     let rasterizedPos = getRasterziedPosition(frame);
     let posX = rasterizedPos.positionX;
     let posY = rasterizedPos.positionY;
@@ -1575,12 +1726,6 @@ function createPhysicsTooltip(shape, frame, previousFrame){
         maddyHeight = 5;
     }
 
-    // let tooltipBoxWidth = 70;
-    let tooltipBoxHeight = 6;
-    let tooltipBoxOffsetX = 5;
-    let tooltipBoxOffsetY = 0 - maddyHeight - tooltipBoxHeight - 3;
-    let tooltipFontSize = 2.5;
-
     //Draw maddy's hitbox as rectangle
     let maddyHitbox = new Konva.Rect({
         x: posX - maddyWidth / 2,
@@ -1591,7 +1736,7 @@ function createPhysicsTooltip(shape, frame, previousFrame){
         strokeWidth: 0.125,
         visible: false
     });
-    konvaTooltipLayer.add(maddyHitbox);
+    konvaMaddyHitboxLayer.add(maddyHitbox);
 
     //Draw maddy's hurtbox as green rectangle
     let maddyHurtbox = new Konva.Rect({
@@ -1603,43 +1748,172 @@ function createPhysicsTooltip(shape, frame, previousFrame){
         strokeWidth: 0.125,
         visible: false
     });
-    konvaTooltipLayer.add(maddyHurtbox);
+    konvaMaddyHitboxLayer.add(maddyHurtbox);
 
 
-    let tooltipTextContent = formatTooltipText(frame, previousFrame);
-    //For every line in the tooltipTextContent, add some height to the tooltip box
-    let additionalHeight = (tooltipTextContent.split("\n").length - 1) * tooltipFontSize;
-    tooltipBoxHeight = tooltipBoxHeight + additionalHeight;
-    tooltipBoxOffsetY = tooltipBoxOffsetY - additionalHeight;
 
-    //Create a tooltip rectangle with additional info about the frame
-    let tooltipRect = new Konva.Rect({
+    let tooltipMargin = 2;
+    let tooltipBoxOffsetX = 5;
+    let tooltipBoxOffsetY = 0 - maddyHeight - 3;
+
+    let konvaGroupTooltip = new Konva.Group({
         x: posX + tooltipBoxOffsetX,
         y: posY + tooltipBoxOffsetY,
-        // width: tooltipBoxWidth,
-        height: tooltipBoxHeight,
-        fill: 'white',
-        stroke: 'black',
-        strokeWidth: 0.125,
-        visible: false
+        visible: false,
+    });
+    konvaTooltipLayer.add(konvaGroupTooltip);
+
+    let konvaGroupTooltipInfo = new Konva.Group({
+        x: tooltipMargin,
+        y: tooltipMargin,
     });
 
+
+    
     //Create a tooltip text with additional info about the frame
+    let tooltipFontSize = 2.5;
+    let tooltipTextContent = formatTooltipText(frame, previousFrame, nextFrame);
     let tooltipText = new Konva.Text({
-        x: posX + tooltipBoxOffsetX + 2,
-        y: posY + tooltipBoxOffsetY + 2,
+        x: 0,
+        y: 0,
         text: tooltipTextContent,
         fontSize: tooltipFontSize,
         fontFamily: 'Courier New',
         fill: 'black',
         align: 'left',
-        visible: false
     });
+    konvaGroupTooltipInfo.add(tooltipText);
 
-    tooltipRect.width(tooltipText.width() + 4);
+    //Subpixel display
+    let subpixelDisplayHeight = 0;
+    if(settings.tooltipInfo.subpixelDisplay){
+        let subpixelPos = getSubpixelDistances(frame.positionX, frame.positionY);
 
-    konvaTooltipLayer.add(tooltipRect);
-    konvaTooltipLayer.add(tooltipText);
+        let containerWidth = tooltipText.width();
+        let subpixelOffsetY = tooltipText.height() + 1;
+        let squareMarginBottom = 0.5;
+        let squareMultiplier = 3;
+
+        //Place a left-aligned text saying "Subpixels:"
+        // let subpixelText = new Konva.Text({
+        //     x: 0,
+        //     y: subpixelOffsetY,
+        //     text: "Subpixels:",
+        //     fontSize: tooltipFontSize,
+        //     fontFamily: 'Courier New',
+        //     fill: 'black',
+        //     align: 'left',
+        // });
+        // konvaGroupTooltipInfo.add(subpixelText);
+
+        //Place a centered text with subpixelPos.up info
+        let subpixelUpText = new Konva.Text({
+            x: 0,
+            y: subpixelOffsetY,
+            width: containerWidth,
+            text: subpixelPos.up.toFixed(settings.decimals),
+            fontSize: tooltipFontSize,
+            fontFamily: 'Courier New',
+            fill: 'black',
+            align: 'center',
+        });
+        konvaGroupTooltipInfo.add(subpixelUpText);
+
+        //Draw a square of size tooltipFontSize * 3 below the subpixelUpText
+        let subpixelSquare = new Konva.Rect({
+            x: containerWidth/2 - tooltipFontSize * 1.5,
+            y: subpixelOffsetY + tooltipFontSize,
+            width: tooltipFontSize * squareMultiplier,
+            height: tooltipFontSize * squareMultiplier,
+            stroke: 'black',
+            strokeWidth: 0.125,
+        });
+        konvaGroupTooltipInfo.add(subpixelSquare);
+
+        let squareSize = tooltipFontSize / 4;
+        //Draw a filled red square in the subpixelUpSquare, based on the subpixelPos.up and subpixelPos.left values
+        let subpixelSquareFill = new Konva.Rect({
+            x: containerWidth/2 - tooltipFontSize * 1.5 + tooltipFontSize * squareMultiplier * subpixelPos.left - squareSize/2,
+            y: subpixelOffsetY + tooltipFontSize + tooltipFontSize * squareMultiplier * subpixelPos.up - squareSize/2,
+            width: squareSize,
+            height: squareSize,
+            fill: 'red',
+        });
+        konvaGroupTooltipInfo.add(subpixelSquareFill);
+
+        //Place a centered text with subpixelPos.down info below the subpixelUpSquare
+        let subpixelDownText = new Konva.Text({
+            x: 0,
+            y: subpixelOffsetY + tooltipFontSize + tooltipFontSize * squareMultiplier + squareMarginBottom,
+            width: containerWidth,
+            text: subpixelPos.down.toFixed(settings.decimals),
+            fontSize: tooltipFontSize,
+            fontFamily: 'Courier New',
+            fill: 'black',
+            align: 'center',
+        });
+        konvaGroupTooltipInfo.add(subpixelDownText);
+
+        //Place a right-aligned text with subpixelPos.left info on the left side of the subpixelUpSquare
+        let subpixelLeftText = new Konva.Text({
+            x: 0,
+            y: subpixelOffsetY + tooltipFontSize/2 + tooltipFontSize * squareMultiplier/2,
+            width: containerWidth/2 - tooltipFontSize * squareMultiplier/2,
+            text: subpixelPos.left.toFixed(settings.decimals),
+            fontSize: tooltipFontSize,
+            fontFamily: 'Courier New',
+            fill: 'black',
+            align: 'right',
+        });
+        konvaGroupTooltipInfo.add(subpixelLeftText);
+
+        //Place a left-aligned text with subpixelPos.right info on the right side of the subpixelUpSquare
+        let subpixelRightText = new Konva.Text({
+            x: containerWidth/2 + tooltipFontSize * squareMultiplier/2 + squareMarginBottom,
+            y: subpixelOffsetY + tooltipFontSize/2 + tooltipFontSize * squareMultiplier/2,
+            width: containerWidth/2 - tooltipFontSize * squareMultiplier/2,
+            text: subpixelPos.right.toFixed(settings.decimals),
+            fontSize: tooltipFontSize,
+            fontFamily: 'Courier New',
+            fill: 'black',
+            align: 'left',
+        });
+        konvaGroupTooltipInfo.add(subpixelRightText);
+
+        subpixelDisplayHeight = 1 + tooltipFontSize * 5 + squareMarginBottom;
+
+
+        // let subpixelTextStr = "Left: "+subpixelPos.left+"\nRight: "+subpixelPos.right+"\nUp: "+subpixelPos.up+"\nDown: "+subpixelPos.down;
+        // let subpixelText = new Konva.Text({
+        //     x: 0,
+        //     y: subpixelOffsetY,
+        //     text: subpixelTextStr,
+        //     fontSize: tooltipFontSize,
+        //     fontFamily: 'Courier New',
+        //     fill: 'black',
+        //     align: 'left',
+        // });
+        // konvaGroupTooltipInfo.add(subpixelText);
+        // subpixelDisplayHeight = subpixelText.height() + 1;
+    }
+
+    //Create a tooltip rectangle with additional info about the frame
+    let tooltipRect = new Konva.Rect({
+        x: 0,
+        y: 0,
+        fill: 'white',
+        stroke: 'black',
+        strokeWidth: 0.125,
+    });
+    tooltipRect.width(tooltipText.width() + tooltipMargin*2);
+    tooltipRect.height(tooltipText.height() + subpixelDisplayHeight + tooltipMargin*2);
+
+    konvaGroupTooltip.add(tooltipRect);
+    konvaGroupTooltip.add(konvaGroupTooltipInfo);
+
+    konvaGroupTooltip.y(konvaGroupTooltip.y() - tooltipRect.height());
+
+
 
     shape.keepTooltipOpen = false;
 
@@ -1649,35 +1923,52 @@ function createPhysicsTooltip(shape, frame, previousFrame){
             shape.zIndex(150);
             maddyHitbox.zIndex(0);
             maddyHurtbox.zIndex(1);
-            tooltipRect.zIndex(0);
-            tooltipText.zIndex(1);
+            konvaGroupTooltip.zIndex(0);
         } else {
             shape.zIndex(2);
-            maddyHitbox.zIndex(2);
             maddyHurtbox.zIndex(2);
-            tooltipRect.zIndex(2);
-            tooltipText.zIndex(2);
+            maddyHitbox.zIndex(2);
+            konvaGroupTooltip.zIndex(2);
         }
     });
     shape.on("mouseenter", function(){
         shape.strokeWidth(0.2);
         maddyHitbox.visible(true);
         maddyHurtbox.visible(true);
-        tooltipRect.visible(true);
-        tooltipText.visible(true);
+        konvaGroupTooltip.visible(true);
     });
     shape.on("mouseleave", function(){
         if(!shape.keepTooltipOpen){
             shape.strokeWidth(0);
             maddyHitbox.visible(false);
             maddyHurtbox.visible(false);
-            tooltipRect.visible(false);
-            tooltipText.visible(false);
+            konvaGroupTooltip.visible(false);
         }
     });
 }
 
-function formatTooltipText(frame, previousFrame){
+function getSubpixelDistances(x, y, precision=2){
+    function round(n, precision) {
+        precision = precision || 0;
+        var factor = Math.pow(10, precision);
+        return Math.round(n * factor) / factor;
+    }
+
+    let xHigher = Math.round(x)+0.5;
+    let xLower = xHigher - 1;
+
+    let yHigher = Math.round(y)+0.5;
+    let yLower = yHigher - 1;
+
+    return {
+        up: round(y - yLower, precision),
+        down: round(yHigher - y, precision),
+        left: round(x - xLower, precision),
+        right: round(xHigher - x, precision),
+    };
+}
+
+function formatTooltipText(frame, previousFrame, nextFrame){
     if(previousFrame == null){
         previousFrame = {
             speedX: 0,
@@ -1695,13 +1986,13 @@ function formatTooltipText(frame, previousFrame){
     let velocityDiffY = frame.velocityY - speedYInPixels;
     
     let xySeparator = "|";
-    let posText = "(" + frame.positionX.toFixed(2) + xySeparator + frame.positionY.toFixed(2) + ")";
-    let speedText = "(" + frame.speedX.toFixed(2) + xySeparator + frame.speedY.toFixed(2) + ")";
-    let accelerationText = "(" + accelerationX.toFixed(2) + xySeparator + accelerationY.toFixed(2) + ")";
+    let posText = "(" + frame.positionX.toFixed(settings.decimals) + xySeparator + frame.positionY.toFixed(settings.decimals) + ")";
+    let speedText = "(" + frame.speedX.toFixed(settings.decimals) + xySeparator + frame.speedY.toFixed(settings.decimals) + ")";
+    let accelerationText = "(" + accelerationX.toFixed(settings.decimals) + xySeparator + accelerationY.toFixed(settings.decimals) + ")";
     let absSpeed = Math.sqrt(frame.speedX * frame.speedX + frame.speedY * frame.speedY);
-    let velocityText = "(" + frame.velocityX.toFixed(2) + xySeparator + frame.velocityY.toFixed(2) + ")";
-    let velocityDiffText = "(" + velocityDiffX.toFixed(2) + xySeparator + velocityDiffY.toFixed(2) + ")";
-    let liftBoostText = "(" + frame.liftBoostX.toFixed(2) + xySeparator + frame.liftBoostY.toFixed(2) + ")";
+    let velocityText = "(" + frame.velocityX.toFixed(settings.decimals) + xySeparator + frame.velocityY.toFixed(settings.decimals) + ")";
+    let velocityDiffText = "(" + velocityDiffX.toFixed(settings.decimals) + xySeparator + velocityDiffY.toFixed(settings.decimals) + ")";
+    let liftBoostText = "(" + frame.liftBoostX.toFixed(settings.decimals) + xySeparator + frame.liftBoostY.toFixed(settings.decimals) + ")";
 
     //flags are space separated
     //split the flags into lines of max 3 flags each
@@ -1722,7 +2013,18 @@ function formatTooltipText(frame, previousFrame){
 
     let lines = [];
     if(settings.tooltipInfo.frame){
-        lines.push("    Frame: " + frame.frameNumber);
+        let frameAddition = "";
+        if(nextFrame !== null && nextFrame.frameNumber - frame.frameNumber > 1){
+            frameAddition = " (+" + (nextFrame.frameNumber - frame.frameNumber - 1) + " idle)";
+        }
+        lines.push("    Frame: " + frame.frameNumber + frameAddition);
+    }
+    if(settings.tooltipInfo.frameRTA){
+        let frameAddition = "";
+        if(nextFrame !== null && nextFrame.frameNumberRTA - frame.frameNumberRTA > 1){
+            frameAddition = " (+" + (nextFrame.frameNumberRTA - frame.frameNumberRTA - 1) + " idle)";
+        }
+        lines.push("RTA Frame: " + frame.frameNumberRTA + frameAddition);
     }
     if(settings.tooltipInfo.position){
         lines.push("      Pos: " + posText);
@@ -1734,7 +2036,7 @@ function formatTooltipText(frame, previousFrame){
         lines.push("   Accel.: " + accelerationText);
     }
     if(settings.tooltipInfo.absoluteSpeed){
-        lines.push("Abs.Speed: " + absSpeed.toFixed(2));
+        lines.push("Abs.Speed: " + absSpeed.toFixed(settings.decimals));
     }
     if(settings.tooltipInfo.velocity){
         lines.push(" Velocity: " + velocityText);
@@ -1746,10 +2048,10 @@ function formatTooltipText(frame, previousFrame){
         lines.push("LiftBoost: " + liftBoostText);
     }
     if(settings.tooltipInfo.retainedSpeed){
-        lines.push(" Retained: " + frame.speedRetention.toFixed(2));
+        lines.push(" Retained: " + frame.speedRetention.toFixed(settings.decimals));
     }
     if(settings.tooltipInfo.stamina){
-        lines.push("  Stamina: " + frame.stamina.toFixed(2));
+        lines.push("  Stamina: " + frame.stamina.toFixed(settings.decimals));
     }
     if(settings.tooltipInfo.inputs){
         lines.push("   Inputs: " + frame.inputs);
@@ -1760,23 +2062,29 @@ function formatTooltipText(frame, previousFrame){
     }
 
     return lines.join("\n");
-
-    // return "    Frame: " + frame.frameNumber + "\n" +
-    //        "      Pos: " + posText + "\n" +
-    //        "    Speed: " + speedText + "\n" +
-    //        "Abs.Speed: " + absSpeed.toFixed(2) + "\n" +
-    //        " Velocity: " + velocityText + "\n" +
-    //        "LiftBoost: " + liftBoostText + "\n" +
-    //        " Retained: " + frame.speedRetention.toFixed(2) + "\n" +
-    //        "  Stamina: " + frame.stamina.toFixed(2) + "\n" +
-    //        "   Inputs: " + frame.inputs + "\n" +
-    //        "    Flags: \n" + flagsText;
 }
 
 function updateRecordingInfo(){
-    let fileOffset = isRecording ? 1 : 0;
-    let inRecordingString = isRecording ? " (Recording...)" : "";
-    let recordingNumberText = "Recording: ("+(selectedFile+1)+"/"+(recentPhysicsLogFilesList.length+fileOffset)+")"+inRecordingString;
+    let isRecent = selectedRecordingType === RecordingTypes.Recent;
+
+    let recordingTypeText = "Type: "+(isRecent ? "Recent" : "Saved");
+    let recordingNameText;
+    
+    if(isRecent){
+        let inRecordingString = isRecording ? " (Recording...)" : "";
+        let fileOffset = isRecording ? 1 : 0;
+        recordingNameText = "Recording: ("+(selectedRecording+1)+"/"+(recentPhysicsLogFilesList.length+fileOffset)+")"+inRecordingString;
+    } else {
+        let id = selectedRecording;
+        //search through savedPhysicsRecordingsList for the id, and get the name
+        for(let i = 0; i < savedPhysicsRecordingsList.length; i++){
+            if(savedPhysicsRecordingsList[i].id === id){
+                recordingNameText = "Recording: "+savedPhysicsRecordingsList[i].name;
+                break;
+            }
+        }
+    }
+
     let frameCountText = roomLayoutRecording.frameCount+" frames";
     let showingFramesText = "(Showing: "+settings.frameMin+" - "+Math.min(settings.frameMax, roomLayoutRecording.frameCount)+")";
 
@@ -1791,7 +2099,7 @@ function updateRecordingInfo(){
     let dateString = date.getFullYear()+"-"+zeroPad(date.getMonth()+1, 2)+"-"+zeroPad(date.getDate(), 2)+" "+zeroPad(date.getHours(), 2)+":"+zeroPad(date.getMinutes(), 2)+":"+zeroPad(date.getSeconds(), 2);
     let timeRecordedText = "Time recorded: "+dateString;
 
-    Elements.RecordingDetails.innerText = recordingNumberText+"\n"+frameCountText+" "+showingFramesText+"\n"+mapText+"\n"+timeRecordedText;
+    Elements.RecordingDetails.innerText = recordingTypeText+"\n"+recordingNameText+"\n"+frameCountText+" "+showingFramesText+"\n"+mapText+"\n"+timeRecordedText;
 
     updateFrameButtonStates();
 }
@@ -1913,19 +2221,20 @@ function getPhysicsLogAsStrings(){
         let line = "";
         let frame = physicsLogFrames[i];
         
-        appendToLine(line, frame, "frameNumber");
-        appendToLine(line, frame, "positionX");
-        appendToLine(line, frame, "positionY");
-        appendToLine(line, frame, "speedX");
-        appendToLine(line, frame, "speedY");
-        appendToLine(line, frame, "velocityX");
-        appendToLine(line, frame, "velocityY");
-        appendToLine(line, frame, "liftBoostX");
-        appendToLine(line, frame, "liftBoostY");
-        appendToLine(line, frame, "speedRetention");
-        appendToLine(line, frame, "stamina");
-        appendToLine(line, frame, "flags");
-        appendToLine(line, frame, "inputs");
+        line = appendToLine(line, frame, "frameNumber");
+        line = appendToLine(line, frame, "frameNumberRTA");
+        line = appendToLine(line, frame, "positionX");
+        line = appendToLine(line, frame, "positionY");
+        line = appendToLine(line, frame, "speedX");
+        line = appendToLine(line, frame, "speedY");
+        line = appendToLine(line, frame, "velocityX");
+        line = appendToLine(line, frame, "velocityY");
+        line = appendToLine(line, frame, "liftBoostX");
+        line = appendToLine(line, frame, "liftBoostY");
+        line = appendToLine(line, frame, "speedRetention");
+        line = appendToLine(line, frame, "stamina");
+        line = appendToLine(line, frame, "flags");
+        line = appendToLine(line, frame, "inputs");
 
         arr.push(line);
     }
@@ -1933,6 +2242,29 @@ function getPhysicsLogAsStrings(){
     return arr;
 }
 
+
+function openSaveRecordingDialog(){
+    xdialog.open({
+        title: 'Save Recording As...',
+        body: '<input type="text" id="recording-name" class="dialog-item" placeholder="Recording Name" required/>',
+        buttons: { ok: "Save", cancel: "Cancel"},
+        style: 'width:600px',
+        listenEnterKey: true,
+        listenESCKey: true,
+        onok: function(param) {
+            let element = document.getElementById('recording-name');
+            element.classList.add('validated');
+
+            let recordingName = element.value;
+            if (!recordingName) {
+                return false;
+            }
+
+            console.log("Typed name:", recordingName);
+            saveCurrentRecording(recordingName);
+        },
+    });
+}
 function saveCurrentRecording(name){
     let request = {
         layoutFile: roomLayoutRecording,
@@ -1950,8 +2282,92 @@ function saveCurrentRecording(name){
         body: JSON.stringify(request)
     })
         .then(response => response.json())
-        .then(data => {
-            console.log(data);
+        .then(responseObj => {
+            if(responseObj.errorCode === 0){
+                location.reload();
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+}
+
+function openDeleteRecordingDialog(){
+    let recordingName = getRecordingDisplayNameByID(selectedRecordingType, selectedRecording);
+
+    xdialog.open({
+        title: 'Delete Recording?',
+        body: 'Are you sure you want to delete the recording:<br><code>'+recordingName+'</code>',
+        buttons: { delete: "Delete", cancel: "Cancel"},
+        style: 'width:600px',
+        listenESCKey: true,
+        ondelete: function() {
+            deleteRecording(selectedRecording);
+        },
+    });
+}
+function deleteRecording(id){
+    let url = apiBaseUrl + "/deleteRecording?id=" + id;
+    //Fetch request
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+        }
+    })
+        .then(response => response.json())
+        .then(responseObj => {
+            if(responseObj.errorCode === 0){
+                location.reload();
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+}
+
+function openRenameRecordingDialog(){
+    xdialog.open({
+        title: 'Rename Recording...',
+        body: '<input type="text" id="recording-name" class="dialog-item" placeholder="New Name" required/>',
+        buttons: { ok: "Rename", cancel: "Cancel"},
+        style: 'width:600px',
+        listenEnterKey: true,
+        listenESCKey: true,
+        onok: function(param) {
+            let element = document.getElementById('recording-name');
+            element.classList.add('validated');
+
+            let recordingName = element.value;
+            if (!recordingName) {
+                return false;
+            }
+
+            console.log("Typed name:", recordingName);
+            renameRecording(selectedRecording, recordingName);
+        },
+    });
+}
+function renameRecording(id, newName){
+    let request = {
+        id: id,
+        name: newName,
+    };
+
+    let url = apiBaseUrl + "/renameRecording";
+    //Fetch request
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+        },
+        body: JSON.stringify(request)
+    })
+        .then(response => response.json())
+        .then(responseObj => {
+            if(responseObj.errorCode === 0){
+                location.reload();
+            }
         })
         .catch(err => {
             console.log(err);

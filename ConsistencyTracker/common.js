@@ -43,3 +43,22 @@ function loadElements(elementIdsObject){
         elementIdsObject[key] = document.getElementById(elementIdsObject[key]);
     }
 }
+
+
+function formatBigNumber(number, precision=1){
+    //K for 1000, M for 1000000, B for 1000000000, T for 1000000000000
+    //Round to precision decimal places
+    if(number >= 1000000000000){
+        return (number/1000000000000).toFixed(precision) + "T";
+    }
+    if(number >= 1000000000){
+        return (number/1000000000).toFixed(precision) + "B";
+    }
+    if(number >= 1000000){
+        return (number/1000000).toFixed(precision) + "M";
+    }
+    if(number >= 1000){
+        return (number/1000).toFixed(precision) + "K";
+    }
+    return number;
+}

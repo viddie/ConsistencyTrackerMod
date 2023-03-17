@@ -87,7 +87,6 @@ label {
     margin-top: 5px;
     font-size: 50%;
 }
-
 #sidebar-toggle-button {
     position: absolute;
     background: #2b2b2b;
@@ -99,6 +98,9 @@ label {
     border-bottom-right-radius: 5px;
     cursor: pointer;
 }
+#recording-actions, #recording-io {
+    font-size: 50%;
+}
 
 
 #offline-notice {
@@ -107,4 +109,28 @@ label {
 }
 #offline-notice-hr {
     display: none;
+}
+
+
+.xd-buttons {
+    padding: 1em!important;
+    padding-top: 0!important;
+}
+.xd-button {
+    max-width: 9em;
+    min-width: unset!important;
+    padding: 0.3em 0.6em!important;
+}
+.dialog-item {
+    display: block;
+    height: 30px;
+    width: 98%;
+    padding: 1px;
+    font-size: 80%;
+}
+input:valid.dialog-item.validated {
+    border: green 2px solid;
+}
+input:invalid.dialog-item.validated {
+    border: red 2px solid;
 }
