@@ -54,6 +54,7 @@ namespace Celeste.Mod.ConsistencyTracker
         }
 
         public bool CountTeleportsForRoomTransitions { get; set; } = false;
+        public bool VerboseLogging { get; set; } = false;
 
         #endregion
 
@@ -332,11 +333,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.Add(new TextMenu.Button("Update Live-Data Edit Tool") {
-                OnPressed = () => {
-                    Mod.CreateExternalTools();
-                },
-            });
 
             menu.Add(subMenu);
         }
@@ -546,12 +542,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     ExternalOverlayGoldenPBDisplayEnabled = v;
                 }
             });
-
-            //Update Overlay/Tools buttons
-            subMenu.Add(new TextMenu.SubHeader("===== Updating ====="));
-            subMenu.Add(new TextMenu.Button("Update External Overlay").Pressed(() => {
-                Mod.CreateExternalTools();
-            }));
 
 
             menu.Add(subMenu);
@@ -1047,13 +1037,13 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PhysicsLoggerSettings { get; set; } = false;
 
         [SettingIgnore]
-        public bool VerboseLogging { get; set; } = false;
-
-        [SettingIgnore]
         public bool LogPhysicsEnabled { get; set; } = false;
 
         [SettingIgnore]
-        public bool LogSegmentOnDeath { get; set; } = false;
+        public bool LogSegmentOnDeath { get; set; } = true;
+
+        [SettingIgnore]
+        public bool LogSegmentOnLoadState { get; set; } = true;
 
         [SettingIgnore]
         public bool LogPhysicsInputsToTasFile { get; set; } = false;
@@ -1062,43 +1052,51 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool LogPhysicsFlipY { get; set; } = false;
 
         public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Logger Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Inspector Settings", false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Verbose Logging", VerboseLogging) {
-                OnValueChange = v => {
-                    VerboseLogging = v;
-                    Mod.Log($"Verbose logging {(v ? "enabled" : "disabled")}");
-                }
+            subMenu.Add(new TextMenu.SubHeader($"Physics Inspector"));
+            subMenu.Add(new TextMenu.Button("Open Inspector In Browser") {
+                OnPressed = () => {
+                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
+                    string path = System.IO.Path.GetFullPath(relPath);
+                    Mod.LogVerbose($"Opening physics inspector at '{path}'");
+                    Process.Start("explorer", path);
+                },
             });
-            subMenu.AddDescription(menu, menuItem, "Logs additional information and produces bigger log files");
-
-            subMenu.Add(menuItem = new TextMenu.OnOff("Logging Physics Enabled", LogPhysicsEnabled) {
+            subMenu.Add(menuItem = new TextMenu.OnOff("Recording Physics Enabled", LogPhysicsEnabled) {
                 OnValueChange = v => {
                     LogPhysicsEnabled = v;
                     Mod.Log($"Logging physics {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Logs the selected properties to a .csv file");
+            subMenu.AddDescription(menu, menuItem, "Records various physics properties, to be displayed in the physics inspector");
+            subMenu.AddDescription(menu, menuItem, "Enabling this settings starts the recording, disabling it stops the recording");
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Logging On Death", LogSegmentOnDeath) {
+
+            subMenu.Add(new TextMenu.SubHeader($"Recording Settings"));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Death", LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;
-                    Mod.Log($"Logging segmenting on death {(v ? "enabled" : "disabled")}");
+                    Mod.Log($"Recording segmenting on death {(v ? "enabled" : "disabled")}");
                 }
             });
             subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player dies.");
-
-
+            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Load State", LogSegmentOnLoadState) {
+                OnValueChange = v => {
+                    LogSegmentOnLoadState = v;
+                    Mod.Log($"Recording segmenting on loading state {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player loads a savestate.");
             subMenu.Add(menuItem = new TextMenu.OnOff("Copy TAS File To Clipboard", LogPhysicsInputsToTasFile) {
                 OnValueChange = v => {
                     LogPhysicsInputsToTasFile = v;
-                    Mod.Log($"Logging inputs to tas file {(v ? "enabled" : "disabled")}");
+                    Mod.Log($"Recordings inputs to tas file {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to the clipboard when recording is stopped");
-
-            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Logged Data", LogPhysicsFlipY) {
+            subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped");
+            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogPhysicsFlipY) {
                 OnValueChange = v => {
                     LogPhysicsFlipY = v;
                     Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
@@ -1106,6 +1104,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
             subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
+            subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
 
             //Add a header for the physics logging options
             //subMenu.Add(new TextMenu.SubHeader("Physics Logging Options"));
@@ -1168,6 +1167,17 @@ namespace Celeste.Mod.ConsistencyTracker
 
             menu.Add(subMenu);
         }
+        #endregion
+
+        #region Tool Versions
+
+        [SettingIgnore]
+        public string OverlayVersion { get; set; }
+        [SettingIgnore]
+        public string LiveDataEditorVersion { get; set; }
+        [SettingIgnore]
+        public string PhysicsInspectorVersion { get; set; }
+
         #endregion
 
         #region Hotkeys

@@ -36,6 +36,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 get => ModSettings.LogSegmentOnDeath;
                 set => ModSettings.LogSegmentOnDeath = value;
             }
+            public static bool SegmentOnLoadState {
+                get => ModSettings.LogSegmentOnLoadState;
+                set => ModSettings.LogSegmentOnLoadState = value;
+            }
             public static bool InputsToTasFile {
                 get => ModSettings.LogPhysicsInputsToTasFile;
                 set => ModSettings.LogPhysicsInputsToTasFile = value;
@@ -147,9 +151,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             FrameNumber++;
 
             if (RTAFrameOffset == -1) {
-                RTAFrameOffset = level.Session.Time / 10000 / 17;
+                RTAFrameOffset = Util.TicksToFrames(level.Session.Time);
             }
-            long currentRTAFrames = level.Session.Time / 10000 / 17; //Convert from ticks to frames
+            long currentRTAFrames = Util.TicksToFrames(level.Session.Time); //Convert from ticks to frames
 
             int flipYFactor = Settings.FlipY ? -1 : 1;
 
@@ -196,10 +200,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             RecordingStarted = DateTime.Now;
             RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
             RecordingStartedInSideName = Mod.CurrentChapterStats.SideName;
-
-            //Type playerType = player.GetType();
-            //Mod.Log($"Fields of player: [{string.Join(", ", playerType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
-            //Mod.Log($"Properties of player: [{string.Join(", ", playerType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}]");
         }
 
         public void StopRecording() {
@@ -266,7 +266,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 flags.Add($"DashAttack");
             }
 
-            
 
             bool onGround = Util.GetPrivateProperty<bool>(player, "onGround");
             float jumpGraceTimer = Util.GetPrivateProperty<float>(player, "jumpGraceTimer");
@@ -541,13 +540,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "FloatExtendedVariantTrigger", "ResetVariantsTrigger",
             "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
             "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
+            "MiniHeartDoorUnlockCutsceneTrigger", "TimeModulationTrigger",
 
             //Styles & Lighting
             "StylegroundMask",
             "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
             "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
             "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
-            "ColoredLightbeam",
+            "ColoredLightbeam", "CustomLightBeam",
 
             //Music
             "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
@@ -579,10 +579,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "SpinnerConnectorRenderer",
 
             //Misc
-            "OnSpawnActivator",
+            "OnSpawnActivator", "EntityActivator",
             "AttachedContainer",
             "BurstEffect",
             "ClutterBlock",
+            "EntityMover",
+            "LobbyMapWarp",
 
             //Idk
             "Why",

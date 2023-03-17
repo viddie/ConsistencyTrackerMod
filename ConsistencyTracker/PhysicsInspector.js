@@ -89,7 +89,9 @@ const Elements = {
     RenameRecordingButton: "rename-recording-button",
 
     ImportRecordingButton: "import-recording-button",
+    ImportModal: "import-modal",
     ExportRecordingButton: "export-recording-button",
+    ExportModal: "export-modal",
 
     RecordingDetails: "recording-details",
     // EntityCounts: "entity-counts",
@@ -99,8 +101,11 @@ const Elements = {
     LayersContainer: "layers-container",
     TooltipsContainer: "tooltips-container",
 
-    OfflineNotice: "offline-notice",
-    OfflineNoticeHr: "offline-notice-hr",
+
+    OtherToolsButton: "other-tools-button",
+    OtherToolsModal: "other-tools-modal",
+    EntitiesCountModal: "entities-count-modal",
+    OtherEntitiesModal: "other-entities-modal",
 };
 
 const apiBaseUrl = "http://localhost:32270/cct";
@@ -228,16 +233,47 @@ function loadSettings(){
         }
     }
 
+    
+    let skipRows = 3;
+    let combinedRows = 0;
+    let storedKey = null;
     for (const key in layerVisibilityElements) {
-        if (layerVisibilityElements.hasOwnProperty(key)) {
+        if (!layerVisibilityElements.hasOwnProperty(key)) {
+            return;
+        }
+
+        if(combinedRows < 1 && storedKey == null && skipRows <= 0){
+            storedKey = key;
+            continue;
+        } else if (storedKey != null){
+            const storedLabel = layerVisibilityElements[storedKey];
+            let storedDiv = createSettingsCheckbox(storedKey, storedLabel, settings[key], changedLayerVisibility);
+            storedDiv.style.width = "50%";
+
+            const label = layerVisibilityElements[key];
+            let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
+            div.style.width = "50%";
+
+            //Combine the two
+            let container = document.createElement("div");
+            container.classList.add("flex-center");
+            container.appendChild(storedDiv);
+            container.appendChild(div);
+            container.style.justifyContent = "start";
+            Elements.LayersContainer.appendChild(container);
+
+        } else {
+            skipRows--;
+
             const label = layerVisibilityElements[key];
             let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
             Elements.LayersContainer.appendChild(div);
         }
+        
     }
 
-    let combinedRows = 0;
-    let storedKey = null;
+    combinedRows = 0;
+    storedKey = null;
     for (const key in tooltipsInfoElements) {
         if (!tooltipsInfoElements.hasOwnProperty(key)) {
             continue;
@@ -520,10 +556,8 @@ function showError(errorCode, errorMessage){
 
 
 //#region MainView
-let isFirstPull = false;
 function OnShowMainView() {
     fetchPhysicsLogFileList(afterFetchPhysicsLogFileList);
-    isFirstPull = true;
 }
 
 function performRequest(url, then, errorMessage, errorFunction=null){
@@ -554,13 +588,21 @@ function fetchPhysicsLogFileList(then){
         savedPhysicsRecordingsList = responseObj.savedPhysicsRecordings;
         isRecording = responseObj.isRecording;
 
-        if(isRecording){
-            isFirstPull = false;
-            selectedRecording = 1;
+        if(recentPhysicsLogFilesList.length > 0){
+            selectedRecording = 0;
+            if(isRecording){
+                selectedRecording = 1;
+            }
+            selectedRecordingType = RecordingTypes.Recent;
+        } else if(recentPhysicsLogFilesList.length === 0 && savedPhysicsRecordingsList.length > 0){
+            selectedRecording = savedPhysicsRecordingsList[0].id;
+            selectedRecordingType = RecordingTypes.Saved;
+        } else {
+            showError(-1, "No recordings found. Please start a recording through CCT.");
+            return;
         }
 
         showRecordingList();
-        selectedRecordingType = RecordingTypes.Recent;
         updateRecordingActionButtonStates();
 
         then();
@@ -701,14 +743,6 @@ function fetchPhysicsLog(then){
     performRequest(url, afterFetch, "Failed to fetch physics log (is CCT running?)");
 }
 function goToInspectorView(){
-    if(isOffline){
-        Elements.OfflineNotice.style.display = "block";
-        Elements.OfflineNoticeHr.style.display = "block";
-    } else {
-        Elements.OfflineNotice.style.display = "none";
-        Elements.OfflineNoticeHr.style.display = "none";
-    }
-
     ShowState(ViewStates.InspectorView);
 }
 
@@ -1172,7 +1206,7 @@ function drawStaticEntities(){
         otherEntities.forEach(entity => {
             if(!entity.properties.hasCollider) return;
 
-            let entityColor = entity.isSolid ? "red" : "white";
+            let entityColor = entity.properties.isSolid ? "red" : "white";
             let entityX = entity.position.x + entitiesOffsetX;
             let entityY = entity.position.y + entitiesOffsetY;
 
@@ -1881,20 +1915,6 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame){
         konvaGroupTooltipInfo.add(subpixelRightText);
 
         subpixelDisplayHeight = 1 + tooltipFontSize * 5 + squareMarginBottom;
-
-
-        // let subpixelTextStr = "Left: "+subpixelPos.left+"\nRight: "+subpixelPos.right+"\nUp: "+subpixelPos.up+"\nDown: "+subpixelPos.down;
-        // let subpixelText = new Konva.Text({
-        //     x: 0,
-        //     y: subpixelOffsetY,
-        //     text: subpixelTextStr,
-        //     fontSize: tooltipFontSize,
-        //     fontFamily: 'Courier New',
-        //     fill: 'black',
-        //     align: 'left',
-        // });
-        // konvaGroupTooltipInfo.add(subpixelText);
-        // subpixelDisplayHeight = subpixelText.height() + 1;
     }
 
     //Create a tooltip rectangle with additional info about the frame
@@ -2099,7 +2119,7 @@ function updateRecordingInfo(){
     let dateString = date.getFullYear()+"-"+zeroPad(date.getMonth()+1, 2)+"-"+zeroPad(date.getDate(), 2)+" "+zeroPad(date.getHours(), 2)+":"+zeroPad(date.getMinutes(), 2)+":"+zeroPad(date.getSeconds(), 2);
     let timeRecordedText = "Time recorded: "+dateString;
 
-    Elements.RecordingDetails.innerText = recordingTypeText+"\n"+recordingNameText+"\n"+frameCountText+" "+showingFramesText+"\n"+mapText+"\n"+timeRecordedText;
+    Elements.RecordingDetails.innerText = recordingNameText+"\n"+frameCountText+" "+showingFramesText+"\n"+mapText+"\n"+timeRecordedText;
 
     updateFrameButtonStates();
 }
@@ -2265,12 +2285,22 @@ function openSaveRecordingDialog(){
         },
     });
 }
-function saveCurrentRecording(name){
-    let request = {
-        layoutFile: roomLayoutRecording,
-        physicsLog: getPhysicsLogAsStrings(),
-        name: name,
-    };
+function saveCurrentRecording(name, dataObj=null){
+    let request;
+
+    if(dataObj == null){
+        request = {
+            layoutFile: roomLayoutRecording,
+            physicsLog: getPhysicsLogAsStrings(),
+            name: name,
+        };
+    } else {
+        request = {
+            layoutFile: dataObj.layoutFile,
+            physicsLog: dataObj.physicsLog,
+            name: name,
+        };
+    }
 
     let url = apiBaseUrl + "/saveRecording";
     //Fetch request
@@ -2372,5 +2402,192 @@ function renameRecording(id, newName){
         .catch(err => {
             console.log(err);
         });
+}
+
+
+function openImportRecordingDialog(){
+    let dataElem = Elements.ImportModal.querySelector("#import-input");
+    let nameElem = Elements.ImportModal.querySelector("#import-name");
+
+    dataElem.value = "";
+    nameElem.value = "";
+
+    xdialog.open({
+        title: 'Import Recording',
+        body: { element: Elements.ImportModal },
+        buttons: { ok: "Import Recording", cancel: "Cancel"},
+        style: 'width:600px',
+        listenEnterKey: true,
+        listenESCKey: true,
+        onok: function(param) {
+            let dataElem = Elements.ImportModal.querySelector("#import-input");
+            let nameElem = Elements.ImportModal.querySelector("#import-name");
+
+            dataElem.classList.add('validated');
+            nameElem.classList.add('validated');
+
+            let data = dataElem.value;
+            let name = nameElem.value;
+
+            if(!data || !name){
+                return false;
+            }
+
+            let dataObj = JSON.parse(data);
+            if(!dataObj.layoutFile || !dataObj.physicsLog){
+                return false;
+            }
+
+            saveCurrentRecording(name, dataObj);
+        },
+    });
+}
+
+function openExportRecordingDialog(){
+    let exportObj = {
+        layoutFile: roomLayoutRecording,
+        physicsLog: getPhysicsLogAsStrings(),
+    };
+
+    let inputElem = Elements.ExportModal.querySelector("#export-input");
+    inputElem.value = JSON.stringify(exportObj);
+
+    xdialog.open({
+        title: 'Export Recording',
+        body: { element: Elements.ExportModal },
+        buttons: { ok: "Copy to Clipboard", cancel: "Cancel"},
+        style: 'width:600px',
+        listenEnterKey: true,
+        listenESCKey: true,
+        onok: function(param) {
+            let inputElem = Elements.ExportModal.querySelector("#export-input");
+            inputElem.select();
+            let success = document.execCommand("copy");
+            console.log("Copied to clipboard: ", success, inputElem.value, inputElem);
+        },
+    });
+}
+//#endregion
+
+//#region Other Dialogs
+function openOtherToolsDialog(){
+    Elements.OtherToolsButton.setAttribute("disabled", true);
+    xdialog.open({
+        title: 'Other Tools',
+        body: { element: Elements.OtherToolsModal },
+        buttons: { ok: "Ok" },
+        style: 'width:400px',
+        modal: false,
+        onok: function(param) {
+            Elements.OtherToolsButton.removeAttribute("disabled");
+        },
+    });
+}
+
+function openEntitiesCountDialog(){
+    let tableElem = Elements.EntitiesCountModal.querySelector("table");
+    tableElem.innerHTML = "";
+
+    //Create headers: Entity Name, Count
+    let headerRow = document.createElement("tr");
+    let headerCell = document.createElement("th");
+    headerCell.innerText = "Entity Name";
+    headerRow.appendChild(headerCell);
+    headerCell = document.createElement("th");
+    headerCell.innerText = "Count";
+    headerRow.appendChild(headerCell);
+    tableElem.appendChild(headerRow);
+
+    //entityCounts is an object with keys being the entity type and values being the count
+    //entityCounts already exists
+
+    //Sort the keys based on the counts
+    let sortedKeys = Object.keys(entityCounts).sort(function(a,b){return entityCounts[b]-entityCounts[a]});
+    let totalCount = 0;
+    for(let i = 0; i < sortedKeys.length; i++){
+        let key = sortedKeys[i];
+        let count = entityCounts[key];
+        totalCount += count;
+        let row = document.createElement("tr");
+        let cell = document.createElement("td");
+        cell.innerText = key;
+        row.appendChild(cell);
+        cell = document.createElement("td");
+        cell.classList.add("centered");
+        cell.innerText = count;
+        row.appendChild(cell);
+        tableElem.appendChild(row);
+    }
+
+    let totalElem = Elements.EntitiesCountModal.querySelector("#total-entities");
+    totalElem.innerText = "Total Drawn Entities: " + totalCount + "";
+    
+    xdialog.open({
+        title: 'Entity Counts',
+        body: { element: Elements.EntitiesCountModal },
+        buttons: { ok: "Ok" },
+        style: 'min-width:800px;max-width:1000px;max-height:800px;',
+        listenEnterKey: true,
+        modal: false,
+    });
+}
+
+
+function openOtherEntitiesDialog(){
+    let tableElem = Elements.OtherEntitiesModal.querySelector("table");
+    tableElem.innerHTML = "";
+
+    //Create headers: Entity #, Entity Name, Position, Collider
+    let headerRow = document.createElement("tr");
+    let headerCell = document.createElement("th");
+    headerCell.innerText = "Entity #";
+    headerRow.appendChild(headerCell);
+    headerCell = document.createElement("th");
+    headerCell.innerText = "Entity Name";
+    headerRow.appendChild(headerCell);
+    headerCell = document.createElement("th");
+    headerCell.innerText = "Position";
+    headerRow.appendChild(headerCell);
+    headerCell = document.createElement("th");
+    headerCell.innerText = "Collider";
+    headerRow.appendChild(headerCell);
+    tableElem.appendChild(headerRow);
+
+    //Loop through all roomLayouts
+    let totalCount = 0;
+    for(let i = 0; i < roomLayouts.length; i++){
+        let roomName = roomLayouts[i].debugRoomName;
+        let otherEntities = roomLayouts[i].otherEntities;
+        for(let j = 0; j < otherEntities.length; j++){
+            totalCount++;
+            let entity = otherEntities[j];
+            let row = document.createElement("tr");
+            let cell = document.createElement("td");
+            cell.innerText = roomName+"-"+totalCount;
+            row.appendChild(cell);
+            cell = document.createElement("td");
+            cell.innerText = entity.type;
+            row.appendChild(cell);
+            cell = document.createElement("td");
+            cell.classList.add("centered");
+            cell.innerText = "("+entity.position.x.toFixed(2)+"|"+entity.position.y.toFixed(2)+")";
+            row.appendChild(cell);
+            cell = document.createElement("td");
+            cell.classList.add("centered");
+            let collider = entity.properties.isSolid ? "Solid" : entity.properties.hasCollider ? "Trigger" : "None";
+            cell.innerText = collider;
+            row.appendChild(cell);
+            tableElem.appendChild(row);
+        }
+    }
+
+    xdialog.open({
+        title: 'Other Entities ('+totalCount+')',
+        body: { element: Elements.OtherEntitiesModal },
+        buttons: { ok: "Ok" },
+        style: 'min-width:800px;max-width:1000px;max-height:800px;',
+        listenEnterKey: true,
+        modal: false,
+    });
 }
 //#endregion

@@ -23,8 +23,28 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static ConsistencyTrackerModule Instance;
         private static readonly int LOG_FILE_COUNT = 10;
 
-        public static readonly string ModVersion = "2.1.1";
-        public static readonly string OverlayVersion = "2.0.0";
+        #region Versions
+        public class VersionsNewest {
+            public static string Mod => "2.2.0";
+            public static string Overlay => "2.0.0";
+            public static string LiveDataEditor => "1.0.0";
+            public static string PhysicsInspector => "1.1.0";
+        }
+        public class VersionsCurrent {
+            public static string Overlay {
+                get => Instance.ModSettings.OverlayVersion;
+                set => Instance.ModSettings.OverlayVersion = value;
+            }
+            public static string LiveDataEditor {
+                get => Instance.ModSettings.LiveDataEditorVersion;
+                set => Instance.ModSettings.LiveDataEditorVersion = value;
+            }
+            public static string PhysicsInspector {
+                get => Instance.ModSettings.PhysicsInspectorVersion;
+                set => Instance.ModSettings.PhysicsInspectorVersion = value;
+            }
+        }
+        #endregion
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
@@ -115,19 +135,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             CheckFolderExists(GetPathToFile(LogsFolder));
             CheckFolderExists(GetPathToFile(SummariesFolder));
 
-            bool toolsFolderExisted = CheckFolderExists(GetPathToFile(ExternalToolsFolder));
-            if (!toolsFolderExisted) {
-                CreateExternalTools();
-            }
-
             LogInit();
-
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             Log($"~~~==== CCT STARTED ({time}) ====~~~");
+
+            CheckFolderExists(GetPathToFile(ExternalToolsFolder));
+            UpdateExternalTools();
+
+
             Log($"Mod Settings -> \n{JsonConvert.SerializeObject(ModSettings, Formatting.Indented)}");
             Log($"~~~==============================~~~");
 
-            //PhysicsLogger.Settings.IsRecording = false;
             PhysicsLog = new PhysicsLogger();
 
             HookStuff();
@@ -625,6 +643,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterStats.SetCurrentRoom(CurrentRoomName);
             SaveChapterStats();
+
+            if (PhysicsLogger.Settings.SegmentOnLoadState) {
+                PhysicsLog.SegmentLog(true);
+            }
         }
 
         public void SpeedrunToolClearState() {
@@ -765,8 +787,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
             CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
-            CurrentChapterStats.ModState.OverlayVersion = OverlayVersion;
-            CurrentChapterStats.ModState.ModVersion = ModVersion;
+            CurrentChapterStats.ModState.OverlayVersion = VersionsCurrent.Overlay;
+            CurrentChapterStats.ModState.ModVersion = VersionsNewest.Mod;
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
 
 
@@ -855,23 +877,50 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        public void CreateExternalTools() {
-            Log($"Creating external tools files");
-            
+        public void UpdateExternalTools() {
+            Log($"Checking for external tool updates...");
+
             //Overlay files
-            CreateExternalToolFile("common.js", Resources.CCT_common_JS);
-            CreateExternalToolFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
-            CreateExternalToolFile("CCTOverlay.js", Resources.CCTOverlay_JS);
-            CreateExternalToolFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
-            CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
-            Resources.goldberry_GIF.Save(GetPathToFile(ExternalToolsFolder, "img", "goldberry.gif"));
+            if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay)) {
+                Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
+                VersionsCurrent.Overlay = VersionsNewest.Overlay;
+
+                CreateExternalToolFile("common.js", Resources.CCT_common_JS);
+                CreateExternalToolFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
+                CreateExternalToolFile("CCTOverlay.js", Resources.CCTOverlay_JS);
+                CreateExternalToolFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
+                CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
+                Resources.goldberry_GIF.Save(GetPathToFile(ExternalToolsFolder, "img", "goldberry.gif"));
+            } else {
+                Log($"External Overlay is up to date at version {VersionsCurrent.Overlay}");
+            }
 
             //Path Edit Tool files
 
             //Format Edit Tool files
-            CreateExternalToolFile("LiveDataEditTool.html", Resources.LiveDataEditTool_HTML);
-            CreateExternalToolFile("LiveDataEditTool.js", Resources.LiveDataEditTool_JS);
-            CreateExternalToolFile("LiveDataEditTool.css", Resources.LiveDataEditTool_CSS);
+            if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor)) {
+                Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
+                VersionsCurrent.LiveDataEditor = VersionsNewest.LiveDataEditor;
+
+                CreateExternalToolFile("LiveDataEditTool.html", Resources.LiveDataEditTool_HTML);
+                CreateExternalToolFile("LiveDataEditTool.js", Resources.LiveDataEditTool_JS);
+                CreateExternalToolFile("LiveDataEditTool.css", Resources.LiveDataEditTool_CSS);
+            } else {
+                Log($"LiveData Editor is up to date at version {VersionsCurrent.LiveDataEditor}");
+            }
+
+            //Physics Inspector Tool files
+            if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector)) {
+                Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");
+                VersionsCurrent.PhysicsInspector = VersionsNewest.PhysicsInspector;
+
+                CreateExternalToolFile("PhysicsInspector.html", Resources.PhysicsInspector_HTML);
+                CreateExternalToolFile("PhysicsInspector.js", Resources.PhysicsInspector_JS);
+                CreateExternalToolFile("PhysicsInspector.css", Resources.PhysicsInspector_CSS);
+            } else {
+                Log($"Physics Inspector is up to date at version {VersionsCurrent.PhysicsInspector}");
+            }
+            
         }
         private void CreateExternalToolFile(string name, string content) {
             string path = GetPathToFile(ExternalToolsFolder, name);

@@ -20,11 +20,11 @@ input[type=button], button {
     user-select: none;
     cursor: pointer;
 }
-input[type=button]:hover, button:hover {
+input[type=button]:hover, button:hover, button.unimportant:hover {
     background-color: rgb(55, 55, 55);
     color: rgb(255, 255, 255);
 }
-input[type=button][disabled], button[disabled] {
+input[type=button][disabled], button[disabled], button.unimportant[disabled] {
     background-color: rgb(80, 80, 80);
     color: rgb(200, 200, 200);
     cursor: not-allowed;
@@ -32,6 +32,13 @@ input[type=button][disabled], button[disabled] {
 button.slim-button{
     padding: 0;
     font-size: 125%;
+}
+button.unimportant {
+    border: unset;
+    background-color: unset;
+}
+button.small {
+    font-size: 70%;
 }
 
 .flex-start{
@@ -133,4 +140,28 @@ input:valid.dialog-item.validated {
 }
 input:invalid.dialog-item.validated {
     border: red 2px solid;
+}
+
+.modal > table {
+    width: 100%;
+    font-size: 80%;
+}
+.modal > table th {
+    font-size: 85%;
+}
+.modal > table td {
+    font-size: 75%;
+}
+.modal > table td.centered {
+    text-align: center;
+}
+.modal > h5 {
+    font-size: 90%;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.modal > p {
+    font-size: 70%;
+    margin-top: 0;
+    margin-bottom: 5px;
 }

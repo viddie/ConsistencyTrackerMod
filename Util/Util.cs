@@ -11,6 +11,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
         
         public static T GetPrivateProperty<T>(object obj, string propertyName, bool isField = true, bool isPublic = false) {
+            if (obj == null) {
+                Mod.Log($"Object is null! Property: {propertyName}");
+                return default(T);
+            } else if (propertyName == null) {
+                Mod.Log($"Property name is null! Object: {obj.GetType().Name}");
+                return default(T);
+            }
+
             Type type = obj.GetType();
 
             BindingFlags flags = BindingFlags.Instance;
@@ -37,6 +45,38 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 }
                 return (T)property.GetValue(obj, null);
             }
+        }
+
+        /// <summary>
+        /// Converts from ticks (ns) to frames (17ms)
+        /// </summary>
+        public static long TicksToFrames(long ticks) {
+            return ticks / 10000 / 17;
+        }
+
+        /// <summary>
+        /// Compares versions in the style of "1.0.0" and returns true if the first version is newer than the second.
+        /// </summary>
+        public static bool IsUpdateAvailable(string version, string compareTo) {
+            //If any of the two version is null, assume it's not updated
+            //ConsistencyTrackerModule.Instance.Log($"Comparing versions: {version} and {compareTo}");
+            if (version == null || compareTo == null) return true;
+
+            string[] versionParts = version.Split('.');
+            string[] compareToParts = compareTo.Split('.');
+
+            for (int i = 0; i < Math.Min(versionParts.Length, compareToParts.Length); i++) {
+                int versionPart = int.Parse(versionParts[i]);
+                int compareToPart = int.Parse(compareToParts[i]);
+
+                if (versionPart > compareToPart) {
+                    return false;
+                } else if (versionPart < compareToPart) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -57,9 +57,9 @@
                     <button id="delete-recording-button" onclick="openDeleteRecordingDialog()" class="slim-button">Delete</button>
                 </div>
                 <div id="recording-io" class="flex-center">
-                    <button id="export-recording-button" onclick="" class="slim-button">Export</button>
+                    <button id="export-recording-button" onclick="openExportRecordingDialog()" class="slim-button">Export</button>
                     <div style="width:5px"></div>
-                    <button id="import-recording-button" onclick="" class="slim-button">Import</button>
+                    <button id="import-recording-button" onclick="openImportRecordingDialog()" class="slim-button">Import</button>
                 </div>
 
                 <hr>
@@ -76,8 +76,6 @@
                 <div id="options-container">
                     
                 </div>
-
-                <hr>
 
                 <div class="flex-center">
                     <label for="point-labels">Point Labels:</label>
@@ -98,8 +96,56 @@
 
                 </div>
 
-                <hr id="offline-notice-hr">
-                <h5 id="offline-notice">CCT is offline!</h5>
+                <hr>
+
+                <button id="other-tools-button" onclick="openOtherToolsDialog()" class="unimportant small">Other Tools</button>
+
+                <div style="display:none">
+                    
+                    <!-- Dialogs -->
+                    <div id="import-modal" class="modal">
+                        <h5>Data</h5>
+                        <input type="text" id="import-input" class="dialog-item" />
+                        <h5>Name</h5>
+                        <input type="text" id="import-name" class="dialog-item" />
+                    </div>
+                    <div id="export-modal" class="modal">
+                        <h5>Export recording to clipboard</h5>
+                        <input type="text" id="export-input" class="dialog-item" value="eyyy lmao" />
+                    </div>
+                    <div id="other-tools-modal" class="modal">
+                        <button onclick="openEntitiesCountDialog()">Entity Counts</button>
+                        <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
+                        <button onclick="console.log('bleh')" disabled>More coming soon...</button>
+                        <p>Version: 1.1.0</p>
+                    </div>
+                    <div id="entities-count-modal" class="modal">
+                        <h5 id="total-entities"></h5>
+                        <table>
+                            <tr>
+                                <th>Entity</th>
+                                <th>Count</th>
+                            </tr>
+                            <tr>
+                                <td>Player</td>
+                                <td>1</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="other-entities-modal" class="modal">
+                        <table>
+                            <tr>
+                                <th>Entity</th>
+                                <th>Count</th>
+                            </tr>
+                            <tr>
+                                <td>Player</td>
+                                <td>1</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
             </div>
         </div>
     </body>

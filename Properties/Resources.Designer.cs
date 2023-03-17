@@ -1038,7 +1038,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html&gt;
         ///    &lt;head&gt;
-        ///        &lt;title&gt;Live-Data Editing Tool&lt;/title&gt;
+        ///        &lt;title&gt;Live-Data Format Tool&lt;/title&gt;
         ///        &lt;script src=&quot;common.js&quot;&gt;&lt;/script&gt;
         ///        &lt;script src=&quot;LiveDataEditTool.js&quot;&gt;&lt;/script&gt;
         ///        &lt;link rel=&quot;stylesheet&quot; href=&quot;LiveDataEditTool.css&quot;&gt;
@@ -1048,7 +1048,7 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///            &lt;div class=&quot;flex-center-column&quot;&gt;
         ///                &lt;h1&gt;Live-Data Format Tool&lt;/h1&gt;
         ///                &lt;p&gt;&lt;/p&gt;
-        ///                &lt;h2 id=&quot;loading-formats-text&quot;&gt;Loading for [rest of string was truncated]&quot;;.
+        ///                &lt;h2 id=&quot;loading-formats-text&quot;&gt;Loading form [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string LiveDataEditTool_HTML {
             get {
@@ -1060,15 +1060,15 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///   Looks up a localized string similar to 
         ///const ViewStates = {
         ///    MainView: 0,
-        ///    EditView: 1,
+        ///    InspectorView: 1,
         ///};
         ///let CurrentState = null;
         ///
         ///const Elements = {
         ///    MainContainer: &quot;main-view&quot;,
-        ///    LoadingFormatsText: &quot;loading-formats-text&quot;,
+        ///    LoadingText: &quot;loading-formats-text&quot;,
         ///
-        ///    FormatContainer: &quot;format-view&quot;,
+        ///    InspectorContainer: &quot;format-view&quot;,
         ///    FormatList: &quot;format-list&quot;,
         ///    CreateFormatButton: &quot;create-format-button&quot;,
         ///
@@ -1079,11 +1079,99 @@ namespace Celeste.Mod.ConsistencyTracker.Properties {
         ///
         ///    PlaceholderList: &quot;placeholder-list&quot;,
         ///
-        ///    [rest of string was truncated]&quot;;.
+        ///   [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string LiveDataEditTool_JS {
             get {
                 return ResourceManager.GetString("LiveDataEditTool_JS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to body {
+        ///    overflow: hidden;
+        ///}
+        ///
+        ///input[type=button], button {
+        ///    display: inline-block;
+        ///    padding: 5px 0;
+        ///    margin: 5px 0;
+        ///    border: 1px solid rgb(5, 5, 5);
+        ///    border-radius: 5px;
+        ///    background-color: rgb(51, 51, 51);
+        ///    color: rgb(245, 245, 245);
+        ///    text-decoration: none;
+        ///    text-align: center;
+        ///    font-family: &quot;Renogare&quot;;
+        ///    font-size: 1rem;
+        ///    width: 100%;
+        ///    /* margin: 5px; */
+        ///
+        ///    user-select: none;
+        ///    cursor: pointer;
+        ///}
+        ///input[type=button]:hover, button:hover {
+        ///    [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PhysicsInspector_CSS {
+            get {
+                return ResourceManager.GetString("PhysicsInspector_CSS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///    &lt;head&gt;
+        ///        &lt;title&gt;Physics Inspector Tool&lt;/title&gt;
+        ///        &lt;script src=&quot;common.js&quot;&gt;&lt;/script&gt;
+        ///        &lt;script src=&quot;PhysicsInspector.js&quot;&gt;&lt;/script&gt;
+        ///        &lt;script src=&quot;https://unpkg.com/konva@8/konva.min.js&quot;&gt;&lt;/script&gt;
+        ///        &lt;link rel=&quot;stylesheet&quot; href=&quot;LiveDataEditTool.css&quot;&gt;
+        ///        &lt;link rel=&quot;stylesheet&quot; href=&quot;PhysicsInspector.css&quot;&gt;
+        ///    &lt;/head&gt;
+        ///    &lt;body class=&quot;flex-center&quot;&gt;
+        ///        &lt;div id=&quot;main-view&quot; class=&quot;flex-center&quot;&gt;
+        ///            &lt;div class=&quot;flex-center-column&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PhysicsInspector_HTML {
+            get {
+                return ResourceManager.GetString("PhysicsInspector_HTML", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///const ViewStates = {
+        ///    MainView: 0,
+        ///    InspectorView: 1,
+        ///};
+        ///let CurrentState = null;
+        ///
+        ///const RecordingTypes = {
+        ///    Recent: 0,
+        ///    Saved: 1,
+        ///};
+        ///
+        ///const PointLabels = {
+        ///    None: &quot;None&quot;,
+        ///
+        ///    DragX: &quot;DragX&quot;,
+        ///    DragY: &quot;DragY&quot;,
+        ///
+        ///    PositionX: &quot;PositionX&quot;,
+        ///    PositionY: &quot;PositionY&quot;,
+        ///    PositionCombined: &quot;PositionCombined&quot;,
+        ///    SpeedX: &quot;SpeedX&quot;,
+        ///    SpeedY: &quot;SpeedY&quot;,
+        ///    SpeedCombined: &quot;SpeedCombined&quot;,
+        ///    AccelerationX: &quot;AccelerationX&quot;,
+        ///    AccelerationY: &quot;AccelerationY&quot;,
+        ///    Ac [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PhysicsInspector_JS {
+            get {
+                return ResourceManager.GetString("PhysicsInspector_JS", resourceCulture);
             }
         }
     }

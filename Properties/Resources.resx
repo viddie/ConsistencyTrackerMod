@@ -217,4 +217,13 @@
   <data name="LiveDataEditTool_JS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\ConsistencyTracker\LiveDataEditTool.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="PhysicsInspector_CSS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\PhysicsInspector.css;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysicsInspector_HTML" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\PhysicsInspector.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="PhysicsInspector_JS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ConsistencyTracker\PhysicsInspector.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
 </root>

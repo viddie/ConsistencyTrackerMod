@@ -54,7 +54,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 if (requestedJson) {
                     InfoResponse response = new InfoResponse() {
                         message = content,
-                        modVersion = ConsistencyTrackerModule.ModVersion,
+                        modVersion = ConsistencyTrackerModule.VersionsNewest.Mod,
                         hasPath = Mod.CurrentChapterPath != null,
                         hasStats = Mod.CurrentChapterStats != null,
                         formatsLoaded = new List<StatFormat>(Mod.StatsManager.Formats.Select((kv) => kv.Key)),
