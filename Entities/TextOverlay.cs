@@ -113,7 +113,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 }
             }
 
-            if (Mod.ModSettings.ButtonToggleLogPhysics.Pressed) {
+            if (Mod.ModSettings.ButtonToggleRecordPhysics.Pressed) {
                 PhysicsLogger.Settings.IsRecording = !PhysicsLogger.Settings.IsRecording;
                 Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
             }

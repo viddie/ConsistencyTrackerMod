@@ -2526,7 +2526,7 @@ function openEntitiesCountDialog(){
         title: 'Entity Counts',
         body: { element: Elements.EntitiesCountModal },
         buttons: { ok: "Ok" },
-        style: 'min-width:800px;max-width:1000px;max-height:800px;',
+        style: 'min-width:600px;max-width:1000px;max-height:800px;',
         listenEnterKey: true,
         modal: false,
     });

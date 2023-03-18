@@ -53,7 +53,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
         }
 
-        public bool CountTeleportsForRoomTransitions { get; set; } = false;
+        public bool CountTeleportsForRoomTransitions { get; set; } = true;
         public bool VerboseLogging { get; set; } = false;
 
         #endregion
@@ -85,8 +85,12 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = true,
             });
             subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
-                OnPressed = Mod.RemoveRoomFromChapter
+                OnPressed = Mod.RemoveRoomFromChapterPath
             });
+            subMenu.Add(new TextMenu.Button("Group Current And Previous Rooms") {
+                OnPressed = Mod.GroupRoomsOnChapterPath
+            });
+
             subMenu.Add(new TextMenu.Button("Export path to Clipboard").Pressed(() => {
                 if (Mod.CurrentChapterPath == null) return;
                 TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
@@ -1191,7 +1195,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
 
-        public ButtonBinding ButtonToggleLogPhysics { get; set; }
+        public ButtonBinding ButtonToggleRecordPhysics { get; set; }
         #endregion
 
         #region Helpers

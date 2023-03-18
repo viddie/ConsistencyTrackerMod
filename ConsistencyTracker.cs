@@ -540,9 +540,34 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
+        public string ResolveGroupedRoomName(string roomName) {
+            if (CurrentChapterPath == null) {
+                Log($"No chapter path, returned '{roomName}' raw");
+                return roomName;
+            }
+
+            //Loop through path and see if any room on the path has the roomName as grouped room
+            //If yes, return that room
+            //If no, return roomName
+            foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (rInfo.GroupedRooms.Contains(roomName)) {
+                        Log($"Resolved room name '{roomName}' as grouped room to '{rInfo.DebugRoomName}'");
+                        return rInfo.DebugRoomName;
+                    }
+                }
+            }
+
+            Log($"Room name '{roomName}' was not grouped, returned it raw");
+            return roomName;
+        }
+
         public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
             PlayerIsHoldingGolden = holdingGolden;
             CurrentChapterStats.ModState.ChapterCompleted = false;
+
+            //Resolve grouped room name
+            newRoomName = ResolveGroupedRoomName(newRoomName);
 
             //If the room is to be ignored, don't update anything
             if (CurrentChapterPath != null && CurrentChapterPath.IgnoredRooms.Contains(newRoomName)) {
@@ -1063,7 +1088,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Wrote path data to '{relativeOutPath}'");
         }
 
-        public void RemoveRoomFromChapter() {
+        public void RemoveRoomFromChapterPath() {
+            Log($"Removing room '{CurrentRoomName}' from path");
+            
             if (CurrentChapterPath == null) {
                 Log($"CurrentChapterPath was null");
                 return;
@@ -1084,8 +1111,60 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if (foundRoom) {
                 SavePathToFile();
+                SaveChapterStats();
+            } else {
+                Log($"Could not find room '{CurrentRoomName}' in path");
             }
         }
+
+        public void GroupRoomsOnChapterPath() {
+            Log($"Grouping room '{CurrentRoomName}' with previous room on path");
+            
+            if (CurrentChapterPath == null) {
+                Log($"CurrentChapterPath was null");
+                return;
+            }
+
+            CheckpointInfo previousRoomCp = null;
+            RoomInfo previousRoomR = null;
+
+            CheckpointInfo currentRoomCp = null;
+            RoomInfo currentRoomR = null;
+
+            foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (rInfo.DebugRoomName == CurrentRoomName) {
+                        currentRoomCp = cpInfo;
+                        currentRoomR = rInfo;
+                        break;
+                    } else { 
+                        previousRoomR = rInfo;
+                        previousRoomCp = cpInfo;
+                    }
+                }
+
+                if (currentRoomR != null) break;
+            }
+
+            if (currentRoomR == null) {
+                Log($"Could not find room '{CurrentRoomName}' in path");
+                return;
+            }
+            if (previousRoomR == null) {
+                Log($"Room '{CurrentRoomName}' doesn't have a previous room on the path");
+                return;
+            }
+
+            currentRoomCp.Rooms.Remove(currentRoomR);
+            previousRoomR.GroupedRooms.Add(currentRoomR.DebugRoomName);
+
+            CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
+            SetNewRoom(previousRoomR.DebugRoomName, false);
+            
+            SavePathToFile();
+            SaveChapterStats();
+        }
+        
 
         #endregion
 

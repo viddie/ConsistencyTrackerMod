@@ -167,6 +167,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
+
+        [JsonProperty("groupedRooms")]
+        public List<string> GroupedRooms { get; set; } = new List<string>();
+
         public override string ToString() {
             return DebugRoomName;
         }
