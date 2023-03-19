@@ -555,7 +555,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //If no, return roomName
             foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    if (rInfo.GroupedRooms.Contains(roomName)) {
+                    if (rInfo.GroupedRooms != null && rInfo.GroupedRooms.Contains(roomName)) {
                         return rInfo.DebugRoomName;
                     }
                 }
@@ -596,6 +596,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Transitioned to own room, probably due to teleport or entering a grouped room
             if (CurrentRoomName == newRoomName) {
                 Log($"Entered own room '{newRoomName}', not updating state!");
+                CurrentChapterStats.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
                 return;
             }
@@ -1223,6 +1224,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             currentRoomCp.Rooms.Remove(currentRoomR);
+            if (previousRoomR.GroupedRooms == null) previousRoomR.GroupedRooms = new List<string>();
             previousRoomR.GroupedRooms.Add(currentRoomR.DebugRoomName);
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
@@ -1231,7 +1233,62 @@ namespace Celeste.Mod.ConsistencyTracker {
             SavePathToFile();
             SaveChapterStats();
         }
-        
+
+        public void UngroupRoomsOnChapterPath() {
+            if (CurrentChapterPath == null) {
+                Log($"CurrentChapterPath was null");
+                return;
+            }
+            
+            Level level = Engine.Scene as Level;
+            string actualRoomName = level.Session.Level;
+            Log($"Ungrouping room '{actualRoomName}' from room '{CurrentRoomName}' on path");
+            
+            if (actualRoomName == CurrentRoomName) {
+                Log($"Room '{CurrentRoomName}' isn't marked as a grouped room!");
+                return;
+            }
+            if (CurrentChapterPath.IgnoredRooms.Contains(actualRoomName)) {
+                Log($"Room '{actualRoomName}' is marked as ignored room and can't be grouped/ungrouped");
+                return;
+            }
+
+            CheckpointInfo currentRoomCp = null;
+            RoomInfo currentRoomR = null;
+
+            foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    if (rInfo.DebugRoomName == CurrentRoomName) {
+                        currentRoomCp = cpInfo;
+                        currentRoomR = rInfo;
+                        break;
+                    }
+                }
+
+                if (currentRoomR != null) break;
+            }
+
+            if (currentRoomR == null) {
+                Log($"Could not find room '{CurrentRoomName}' in path");
+                return;
+            }
+
+            currentRoomR.GroupedRooms.Remove(actualRoomName);
+
+            RoomInfo newRoomInfo = new RoomInfo() { 
+                DebugRoomName = actualRoomName,
+                Checkpoint = currentRoomCp,
+            };
+            int indexOfCurrent = currentRoomCp.Rooms.IndexOf(currentRoomR);
+            currentRoomCp.Rooms.Insert(indexOfCurrent+1, newRoomInfo);
+
+            CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
+            SetNewRoom(actualRoomName, false);
+
+            SavePathToFile();
+            SaveChapterStats();
+        }
+
 
         #endregion
 

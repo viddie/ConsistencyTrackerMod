@@ -93,6 +93,9 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button("Group Current And Previous Rooms") {
                 OnPressed = Mod.GroupRoomsOnChapterPath
             });
+            subMenu.Add(new TextMenu.Button("Ungroup Current From Previous Room") {
+                OnPressed = Mod.UngroupRoomsOnChapterPath
+            });
             subMenu.Add(new TextMenu.OnOff("Show Room Names On Debug Map", ShowCCTRoomNamesOnDebugMap) {
                 OnValueChange = v => {
                     ShowCCTRoomNamesOnDebugMap = v;
