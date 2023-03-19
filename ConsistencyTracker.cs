@@ -1106,7 +1106,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                         continue;
                     }
                 }
-                string formattedName = rInfo.GetFormattedRoomName(RoomNameDisplayType.AbbreviationAndRoomNumberInCP);
+                string formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
 
                 int x = template.X;
                 int y = template.Y;

@@ -171,6 +171,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("groupedRooms")]
         public List<string> GroupedRooms { get; set; } = new List<string>();
 
+        [JsonProperty("customRoomName")]
+        public string CustomRoomName { get; set; }
+
         public override string ToString() {
             return DebugRoomName;
         }
@@ -188,6 +191,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                     return $"{Checkpoint.Name}-{RoomNumberInCP}";
                 case RoomNameDisplayType.DebugRoomName:
                     return DebugRoomName;
+                case RoomNameDisplayType.CustomRoomName:
+                    string name;
+                    if (CustomRoomName == null) {
+                        name = DebugRoomName;
+                    } else {
+                        name = CustomRoomName;
+                    }
+                    return name;
             }
 
             return DebugRoomName;
