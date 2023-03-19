@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +16,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<List<string>> Checkpoints { get; set; } = new List<List<string>>() {};
         public List<string> CheckpointNames = new List<string>() {};
         public List<string> CheckpointAbbreviations = new List<string>() {};
+        public List<string> ObsoleteNames = new List<string>();
 
         public HashSet<Vector2> CheckpointsVisited { get; set; } = new HashSet<Vector2>();
 
@@ -43,15 +45,43 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 Checkpoints.Add(new List<string>() { });
             }
 
+            string nameToAdd = null;
+            string abbrToAdd = null;
+            
             if (name == null) {
-                Mod.Log($"Added checkpoint to path: CP{Checkpoints.Count}");
-                CheckpointNames.Add($"CP{Checkpoints.Count}");
-                CheckpointAbbreviations.Add($"CP{Checkpoints.Count}");
+                nameToAdd = $"CP{Checkpoints.Count}";
+                abbrToAdd = $"CP{Checkpoints.Count}";
+
             } else {
-                Mod.Log($"Added checkpoint to path: {name}");
-                CheckpointNames.Add(name);
-                CheckpointAbbreviations.Add(AbbreviateName(name));
+                bool foundName = false;
+                int letterCount = 2;
+                while (!foundName) {
+                    nameToAdd = name;
+                    abbrToAdd = AbbreviateName(name, letterCount);
+
+                    if (CheckpointAbbreviations.Contains(abbrToAdd)) {
+                        //Rename the other checkpoint and try again.
+                        ObsoleteNames.Add(abbrToAdd);
+
+                        int index = CheckpointAbbreviations.IndexOf(abbrToAdd);
+                        string newAbbr = AbbreviateName(CheckpointNames[index], letterCount + 1);
+                        CheckpointAbbreviations[index] = newAbbr;
+                    } else if (ObsoleteNames.Contains(abbrToAdd)) {
+                        letterCount++;
+                    } else {
+                        foundName = true;
+                    }
+
+                    //If search continued for too long, just stop and let the user fix the issue.
+                    if (letterCount == 6) {
+                        foundName = true;
+                    }
+                }
             }
+
+            Mod.Log($"Added checkpoint to path: {nameToAdd} ({abbrToAdd})");
+            CheckpointNames.Add(nameToAdd);
+            CheckpointAbbreviations.Add(abbrToAdd);
         }
 
         public PathInfo ToPathInfo() {
@@ -90,7 +120,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string[] words = name.Split(' ');
 
             if (words.Length == 1) {
-                return words[0].Substring(0, letterCount).ToUpper();
+                return words[0].Substring(0, Math.Min(letterCount, words[0].Length)).ToUpper();
             } else {
                 string abbr = "";
                 foreach (string word in words) {

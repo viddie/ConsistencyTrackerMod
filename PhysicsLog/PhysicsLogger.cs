@@ -521,7 +521,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CustomPlayerPlayback", "CrumbleWallOnRumble",
             "PseudoPolyhedron", "PlaybackBillboard",
             "CustomNPC", "MoreCustomNPC", "StrawberryJamJar",
-            "MoonCreature",
+            "MoonCreature", "FlutterBird",
+            "ColoredHangingLamp", "Torch", "LitBlueTorch", "Cobweb",
 
             //Camera
             "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
@@ -541,16 +542,18 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
             "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
             "MiniHeartDoorUnlockCutsceneTrigger", "TimeModulationTrigger",
+            "PocketUmbrellaTrigger",
 
             //Styles & Lighting
-            "StylegroundMask",
+            "StylegroundMask", "ColorGradeMask",
             "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
             "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
             "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
-            "ColoredLightbeam", "CustomLightBeam",
+            "ColoredLightbeam", "CustomLightBeam", "GradualChangeColorGradeTrigger",
 
             //Music
             "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
+            "MusicTrigger",
 
             //Controllers/Managers
             "LaserDetectorManager",
@@ -566,6 +569,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "TrailManager",
             "ParallaxFadeOutController",
             "CustomizableGlassBlockAreaController",
+            "CassetteMusicTransitionController",
 
             //Renderers
             "PathRenderer",
@@ -577,6 +581,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DecalContainerRenderer",
             "InstantTeleporterRenderer",
             "SpinnerConnectorRenderer",
+            "Renderer",
 
             //Misc
             "OnSpawnActivator", "EntityActivator",
@@ -585,6 +590,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "ClutterBlock",
             "EntityMover",
             "LobbyMapWarp",
+            "AllInOneMask",
 
             //Idk
             "Why",

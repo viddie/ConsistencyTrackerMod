@@ -28,10 +28,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.2.0";
+            public static string Mod => "2.2.1";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
-            public static string PhysicsInspector => "1.1.0";
+            public static string PhysicsInspector => "1.1.1";
         }
         public class VersionsCurrent {
             public static string Overlay {
@@ -1122,9 +1122,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                     pos,
                     new Vector2(0.5f, 0),
                     Vector2.One * camera.Zoom / 6,
-                    Color.White * 0.8f,
+                    Color.White * 0.9f,
                     2f * camera.Zoom / 6,
-                    Color.Black * 0.5f);
+                    Color.Black * 0.7f);
             }
 
             Draw.SpriteBatch.End();

@@ -158,7 +158,7 @@ let settings = {
 
     tooltipInfo: {
         frame: true,
-        frameRTA: true,
+        frameRTA: false,
         position: true,
         speed: true,
         acceleration: false,
@@ -170,7 +170,7 @@ let settings = {
         stamina: true,
         inputs: true,
         flags: true,
-        subpixelDisplay: false,
+        subpixelDisplay: true,
     }
 };
 //#endregion
@@ -621,6 +621,14 @@ function showRecordingList(){
     Elements.OptgroupSaved.innerHTML = "";
 
     //Add recent recordings
+    if(isRecording){
+        let opt = document.createElement("option");
+        opt.value = "recent-"+0;
+        opt.disabled = true;
+        opt.innerText = "(1) Recording in progress...";
+        Elements.OptgroupRecent.appendChild(opt);
+    }
+
     for(let i = 0; i < recentPhysicsLogFilesList.length; i++){
         let recording = recentPhysicsLogFilesList[i];
         let id = recording.id;
