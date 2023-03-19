@@ -16,6 +16,9 @@ using Monocle;
 using System.Reflection;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Celeste.Mod.SpeedrunTool.TeleportRoom;
+using Celeste.Editor;
+using Microsoft.Xna.Framework.Graphics;
+using Celeste.Mod.ConsistencyTracker.Enums;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -211,6 +214,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //On.Celeste.Player.Update += LogPhysicsUpdate;
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
             //On.Monocle.Engine.Update += Engine_Update;
+
+            On.Celeste.Editor.MapEditor.Render += MapEditor_Render;
         }
 
         private void UnHookStuff() {
@@ -542,7 +547,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public string ResolveGroupedRoomName(string roomName) {
             if (CurrentChapterPath == null) {
-                Log($"No chapter path, returned '{roomName}' raw");
                 return roomName;
             }
 
@@ -552,13 +556,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     if (rInfo.GroupedRooms.Contains(roomName)) {
-                        Log($"Resolved room name '{roomName}' as grouped room to '{rInfo.DebugRoomName}'");
                         return rInfo.DebugRoomName;
                     }
                 }
             }
 
-            Log($"Room name '{roomName}' was not grouped, returned it raw");
             return roomName;
         }
 
@@ -567,7 +569,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
             //Resolve grouped room name
+            string nameBefore = newRoomName;
             newRoomName = ResolveGroupedRoomName(newRoomName);
+            if (nameBefore != newRoomName) {
+                Log($"Resolved grouped room name '{nameBefore}' to '{newRoomName}'");
+            } else {
+                Log($"Room name '{nameBefore}' was not grouped, returned it raw");
+            }
 
             //If the room is to be ignored, don't update anything
             if (CurrentChapterPath != null && CurrentChapterPath.IgnoredRooms.Contains(newRoomName)) {
@@ -581,6 +589,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
                 CurrentChapterStats?.SetCurrentRoom(newRoomName);
+                SaveChapterStats();
+                return;
+            }
+
+            //Transitioned to own room, probably due to teleport or entering a grouped room
+            if (CurrentRoomName == newRoomName) {
+                Log($"Entered own room '{newRoomName}', not updating state!");
                 SaveChapterStats();
                 return;
             }
@@ -1061,6 +1076,58 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Path Management
+
+        private void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
+            orig(self);
+
+            if (!ModSettings.Enabled || CurrentChapterPath == null || !ModSettings.ShowCCTRoomNamesOnDebugMap) return;
+            
+            List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
+            Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");
+
+            Draw.SpriteBatch.Begin(
+                    SpriteSortMode.Deferred,
+                    BlendState.AlphaBlend,
+                    SamplerState.LinearClamp,
+                    DepthStencilState.None,
+                    RasterizerState.CullNone,
+                    null,
+                    Engine.ScreenMatrix);
+
+            foreach (LevelTemplate template in levels) {
+                string name = template.Name;
+                RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
+                if (rInfo == null) {
+                    string resolvedName = ResolveGroupedRoomName(name);
+                    rInfo = CurrentChapterPath.FindRoom(resolvedName);
+
+                    if (rInfo == null) {
+                        continue;
+                    }
+                }
+                string formattedName = rInfo.GetFormattedRoomName(RoomNameDisplayType.AbbreviationAndRoomNumberInCP);
+
+                int x = template.X;
+                int y = template.Y;
+
+                Vector2 pos = new Vector2(x + template.Rect.Width / 2, y);
+                pos -= camera.Position;
+                pos = new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
+                pos *= camera.Zoom;
+                pos += new Vector2(960f, 540f);
+
+                ActiveFont.DrawOutline(
+                    formattedName,
+                    pos,
+                    new Vector2(0.5f, 0),
+                    Vector2.One * camera.Zoom / 6,
+                    Color.White * 0.8f,
+                    2f * camera.Zoom / 6,
+                    Color.Black * 0.5f);
+            }
+
+            Draw.SpriteBatch.End();
+        }
 
         public void SaveRecordedRoomPath() {
             Log($"Saving recorded path...");

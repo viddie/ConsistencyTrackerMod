@@ -60,6 +60,9 @@ namespace Celeste.Mod.ConsistencyTracker
 
         #region Record Path Settings
         public bool RecordPath { get; set; } = false;
+        
+        [SettingIgnore]
+        public bool ShowCCTRoomNamesOnDebugMap { get; set; } = true;
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
 
@@ -80,7 +83,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             TextMenu.Item menuItem;
-            subMenu.Add(new TextMenu.SubHeader("Editing the path requires a reload of the external overlay"));
+            subMenu.Add(new TextMenu.SubHeader("Path Editing"));
             subMenu.Add(new TextMenu.Button("Open Path Edit Tool In Browser (Coming Soon...)") {
                 Disabled = true,
             });
@@ -90,7 +93,13 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button("Group Current And Previous Rooms") {
                 OnPressed = Mod.GroupRoomsOnChapterPath
             });
+            subMenu.Add(new TextMenu.OnOff("Show Room Names On Debug Map", ShowCCTRoomNamesOnDebugMap) {
+                OnValueChange = v => {
+                    ShowCCTRoomNamesOnDebugMap = v;
+                }
+            });
 
+            subMenu.Add(new TextMenu.SubHeader("Import / Export"));
             subMenu.Add(new TextMenu.Button("Export path to Clipboard").Pressed(() => {
                 if (Mod.CurrentChapterPath == null) return;
                 TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
