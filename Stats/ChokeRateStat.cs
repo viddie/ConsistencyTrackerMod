@@ -22,13 +22,16 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string RoomChokeRateSession = "{room:chokeRateSession}";
         public static string CheckpointChokeRate = "{checkpoint:chokeRate}";
         public static string CheckpointChokeRateSession = "{checkpoint:chokeRateSession}";
-        
+        public static string RoomGoldenSuccessRate = "{room:goldenSuccessRate}";
+        public static string RoomGoldenSuccessRateSession = "{room:goldenSuccessRateSession}";
+
         public static string RoomGoldenEntries = "{room:goldenEntries}";
         public static string RoomGoldenEntriesSession = "{room:goldenEntriesSession}";
         public static List<string> IDs = new List<string>() {
             RoomChokeRate, RoomChokeRateSession,
             CheckpointChokeRate, CheckpointChokeRateSession,
-            RoomGoldenEntries, RoomGoldenEntriesSession
+            RoomGoldenEntries, RoomGoldenEntriesSession,
+            RoomGoldenSuccessRate, RoomGoldenSuccessRateSession
         };
 
         public ChokeRateStat() : base(IDs) { }
@@ -79,6 +82,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             float crRoom, crRoomSession;
+            float goldenSuccessRateRoom, goldenSuccessRateRoomSession;
 
             //Calculate
             int roomEntries = goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0];
@@ -91,6 +95,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             if (roomEntriesSession == 0) crRoomSession = float.NaN;
             else crRoomSession = (float)goldenDeathsInRoom[1] / (roomEntriesSession);
 
+            if (float.IsNaN(crRoom)) goldenSuccessRateRoom = float.NaN;
+            else goldenSuccessRateRoom = 1 - crRoom;
+
+            if (float.IsNaN(crRoomSession)) goldenSuccessRateRoomSession = float.NaN;
+            else goldenSuccessRateRoomSession = 1 - crRoomSession;
+
             //Format
             if (float.IsNaN(crRoom)) { //pastRoom is false when player is not on path
                 format = format.Replace(RoomChokeRate, $"-%");
@@ -102,6 +112,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = format.Replace(RoomChokeRateSession, $"-%");
             } else {
                 format = format.Replace(RoomChokeRateSession, $"{StatManager.FormatPercentage(crRoomSession)}");
+            }
+
+            //Golden Success Rate
+            if (float.IsNaN(goldenSuccessRateRoom)) {
+                format = format.Replace(RoomGoldenSuccessRate, $"-%");
+            } else {
+                format = format.Replace(RoomGoldenSuccessRate, $"{StatManager.FormatPercentage(goldenSuccessRateRoom)}");
+            }
+
+            if (float.IsNaN(goldenSuccessRateRoomSession)) {
+                format = format.Replace(RoomGoldenSuccessRateSession, $"-%");
+            } else {
+                format = format.Replace(RoomGoldenSuccessRateSession, $"{StatManager.FormatPercentage(goldenSuccessRateRoomSession)}");
             }
 
 
@@ -164,18 +187,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many golden runs died to this room / how many golden runs passed this room)"),
+                new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many golden runs died to this room / how many golden runs entered this room)"),
                 new KeyValuePair<string, string>(RoomChokeRateSession, "Choke Rate of the current room in the current session"),
                 new KeyValuePair<string, string>(CheckpointChokeRate, "Choke Rate of the current checkpoint"),
                 new KeyValuePair<string, string>(CheckpointChokeRateSession, "Choke Rate of the current checkpoint in the current session"),
-                
+                new KeyValuePair<string, string>(RoomGoldenSuccessRate, "Golden Success Rate of the current room (how many golden runs completed this room / how many golden runs entered this room)"),
+                new KeyValuePair<string, string>(RoomGoldenSuccessRateSession, "Golden Success Rate of the current room in the current session"),
+
                 new KeyValuePair<string, string>(RoomGoldenEntries, "Count of entries into a room with the golden berry"),
                 new KeyValuePair<string, string>(RoomGoldenEntriesSession, "Count of entries into a room with the golden berry in the current session"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-choke-rate", $"Choke Rate: {RoomChokeRate} (CP: {CheckpointChokeRate})")
+                new StatFormat("basic-choke-rate", $"Choke Rate: {RoomChokeRate} (CP: {CheckpointChokeRate})"),
+                new StatFormat("basic-golden-success-rate", $"Golden Success Rate: {RoomGoldenSuccessRate} (Session: {RoomGoldenSuccessRateSession})"),
             };
         }
     }
