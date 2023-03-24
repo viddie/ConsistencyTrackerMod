@@ -24,6 +24,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string CheckpointChokeRateSession = "{checkpoint:chokeRateSession}";
         public static string RoomGoldenSuccessRate = "{room:goldenSuccessRate}";
         public static string RoomGoldenSuccessRateSession = "{room:goldenSuccessRateSession}";
+        public static string CheckpointGoldenSuccessRate = "{checkpoint:goldenSuccessRate}";
+        public static string CheckpointGoldenSuccessRateSession = "{checkpoint:goldenSuccessRateSession}";
 
         public static string RoomGoldenEntries = "{room:goldenEntries}";
         public static string RoomGoldenEntriesSession = "{room:goldenEntriesSession}";
@@ -31,7 +33,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             RoomChokeRate, RoomChokeRateSession,
             CheckpointChokeRate, CheckpointChokeRateSession,
             RoomGoldenEntries, RoomGoldenEntriesSession,
-            RoomGoldenSuccessRate, RoomGoldenSuccessRateSession
+            RoomGoldenSuccessRate, RoomGoldenSuccessRateSession,
+            CheckpointGoldenSuccessRate, CheckpointGoldenSuccessRateSession
         };
 
         public ChokeRateStat() : base(IDs) { }
@@ -45,6 +48,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = StatManager.MissingPathFormat(format, RoomGoldenEntries);
                 format = StatManager.MissingPathFormat(format, RoomGoldenEntriesSession);
+
+                format = StatManager.MissingPathFormat(format, RoomGoldenSuccessRate);
+                format = StatManager.MissingPathFormat(format, RoomGoldenSuccessRateSession);
+                format = StatManager.MissingPathFormat(format, CheckpointGoldenSuccessRate);
+                format = StatManager.MissingPathFormat(format, CheckpointGoldenSuccessRateSession);
                 return format;
                 
             } else if (chapterPath.CurrentRoom == null) { //Player is not on the path
@@ -55,6 +63,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 
                 format = StatManager.NotOnPathFormat(format, RoomGoldenEntries);
                 format = StatManager.NotOnPathFormat(format, RoomGoldenEntriesSession);
+
+                format = StatManager.NotOnPathFormatPercent(format, RoomGoldenSuccessRate);
+                format = StatManager.NotOnPathFormatPercent(format, RoomGoldenSuccessRateSession);
+                format = StatManager.NotOnPathFormatPercent(format, CheckpointGoldenSuccessRate);
+                format = StatManager.NotOnPathFormatPercent(format, CheckpointGoldenSuccessRateSession);
                 return format;
             }
 
@@ -156,6 +169,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             float crCheckpoint, crCheckpointSession;
+            float goldenSuccessRateCp, goldenSuccessRateCpSession;
 
             //Calculate
             if (goldenDeathsInCP[0] + goldenDeathsAfterCP[0] == 0) crCheckpoint = float.NaN;
@@ -163,6 +177,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             if (goldenDeathsInCP[1] + goldenDeathsAfterCP[1] == 0) crCheckpointSession = float.NaN;
             else crCheckpointSession = (float)goldenDeathsInCP[1] / (goldenDeathsInCP[1] + goldenDeathsAfterCP[1]);
+
+            if (float.IsNaN(crCheckpoint)) goldenSuccessRateCp = float.NaN;
+            else goldenSuccessRateCp = 1 - crCheckpoint;
+
+            if (float.IsNaN(crCheckpointSession)) goldenSuccessRateCpSession = float.NaN;
+            else goldenSuccessRateCpSession = 1 - crCheckpointSession;
 
             //Format
             if (float.IsNaN(crCheckpoint)) {
@@ -176,7 +196,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             } else {
                 format = format.Replace(CheckpointChokeRateSession, $"{StatManager.FormatPercentage(crCheckpointSession)}");
             }
-            
+
+            //Golden Success Rate Checkpoint
+            if (float.IsNaN(goldenSuccessRateCp)) {
+                format = format.Replace(CheckpointGoldenSuccessRate, $"-%");
+            } else {
+                format = format.Replace(CheckpointGoldenSuccessRate, $"{StatManager.FormatPercentage(goldenSuccessRateCp)}");
+            }
+
+            if (float.IsNaN(goldenSuccessRateCpSession)) {
+                format = format.Replace(CheckpointGoldenSuccessRateSession, $"-%");
+            } else {
+                format = format.Replace(CheckpointGoldenSuccessRateSession, $"{StatManager.FormatPercentage(goldenSuccessRateCpSession)}");
+            }
+
             return format;
         }
 
@@ -193,6 +226,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(CheckpointChokeRateSession, "Choke Rate of the current checkpoint in the current session"),
                 new KeyValuePair<string, string>(RoomGoldenSuccessRate, "Golden Success Rate of the current room (how many golden runs completed this room / how many golden runs entered this room)"),
                 new KeyValuePair<string, string>(RoomGoldenSuccessRateSession, "Golden Success Rate of the current room in the current session"),
+                new KeyValuePair<string, string>(CheckpointGoldenSuccessRate, "Golden Success Rate of the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointGoldenSuccessRateSession, "Golden Success Rate of the current checkpoint in the current session"),
 
                 new KeyValuePair<string, string>(RoomGoldenEntries, "Count of entries into a room with the golden berry"),
                 new KeyValuePair<string, string>(RoomGoldenEntriesSession, "Count of entries into a room with the golden berry in the current session"),
