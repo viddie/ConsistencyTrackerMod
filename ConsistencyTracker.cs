@@ -320,10 +320,16 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
-            Log($"cp.Position={cp.Position}, LastRoomWithCheckpoint={LastRoomWithCheckpoint}");
+
+            Level level = Engine.Scene as Level;
+            string roomName = SanitizeRoomName(level.Session.LevelData.Name);
+
+            Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
             if (ModSettings.Enabled && DoRecordPath) {
-                InsertCheckpointIntoPath(cp, LastRoomWithCheckpoint);
+                InsertCheckpointIntoPath(cp, roomName);
             }
+
+            LastRoomWithCheckpoint = roomName;
         }
 
         //Not triggered when teleporting via debug map
@@ -341,15 +347,24 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
 
             //Changing room via golden berry death or debug map teleport
-            if (playerIntro == Player.IntroTypes.Respawn && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) { 
+            if (playerIntro == Player.IntroTypes.Respawn && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
+                if (level.Session.LevelData.HasCheckpoint) {
+                    LastRoomWithCheckpoint = newCurrentRoom;
+                }
                 SetNewRoom(newCurrentRoom, false, holdingGolden);
             }
             //Teleporters?
-            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) { 
+            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) {
+                if (level.Session.LevelData.HasCheckpoint) {
+                    LastRoomWithCheckpoint = newCurrentRoom;
+                }
                 SetNewRoom(newCurrentRoom, true, holdingGolden);
             }
 
             if (DidRestart) {
+                if (level.Session.LevelData.HasCheckpoint) {
+                    LastRoomWithCheckpoint = newCurrentRoom;
+                }
                 Log($"\tRequested reset of PreviousRoomName to null", true);
                 DidRestart = false;
                 SetNewRoom(newCurrentRoom, false, holdingGolden);

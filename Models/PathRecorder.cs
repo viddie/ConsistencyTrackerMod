@@ -47,14 +47,20 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             string nameToAdd = null;
             string abbrToAdd = null;
-            
+
             if (name == null) {
                 nameToAdd = $"CP{Checkpoints.Count}";
                 abbrToAdd = $"CP{Checkpoints.Count}";
 
+            } else if (name != null && CheckpointNames.Contains(name)) {
+                Mod.Log($"Checkpoint name '{name}' already exists on path! Using default checkpoint naming scheme...");
+                nameToAdd = $"CP{Checkpoints.Count}";
+                abbrToAdd = $"CP{Checkpoints.Count}";
+                
             } else {
                 bool foundName = false;
                 int letterCount = 2;
+                int runsThrough = 0;
                 while (!foundName) {
                     nameToAdd = name;
                     abbrToAdd = AbbreviateName(name, letterCount);
@@ -74,6 +80,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
                     //If search continued for too long, just stop and let the user fix the issue.
                     if (letterCount == 6) {
+                        foundName = true;
+                    }
+
+                    runsThrough++;
+                    if (runsThrough > 10) {
+                        Mod.Log($"Could not find a unique name for checkpoint: {name}");
+                        nameToAdd = $"CP{Checkpoints.Count}";
+                        abbrToAdd = $"CP{Checkpoints.Count}";
                         foundName = true;
                     }
                 }
