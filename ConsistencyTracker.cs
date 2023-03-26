@@ -321,7 +321,22 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
 
-            Level level = Engine.Scene as Level;
+            if (Engine.Scene is Level level) {
+                LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
+            } else {
+                LogVerbose($"Engine.Scene is not Level...");
+                return;
+            }
+
+            if (level.Session == null) {
+                LogVerbose($"level.Session is null");
+                return;
+            }
+            if (level.Session.LevelData == null) {
+                LogVerbose($"level.Session.LevelData is null");
+                return;
+            }
+
             string roomName = SanitizeRoomName(level.Session.LevelData.Name);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
