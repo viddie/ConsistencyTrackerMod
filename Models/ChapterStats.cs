@@ -75,6 +75,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// <param name="success">if the attempt was successful.</param>
         public void AddAttempt(bool success) {
             CurrentRoom.AddAttempt(success);
+
+            if (success) {
+                CurrentRoom.SuccessStreak++;
+                if (CurrentRoom.SuccessStreak > CurrentRoom.SuccessStreakBest) {
+                    CurrentRoom.SuccessStreakBest = CurrentRoom.SuccessStreak;
+                }
+            } else {
+                CurrentRoom.SuccessStreak = 0;
+            }
         }
 
         public void AddGoldenBerryDeath(string debugRoomName=null) {
@@ -449,25 +458,27 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("maxRate")]
         public float MaxRate { get => AverageSuccessOverN(ChapterStats.MAX_ATTEMPT_COUNT); }
 
+        //public int SuccessStreak {
+        //    get {
+        //        if (PreviousAttempts.Count == 0) return 0;
+
+        //        int count = 0;
+        //        bool success = PreviousAttempts[PreviousAttempts.Count - 1];
+        //        while (success) {
+        //            count++;
+        //            if (PreviousAttempts.Count == count) return count;
+        //            success = PreviousAttempts[PreviousAttempts.Count - (1 + count)];
+        //        }
+
+        //        return count;
+        //    }
+        //    private set { }
+        //}
         [JsonProperty("successStreak")]
-        public int SuccessStreak {
-            get {
-                if (PreviousAttempts.Count == 0) return 0;
+        public int SuccessStreak { get; set; } = 0;
 
-                int count = 0;
-                bool success = PreviousAttempts[PreviousAttempts.Count - 1];
-                while (success) {
-                    count++;
-                    if (PreviousAttempts.Count == count) return count;
-                    success = PreviousAttempts[PreviousAttempts.Count - (1 + count)];
-                }
-
-                return count;
-            }
-            private set { }
-        }
         [JsonProperty("successStreakBest")]
-        public int SuccessStreakBest { get; set; }
+        public int SuccessStreakBest { get; set; } = 0;
 
 
         [JsonProperty("deathsInCurrentRun")]

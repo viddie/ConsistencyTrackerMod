@@ -201,11 +201,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                     cpInfo.Stats.GoldenChance *= successRate;
 
-                    int currentStreak = rStats.SuccessStreak;
-                    if (currentStreak > rStats.SuccessStreakBest) {
-                        rStats.SuccessStreakBest = currentStreak;
-                    }
-
                     if (rInfo.DebugRoomName == chapterStats.CurrentRoom.DebugRoomName) {
                         pathInfo.CurrentRoom = rInfo;
                     }
