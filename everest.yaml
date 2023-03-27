@@ -1,5 +1,5 @@
 ﻿- Name: ConsistencyTracker
-  Version: 2.2.6
+  Version: 2.2.7
   DLL: bin/ConsistencyTracker.dll
   Dependencies:
     - Name: Everest
