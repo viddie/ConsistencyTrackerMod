@@ -12,5 +12,6 @@ namespace Celeste.Mod.ConsistencyTracker.Enums {
         AbbreviationAndRoomNumberInCP = 1,      //EH-3
         FullNameAndRoomNumberInCP = 2,          //Event-Horizon-3
         DebugRoomName = 3,                      //f07
+        CustomRoomName = 4,
     }
 }

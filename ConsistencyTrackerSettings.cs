@@ -308,7 +308,10 @@ namespace Celeste.Mod.ConsistencyTracker
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "DT-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Determination-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, "Debug Room Name"),
-                };
+            };
+            if (LiveDataRoomNameDisplayType == RoomNameDisplayType.CustomRoomName) {
+                LiveDataRoomNameDisplayType = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
+            }
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                 OnValueChange = (value) => {
                     LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
