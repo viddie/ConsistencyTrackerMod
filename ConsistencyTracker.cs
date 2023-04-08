@@ -19,6 +19,7 @@ using Celeste.Mod.SpeedrunTool.TeleportRoom;
 using Celeste.Editor;
 using Microsoft.Xna.Framework.Graphics;
 using Celeste.Mod.ConsistencyTracker.Enums;
+using System.Xml.Linq;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -28,7 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.2.7";
+            public static string Mod => "2.2.8";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.1.2";
@@ -951,8 +952,10 @@ namespace Celeste.Mod.ConsistencyTracker {
         public void UpdateExternalTools() {
             Log($"Checking for external tool updates...");
 
+
             //Overlay files
-            if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay)) {
+            string alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "common.js");
+            if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
                 VersionsCurrent.Overlay = VersionsNewest.Overlay;
 
@@ -969,7 +972,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Path Edit Tool files
 
             //Format Edit Tool files
-            if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor)) {
+            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "LiveDataEditTool.html");
+            if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
                 VersionsCurrent.LiveDataEditor = VersionsNewest.LiveDataEditor;
 
@@ -981,7 +985,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             //Physics Inspector Tool files
-            if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector)) {
+            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "PhysicsInspector.html");
+            if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");
                 VersionsCurrent.PhysicsInspector = VersionsNewest.PhysicsInspector;
 
@@ -996,6 +1001,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void CreateExternalToolFile(string name, string content) {
             string path = GetPathToFile(ExternalToolsFolder, name);
             File.WriteAllText(path, content);
+
+            if (File.Exists(path)) {
+                LogVerbose($"Wrote file '{name}' to path '{path}'");
+            } else {
+                Log($"Failed to write file '{name}' to path '{path}'");
+            }
         }
 
         #endregion
