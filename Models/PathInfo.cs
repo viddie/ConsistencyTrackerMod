@@ -184,6 +184,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int RoomNumberInChapter { get; set; } = -1;
 
         public string GetFormattedRoomName(RoomNameDisplayType format) {
+            if (!string.IsNullOrEmpty(CustomRoomName)) return CustomRoomName;
+            
             switch (format) {
                 case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
                     return $"{Checkpoint.Abbreviation}-{RoomNumberInCP}";
@@ -191,14 +193,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                     return $"{Checkpoint.Name}-{RoomNumberInCP}";
                 case RoomNameDisplayType.DebugRoomName:
                     return DebugRoomName;
-                case RoomNameDisplayType.CustomRoomName:
-                    string name;
-                    if (CustomRoomName == null) {
-                        name = DebugRoomName;
-                    } else {
-                        name = CustomRoomName;
-                    }
-                    return name;
             }
 
             return DebugRoomName;

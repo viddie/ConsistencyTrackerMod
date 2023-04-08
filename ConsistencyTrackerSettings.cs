@@ -307,7 +307,7 @@ namespace Celeste.Mod.ConsistencyTracker
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "DT-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Determination-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.CustomRoomName, "Custom Room Name"),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, "Debug Room Name"),
                 };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                 OnValueChange = (value) => {
