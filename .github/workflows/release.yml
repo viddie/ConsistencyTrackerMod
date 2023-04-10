@@ -20,9 +20,7 @@ jobs:
     - name: Build
       run: dotnet build ConsistencyTracker.csproj --configuration Debug -p:version=${{env.CURRENT_TAG}} --no-restore
     - name: Package Mod
-      run: zip -q -r ConsistencyTrackerMod.zip everest.yaml bin/ConsistencyTracker.dll
-    - name: Package Overlay
-      run: zip -q -r ConsistencyTrackerOverlay.zip ConsistencyTracker
+      run: zip -q -r ConsistencyTrackerMod.zip everest.yaml bin/ConsistencyTracker.dll Assets
     - name: Create Release
       id: create_release
       uses: actions/create-release@latest
@@ -44,14 +42,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./ConsistencyTrackerMod.zip
         asset_name: ConsistencyTrackerMod.zip
-        asset_content_type: application/zip
-    - name: Upload Overlay Asset
-      id: upload-overlay-release-asset
-      uses: actions/upload-release-asset@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ConsistencyTrackerOverlay.zip
-        asset_name: ConsistencyTrackerOverlay.zip
         asset_content_type: application/zip
