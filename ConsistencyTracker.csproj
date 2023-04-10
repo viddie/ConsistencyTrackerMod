@@ -21,7 +21,6 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="MonoMod" Version="21.08.19.01" />
     <PackageReference Include="MonoMod.RuntimeDetour" Version="21.08.19.01" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
