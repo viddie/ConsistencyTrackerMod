@@ -29,7 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.2.8";
+            public static string Mod => "2.2.9";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.1.2";
@@ -131,17 +131,17 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public override void Load() {
             CheckFolderExists(BaseFolderPath);
+            CheckFolderExists(GetPathToFile(LogsFolder));
+            LogInit();
+            string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            Log($"~~~==== CCT STARTED ({time}) ====~~~");
             
             CheckFolderExists(GetPathToFile(PathsFolder));
             CheckPrepackagedPaths();
             
             CheckFolderExists(GetPathToFile(StatsFolder));
-            CheckFolderExists(GetPathToFile(LogsFolder));
             CheckFolderExists(GetPathToFile(SummariesFolder));
 
-            LogInit();
-            string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            Log($"~~~==== CCT STARTED ({time}) ====~~~");
 
             CheckFolderExists(GetPathToFile(ExternalToolsFolder));
             UpdateExternalTools();
@@ -896,61 +896,71 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region Default Path Creation
 
         public void CheckPrepackagedPaths() {
-            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_Normal), Resources.Celeste_1_ForsakenCity_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_BSide), Resources.Celeste_1_ForsakenCity_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_1_ForsakenCity_CSide), Resources.Celeste_1_ForsakenCity_CSide);
+            string assetPath = "Assets/DefaultPaths";
+            List<string> sideNames = new List<string>() { "Normal", "BSide", "CSide" };
+            List<string> levelNames = new List<string>() {
+                "1-ForsakenCity",
+                "2-OldSite",
+                "3-CelestialResort",
+                "4-GoldenRidge",
+                "5-MirrorTemple",
+                "6-Reflection",
+                "7-Summit",
+                "9-Core",
+            };
+            string farewellName = "Celeste_LostLevels_Normal.txt";
+            string farewellAssetName = "Celeste_LostLevels_Normal";
 
-            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_Normal), Resources.Celeste_2_OldSite_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_BSide), Resources.Celeste_2_OldSite_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_2_OldSite_CSide), Resources.Celeste_2_OldSite_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_Normal), Resources.Celeste_3_CelestialResort_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_BSide), Resources.Celeste_3_CelestialResort_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_3_CelestialResort_CSide), Resources.Celeste_3_CelestialResort_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_Normal), Resources.Celeste_4_GoldenRidge_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_BSide), Resources.Celeste_4_GoldenRidge_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_4_GoldenRidge_CSide), Resources.Celeste_4_GoldenRidge_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_Normal), Resources.Celeste_5_MirrorTemple_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_BSide), Resources.Celeste_5_MirrorTemple_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_5_MirrorTemple_CSide), Resources.Celeste_5_MirrorTemple_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_Normal), Resources.Celeste_6_Reflection_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_BSide), Resources.Celeste_6_Reflection_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_6_Reflection_CSide), Resources.Celeste_6_Reflection_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_Normal), Resources.Celeste_7_Summit_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_BSide), Resources.Celeste_7_Summit_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_7_Summit_CSide), Resources.Celeste_7_Summit_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_Normal), Resources.Celeste_9_Core_Normal);
-            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_BSide), Resources.Celeste_9_Core_BSide);
-            CheckDefaultPathFile(nameof(Resources.Celeste_9_Core_CSide), Resources.Celeste_9_Core_CSide);
-
-            CheckDefaultPathFile(nameof(Resources.Celeste_LostLevels_Normal), Resources.Celeste_LostLevels_Normal);
-
-        }
-        private void CheckDefaultPathFile(string name, string content) {
-            if (name != "Celeste_LostLevels_Normal") {
-                string[] split = name.Split('_');
-                string celeste = split[0];
-                string chapterNum = split[1];
-                string chapterName = split[2];
-                string side = split[3];
-
-                name = $"{celeste}_{chapterNum}-{chapterName}_{side}";
+            foreach (string level in levelNames) {
+                foreach (string side in sideNames) {
+                    string name = $"Celeste_{level}_{side}.txt";
+                    string assetName = $"Celeste_{level}_{side}";
+                    LogVerbose($"Checking path file '{name}'...");
+                    CheckDefaultPathFile(name, $"{assetPath}/{assetName}");
+                }
             }
 
+            CheckDefaultPathFile(farewellName, $"{assetPath}/{farewellAssetName}");
+        }
+        private void CheckDefaultPathFile(string name, string assetPath) {
             string path = GetPathToFile(PathsFolder, $"{name}.txt");
 
-            if (!File.Exists(path)) { 
-                File.WriteAllText(path, content);
+            if (!File.Exists(path)) {
+                CreatePathFileFromStream(name, assetPath);
+            } else {
+                LogVerbose($"Path file '{name}' already exists, skipping");
             }
         }
 
         public void UpdateExternalTools() {
             Log($"Checking for external tool updates...");
+
+            string basePath = "Assets";
+            
+            List<string> externalOverlayFiles = new List<string>() {
+                    "common.js",
+                    "CCTOverlay.html",
+                    "CCTOverlay.js",
+                    "CCTOverlay.css",
+                    "img/goldberry.gif"
+            };
+            string externalOverlayPath = $"{basePath}/ExternalOverlay";
+
+
+            List<string> livedataEditorFiles = new List<string>() {
+                    "LiveDataEditTool.html",
+                    "LiveDataEditTool.js",
+                    "LiveDataEditTool.css",
+            };
+            string livedataEditorPath = $"{basePath}/LiveDataEditor";
+
+
+            List<string> physicsInspectorFiles = new List<string>() {
+                    "PhysicsInspector.html",
+                    "PhysicsInspector.js",
+                    "PhysicsInspector.css",
+            };
+            string physicsInspectorPath = $"{basePath}/PhysicsInspector";
 
 
             //Overlay files
@@ -959,12 +969,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
                 VersionsCurrent.Overlay = VersionsNewest.Overlay;
 
-                CreateExternalToolFile("common.js", Resources.CCT_common_JS);
-                CreateExternalToolFile("CCTOverlay.html", Resources.CCTOverlay_HTML);
-                CreateExternalToolFile("CCTOverlay.js", Resources.CCTOverlay_JS);
-                CreateExternalToolFile("CCTOverlay.css", Resources.CCTOverlay_CSS);
                 CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
-                Resources.goldberry_GIF.Save(GetPathToFile(ExternalToolsFolder, "img", "goldberry.gif"));
+
+                foreach (string file in externalOverlayFiles) {
+                    CreateExternalToolFileFromStream(file, $"{externalOverlayPath}/{file}");
+                }
             } else {
                 Log($"External Overlay is up to date at version {VersionsCurrent.Overlay}");
             }
@@ -977,9 +986,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
                 VersionsCurrent.LiveDataEditor = VersionsNewest.LiveDataEditor;
 
-                CreateExternalToolFile("LiveDataEditTool.html", Resources.LiveDataEditTool_HTML);
-                CreateExternalToolFile("LiveDataEditTool.js", Resources.LiveDataEditTool_JS);
-                CreateExternalToolFile("LiveDataEditTool.css", Resources.LiveDataEditTool_CSS);
+                foreach (string file in livedataEditorFiles) {
+                    CreateExternalToolFileFromStream(file, $"{livedataEditorPath}/{file}");
+                }
             } else {
                 Log($"LiveData Editor is up to date at version {VersionsCurrent.LiveDataEditor}");
             }
@@ -990,22 +999,33 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");
                 VersionsCurrent.PhysicsInspector = VersionsNewest.PhysicsInspector;
 
-                CreateExternalToolFile("PhysicsInspector.html", Resources.PhysicsInspector_HTML);
-                CreateExternalToolFile("PhysicsInspector.js", Resources.PhysicsInspector_JS);
-                CreateExternalToolFile("PhysicsInspector.css", Resources.PhysicsInspector_CSS);
+                foreach (string file in physicsInspectorFiles) {
+                    CreateExternalToolFileFromStream(file, $"{physicsInspectorPath}/{file}");
+                }
             } else {
                 Log($"Physics Inspector is up to date at version {VersionsCurrent.PhysicsInspector}");
             }
-            
-        }
-        private void CreateExternalToolFile(string name, string content) {
-            string path = GetPathToFile(ExternalToolsFolder, name);
-            File.WriteAllText(path, content);
 
-            if (File.Exists(path)) {
-                LogVerbose($"Wrote file '{name}' to path '{path}'");
+        }
+
+        private void CreateExternalToolFileFromStream(string name, string assetPath) {
+            CreateFileFromStream(ExternalToolsFolder, name, assetPath);
+        }
+        private void CreatePathFileFromStream(string name, string assetPath) {
+            CreateFileFromStream(PathsFolder, name, assetPath);
+        }
+        private void CreateFileFromStream(string folder, string name, string assetPath) {
+            string path = GetPathToFile(folder, name);
+
+            LogVerbose($"Trying to access asset at '{assetPath}'");
+            if (Everest.Content.TryGet(assetPath, out ModAsset value, true)) {
+                using (var fileStream = File.Create(path)) {
+                    value.Stream.Seek(0, SeekOrigin.Begin);
+                    value.Stream.CopyTo(fileStream);
+                    LogVerbose($"Wrote file '{name}' to path '{path}'");
+                }
             } else {
-                Log($"Failed to write file '{name}' to path '{path}'");
+                Log($"No asset found with content path '{assetPath}'");
             }
         }
 
