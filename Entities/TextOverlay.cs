@@ -72,13 +72,32 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
         
         public void SetVisibility(bool visible) {
+            bool prev = Visible;
             Visible = visible && Mod.ModSettings.Enabled;
-            Mod.LogVerbose($"Set text overlay visibility to '{visible}'");
+            
+            if (prev != Visible) { 
+                Mod.LogVerbose($"Set text overlay visibility to '{visible}'");
+            }
         }
+        public void CheckVisibility() {
+            if (Mod.ModSettings.IngameOverlayTextEnabled 
+                && (!Mod.ModSettings.IngameOverlayOnlyShowInPauseMenu 
+                    || (Engine.Scene is Level level && (level.PauseMainMenuOpen || level.Entities.FindFirst<TextMenu>() != null)))) {
+                SetVisibility(true);
+            } else {
+                SetVisibility(false);
+            }
+        }
+        
 
         public override void Update() {
             base.Update();
-            
+
+            CheckVisibility();
+            if (Engine.Scene is Level level && (level.PauseMainMenuOpen || level.Entities.FindFirst<TextMenu>() != null)) {
+                return;
+            }
+
             if (Mod.ModSettings.ButtonTogglePauseDeathTracking.Pressed) {
                 Mod.ModSettings.PauseDeathTracking = !Mod.ModSettings.PauseDeathTracking;
                 Mod.Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {Mod.ModSettings.PauseDeathTracking}");
@@ -87,7 +106,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
                 bool currentVisible = Mod.ModSettings.IngameOverlayTextEnabled;
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
-                SetVisibility(!currentVisible);
 
                 Mod.Log($"ButtonToggleTextOverlayEnabled: Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
             }

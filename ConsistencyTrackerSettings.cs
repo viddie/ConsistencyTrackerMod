@@ -238,11 +238,9 @@ namespace Celeste.Mod.ConsistencyTracker
         public int LiveDataDecimalPlaces { get; set; } = 2;
         public int LiveDataSelectedAttemptCount { get; set; } = 20;
 
-        //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
         [SettingIgnore]
         public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
 
-        //Types: 1 -> EH-3 | 2 -> Event-Horizon-3
         [SettingIgnore]
         public ListFormat LiveDataListOutputFormat { get; set; } = ListFormat.Json;
 
@@ -574,6 +572,10 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool IngameOverlayTextEnabled { get; set; } = false;
+        
+        [SettingIgnore]
+        public bool IngameOverlayOnlyShowInPauseMenu { get; set; } = false;
+        
 
         // ======== Text 1 ========
         [SettingIgnore]
@@ -709,9 +711,15 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
                 OnValueChange = v => {
                     IngameOverlayTextEnabled = v;
-                    Mod.IngameOverlay.SetVisibility(v);
                 }
             });
+            subMenu.Add(new TextMenu.OnOff("Only Show Overlay In Menu", IngameOverlayOnlyShowInPauseMenu) {
+                OnValueChange = v => {
+                    IngameOverlayOnlyShowInPauseMenu = v;
+                }
+            });
+
+            
 
             //Get all formats
             List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
@@ -1125,65 +1133,6 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
             subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
             subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
-
-            //Add a header for the physics logging options
-            //subMenu.Add(new TextMenu.SubHeader("Physics Logging Options"));
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Position", LogPosition) {
-            //    OnValueChange = v => {
-            //        LogPosition = v;
-            //        Mod.Log($"Position logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed", LogSpeed) {
-            //    OnValueChange = v => {
-            //        LogSpeed = v;
-            //        Mod.Log($"Speed logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Velocity", LogVelocity) {
-            //    OnValueChange = v => {
-            //        LogVelocity = v;
-            //        Mod.Log($"Velocity logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Lift Boost", LogLiftBoost) {
-            //    OnValueChange = v => {
-            //        LogLiftBoost = v;
-            //        Mod.Log($"Lift boost logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Speed Retention", LogSpeedRetention) {
-            //    OnValueChange = v => {
-            //        LogSpeedRetention = v;
-            //        Mod.Log($"Speed retention logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Stamina", LogStamina) {
-            //    OnValueChange = v => {
-            //        LogStamina = v;
-            //        Mod.Log($"Stamina logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Flags", LogFlags) {
-            //    OnValueChange = v => {
-            //        LogFlags = v;
-            //        Mod.Log($"Flags logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
-
-            //subMenu.Add(menuItem = new TextMenu.OnOff("Log Inputs", LogInputs) {
-            //    OnValueChange = v => {
-            //        LogInputs = v;
-            //        Mod.Log($"Input logging {(v ? "enabled" : "disabled")}");
-            //    }
-            //});
 
             menu.Add(subMenu);
         }
