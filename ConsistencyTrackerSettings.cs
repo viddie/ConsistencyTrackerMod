@@ -1212,6 +1212,9 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
 
         public ButtonBinding ButtonToggleRecordPhysics { get; set; }
+
+        public ButtonBinding ButtonToggleSummaryHud { get; set; }
+        public ButtonBinding ButtonSummaryHudNextTab { get; set; }
         #endregion
 
         #region Helpers

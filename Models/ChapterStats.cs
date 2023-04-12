@@ -104,6 +104,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CurrentRoom = targetRoom;
         }
 
+        public RoomStats GetRoom(RoomInfo rInfo) {
+            return GetRoom(rInfo.DebugRoomName);
+        }
         public RoomStats GetRoom(string debugRoomName) {
             RoomStats targetRoom;
             if (Rooms.ContainsKey(debugRoomName)) {

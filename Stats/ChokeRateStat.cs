@@ -231,6 +231,59 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
+        /// <summary>
+        /// Gets the following data for every room: Golden Entries, Golden Success Rate, Golden Entries Session, Golden Success Rate Session
+        /// </summary>
+        /// <param name="chapterPath"></param>
+        /// <param name="chapterStats"></param>
+        /// <returns></returns>
+        public static Dictionary<RoomInfo, Tuple<int, float, int, float>> GetRoomData(PathInfo chapterPath, ChapterStats chapterStats) {
+            Dictionary<RoomInfo, Tuple<int, float, int, float>> roomData = new Dictionary<RoomInfo, Tuple<int, float, int, float>>();
+
+            foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+
+                    bool pastRoom = false;
+                    int[] goldenDeathsInRoom = new int[] { 0, 0 };
+                    int[] goldenDeathsAfterRoom = new int[] { 0, 0 };
+
+                    foreach (CheckpointInfo cpInfoTemp in chapterPath.Checkpoints) {
+                        foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
+                            RoomStats rStats = chapterStats.GetRoom(rInfoTemp);
+
+                            if (pastRoom) {
+                                goldenDeathsAfterRoom[0] += rStats.GoldenBerryDeaths;
+                                goldenDeathsAfterRoom[1] += rStats.GoldenBerryDeathsSession;
+                            }
+
+                            if (rInfo == rInfoTemp) {
+                                pastRoom = true;
+                                goldenDeathsInRoom[0] = rStats.GoldenBerryDeaths;
+                                goldenDeathsInRoom[1] = rStats.GoldenBerryDeathsSession;
+                            }
+                        }
+                    }
+
+                    float crRoom, crRoomSession;
+
+                    //Calculate
+                    if (goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0] == 0) crRoom = float.NaN;
+                    else crRoom = (float)goldenDeathsInRoom[0] / (goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0]);
+
+                    if (goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1] == 0) crRoomSession = float.NaN;
+                    else crRoomSession = (float)goldenDeathsInRoom[1] / (goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1]);
+
+                    //Format
+                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0], 
+                                                            1 - crRoom,
+                                                            goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1], 
+                                                            1 - crRoomSession));
+                }
+            }
+
+            return roomData;
+        }
+
         
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {

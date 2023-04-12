@@ -20,6 +20,7 @@ using Celeste.Editor;
 using Microsoft.Xna.Framework.Graphics;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using System.Xml.Linq;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -29,7 +30,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.2.9";
+            public static string Mod => "2.3.0";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.1.2";
@@ -120,6 +121,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public StatManager StatsManager;
         public TextOverlay IngameOverlay;
+        public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
 
 
@@ -391,6 +393,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log("Adding overlay!");
                 IngameOverlay = new TextOverlay();
                 level.Add(IngameOverlay);
+
+                SummaryOverlay = new SummaryHud();
+                level.Add(SummaryOverlay);
             }
         }
 
@@ -705,8 +710,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            TextOverlay textOverlayEntity = level.Tracker.GetEntity<TextOverlay>();
-            IngameOverlay = textOverlayEntity;
+            IngameOverlay = level.Tracker.GetEntity<TextOverlay>();
+            SummaryOverlay = level.Tracker.GetEntity<SummaryHud>();
 
             PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
             CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];
