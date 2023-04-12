@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
+using IL.Monocle;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,18 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         
         public List<string> GoldenDeathsTree { get; set; }
 
+        private readonly int countBestRuns = 5;
+        private List<ProgressBar> BestRunsProgressBars { get; set; }
+        private List<Tuple<string, int>> BestRunsData { get; set; } = new List<Tuple<string, int>>();
+        private int ChapterRoomCount { get; set; }
+
         public PageCurrentSession(string name) : base(name) {
-            
+            int barWidth = 400;
+            int barHeight = 13;
+            BestRunsProgressBars = new List<ProgressBar>();
+            for (int i = 0; i < countBestRuns; i++) {
+                BestRunsProgressBars.Add(new ProgressBar(0, 100) { Width = barWidth, Height = barHeight });
+            }
         }
 
         public override void Update() {
@@ -37,13 +48,28 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             string format = "Golden Deaths This Session: {chapter:goldenDeathsSession}";
             TextAttemptCount = Stats.FormatVariableFormat(format);
 
-            format = "Best Runs" +
-                "\n#1 {pb:bestSession} ({pb:bestRoomNumberSession}/{chapter:roomCount})" +
-                "\n#2 {pb:bestSession#2} ({pb:bestRoomNumberSession#2}/{chapter:roomCount})" +
-                "\n#3 {pb:bestSession#3} ({pb:bestRoomNumberSession#3}/{chapter:roomCount})" +
-                "\n#4 {pb:bestSession#4} ({pb:bestRoomNumberSession#4}/{chapter:roomCount})" +
-                "\n#5 {pb:bestSession#5} ({pb:bestRoomNumberSession#5}/{chapter:roomCount})";
-            TextBestRuns = Stats.FormatVariableFormat(format);
+            //format = "Best Runs" +
+            //    "\n#1 {pb:bestSession} ({pb:bestRoomNumberSession}/{chapter:roomCount})" +
+            //    "\n#2 {pb:bestSession#2} ({pb:bestRoomNumberSession#2}/{chapter:roomCount})" +
+            //    "\n#3 {pb:bestSession#3} ({pb:bestRoomNumberSession#3}/{chapter:roomCount})" +
+            //    "\n#4 {pb:bestSession#4} ({pb:bestRoomNumberSession#4}/{chapter:roomCount})" +
+            //    "\n#5 {pb:bestSession#5} ({pb:bestRoomNumberSession#5}/{chapter:roomCount})";
+            //TextBestRuns = Stats.FormatVariableFormat(format);
+
+            //Update progress bars for best runs
+            ChapterRoomCount = path.RoomCount;
+            for (int i = 0; i < countBestRuns; i++) {
+                string[] split = Stats.FormatVariableFormat($"{{pb:bestSession#{i + 1}}};{{pb:bestRoomNumberSession#{i + 1}}}").Split(';');
+                string bestRoom = split[0];
+                string bestRoomNumberStr = split[1];
+
+                if (!int.TryParse(bestRoomNumberStr, out int bestRoomNumber)) {
+                    bestRoomNumber = 0;
+                }
+
+                BestRunsData.Add(Tuple.Create(bestRoom, bestRoomNumber));
+            }
+            
 
             format = "Last runs\n1 -> ({chapter:lastRunDistance#1}/{chapter:roomCount})" +
                 "\n2 -> ({chapter:lastRunDistance#2}/{chapter:roomCount})" +
@@ -76,34 +102,67 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Vector2 pointerCol2 = MoveCopy(pointer, SummaryHud.Settings.Width / 2 - 150, 0);
 
             //Left Column
-            Vector2 measure = DrawText(TextAttemptCount, pointer, SummaryHud.Settings.FontMultMediumSmall, Color.White);
+            Vector2 measure = DrawText(TextAttemptCount, pointer, FontMultMediumSmall, Color.White);
 
-            Move(ref pointer, 0, measure.Y + SummaryHud.Settings.Margin * 2);
-            measure = DrawText(TextBestRuns, pointer, SummaryHud.Settings.FontMultSmall, Color.White);
+            Move(ref pointer, 0, measure.Y + BasicMargin * 2);
+            measure = DrawText("Best Runs", pointer, FontMultSmall, Color.White);
 
-            Move(ref pointer, 0, measure.Y + SummaryHud.Settings.Margin * 2);
-            measure = DrawText(TextLastRuns, pointer, SummaryHud.Settings.FontMultSmall, Color.White);
+            Move(ref pointer, 0, measure.Y + BasicMargin * 3);
+            float maxLabelHeight = 0;
+            float maxWidth = 0;
+            //Determine highest label width
+            for (int i = 0; i < countBestRuns; i++) {
+                string bestRoom = BestRunsData[i].Item1;
+                int bestRoomNumber = BestRunsData[i].Item2;
+                
+                measure = ActiveFont.Measure($"{bestRoom} ({bestRoomNumber}/{ChapterRoomCount})") * FontMultSmall;
+                if (measure.Y > maxLabelHeight) maxLabelHeight = measure.Y;
 
-            Move(ref pointer, 0, measure.Y + SummaryHud.Settings.Margin);
+                measure = ActiveFont.Measure($"#{i+1}") * FontMultSmall;
+                if (measure.X > maxWidth) maxWidth = measure.X;
+            }
+            for (int i = 0; i < countBestRuns; i++) {
+                string bestRoom = BestRunsData[i].Item1;
+                int bestRoomNumber = BestRunsData[i].Item2;
+
+                measure = DrawText($"#{i+1}", pointer, FontMultSmall, Color.White);
+
+                ProgressBar bar = BestRunsProgressBars[i];
+                bar.FontMult = FontMultSmall;
+                bar.Value = bestRoomNumber;
+                bar.MaxValue = ChapterRoomCount;
+                bar.RightLabel = $"{ChapterRoomCount}";
+                bar.ValueLabel = bestRoomNumber == 0 ? "" : $"{bestRoom} ({bestRoomNumber}/{ChapterRoomCount})";
+                bar.Color = new Color(242, 182, 0);
+                bar.Position = MoveCopy(pointer, maxWidth + 10, measure.Y / 2 - bar.Height / 2);
+                bar.Render();
+
+                Move(ref pointer, 0, Math.Max(bar.Height, measure.Y) + maxLabelHeight + BasicMargin);
+            }
+
+
+            Move(ref pointer, 0, measure.Y - BasicMargin);
+            measure = DrawText(TextLastRuns, pointer, FontMultSmall, Color.White);
+
+            Move(ref pointer, 0, measure.Y + BasicMargin);
 
             //Right Column: Draw deaths tree
             //We start drawing GoldenDeathTree lines at pointerCol2, moving the pointer downwards until we hit the limit
             //we mark down the longest line by width, and when we hit the limit, move the pointer back to the start, shifted by the longest line width
             //then continue
-            measure = DrawText("Session Golden Deaths:", pointerCol2, SummaryHud.Settings.FontMultMediumSmall, Color.White);
+            measure = DrawText("Session Golden Deaths:", pointerCol2, FontMultMediumSmall, Color.White);
             Move(ref pointerCol2, 0, measure.Y);
 
             Vector2 startPointer = MoveCopy(pointerCol2, 0, 0);
-            float maxWidth = 0;
             foreach (string line in GoldenDeathsTree) {
                 float fontMult = 0;
 
                 if (GoldenDeathsTree.Count > 100) {
-                    fontMult = line.StartsWith("    ") ? SummaryHud.Settings.FontMultAnt : SummaryHud.Settings.FontMultSmall;
+                    fontMult = line.StartsWith("    ") ? FontMultAnt : FontMultSmall;
                 } else if (GoldenDeathsTree.Count > 80) {
-                    fontMult = line.StartsWith("    ") ? SummaryHud.Settings.FontMultVerySmall : SummaryHud.Settings.FontMultSmall;
+                    fontMult = line.StartsWith("    ") ? FontMultVerySmall : FontMultSmall;
                 } else {
-                    fontMult = line.StartsWith("    ") ? SummaryHud.Settings.FontMultSmall : SummaryHud.Settings.FontMultMediumSmall;
+                    fontMult = line.StartsWith("    ") ? FontMultSmall : FontMultMediumSmall;
                 }
 
                 measure = DrawText(line, pointerCol2, fontMult, Color.White);

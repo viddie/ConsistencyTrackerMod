@@ -45,6 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Tabs.Add(new PageCurrentSession("Current Session") { });
             Tabs.Add(new PageOverall("Overall") { });
+            Tabs.Add(new PageGoldenRunsGraph("Graphs :catpog:") { });
 
             ApplyModSettings();
 
@@ -58,7 +59,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
         public override void Update() {
             base.Update();
-            
+
+            if (Engine.Scene is Level level && level.PauseMainMenuOpen) {
+                Visible = false;
+                return;
+            }
+
             if (Mod.ModSettings.ButtonToggleSummaryHud.Pressed) {
                 if (!Mod.StatsManager.HadPass) {
                     Mod.Log("No pass yet, not showing summary hud");
@@ -77,10 +83,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
                 SelectedTab = (SelectedTab + 1) % Tabs.Count;
                 Tabs[SelectedTab].Update();
-            }
-
-            if (Engine.Scene is Level level && level.PauseMainMenuOpen) {
-                Visible = false;
             }
         }
         

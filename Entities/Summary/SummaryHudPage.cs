@@ -9,6 +9,16 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public abstract class SummaryHudPage : Entity {
+        
+        protected static float FontMultLarge => SummaryHud.Settings.FontMultLarge;
+        protected static float FontMultMedium => SummaryHud.Settings.FontMultMedium;
+        protected static float FontMultMediumSmall => SummaryHud.Settings.FontMultMediumSmall;
+        protected static float FontMultSmall => SummaryHud.Settings.FontMultSmall;
+        protected static float FontMultVerySmall => SummaryHud.Settings.FontMultVerySmall;
+        protected static float FontMultAnt => SummaryHud.Settings.FontMultAnt;
+
+        protected static float BasicMargin => 10;
+
 
         public readonly string Name;
         protected bool MissingPath { get; set; }
