@@ -1,6 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
-using IL.Monocle;
+using Monocle;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,6 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageCurrentSession : SummaryHudPage {
-        
-        private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
-        private StatManager Stats => Mod.StatsManager;
 
         public string TextLastRuns { get; set; }
         public string TextBestRuns { get; set; }

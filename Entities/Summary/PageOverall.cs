@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
+using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,6 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageOverall : SummaryHudPage {
-        
-        private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
-        private StatManager Stats => Mod.StatsManager;
 
         public string TextAttemptCount { get; set; }
         public string TextAvgSuccessRate { get; set; }
@@ -104,7 +102,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Vector2 pointer = Position + Vector2.Zero;
             Vector2 pointerCol2 = MoveCopy(pointer, SummaryHud.Settings.Width / 2 - 150, 0);
-
+            
             //Left Column
             Vector2 measure = DrawText(TextAttemptCount, pointer, FontMultMediumSmall, Color.White);
 

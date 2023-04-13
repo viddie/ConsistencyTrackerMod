@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Celeste.Mod.ConsistencyTracker.Stats;
+using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public abstract class SummaryHudPage : Entity {
-        
+
+        protected ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+        protected StatManager Stats => Mod.StatsManager;
+
         protected static float FontMultLarge => SummaryHud.Settings.FontMultLarge;
         protected static float FontMultMedium => SummaryHud.Settings.FontMultMedium;
         protected static float FontMultMediumSmall => SummaryHud.Settings.FontMultMediumSmall;

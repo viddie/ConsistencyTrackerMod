@@ -45,7 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Tabs.Add(new PageCurrentSession("Current Session") { });
             Tabs.Add(new PageOverall("Overall") { });
-            Tabs.Add(new PageGoldenRunsGraph("Graphs :catpog:") { });
+            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs") { });
 
             ApplyModSettings();
 
@@ -95,6 +95,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Color activeTabColor = new Color(1, 1, 1, 1f);
             Color notActiveTabColor = new Color(0.3f, 0.3f, 0.3f, 1f);
 
+
             //Render backdrop
             Vector2 pointer = new Vector2(Engine.Width / 2 - Settings.Width / 2 - Settings.Margin, Engine.Height / 2 - Settings.Height / 2 - Settings.Margin);
             Draw.Rect(pointer, Settings.Width + Settings.Margin, Settings.Height + Settings.Margin, backdropColor);
@@ -125,7 +126,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Vector2 textMeasure = ActiveFont.Measure(tab.Name) * Settings.FontMultMedium;
                 Move(ref pointer, textMeasure.X + Settings.Margin, 0);
             }
-
 
             //Render Tab content
             Tabs[SelectedTab].Position = contentPointer;
