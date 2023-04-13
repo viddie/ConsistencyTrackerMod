@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class ProgressBar : Entity {
 
-        public float Width { get; set; }
-        public float Height { get; set; }
+        public float BarWidth { get; set; }
+        public float BarHeight { get; set; }
 
         public int Value { get; set; }
         public int MaxValue { get; set; }
@@ -37,12 +37,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Vector2 position = Position;
 
-            Draw.Rect(position, Width, Height, BackgroundColor);
-            Draw.Rect(position, Width * Progress, Height, Color);
+            Draw.Rect(position, BarWidth, BarHeight, BackgroundColor);
+            Draw.Rect(position, BarWidth * Progress, BarHeight, Color);
             
-            Vector2 leftLabelPosition = position + new Vector2(-5, Height / 2);
-            Vector2 rightLabelPosition = position + new Vector2(Width + 5, Height / 2);
-            Vector2 valueLabelPosition = position + new Vector2(Width * Progress, -5);
+            Vector2 leftLabelPosition = position + new Vector2(-5, BarHeight / 2);
+            Vector2 rightLabelPosition = position + new Vector2(BarWidth + 5, BarHeight / 2);
+            Vector2 valueLabelPosition = position + new Vector2(BarWidth * Progress, -5);
 
             ActiveFont.Draw(LeftLabel, leftLabelPosition, new Vector2(1f, 0.5f), Vector2.One * FontMult, LabelColor);
             ActiveFont.Draw(RightLabel, rightLabelPosition, new Vector2(0f, 0.5f), Vector2.One * FontMult, LabelColor);

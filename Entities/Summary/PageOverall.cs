@@ -29,7 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             int barHeight = 13;
             BestRunsProgressBars = new List<ProgressBar>();
             for (int i = 0; i < countBestRuns; i++) {
-                BestRunsProgressBars.Add(new ProgressBar(0, 100) { Width = barWidth, Height = barHeight });
+                BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = barWidth, BarHeight = barHeight });
             }
         }
 
@@ -143,10 +143,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 bar.RightLabel = $"{ChapterRoomCount}";
                 bar.ValueLabel = bestRoomNumber == 0 ? "" : $"{bestRoom} ({bestRoomNumber}/{ChapterRoomCount})";
                 bar.Color = new Color(242, 182, 0);
-                bar.Position = MoveCopy(pointer, maxWidth + 10, measure.Y / 2 - bar.Height / 2);
+                bar.Position = MoveCopy(pointer, maxWidth + 10, measure.Y / 2 - bar.BarHeight / 2);
                 bar.Render();
 
-                Move(ref pointer, 0, Math.Max(bar.Height, measure.Y) + maxLabelHeight + BasicMargin);
+                Move(ref pointer, 0, Math.Max(bar.BarHeight, measure.Y) + maxLabelHeight + BasicMargin);
             }
             
 

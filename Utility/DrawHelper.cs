@@ -27,8 +27,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 MoveCopy(start, widthTop / 2 - widthBottom / 2, height),
                 MoveCopy(start, widthTop / 2 + widthBottom / 2, height),
             };
-            
-            try { Draw.SpriteBatch.End(); } catch (Exception) { }
 
             VertexPositionColor[] vertices = new VertexPositionColor[6];
             float depth = 0f;
@@ -40,10 +38,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             vertices[4] = new VertexPositionColor(new Vector3(points[2], depth), color);
             vertices[5] = new VertexPositionColor(new Vector3(points[3], depth), color);
 
-            GFX.DrawVertices(Matrix.Identity, vertices, vertices.Length);
-
-            try { Draw.SpriteBatch.Begin(); } catch (Exception) { }
+            DrawVertices(Matrix.Identity, vertices);
         }
-        
+
+        public static void DrawVertices(Matrix mat, VertexPositionColor[] vertices) {
+            try { Draw.SpriteBatch.End(); } catch (Exception) { }
+            GFX.DrawVertices(mat, vertices, vertices.Length);
+            try { Draw.SpriteBatch.Begin(); } catch (Exception) { }
+
+        }
     }
 }

@@ -105,7 +105,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 
                 DrawHelper.DrawTrapezoid(pointer, widthTop, widthBottom, sliceHeight, color);
 
-                if (lastCheckpointName != entry.CheckpointName) {
+                if ((lastCheckpointName != entry.CheckpointName || Entries.Count < 40) && runsRemaining + entry.GoldenDeaths > 0) {
                     Vector2 labelCenterPointer = MoveCopy(labelPointer, -(GoldenDeathFilterWidth / 2 + BasicMargin), 0);
                     DrawText($"{runsRemaining + entry.GoldenDeaths}", labelCenterPointer, FontMultVerySmall, Color.White, new Vector2(0.5f, 0.5f));
                 }

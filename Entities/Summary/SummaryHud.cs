@@ -43,9 +43,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             HudBounds = new Rectangle(Engine.Width / 2 - Settings.Width / 2, Engine.Height / 2 - Settings.Height / 2, Settings.Width, Settings.Height);
 
-            Tabs.Add(new PageCurrentSession("Current Session") { });
-            Tabs.Add(new PageOverall("Overall") { });
-            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs") { });
+            Tabs.Add(new PageCurrentSession("Current Session"));
+            Tabs.Add(new PageOverall("Overall"));
+            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
+            Tabs.Add(new PageChartTest("Chart Test"));
 
             ApplyModSettings();
 
