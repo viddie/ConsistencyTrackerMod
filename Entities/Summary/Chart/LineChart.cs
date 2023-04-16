@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +54,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
 
         public void RenderSeries(LineSeries series) {
             Vector2 prevPosition = Vector2.Zero;
-            
+            LineDataPoint prevPoint = null;
+
             for (int i = 0; i < series.Data.Count; i++) {
                 LineDataPoint point = series.Data[i];
                 float value = point.Y;
@@ -69,14 +69,33 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 float y = GetYValuePosition(value);
                 Vector2 position = new Vector2(x, y);
                 if(series.PointSize > 0)
-                    Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor, 10);
+                    Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor ?? series.LineColor, 10);
 
                 //For all but the first point, draw a line to the previous point
                 if (i > 0 && prevPosition != Vector2.Zero) {
                     Draw.Line(position, prevPosition, series.LineColor, series.LineThickness * Settings.Scale);
                 }
 
+                //Draw the label for the previous point
+                if (i > 1 && series.ShowLabels) {
+                    float strokeThickness = Math.Max(1, 2 * Settings.Scale);
+                    Color strokeColor = Color.Black;
+                    if (series.LabelPosition == LabelPosition.Middle) {
+                        ActiveFont.DrawOutline(Settings.YAxisLabelFormatter(prevPoint.Y), prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                    } else {
+                        Vector2 labelPosition = DrawHelper.MoveCopy(prevPosition, 0, 10 * Settings.Scale * (series.LabelPosition == LabelPosition.Top ? -1 : 1));
+                        Vector2 justify = new Vector2(0.5f, series.LabelPosition == LabelPosition.Top ? 1f : 0f);
+
+                        //Draw line to label position
+                        Draw.Line(prevPosition, labelPosition, Settings.GridLineColor, Settings.GridLineThickness * Settings.Scale);
+
+                        //Draw label
+                        ActiveFont.DrawOutline(Settings.YAxisLabelFormatter(prevPoint.Y), labelPosition, justify, Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                    }
+                }
+
                 prevPosition = position;
+                prevPoint = point;
             }
         }
 
@@ -96,12 +115,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                     string label = point.XAxisLabel;
                     if (!string.IsNullOrEmpty(label)) {
                         Vector2 labelPosition = DrawHelper.MoveCopy(down, 0, 5 * Settings.Scale);
-                        ActiveFont.Draw(label, labelPosition, new Vector2(0.5f, 0f), Vector2.One * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
+                        ActiveFont.Draw(label, labelPosition, new Vector2(0.5f, 0f), Vector2.One * Settings.FontMult * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
                     }
                 }
             }
         }
-
 
 
         public float GetYValuePosition(float value) {
@@ -116,6 +134,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
             //have the points be placed evenly spaced across the chart
             float xValuePosition = XPositionFactor * pointIndex;
             return xValuePosition + Position.X;
+        }
+
+        public override List<Tuple<string, Color>> GetLegendEntries() {
+            return AllSeries.Select(series => new Tuple<string, Color>(series.Name, series.LineColor)).ToList();
         }
     }
 }

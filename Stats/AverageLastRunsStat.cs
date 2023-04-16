@@ -199,22 +199,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     continue;
                 }
 
-                List<double> graph = new List<double>();
-                int lastIndex = count - windowSize;
-
-                for (int i = 0; i <= lastIndex; i++) {
-                    double avg = 0;
-                    for (int j = 0; j < windowSize; j++) {
-                        int index = i + j;
-                        RoomStats rStats = chapterStats.CurrentChapterLastGoldenRuns[index];
-                        RoomInfo rInfo = chapterPath.FindRoom(rStats);
-                        //ConsistencyTrackerModule.Instance.Log($"Adding to avg: index '{index}', index.RoomNumber '{rInfo.RoomNumberInChapter}'");
-                        avg += rInfo.RoomNumberInChapter;
-                    }
-                    //ConsistencyTrackerModule.Instance.Log($"Adding to graph: avg before '{avg}', windowSize '{windowSize}', avg '{avg / windowSize}'");
-                    graph.Add(avg / windowSize);
-                }
-
+                List<double> graph = GetRollingAverages(chapterPath, chapterStats, windowSize, chapterStats.CurrentChapterLastGoldenRuns);
 
                 string output = string.Join(", ", graph);
                 switch (StatManager.ListOutputFormat) {
@@ -261,6 +246,30 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
+        }
+
+        public static List<double> GetRollingAverages(PathInfo chapterPath, ChapterStats chapterStats, int windowSize, List<RoomStats> pastRuns) {
+            int count = pastRuns.Count;
+            List<double> graph = new List<double>();
+
+            if (count < windowSize || windowSize < 1) {
+                return graph;
+            }
+
+            int lastIndex = count - windowSize;
+
+            for (int i = 0; i <= lastIndex; i++) {
+                double avg = 0;
+                for (int j = 0; j < windowSize; j++) {
+                    int index = i + j;
+                    RoomStats rStats = pastRuns[index];
+                    RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                    avg += rInfo.RoomNumberInChapter;
+                }
+                graph.Add(avg / windowSize);
+            }
+
+            return graph;
         }
 
 

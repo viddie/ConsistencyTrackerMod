@@ -38,6 +38,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 RenderYGridLines();
             }
 
+            if (Settings.ShowLegend) {
+                RenderLegend();
+            }
+
             RenderDataPoints();
         }
 
@@ -64,7 +68,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 if (Settings.ShowYAxisLabels) {
                     string tickLabel = Settings.YAxisLabelFormatter(tickValue);
                     Vector2 tickLabelPosition = DrawHelper.MoveCopy(tickEnd, -5 * Settings.Scale, 0);
-                    ActiveFont.Draw(tickLabel, tickLabelPosition, new Vector2(1f, 0.5f), Vector2.One * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
+                    ActiveFont.Draw(tickLabel, tickLabelPosition, new Vector2(1f, 0.5f), Vector2.One * Settings.FontMult * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
                 }
             }
         }
@@ -79,13 +83,36 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 Draw.Line(tickStart, tickEnd, Settings.GridLineColor, Settings.GridLineThickness);
             }
         }
-        
+
+        public void RenderLegend() {
+            Vector2 legendPosition = DrawHelper.MoveCopy(Position, Settings.ChartWidth + 30 * Settings.Scale, 30 * Settings.Scale);
+            float boxSideLength = 20 * Settings.Scale;
+
+            List<Tuple<string, Color>> series = GetLegendEntries();
+            foreach (Tuple<string, Color> entry in series) {
+                string name = entry.Item1;
+                Color color = entry.Item2;
+                //Move into -y and -x direction to draw the box in the color
+                Vector2 boxPosition = DrawHelper.MoveCopy(legendPosition, -boxSideLength / 2, -boxSideLength / 2);
+                Draw.Rect(boxPosition, boxSideLength, boxSideLength, color);
+
+                //Move into +x direction by the box size + 10 to draw the text
+                Vector2 textPosition = DrawHelper.MoveCopy(legendPosition, boxSideLength / 2 + 10 * Settings.Scale, 0);
+                Vector2 measure = DrawHelper.DrawText(name, textPosition, Settings.FontMult * Settings.LegendFontMult * Settings.Scale, Settings.AxisLabelColor, new Vector2(0f, 0.5f));
+
+                //Move into +y direction by the text height + 10 to draw the next entry
+                legendPosition = DrawHelper.MoveCopy(legendPosition, 0, (Math.Max(measure.Y, boxSideLength)) + 10 * Settings.Scale);
+            }
+        }
+
         public void RenderXAxis() {
             Vector2 bottomLeft = DrawHelper.MoveCopy(Position, 0, Settings.ChartHeight);
             Vector2 bottomRight = DrawHelper.MoveCopy(bottomLeft, Settings.ChartWidth, 0);
             Draw.Line(bottomLeft, bottomRight, Settings.AxisColor, Settings.AxisThickness * Settings.Scale);
         }
 
+        
+        public abstract List<Tuple<string, Color>> GetLegendEntries();
         public abstract void RenderDataPoints();
     }
 }

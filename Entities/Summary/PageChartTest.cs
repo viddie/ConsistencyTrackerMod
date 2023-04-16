@@ -1,4 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart;
+using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -33,7 +35,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 ChartWidth = 100,
                 ChartHeight = 75,
                 Scale = 0.25f,
-                AxisLabelFontMult = 0.6f,
+                AxisLabelFontMult = 1.2f,
                 BackgroundColor = new Color(0f, 0f, 0f, 0f),
                 ShowXAxisLabels = false,
             });
@@ -42,44 +44,66 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         public override void Update() {
             base.Update();
 
-            
-            List<LineDataPoint> data = new List<LineDataPoint>();
-            List<LineDataPoint> data2 = new List<LineDataPoint>();
+            PathInfo path = Stats.LastPassPathInfo;
+            ChapterStats stats = Stats.LastPassChapterStats;
 
-            Random random = new Random();
-            for (int i = 0; i < 10; i++) {
-                int randomValue = random.Next(0, 100);
-                data.Add(new LineDataPoint() {
-                    XAxisLabel = $"R-{i + 1}",
-                    Y = randomValue,
-                    Label = randomValue.ToString(),
+            if (path == null) {
+                MissingPath = true;
+                return;
+            }
+            
+            
+            TestChart.Settings.YMax = path.RoomCount;
+            TestChartSmall.Settings.YMax = path.RoomCount;
+            TestChartVerySmall.Settings.YMax = path.RoomCount;
+
+            List<LineDataPoint> dataRollingAvg1 = new List<LineDataPoint>();
+            List<LineDataPoint> dataRollingAvg3 = new List<LineDataPoint>();
+            List<LineDataPoint> dataRollingAvg10 = new List<LineDataPoint>();
+
+            List<double> rollingAvg1 = AverageLastRunsStat.GetRollingAverages(path, stats, 1, stats.CurrentChapterLastGoldenRuns);
+            List<double> rollingAvg3 = AverageLastRunsStat.GetRollingAverages(path, stats, 3, stats.CurrentChapterLastGoldenRuns);
+            List<double> rollingAvg10 = AverageLastRunsStat.GetRollingAverages(path, stats, 10, stats.CurrentChapterLastGoldenRuns);
+
+            for (int i = 0; i < rollingAvg1.Count; i++) {
+                dataRollingAvg1.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = (float)rollingAvg1[i],
+                    Label = rollingAvg1[i].ToString(),
                 });
 
-                randomValue = random.Next(0, 100);
-                data2.Add(new LineDataPoint() {
-                    XAxisLabel = $"R-{i + 1}",
-                    Y = randomValue,
-                    Label = randomValue.ToString(),
+                float val3 = float.NaN;
+                if (i > 0 && i < rollingAvg1.Count - 1 && rollingAvg1.Count >= 3) {
+                    val3 = (float)rollingAvg3[i - 1];
+                }
+                dataRollingAvg3.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = val3,
+                });
+
+
+                float val10 = float.NaN;
+                if (i > 3 && i < rollingAvg1.Count - 5 && rollingAvg1.Count >= 10) {
+                    val10 = (float)rollingAvg10[i - 4];
+                }
+                dataRollingAvg10.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = val10,
                 });
             }
 
-            data[4].Y = float.NaN;
 
-            List<LineSeries> series = new List<LineSeries>() { 
-                new LineSeries(){ Data = data, LineColor = Color.Green, PointColor = Color.Green, Depth = -1 },
-                new LineSeries(){ Data = data2, LineColor = Color.Red, PointColor = Color.Green, Depth = 0, LineThickness = 12 },
+            List<LineSeries> series = new List<LineSeries>() {
+                new LineSeries(){ Data = dataRollingAvg1, LineColor = Color.LightBlue, Depth = 1, Name = "Run Distances", ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.75f },
+                new LineSeries(){ Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = -1, Name = "Avg. over 3" },
+                //new LineSeries(){ Data = dataRollingAvg10, LineColor = new Color(255, 165, 0, 100), Depth = -1, Name = "Avg. over 10" },
             };
             TestChart.SetSeries(series);
-
-            List<LineSeries> series2 = new List<LineSeries>()  {
-                new LineSeries(){ Data = data, LineColor = Color.Blue, PointColor = Color.Green, Depth = 1, LineThickness = 8 },
-                new LineSeries(){ Data = data2, LineColor = Color.Red, PointColor = Color.Green, Depth = 0 },
-            };
-            TestChartSmall.SetSeries(series2);
+            TestChartSmall.SetSeries(series);
             TestChartVerySmall.SetSeries(series);
 
             DataPointText = "Data Points:";
-            foreach (LineDataPoint dataPoint in data) {
+            foreach (LineDataPoint dataPoint in dataRollingAvg1) {
                 DataPointText += $"\n    {dataPoint.XAxisLabel}: {dataPoint.Y}";
             }
         }
@@ -90,7 +114,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             TestChart.Position = MoveCopy(Position, 50, 0);
             TestChart.Render();
 
-            TestChartSmall.Position = MoveCopy(Position, 50 + TestChart.Settings.ChartWidth + BasicMargin * 5, 0);
+            TestChartSmall.Position = MoveCopy(Position, 50 + TestChart.Settings.ChartWidth + BasicMargin * 5, TestChartSmall.Settings.ChartHeight);
             TestChartSmall.Render();
 
             Vector2 pointer = MoveCopy(TestChartSmall.Position, 0, TestChartSmall.Settings.ChartHeight + BasicMargin * 5);

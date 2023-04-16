@@ -20,6 +20,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return SummaryHud.MoveCopy(vec, x, y);
         }
 
+        
+        public static Vector2 DrawText(string text, Vector2 pointer, float fontSize, Color color, Vector2 justify = default) {
+            Vector2 measure = ActiveFont.Measure(text) * fontSize;
+            ActiveFont.Draw(text, pointer, justify, Vector2.One * fontSize, color);
+            return measure;
+        }
+
+        
         public static void DrawTrapezoid(Vector2 start, float widthTop, float widthBottom, float height, Color color) {
             Vector2[] points = new Vector2[] { 
                 start,

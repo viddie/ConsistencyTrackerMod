@@ -12,6 +12,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
         public float ChartWidth { get; set; }
         public float ChartHeight { get; set; }
         public float Scale { get; set; } = 1;
+        public float FontMult { get; set; } = 0.5f;
 
         //Axis stuff
         public bool ShowXAxis { get; set; } = true;
@@ -24,7 +25,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
         public bool ShowXAxisLabels { get; set; } = true;
         public bool ShowYAxisLabels { get; set; } = true;
         public Color AxisLabelColor { get; set; } = Color.White;
-        public float AxisLabelFontMult { get; set; } = 0.5f;
+        public float AxisLabelFontMult { get; set; } = 1f;
 
         public float YMin { get; set; } = 0;
         public float YMax { get; set; } = 100;
@@ -43,6 +44,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
         public Color ValueLabelColor { get; set; } = Color.White;
         public Color BackgroundColor { get; set; } = new Color(0.1f, 0.1f, 0.1f, 0.8f);
 
-
+        //Legend
+        public bool ShowLegend { get; set; } = true;
+        public Color? LegendBackgroundColor { get; set; }
+        public float LegendFontMult { get; set; } = 1f;
     }
 }
