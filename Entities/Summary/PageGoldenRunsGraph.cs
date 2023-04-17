@@ -39,7 +39,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private static int GoldenDeathFilterHeight = 650;
 
         public PageGoldenRunsGraph(string name) : base(name) {
-            
+
         }
 
         public override void Update() {

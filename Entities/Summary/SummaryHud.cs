@@ -15,8 +15,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         
         public static SummaryHud Instance { get; set; }
 
-        public int SelectedTab { get; set; } = 0;
         public List<SummaryHudPage> Tabs = new List<SummaryHudPage>();
+        public int SelectedTab { get; set; } = 0;
+        public int SelectedStat { get; set; } = 0;
+        
         public Rectangle HudBounds { get; set; }
 
         public static class Settings {
@@ -66,23 +68,26 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 return;
             }
 
+            if (!Mod.StatsManager.HadPass) {
+                Mod.Log("No pass yet, not showing summary hud");
+                return;
+            }
+            
             if (Mod.ModSettings.ButtonToggleSummaryHud.Pressed) {
-                if (!Mod.StatsManager.HadPass) {
-                    Mod.Log("No pass yet, not showing summary hud");
-                    return;
-                }
-
                 Visible = !Visible;
                 Mod.Log($"Summary HUD is now '{Visible}'");
                 Tabs[SelectedTab].Update();
             }
             if (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed) {
-                if (!Mod.StatsManager.HadPass) {
-                    Mod.Log("No pass yet, not showing summary hud");
-                    return;
-                }
-
                 SelectedTab = (SelectedTab + 1) % Tabs.Count;
+                Tabs[SelectedTab].Update();
+            }
+            if (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed) {
+                Tabs[SelectedTab].ChangedSelectedStat(1);
+                Tabs[SelectedTab].Update();
+            }
+            if (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed) {
+                Tabs[SelectedTab].ChangedSelectedStat(-1);
                 Tabs[SelectedTab].Update();
             }
         }

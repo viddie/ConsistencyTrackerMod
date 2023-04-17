@@ -1164,6 +1164,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
         public ButtonBinding ButtonToggleSummaryHud { get; set; }
         public ButtonBinding ButtonSummaryHudNextTab { get; set; }
+        public ButtonBinding ButtonSummaryHudNextStat { get; set; }
+        public ButtonBinding ButtonSummaryHudPreviousStat { get; set; }
         #endregion
 
         #region Helpers

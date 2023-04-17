@@ -4,6 +4,7 @@ using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,50 +13,58 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageChartTest : SummaryHudPage {
 
         private LineChart TestChart { get; set; }
-        private LineChart TestChartSmall { get; set; }
-        private LineChart TestChartVerySmall { get; set; }
+        //private LineChart TestChartSmall { get; set; }
+        //private LineChart TestChartVerySmall { get; set; }
         private string DataPointText { get; set; }
-        
+
         public PageChartTest(string name) : base(name) {
+            StatCount = 3;
+            
             TestChart = new LineChart(new ChartSettings() {
                 ChartWidth = 1000,
                 ChartHeight = 650,
             });
 
-            TestChartSmall = new LineChart(new ChartSettings() {
-                ChartWidth = 200,
-                ChartHeight = 150,
-                Scale = 0.5f,
-                BackgroundColor = new Color(0f, 0f, 0f, 0f),
-                YMax = 150,
-                YAxisLabelCount = 6,
-            });
 
-            TestChartVerySmall = new LineChart(new ChartSettings() {
-                ChartWidth = 100,
-                ChartHeight = 75,
-                Scale = 0.25f,
-                AxisLabelFontMult = 1.2f,
-                BackgroundColor = new Color(0f, 0f, 0f, 0f),
-                ShowXAxisLabels = false,
-            });
+            //TestChartSmall = new LineChart(new ChartSettings() {
+            //    ChartWidth = 200,
+            //    ChartHeight = 150,
+            //    Scale = 0.5f,
+            //    BackgroundColor = new Color(0f, 0f, 0f, 0f),
+            //    YMax = 150,
+            //    YAxisLabelCount = 6,
+            //});
+
+            //TestChartVerySmall = new LineChart(new ChartSettings() {
+            //    ChartWidth = 100,
+            //    ChartHeight = 75,
+            //    Scale = 0.25f,
+            //    AxisLabelFontMult = 1.2f,
+            //    BackgroundColor = new Color(0f, 0f, 0f, 0f),
+            //    ShowXAxisLabels = false,
+            //});
         }
 
         public override void Update() {
             base.Update();
 
-            PathInfo path = Stats.LastPassPathInfo;
-            ChapterStats stats = Stats.LastPassChapterStats;
-
-            if (path == null) {
+            if (Stats.LastPassPathInfo == null) {
                 MissingPath = true;
                 return;
             }
-            
+
+            if (SelectedStat == 0) {
+                UpdateChart1();
+            }
+        }
+
+        public void UpdateChart1() {
+            PathInfo path = Stats.LastPassPathInfo;
+            ChapterStats stats = Stats.LastPassChapterStats;
             
             TestChart.Settings.YMax = path.RoomCount;
-            TestChartSmall.Settings.YMax = path.RoomCount;
-            TestChartVerySmall.Settings.YMax = path.RoomCount;
+            //TestChartSmall.Settings.YMax = path.RoomCount;
+            //TestChartVerySmall.Settings.YMax = path.RoomCount;
 
             List<LineDataPoint> dataRollingAvg1 = new List<LineDataPoint>();
             List<LineDataPoint> dataRollingAvg3 = new List<LineDataPoint>();
@@ -95,34 +104,53 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             List<LineSeries> series = new List<LineSeries>() {
                 new LineSeries(){ Data = dataRollingAvg1, LineColor = Color.LightBlue, Depth = 1, Name = "Run Distances", ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.75f },
-                new LineSeries(){ Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = -1, Name = "Avg. over 3" },
+                new LineSeries(){ Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = -1, Name = "Avg. over 3", LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f },
                 //new LineSeries(){ Data = dataRollingAvg10, LineColor = new Color(255, 165, 0, 100), Depth = -1, Name = "Avg. over 10" },
             };
+
+            if (dataRollingAvg1.Count > 70) {
+                series[0].ShowLabels = false;
+            } else if (dataRollingAvg1.Count > 40) {
+                series[0].ShowLabels = false;
+                series[1].ShowLabels = true;
+            }
+
             TestChart.SetSeries(series);
-            TestChartSmall.SetSeries(series);
-            TestChartVerySmall.SetSeries(series);
+            //TestChartSmall.SetSeries(series);
+            //TestChartVerySmall.SetSeries(series);
 
             DataPointText = "Data Points:";
-            foreach (LineDataPoint dataPoint in dataRollingAvg1) {
+            for (int i = 0; i < dataRollingAvg1.Count; i++) {
+                LineDataPoint dataPoint = dataRollingAvg1[i];
                 DataPointText += $"\n    {dataPoint.XAxisLabel}: {dataPoint.Y}";
+
+                if (i > 20) {
+                    DataPointText += "\n    ...";
+                    break;
+                }
             }
         }
 
         public override void Render() {
             base.Render();
 
-            TestChart.Position = MoveCopy(Position, 50, 0);
-            TestChart.Render();
 
-            TestChartSmall.Position = MoveCopy(Position, 50 + TestChart.Settings.ChartWidth + BasicMargin * 5, TestChartSmall.Settings.ChartHeight);
-            TestChartSmall.Render();
+            if (SelectedStat == 0) {
+                TestChart.Position = MoveCopy(Position, 50, 0);
+                TestChart.Render();
 
-            Vector2 pointer = MoveCopy(TestChartSmall.Position, 0, TestChartSmall.Settings.ChartHeight + BasicMargin * 5);
-            TestChartVerySmall.Position = pointer;
-            TestChartVerySmall.Render();
+                //TestChartSmall.Position = MoveCopy(Position, 50 + TestChart.Settings.ChartWidth + BasicMargin * 5, TestChartSmall.Settings.ChartHeight);
+                //TestChartSmall.Render();
 
-            pointer = MoveCopy(pointer, 0, TestChartVerySmall.Settings.ChartHeight + BasicMargin * 3);
-            DrawText(DataPointText, pointer, FontMultSmall, Color.White);
+                //Vector2 pointer = MoveCopy(TestChartSmall.Position, 0, TestChartSmall.Settings.ChartHeight + BasicMargin * 5);
+                //TestChartVerySmall.Position = pointer;
+                //TestChartVerySmall.Render();
+
+                //pointer = MoveCopy(pointer, 0, TestChartVerySmall.Settings.ChartHeight + BasicMargin * 3);
+
+                Vector2 pointer = MoveCopy(Position, 50 + TestChart.Settings.ChartWidth + BasicMargin * 5, 250);
+                DrawText(DataPointText, pointer, FontMultSmall, Color.White);
+            }
         }
     }
 }

@@ -25,12 +25,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
         public readonly string Name;
+        protected int SelectedStat { get; set; } = 0;
+        protected int StatCount { get; set; } = 1;
+        
         protected bool MissingPath { get; set; }
 
         public SummaryHudPage(string name) {
             Name = name;
 
             Position = new Vector2(0, 0);
+        }
+
+        public void ChangedSelectedStat(int change) {
+            SelectedStat = (SelectedStat + change) % StatCount;
         }
 
 
