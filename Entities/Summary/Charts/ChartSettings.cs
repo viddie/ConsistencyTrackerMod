@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
+namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
     public class ChartSettings {
 
         //General
@@ -25,12 +25,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
         public bool ShowXAxisLabels { get; set; } = true;
         public bool ShowYAxisLabels { get; set; } = true;
         public Color AxisLabelColor { get; set; } = Color.White;
-        public float AxisLabelFontMult { get; set; } = 1f;
+        public float YAxisLabelFontMult { get; set; } = 1f;
+        public float XAxisLabelFontMult { get; set; } = 1f;
 
         public float YMin { get; set; } = 0;
         public float YMax { get; set; } = 100;
         public int YAxisLabelCount { get; set; } = 5;
-        public Func<float, string> YAxisLabelFormatter { get; set; } = (float value) => value.ToString();
+        public Func<float, string> YAxisLabelFormatter { get; set; } = (float value) => Math.Round(value).ToString();
 
         public float XMin { get; set; } = 0;
         public float XMax { get; set; } = 100;

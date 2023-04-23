@@ -38,6 +38,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
         public void ChangedSelectedStat(int change) {
             SelectedStat = (SelectedStat + change) % StatCount;
+            if (SelectedStat < 0) SelectedStat = StatCount - 1;
+        }
+        public virtual string GetName() {
+            return Name;
         }
 
 

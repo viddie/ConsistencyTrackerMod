@@ -1,9 +1,11 @@
-﻿using Celeste.Mod.ConsistencyTracker.Models;
+﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables;
+using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +25,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private List<ProgressBar> BestRunsProgressBars { get; set; }
         private List<Tuple<string, int>> BestRunsData { get; set; } = new List<Tuple<string, int>>();
         private int ChapterRoomCount { get; set; }
+        
+        public Table TestTable { get; set; }
 
         public PageOverall(string name) : base(name) {
             int barWidth = 400;
@@ -31,6 +35,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             for (int i = 0; i < countBestRuns; i++) {
                 BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = barWidth, BarHeight = barHeight });
             }
+
+            TestTable = new Table() {
+                Settings = new TableSettings() {
+                    FontMultAll = 0.3f,
+                    BackgroundColorEven = new Color(0.1f, 0.1f, 0.1f, 0.1f),
+                    BackgroundColorOdd = new Color(0.2f, 0.2f, 0.2f, 0.25f),
+                },
+            };
         }
 
         public override void Update() {
@@ -93,6 +105,44 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     GoldenDeathsTree.Add($"    {rInfo.GetFormattedRoomName(StatManager.RoomNameType)}: {successRate} ({data.Item1 - rStats.GoldenBerryDeaths}/{data.Item1})");
                 }
             }
+
+            DataColumn roomColumn = new DataColumn("Room", typeof(string));
+            DataColumn successRateColumn = new DataColumn("Choke Rate", typeof(float));
+            DataColumn deathsColumn = new DataColumn("Successes/Entries", typeof(string));
+
+            DataTable testData = new DataTable() {
+                Columns = { roomColumn, successRateColumn, deathsColumn }
+            };
+            //Walk path
+            StatCount = (int) Math.Ceiling(((float)path.RoomCount) / 20);
+            int startIndex = SelectedStat * 20;
+            int index = 0;
+            foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                //if (index >= startIndex && index < startIndex + 20) {
+                //    testData.Rows.Add($"{cpInfo.Name} (Deaths: {cpInfo.Stats.GoldenBerryDeaths})", float.NaN, "");
+                //}
+                //index++;
+
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats rStats = stats.GetRoom(rInfo);
+                    Tuple<int, float, int, float> data = roomGoldenSuccessRateData[rInfo];
+
+                    if (index >= startIndex && index < startIndex + 20) {
+                        testData.Rows.Add(rInfo.GetFormattedRoomName(StatManager.RoomNameType), float.IsNaN(data.Item2) ? float.NaN : 1 - data.Item2, $"{data.Item1 - rStats.GoldenBerryDeaths}/{data.Item1}");
+                    }
+                    index++;
+                }
+            }
+            TestTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
+                [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
+                [successRateColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Right, ValueFormatter = (obj) => {
+                    float val = (float)obj;
+                    return float.IsNaN(val) ? "-%" : $"{StatManager.FormatPercentage(val)}";
+                } },
+                [deathsColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
+            };
+            TestTable.Data = testData;
+            TestTable.Update();
         }
 
         public override void Render() {
@@ -154,39 +204,46 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             measure = DrawText(TextRedRooms, pointer, FontMultSmall, Color.White);
 
             Move(ref pointer, 0, measure.Y + BasicMargin);
-            
+
             //Right Column: Draw deaths tree
             //We start drawing GoldenDeathTree lines at pointerCol2, moving the pointer downwards until we hit the limit
             //we mark down the longest line by width, and when we hit the limit, move the pointer back to the start, shifted by the longest line width
             //then continue
-            measure = DrawText("All Golden Deaths:", pointerCol2, FontMultMediumSmall, Color.White);
-            Move(ref pointerCol2, 0, measure.Y);
+            //measure = DrawText("All Golden Deaths:", pointerCol2, FontMultMediumSmall, Color.White);
+            //Move(ref pointerCol2, 0, measure.Y);
 
-            Vector2 startPointer = MoveCopy(pointerCol2, 0, 0);
-            maxWidth = 0;
-            foreach (string line in GoldenDeathsTree) {
-                float fontMult = 0;
+            //Vector2 startPointer = MoveCopy(pointerCol2, 0, 0);
+            //maxWidth = 0;
+            //foreach (string line in GoldenDeathsTree) {
+            //    float fontMult = 0;
 
-                if (GoldenDeathsTree.Count > 100) {
-                    fontMult = line.StartsWith("    ") ? FontMultAnt : FontMultSmall;
-                } else if (GoldenDeathsTree.Count > 80) {
-                    fontMult = line.StartsWith("    ") ? FontMultVerySmall : FontMultSmall;
-                } else {
-                    fontMult = line.StartsWith("    ") ? FontMultSmall : FontMultMediumSmall;
-                }
-                
-                measure = DrawText(line, pointerCol2, fontMult, Color.White);
-                if (measure.X > maxWidth) maxWidth = measure.X;
+            //    if (GoldenDeathsTree.Count > 100) {
+            //        fontMult = line.StartsWith("    ") ? FontMultAnt : FontMultSmall;
+            //    } else if (GoldenDeathsTree.Count > 80) {
+            //        fontMult = line.StartsWith("    ") ? FontMultVerySmall : FontMultSmall;
+            //    } else {
+            //        fontMult = line.StartsWith("    ") ? FontMultSmall : FontMultMediumSmall;
+            //    }
 
-                Move(ref pointerCol2, 0, measure.Y);
+            //    measure = DrawText(line, pointerCol2, fontMult, Color.White);
+            //    if (measure.X > maxWidth) maxWidth = measure.X;
 
-                if (!SummaryHud.Instance.IsInBounds(pointerCol2, 0, measure.Y)) {
-                    pointerCol2 = MoveCopy(startPointer, maxWidth + 50, 0);
-                    Move(ref startPointer, maxWidth + 50, 0);
+            //    Move(ref pointerCol2, 0, measure.Y);
 
-                    if (!SummaryHud.Instance.IsInBounds(pointerCol2)) break;
-                }
-            }
+            //    if (!SummaryHud.Instance.IsInBounds(pointerCol2, 0, measure.Y)) {
+            //        pointerCol2 = MoveCopy(startPointer, maxWidth + 50, 0);
+            //        Move(ref startPointer, maxWidth + 50, 0);
+
+            //        if (!SummaryHud.Instance.IsInBounds(pointerCol2)) break;
+            //    }
+            //}
+
+            Move(ref pointerCol2, 0, 30);
+            TestTable.Position = pointerCol2;
+            TestTable.Render();
+
+            Move(ref pointerCol2, TestTable.TotalWidth / 2, -5);
+            DrawText($"Table Page ({SelectedStat+1}/{StatCount})", pointerCol2, FontMultMedium, Color.White, new Vector2(0.5f, 1f));
         }
     }
 }

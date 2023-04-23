@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -12,7 +13,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     [Tracked]
     public class SummaryHud : Entity {
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
-        
+
+        private static Color BackdropColor = new Color(0, 0, 0, 0.85f);
+        private static Color ActiveTabColor = new Color(1, 1, 1, 1f);
+        private static Color NotActiveTabColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+
         public static SummaryHud Instance { get; set; }
 
         public List<SummaryHudPage> Tabs = new List<SummaryHudPage>();
@@ -45,10 +50,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             HudBounds = new Rectangle(Engine.Width / 2 - Settings.Width / 2, Engine.Height / 2 - Settings.Height / 2, Settings.Width, Settings.Height);
 
-            Tabs.Add(new PageCurrentSession("Current Session"));
+            Tabs.Add(new PageCurrentSession("Session"));
             Tabs.Add(new PageOverall("Overall"));
             Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
-            Tabs.Add(new PageChartTest("Chart Test"));
+            Tabs.Add(new PageChartTest("Charts"));
 
             ApplyModSettings();
 
@@ -97,20 +102,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             
             base.Render();
 
-            Color backdropColor = new Color(0, 0, 0, 0.85f);
-            Color activeTabColor = new Color(1, 1, 1, 1f);
-            Color notActiveTabColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-
 
             //Render backdrop
             Vector2 pointer = new Vector2(Engine.Width / 2 - Settings.Width / 2 - Settings.Margin, Engine.Height / 2 - Settings.Height / 2 - Settings.Margin);
-            Draw.Rect(pointer, Settings.Width + Settings.Margin, Settings.Height + Settings.Margin, backdropColor);
+            Draw.Rect(pointer, Settings.Width + Settings.Margin, Settings.Height + Settings.Margin, BackdropColor);
 
             //Render Title
             Move(ref pointer, Settings.Margin * 2, Settings.Margin);
-            ActiveFont.Draw(Settings.TitleText, pointer, Vector2.Zero, Vector2.One * Settings.FontMultLarge, Color.White);
-
-            Vector2 titleMeasures = ActiveFont.Measure(Settings.TitleText);
+            Vector2 titleMeasures = DrawHelper.DrawText(Settings.TitleText, pointer, Settings.FontMultLarge, Color.White);
             Vector2 contentPointer = MoveCopy(pointer, 0, titleMeasures.Y + Settings.ContentYMargin);
 
             //Render Tabs
@@ -118,18 +117,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             float lineHeight = ActiveFont.FontSize.Size * Settings.FontMultMedium;
             for (int i = 0; i < Tabs.Count; i++) {
                 SummaryHudPage tab = Tabs[i];
-                
+                string name = tab.GetName();
+
                 //Draw separator
-                Draw.Line(pointer.X, pointer.Y - lineHeight, pointer.X, pointer.Y + lineHeight, notActiveTabColor);
+                Draw.Line(pointer.X, pointer.Y - lineHeight, pointer.X, pointer.Y + lineHeight, NotActiveTabColor);
 
                 //Draw tab name
                 Move(ref pointer, Settings.Margin, 0);
-                Color color = SelectedTab == i ? activeTabColor : notActiveTabColor;
-                ActiveFont.Draw(tab.Name, pointer, new Vector2(0, 0.5f), Vector2.One * Settings.FontMultMedium, color);
-                //Draw.Circle(pointer, 10, Color.Red, 50);
-                //Draw.Circle(pointer, 3, Color.Red, 3);
-
-                Vector2 textMeasure = ActiveFont.Measure(tab.Name) * Settings.FontMultMedium;
+                Color color = SelectedTab == i ? ActiveTabColor : NotActiveTabColor;
+                Vector2 textMeasure = DrawHelper.DrawText(name, pointer, Settings.FontMultMedium, color, new Vector2(0, 0.5f));
                 Move(ref pointer, textMeasure.X + Settings.Margin, 0);
             }
 

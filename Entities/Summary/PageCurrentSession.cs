@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables;
 using Monocle;
 using Microsoft.Xna.Framework;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageCurrentSession : SummaryHudPage {
@@ -45,14 +47,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             string format = "Golden Deaths This Session: {chapter:goldenDeathsSession}";
             TextAttemptCount = Stats.FormatVariableFormat(format);
 
-            //format = "Best Runs" +
-            //    "\n#1 {pb:bestSession} ({pb:bestRoomNumberSession}/{chapter:roomCount})" +
-            //    "\n#2 {pb:bestSession#2} ({pb:bestRoomNumberSession#2}/{chapter:roomCount})" +
-            //    "\n#3 {pb:bestSession#3} ({pb:bestRoomNumberSession#3}/{chapter:roomCount})" +
-            //    "\n#4 {pb:bestSession#4} ({pb:bestRoomNumberSession#4}/{chapter:roomCount})" +
-            //    "\n#5 {pb:bestSession#5} ({pb:bestRoomNumberSession#5}/{chapter:roomCount})";
-            //TextBestRuns = Stats.FormatVariableFormat(format);
-
             //Update progress bars for best runs
             ChapterRoomCount = path.RoomCount;
             for (int i = 0; i < countBestRuns; i++) {
@@ -72,7 +66,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 "\n2 -> ({chapter:lastRunDistance#2}/{chapter:roomCount})" +
                 "\n3 -> ({chapter:lastRunDistance#3}/{chapter:roomCount})" +
                 "\n4 -> ({chapter:lastRunDistance#4}/{chapter:roomCount})" +
-                "\n5 -> ({chapter:lastRunDistance#5}/{chapter:roomCount})";
+                "\n5 -> ({chapter:lastRunDistance#5}/{chapter:roomCount})" +
+                "\n6 -> ({chapter:lastRunDistance#6}/{chapter:roomCount})" +
+                "\n7 -> ({chapter:lastRunDistance#7}/{chapter:roomCount})" +
+                "\n8 -> ({chapter:lastRunDistance#8}/{chapter:roomCount})" +
+                "\n9 -> ({chapter:lastRunDistance#9}/{chapter:roomCount})" +
+                "\n10 -> ({chapter:lastRunDistance#10}/{chapter:roomCount})";
             TextLastRuns = Stats.FormatVariableFormat(format);
 
             

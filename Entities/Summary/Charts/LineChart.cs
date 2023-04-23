@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
+namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
     public class LineChart : Chart {
 
         private List<LineSeries> AllSeries { get; set; } = new List<LineSeries>();
@@ -56,6 +56,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
             Vector2 prevPosition = Vector2.Zero;
             LineDataPoint prevPoint = null;
 
+            float seriesMin = series.MinYValue;
+            float seriesMax = series.MaxYValue;
+
             for (int i = 0; i < series.Data.Count; i++) {
                 LineDataPoint point = series.Data[i];
                 float value = point.Y;
@@ -64,9 +67,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                     prevPosition = Vector2.Zero;
                     continue;
                 }
+
+                float x, y;
+
+                if (series.IndepedentOfYAxis) {
+                    x = GetXValuePosition(i);
+                    y = GetYValuePosition(value, seriesMin, seriesMax);
+                } else { 
+                    x = GetXValuePosition(i);
+                    y = GetYValuePosition(value);
+                }
                 
-                float x = GetXValuePosition(i);
-                float y = GetYValuePosition(value);
                 Vector2 position = new Vector2(x, y);
                 if(series.PointSize > 0)
                     Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor ?? series.LineColor, 10);
@@ -80,8 +91,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 if (i > 1 && series.ShowLabels) {
                     float strokeThickness = Math.Max(1, 2 * Settings.Scale);
                     Color strokeColor = Color.Black;
+                    string label = prevPoint.Label ?? Settings.YAxisLabelFormatter(prevPoint.Y);
+
                     if (series.LabelPosition == LabelPosition.Middle) {
-                        ActiveFont.DrawOutline(Settings.YAxisLabelFormatter(prevPoint.Y), prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                        ActiveFont.DrawOutline(label, prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
                     } else {
                         Vector2 labelPosition = DrawHelper.MoveCopy(prevPosition, 0, 10 * Settings.Scale * (series.LabelPosition == LabelPosition.Top ? -1 : 1));
                         Vector2 justify = new Vector2(0.5f, series.LabelPosition == LabelPosition.Top ? 1f : 0f);
@@ -90,7 +103,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                         Draw.Line(prevPosition, labelPosition, Settings.GridLineColor, Settings.GridLineThickness * Settings.Scale);
 
                         //Draw label
-                        ActiveFont.DrawOutline(Settings.YAxisLabelFormatter(prevPoint.Y), labelPosition, justify, Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                        ActiveFont.DrawOutline(label, labelPosition, justify, Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
                     }
                 }
 
@@ -106,8 +119,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 float y = Position.Y + Settings.ChartHeight;
                 Vector2 position = new Vector2(x, y);
 
+                float oddHeightMult = AllSeries[0].Data.Count > 20 ? 2.5f : 1f;
+                float heightMult = i % 2 == 1 ? oddHeightMult : 1f;
+
                 //Draw the tick
-                Vector2 down = DrawHelper.MoveCopy(position, 0, Settings.AxisTickLength * Settings.Scale);
+                Vector2 down = DrawHelper.MoveCopy(position, 0, Settings.AxisTickLength * Settings.Scale * heightMult);
                 Draw.Line(position, down, Settings.AxisColor, Math.Max(Settings.AxisTickThickness * Settings.Scale, 1));
 
                 //Draw the label
@@ -115,16 +131,21 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                     string label = point.XAxisLabel;
                     if (!string.IsNullOrEmpty(label)) {
                         Vector2 labelPosition = DrawHelper.MoveCopy(down, 0, 5 * Settings.Scale);
-                        ActiveFont.Draw(label, labelPosition, new Vector2(0.5f, 0f), Vector2.One * Settings.FontMult * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
+                        ActiveFont.Draw(label, labelPosition, new Vector2(0.5f, 0f), Vector2.One * Settings.FontMult * Settings.XAxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
                     }
                 }
             }
         }
 
 
-        public float GetYValuePosition(float value) {
-            float yRange = Settings.YMax - Settings.YMin;
-            float yValueRange = value - Settings.YMin;
+        public float GetYValuePosition(float value, float min = float.NaN, float max = float.NaN) {
+            if (float.IsNaN(min))
+                min = Settings.YMin;
+            if (float.IsNaN(max))
+                max = Settings.YMax;
+
+            float yRange = max - min;
+            float yValueRange = value - min;
             float yValuePercent = yValueRange / yRange;
             float yValuePosition = Settings.ChartHeight - (Settings.ChartHeight * yValuePercent);
             return yValuePosition + Position.Y;

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
+namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
     public abstract class Chart : Entity {
         
         public ChartSettings Settings { get; set; }
@@ -68,7 +68,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Chart {
                 if (Settings.ShowYAxisLabels) {
                     string tickLabel = Settings.YAxisLabelFormatter(tickValue);
                     Vector2 tickLabelPosition = DrawHelper.MoveCopy(tickEnd, -5 * Settings.Scale, 0);
-                    ActiveFont.Draw(tickLabel, tickLabelPosition, new Vector2(1f, 0.5f), Vector2.One * Settings.FontMult * Settings.AxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
+                    ActiveFont.Draw(tickLabel, tickLabelPosition, new Vector2(1f, 0.5f), Vector2.One * Settings.FontMult * Settings.YAxisLabelFontMult * Settings.Scale, Settings.AxisLabelColor);
                 }
             }
         }
