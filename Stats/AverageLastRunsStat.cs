@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Stats {
 
@@ -31,6 +32,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static ValuePlaceholder<int> ListRollingAverageRunDistances = new ValuePlaceholder<int>(@"\{list:rollingAverageRunDistances#(.*?)\}", "{list:rollingAverageRunDistances#(.*?)}");
 
         public static List<string> IDs = new List<string>() { ChapterAverageRunDistance, ChapterAverageRunDistanceSession, ChapterHighestAverageOver10Runs };
+
+
+        public static Dictionary<string, Dictionary<int, double>> HighestRollingAverages { get; set; } = new Dictionary<string, Dictionary<int, double>>();
+        
 
         public AverageLastRunsStat() : base(IDs) {}
 
@@ -136,6 +141,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             // ===========================================
+            Dictionary<int, double> rollingAvgs = GetCurrentChapterRollingAverages(chapterStats);
 
             double averageRunDistanceLastXSession = 0;
             int runCountLastXSession = 0;
@@ -159,10 +165,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 if (runCountLastXSession == 10) {
                     double avg = averageRunDistanceLastXSession / runCountLastXSession;
-                    if (!chapterStats.CurrentChapterRollingAverages.ContainsKey(10)) {
-                        chapterStats.CurrentChapterRollingAverages.Add(10, avg);
-                    } else if(avg > chapterStats.CurrentChapterRollingAverages[10]) {
-                        chapterStats.CurrentChapterRollingAverages[10] = avg;
+                    if (!rollingAvgs.ContainsKey(10)) {
+                        rollingAvgs.Add(10, avg);
+                    } else if(avg > rollingAvgs[10]) {
+                        rollingAvgs[10] = avg;
                     }
                 }
             }
@@ -235,8 +241,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ChapterAverageRunDistance, $"{StatManager.FormatDouble(averageRunDistance)}");
             format = format.Replace(ChapterAverageRunDistanceSession, $"{StatManager.FormatDouble(averageRunDistanceSession)}");
 
-            if (chapterStats.CurrentChapterRollingAverages.ContainsKey(10)) {
-                format = format.Replace(ChapterHighestAverageOver10Runs, $"{StatManager.FormatDouble(chapterStats.CurrentChapterRollingAverages[10])}");
+            if (rollingAvgs.ContainsKey(10)) {
+                format = format.Replace(ChapterHighestAverageOver10Runs, $"{StatManager.FormatDouble(rollingAvgs[10])}");
             } else {
                 format = format.Replace(ChapterHighestAverageOver10Runs, $"{StatManager.ValueNotAvailable}");
             }
@@ -247,6 +253,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
+
+        public Dictionary<int, double> GetCurrentChapterRollingAverages(ChapterStats stats) {
+            if (!HighestRollingAverages.ContainsKey(stats.ChapterDebugName)) {
+                HighestRollingAverages.Add(stats.ChapterDebugName, new Dictionary<int, double>());
+            }
+            return HighestRollingAverages[stats.ChapterDebugName];
+        }
+        
 
         public static List<double> GetRollingAverages(PathInfo chapterPath, ChapterStats chapterStats, int windowSize, List<RoomStats> pastRuns) {
             int count = pastRuns.Count;

@@ -37,8 +37,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
 
         public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
-        public static Dictionary<string, Dictionary<int, double>> HighestRollingAverages { get; set; } = new Dictionary<string, Dictionary<int, double>>();
-
+        
         [JsonIgnore]
         public List<RoomStats> CurrentChapterLastGoldenRuns {
             get {
@@ -46,17 +45,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                     LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
                 }
                 return LastGoldenRuns[ChapterDebugName];
-            }
-            private set { }
-        }
-
-        [JsonIgnore]
-        public Dictionary<int, double> CurrentChapterRollingAverages {
-            get {
-                if (!HighestRollingAverages.ContainsKey(ChapterDebugName)) {
-                    HighestRollingAverages.Add(ChapterDebugName, new Dictionary<int, double>());
-                }
-                return HighestRollingAverages[ChapterDebugName];
             }
             private set { }
         }
@@ -461,22 +449,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("maxRate")]
         public float MaxRate { get => AverageSuccessOverN(ChapterStats.MAX_ATTEMPT_COUNT); }
 
-        //public int SuccessStreak {
-        //    get {
-        //        if (PreviousAttempts.Count == 0) return 0;
-
-        //        int count = 0;
-        //        bool success = PreviousAttempts[PreviousAttempts.Count - 1];
-        //        while (success) {
-        //            count++;
-        //            if (PreviousAttempts.Count == count) return count;
-        //            success = PreviousAttempts[PreviousAttempts.Count - (1 + count)];
-        //        }
-
-        //        return count;
-        //    }
-        //    private set { }
-        //}
         [JsonProperty("successStreak")]
         public int SuccessStreak { get; set; } = 0;
 
