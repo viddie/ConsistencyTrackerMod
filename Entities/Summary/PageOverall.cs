@@ -134,7 +134,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 }
             }
             TestTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
-                [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
+                [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 120 },
                 [successRateColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Right, ValueFormatter = (obj) => {
                     float val = (float)obj;
                     return float.IsNaN(val) ? "-%" : $"{StatManager.FormatPercentage(val)}";
@@ -142,6 +142,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [deathsColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
             };
             TestTable.Data = testData;
+            TestTable.Settings.Title = $"Table Page ({SelectedStat + 1}/{StatCount})";
             TestTable.Update();
         }
 
@@ -151,7 +152,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             if (MissingPath) return;
 
             Vector2 pointer = Position + Vector2.Zero;
-            Vector2 pointerCol2 = MoveCopy(pointer, SummaryHud.Settings.Width / 2 - 150, 0);
+            Vector2 pointerCol2 = MoveCopy(pointer, SummaryHud.Settings.Width / 2 - 0, 0);
             
             //Left Column
             Vector2 measure = DrawText(TextAttemptCount, pointer, FontMultMediumSmall, Color.White);
@@ -238,12 +239,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             //    }
             //}
 
-            Move(ref pointerCol2, 0, 30);
+            Move(ref pointerCol2, 0, 0);
             TestTable.Position = pointerCol2;
             TestTable.Render();
 
-            Move(ref pointerCol2, TestTable.TotalWidth / 2, -5);
-            DrawText($"Table Page ({SelectedStat+1}/{StatCount})", pointerCol2, FontMultMedium, Color.White, new Vector2(0.5f, 1f));
+            //Move(ref pointerCol2, TestTable.TotalWidth / 2, -5);
+            //DrawText($"Table Page ({SelectedStat+1}/{StatCount})", pointerCol2, FontMultMedium, Color.White, new Vector2(0.5f, 1f));
         }
     }
 }

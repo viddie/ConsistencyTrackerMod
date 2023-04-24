@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
     public class TableSettings {
+
+        public string Title { get; set; } = "";
+        public float FontMultTitle { get; set; } = 2f;
+
         public float CellPadding { get; set; } = 5;
         public float FontMultAll { get; set; } = 0.5f;
         public float FontMultHeader { get; set; } = 1f;

@@ -19,6 +19,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
         private Dictionary<DataColumn, float> ColumnContentWidths { get; set; } = new Dictionary<DataColumn, float>();
         public float TotalWidth { get; set; } = -1;
         public float TotalHeight { get; set; } = -1;
+        private float TitleHeight { get; set; } = -1;
 
         private ColumnSettings GetColumnSettings(DataColumn col) {
             if (ColSettings.ContainsKey(col)) {
@@ -51,13 +52,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                 }
             }
 
-            //Measure header widths
+            //Measure header and minimum widths
             foreach (DataColumn col in Data.Columns) {
                 ColumnSettings colSettings = GetColumnSettings(col);
                 string text = col.ColumnName;
                 float width = ActiveFont.Measure(text).X * Settings.FontMultAll * Settings.FontMultHeader;
                 if (width > ColumnContentWidths[col]) {
                     ColumnContentWidths[col] = width;
+                }
+
+                if (colSettings.MinWidth.HasValue && colSettings.MinWidth.Value > ColumnContentWidths[col]) {
+                    ColumnContentWidths[col] = colSettings.MinWidth.Value;
                 }
             }
 
@@ -79,6 +84,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
             }
 
             Vector2 pointer = Position;
+
+            //Draw title at the very top
+            if (!string.IsNullOrEmpty(Settings.Title)) {
+                Vector2 measure = ActiveFont.Measure(Settings.Title) * Settings.FontMultAll * Settings.FontMultTitle;
+                Vector2 titleStart = DrawHelper.MoveCopy(pointer, TotalWidth / 2, measure.Y / 2);
+                DrawHelper.DrawText(Settings.Title, titleStart, Settings.FontMultAll * Settings.FontMultTitle, Settings.TextColor, new Vector2(0.5f, 0.5f));
+                DrawHelper.Move(ref pointer, 0, measure.Y + 5);
+                TitleHeight = measure.Y + 5;
+            }
 
             //Draw separator at the top
             Draw.Line(pointer, DrawHelper.MoveCopy(pointer, TotalWidth, 0), Settings.SeparatorColor, Settings.SeparatorWidth);
@@ -116,6 +130,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                     Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll;
                     if (rowContentHeight < measure.Y) rowContentHeight = measure.Y;
                 }
+
+                contentStart.Y = (float)Math.Floor(contentStart.Y);
 
                 //Draw row background
                 Color bgColor = rowNumber % 2 == 0 ? Settings.BackgroundColorEven : Settings.BackgroundColorOdd;
@@ -170,7 +186,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                     continue;
                 }
 
-                Draw.Line(pointer, DrawHelper.MoveCopy(pointer, 0, TotalHeight), Settings.SeparatorColor, Settings.SeparatorWidth);
+                Draw.Line(pointer, DrawHelper.MoveCopy(pointer, 0, TotalHeight - TitleHeight), Settings.SeparatorColor, Settings.SeparatorWidth);
                 DrawHelper.Move(ref pointer, ColumnContentWidths[col] + Settings.CellPadding * 2 + Settings.SeparatorWidth, 0);
             }
         }

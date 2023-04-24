@@ -15,5 +15,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
         public TextAlign Alignment { get; set; } = TextAlign.Left;
         public Func<object, string> ValueFormatter { get; set; } = (obj) => obj.ToString();
 
+        public float? MinWidth { get; set; }
+
     }
 }
