@@ -13,15 +13,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageChartTest : SummaryHudPage {
 
         private LineChart TestChart { get; set; }
-        private string ChartTitle { get; set; }
 
         public PageChartTest(string name) : base(name) {
-            StatCount = 3;
+            StatCount = 2;
 
             TestChart = new LineChart(new ChartSettings() {
                 ChartWidth = 1000,
                 ChartHeight = 610,
                 YMin = 1,
+                TitleFontMult = 0.8f,
             });
         }
 
@@ -38,10 +38,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             if (SelectedStat == 0) {
-                UpdateChart1();
-            } else if (SelectedStat == 1) {
                 UpdateChart2And3(false);
-            } else if (SelectedStat == 2) {
+            } else if (SelectedStat == 1) {
                 UpdateChart2And3(true);
             }
         }
@@ -49,7 +47,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         public void UpdateChart1() {
             PathInfo path = Stats.LastPassPathInfo;
             ChapterStats stats = Stats.LastPassChapterStats;
-            ChartTitle = "Run Distances (+Average)";
+            //ChartTitle = "Run Distances (+Average)";
 
             TestChart.Settings.YMax = path.RoomCount;
             TestChart.Settings.YMin = 1;
@@ -159,9 +157,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             ChapterStats stats = Stats.LastPassChapterStats;
 
             if (isSession) {
-                ChartTitle = "Room Entries & Choke Rates (Session)";
+                TestChart.Settings.Title = "Room Entries & Choke Rates (Session)";
             } else {
-                ChartTitle = "Room Entries & Choke Rates";
+                TestChart.Settings.Title = "Room Entries & Choke Rates";
             }
 
 
@@ -171,7 +169,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomData = ChokeRateStat.GetRoomData(path, stats);
 
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     Tuple<int, float, int, float> data = roomData[rInfo];
 
                     int roomEntries = !isSession ? data.Item1 : data.Item3;
@@ -225,9 +223,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             base.Render();
 
             Vector2 pointer = Position;
-            Vector2 measure = DrawText(ChartTitle, pointer, FontMultMedium, Color.White);
 
-            Move(ref pointer, 50, measure.Y + BasicMargin * 2);
+            Move(ref pointer, 50, 0);
             TestChart.Position = pointer;
             TestChart.Render();
         }

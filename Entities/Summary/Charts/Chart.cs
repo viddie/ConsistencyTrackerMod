@@ -24,29 +24,34 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             base.Render();
             if (Settings.ChartWidth == 0 || Settings.ChartHeight == 0) return;
 
-            Vector2 position = Position;
-            Draw.Rect(position, Settings.ChartWidth, Settings.ChartHeight, Settings.BackgroundColor);
+            Vector2 pointer = DrawHelper.MoveCopy(Position, 0, 0);
+
+            //Draw title
+            Vector2 measure = DrawHelper.DrawText(Settings.Title, pointer, 1.5f * Settings.TitleFontMult * Settings.FontMult * Settings.Scale, Settings.TitleColor);
+
+            DrawHelper.Move(ref pointer, 0, measure.Y + 5 * Settings.Scale);
+            Draw.Rect(pointer, Settings.ChartWidth, Settings.ChartHeight, Settings.BackgroundColor);
 
             if (Settings.ShowXAxis) {
-                RenderXAxis();
+                RenderXAxis(pointer);
             }
             if (Settings.ShowYAxis) {
-                RenderYAxis();
+                RenderYAxis(pointer);
             }
 
             if (Settings.ShowGridLines) {
-                RenderYGridLines();
+                RenderYGridLines(pointer);
             }
 
             if (Settings.ShowLegend) {
-                RenderLegend();
+                RenderLegend(pointer);
             }
 
-            RenderDataPoints();
+            RenderDataPoints(pointer);
         }
 
-        public void RenderYAxis() {
-            Vector2 topLeft = Position;
+        public void RenderYAxis(Vector2 pointer) {
+            Vector2 topLeft = pointer;
             Vector2 bottomLeft = DrawHelper.MoveCopy(topLeft, 0, Settings.ChartHeight);
             Draw.Line(topLeft, bottomLeft, Settings.AxisColor, Settings.AxisThickness * Settings.Scale);
 
@@ -72,20 +77,20 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
                 }
             }
         }
-        public void RenderYGridLines() {
+        public void RenderYGridLines(Vector2 pointer) {
             int tickCount = Settings.YAxisLabelCount;
             float tickSpacing = Settings.ChartHeight / (tickCount - 1);
 
             for (int i = 0; i < tickCount-1; i++) {
-                float tickY = Position.Y + (tickSpacing * i);
-                Vector2 tickStart = new Vector2(Position.X, tickY);
+                float tickY = pointer.Y + (tickSpacing * i);
+                Vector2 tickStart = new Vector2(pointer.X, tickY);
                 Vector2 tickEnd = DrawHelper.MoveCopy(tickStart, Settings.ChartWidth, 0);
                 Draw.Line(tickStart, tickEnd, Settings.GridLineColor, Settings.GridLineThickness);
             }
         }
 
-        public void RenderLegend() {
-            Vector2 legendPosition = DrawHelper.MoveCopy(Position, Settings.ChartWidth + 30 * Settings.Scale, 30 * Settings.Scale);
+        public void RenderLegend(Vector2 pointer) {
+            Vector2 legendPosition = DrawHelper.MoveCopy(pointer, Settings.ChartWidth + 30 * Settings.Scale, 30 * Settings.Scale);
             float boxSideLength = 20 * Settings.Scale;
 
             List<Tuple<string, Color>> series = GetLegendEntries();
@@ -105,14 +110,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             }
         }
 
-        public void RenderXAxis() {
-            Vector2 bottomLeft = DrawHelper.MoveCopy(Position, 0, Settings.ChartHeight);
+        public void RenderXAxis(Vector2 pointer) {
+            Vector2 bottomLeft = DrawHelper.MoveCopy(pointer, 0, Settings.ChartHeight);
             Vector2 bottomRight = DrawHelper.MoveCopy(bottomLeft, Settings.ChartWidth, 0);
             Draw.Line(bottomLeft, bottomRight, Settings.AxisColor, Settings.AxisThickness * Settings.Scale);
         }
 
         
         public abstract List<Tuple<string, Color>> GetLegendEntries();
-        public abstract void RenderDataPoints();
+        public abstract void RenderDataPoints(Vector2 pointer);
     }
 }

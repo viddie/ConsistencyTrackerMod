@@ -22,7 +22,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         protected static float FontMultAnt => SummaryHud.Settings.FontMultAnt;
 
         protected static float BasicMargin => 10;
-
+        public float PageHeight { get; set; } = -1;
+        public float PageWidth { get; set; } = -1;
 
         public readonly string Name;
         protected int SelectedStat { get; set; } = 0;

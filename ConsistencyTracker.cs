@@ -548,7 +548,19 @@ namespace Celeste.Mod.ConsistencyTracker {
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
             
+            //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false, false);
+
+            //Reset session
+            bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
+            ChaptersThisSession.Add(CurrentChapterDebugName);
+            if (!hasEnteredThisSession) {
+                CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
+            }
+            CurrentChapterStats.ResetCurrentRun();
+            //Another stats calculation, accounting for reset session
+            SaveChapterStats();
+
             if (session.LevelData.HasCheckpoint) {
                 LastRoomWithCheckpoint = CurrentRoomName;
             } else {
@@ -807,9 +819,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public ChapterStats GetCurrentChapterStats() {
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
 
-            bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
-            ChaptersThisSession.Add(CurrentChapterDebugName);
-            Log($"CurrentChapterName: '{CurrentChapterDebugName}', hasEnteredThisSession: '{hasEnteredThisSession}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
+            Log($"CurrentChapterName: '{CurrentChapterDebugName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
             ChapterStats toRet = null;
 
@@ -839,11 +849,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                 toRet = new ChapterStats();
                 toRet.SetCurrentRoom(CurrentRoomName);
             }
-
-            if (!hasEnteredThisSession) {
-                toRet.ResetCurrentSession();
-            }
-            toRet.ResetCurrentRun();
 
             return toRet;
         }

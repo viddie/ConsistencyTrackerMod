@@ -12,6 +12,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
 
         private List<LineSeries> AllSeries { get; set; } = new List<LineSeries>();
 
+        private Vector2 DataPointer { get; set; }
         private float XPositionFactor { get; set; }
 
         public LineChart() {
@@ -44,7 +45,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             return AllSeries;
         }
 
-        public override void RenderDataPoints() {
+        public override void RenderDataPoints(Vector2 pointer) {
+            DataPointer = pointer;
+            
             foreach (LineSeries series in AllSeries) {
                 RenderSeries(series);
             }
@@ -116,7 +119,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             for (int i = 0; i < AllSeries[0].Data.Count; i++) {
                 LineDataPoint point = AllSeries[0].Data[i];
                 float x = GetXValuePosition(i);
-                float y = Position.Y + Settings.ChartHeight;
+                float y = DataPointer.Y + Settings.ChartHeight;
                 Vector2 position = new Vector2(x, y);
 
                 float oddHeightMult = AllSeries[0].Data.Count > 20 ? 2.5f : 1f;
@@ -148,13 +151,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             float yValueRange = value - min;
             float yValuePercent = yValueRange / yRange;
             float yValuePosition = Settings.ChartHeight - (Settings.ChartHeight * yValuePercent);
-            return yValuePosition + Position.Y;
+            return yValuePosition + DataPointer.Y;
         }
 
         public float GetXValuePosition(int pointIndex) {
             //have the points be placed evenly spaced across the chart
             float xValuePosition = XPositionFactor * pointIndex;
-            return xValuePosition + Position.X;
+            return xValuePosition + DataPointer.X;
         }
 
         public override List<Tuple<string, Color>> GetLegendEntries() {

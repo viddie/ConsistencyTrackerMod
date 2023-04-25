@@ -30,6 +30,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("sideName")]
         public string SideName { get; set; }
 
+        [JsonProperty("sessionStarted")]
+        public DateTime SessionStarted { get; set; }
+
         [JsonProperty("currentRoom")]
         public RoomStats CurrentRoom { get; set; }
 
@@ -106,12 +109,46 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return targetRoom;
         }
 
-        public void ResetCurrentSession() {
+        /// <summary>
+        /// Resets the current session stats. Called once per session on chapter entry
+        /// </summary>
+        public void ResetCurrentSession(PathInfo chapterPath) {
+            //Store current session data in session history first
+            StoreOldSessionData(chapterPath);
+
+            //Then reset current session data
             foreach (string name in Rooms.Keys) {
                 RoomStats room = Rooms[name];
                 room.GoldenBerryDeathsSession = 0;
             }
+
+            SessionStarted = DateTime.Now;
         }
+
+        /// <summary>
+        /// Stores the current stats in the session data history.
+        /// </summary>
+        public void StoreOldSessionData(PathInfo chapterPath) {
+            //Backwards compatibility. If the session started is null, it means the session was started before the session history was implemented
+            if (SessionStarted == null) {
+                return;
+            }
+            //No path = no session trackable
+            if (chapterPath == null) {
+                return;
+            }
+
+            OldSession oldSession = new OldSession() {
+                SessionStarted = SessionStarted,
+                TotalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths,
+                TotalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession,
+                TotalSuccessRate = chapterPath.Stats.SuccessRate,
+            };
+        }
+        
+        /// <summary>
+        /// Resets the current run stats. Called on every chapter entry
+        /// </summary>
         public void ResetCurrentRun() {
             foreach (string name in Rooms.Keys) {
                 RoomStats room = Rooms[name];
@@ -123,11 +160,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             List<string> lines = new List<string>();
             lines.Add($"{CurrentRoom}");
 
-
             foreach (string key in Rooms.Keys) {
                 lines.Add($"{Rooms[key]}");
             }
-
 
             return string.Join("\n", lines)+"\n";
         }

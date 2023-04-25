@@ -31,6 +31,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return Checkpoints.Sum((cpInfo) => cpInfo.Rooms.Count);
             }
         }
+        [JsonProperty("gameplayRoomCount")]
+        public int GameplayRoomCount {
+            get {
+                return Checkpoints.Sum((cpInfo) => cpInfo.GameplayRooms.Count);
+            }
+        }
 
         [JsonProperty("ignoredRooms")]
         public List<string> IgnoredRooms { get; set; } = new List<string>();
@@ -118,6 +124,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<RoomInfo> Rooms { get; set; } = new List<RoomInfo>();
 
         [JsonIgnore]
+        public List<RoomInfo> GameplayRooms {
+            get => Rooms.Where((r) => r.IsNonGameplayRoom == false).ToList();
+        }
+
+        [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;
         [JsonIgnore]
         public int CPNumberInChapter { get; set; } = -1;
@@ -174,6 +185,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("customRoomName")]
         public string CustomRoomName { get; set; }
 
+        [JsonProperty("isNonGameplayRoom")]
+        public bool IsNonGameplayRoom { get; set; }
+
         public override string ToString() {
             return DebugRoomName;
         }
@@ -185,6 +199,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public string GetFormattedRoomName(RoomNameDisplayType format) {
             if (!string.IsNullOrEmpty(CustomRoomName)) return CustomRoomName;
+
+            if (IsNonGameplayRoom) {
+                switch (format) {
+                    case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                        return $"T-{RoomNumberInChapter}";
+                    case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                        return $"Transition-{RoomNumberInChapter}";
+                }
+            }
             
             switch (format) {
                 case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:

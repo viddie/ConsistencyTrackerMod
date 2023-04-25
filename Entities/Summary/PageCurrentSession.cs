@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageCurrentSession : SummaryHudPage {
@@ -24,6 +25,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private List<Tuple<string, int>> BestRunsData { get; set; } = new List<Tuple<string, int>>();
         private int ChapterRoomCount { get; set; }
 
+        private LineChart SessionChart { get; set; }
+
         public PageCurrentSession(string name) : base(name) {
             int barWidth = 400;
             int barHeight = 13;
@@ -31,6 +34,16 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             for (int i = 0; i < countBestRuns; i++) {
                 BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = barWidth, BarHeight = barHeight });
             }
+
+            SessionChart = new LineChart(new ChartSettings() {
+                ChartWidth = 610,
+                ChartHeight = 420,
+                YMin = 1,
+                YAxisLabelFontMult = 0.5f,
+                TitleFontMult = 0.5f,
+                LegendFontMult = 0.5f,
+                Title = "Run Distances (+Average)",
+            });
         }
 
         public override void Update() {
@@ -87,6 +100,77 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     GoldenDeathsTree.Add($"    {rInfo.GetFormattedRoomName(StatManager.RoomNameType)}: {successRate} ({data.Item3 - rStats.GoldenBerryDeathsSession}/{data.Item3})");
                 }
             }
+
+            UpdateSessionChart(path, stats);
+        }
+
+        private void UpdateSessionChart(PathInfo path, ChapterStats stats) {
+            SessionChart.Settings.YMax = path.GameplayRoomCount;
+
+            List<LineDataPoint> dataRollingAvg1 = new List<LineDataPoint>();
+            List<LineDataPoint> dataRollingAvg3 = new List<LineDataPoint>();
+            List<LineDataPoint> dataRollingAvg10 = new List<LineDataPoint>();
+
+            List<double> rollingAvg1 = AverageLastRunsStat.GetRollingAverages(path, stats, 1, stats.CurrentChapterLastGoldenRuns);
+            List<double> rollingAvg3 = AverageLastRunsStat.GetRollingAverages(path, stats, 3, stats.CurrentChapterLastGoldenRuns);
+            List<double> rollingAvg10 = AverageLastRunsStat.GetRollingAverages(path, stats, 10, stats.CurrentChapterLastGoldenRuns);
+
+            for (int i = 0; i < rollingAvg1.Count; i++) {
+                dataRollingAvg1.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = (float)rollingAvg1[i],
+                    Label = rollingAvg1[i].ToString(),
+                });
+
+                float val3 = float.NaN;
+                if (i > 0 && i < rollingAvg1.Count - 1 && rollingAvg1.Count >= 3) {
+                    val3 = (float)rollingAvg3[i - 1];
+                }
+                dataRollingAvg3.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = val3,
+                });
+
+
+                float val10 = float.NaN;
+                if (i > 3 && i < rollingAvg1.Count - 5 && rollingAvg1.Count >= 10) {
+                    val10 = (float)rollingAvg10[i - 4];
+                }
+                dataRollingAvg10.Add(new LineDataPoint() {
+                    XAxisLabel = $"{i + 1}",
+                    Y = val10,
+                });
+            }
+
+            int pointCount = dataRollingAvg1.Count;
+
+            LineSeries data1 = new LineSeries() { Data = dataRollingAvg1, LineColor = Color.LightBlue, Depth = 1, Name = "Run Distances", ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.75f };
+            LineSeries data3 = new LineSeries() { Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Avg. over 3", LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
+            LineSeries data10 = new LineSeries() { Data = dataRollingAvg10, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Avg. over 10" };
+
+            List<LineSeries> series = new List<LineSeries>() { data1 };
+
+            if (pointCount <= 13) {
+                series.Add(data3);
+            } else {
+                series.Add(data10);
+            }
+            
+
+            SessionChart.Settings.XAxisLabelFontMult = 1f;
+
+            if (pointCount > 70) {
+                series[0].ShowLabels = false;
+                SessionChart.Settings.XAxisLabelFontMult = 0.3f;
+            } else if (pointCount > 40) {
+                series[0].ShowLabels = false;
+                series[1].ShowLabels = true;
+                SessionChart.Settings.XAxisLabelFontMult = 0.5f;
+            } else if (pointCount > 25) {
+                SessionChart.Settings.XAxisLabelFontMult = 0.65f;
+            }
+
+            SessionChart.SetSeries(series);
         }
 
         public override void Render() {
@@ -94,8 +178,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             if (MissingPath) return;
 
-            Vector2 pointer = Position + Vector2.Zero;
-            Vector2 pointerCol2 = MoveCopy(pointer, SummaryHud.Settings.Width / 2 - 150, 0);
+            Vector2 pointer = MoveCopy(Position, 0, 0);
+            Vector2 pointerCol2 = MoveCopy(pointer, PageWidth / 2 - 100, 0);
 
             //Left Column
             Vector2 measure = DrawText(TextAttemptCount, pointer, FontMultMediumSmall, Color.White);
@@ -142,37 +226,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Move(ref pointer, 0, measure.Y + BasicMargin);
 
-            //Right Column: Draw deaths tree
-            //We start drawing GoldenDeathTree lines at pointerCol2, moving the pointer downwards until we hit the limit
-            //we mark down the longest line by width, and when we hit the limit, move the pointer back to the start, shifted by the longest line width
-            //then continue
-            measure = DrawText("Session Golden Deaths:", pointerCol2, FontMultMediumSmall, Color.White);
-            Move(ref pointerCol2, 0, measure.Y);
 
-            Vector2 startPointer = MoveCopy(pointerCol2, 0, 0);
-            foreach (string line in GoldenDeathsTree) {
-                float fontMult = 0;
+            //Right Column: Chart
+            Vector2 separator = MoveCopy(pointerCol2, -50, 0);
+            Draw.Line(separator, MoveCopy(separator, 0, PageHeight), Color.Gray, 2);
 
-                if (GoldenDeathsTree.Count > 100) {
-                    fontMult = line.StartsWith("    ") ? FontMultAnt : FontMultSmall;
-                } else if (GoldenDeathsTree.Count > 80) {
-                    fontMult = line.StartsWith("    ") ? FontMultVerySmall : FontMultSmall;
-                } else {
-                    fontMult = line.StartsWith("    ") ? FontMultSmall : FontMultMediumSmall;
-                }
-
-                measure = DrawText(line, pointerCol2, fontMult, Color.White);
-                if (measure.X > maxWidth) maxWidth = measure.X;
-
-                Move(ref pointerCol2, 0, measure.Y);
-
-                if (!SummaryHud.Instance.IsInBounds(pointerCol2, 0, measure.Y * 2)) {
-                    pointerCol2 = MoveCopy(startPointer, maxWidth + 50, 0);
-                    Move(ref startPointer, maxWidth + 50, 0);
-                    
-                    if (!SummaryHud.Instance.IsInBounds(pointerCol2)) break;
-                }
-            }
+            SessionChart.Position = pointerCol2;
+            SessionChart.Render();
         }
     }
 }

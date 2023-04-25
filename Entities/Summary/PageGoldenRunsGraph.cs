@@ -35,8 +35,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Color.Blue,
             Color.LightBlue
         };
-        private static int GoldenDeathFilterWidth = 1000;
-        private static int GoldenDeathFilterHeight = 650;
+        private static int GoldenDeathFilterWidth = 1100;
+        private static int GoldenDeathFilterHeight = 700;
 
         public PageGoldenRunsGraph(string name) : base(name) {
 
@@ -57,7 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             CheckpointEntriesCount = new List<Tuple<string, int, int>>();
 
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     RoomStats rStats = stats.GetRoom(rInfo);
                     Entries.Add(new Entry() {
                         GoldenDeaths = rStats.GoldenBerryDeaths,

@@ -224,17 +224,26 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             //Walk the path
             int cpNumber = 0;
             int roomNumber = 0;
+            int transitionNumber = 0;
             foreach (CheckpointInfo cpInfo in pathInfo.Checkpoints) {
                 cpNumber++;
                 cpInfo.CPNumberInChapter = cpNumber;
 
                 int roomNumberInCP = 0;
+                int transitionNumberInCP = 0;
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    roomNumber++;
-                    roomNumberInCP++;
-                    rInfo.RoomNumberInChapter = roomNumber;
-                    rInfo.RoomNumberInCP = roomNumberInCP;
+                    if (rInfo.IsNonGameplayRoom) {
+                        transitionNumber++;
+                        transitionNumberInCP++;
+                        rInfo.RoomNumberInChapter = transitionNumber;
+                        rInfo.RoomNumberInCP = transitionNumberInCP;
+                    } else { 
+                        roomNumber++;
+                        roomNumberInCP++;
+                        rInfo.RoomNumberInChapter = roomNumber;
+                        rInfo.RoomNumberInCP = roomNumberInCP;
+                    }
                 }
             }
         }

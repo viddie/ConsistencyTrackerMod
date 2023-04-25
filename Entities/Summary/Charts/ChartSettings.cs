@@ -9,6 +9,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
     public class ChartSettings {
 
         //General
+        public string Title { get; set; }
+        public float TitleFontMult { get; set; } = 1f;
+        public Color TitleColor { get; set; } = Color.White;
+
         public float ChartWidth { get; set; }
         public float ChartHeight { get; set; }
         public float Scale { get; set; } = 1;

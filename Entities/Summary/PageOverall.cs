@@ -123,7 +123,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 //}
                 //index++;
 
-                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     RoomStats rStats = stats.GetRoom(rInfo);
                     Tuple<int, float, int, float> data = roomGoldenSuccessRateData[rInfo];
 

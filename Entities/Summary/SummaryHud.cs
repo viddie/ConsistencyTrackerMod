@@ -104,11 +104,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             //Render backdrop
-            Vector2 pointer = new Vector2(Engine.Width / 2 - Settings.Width / 2 - Settings.Margin, Engine.Height / 2 - Settings.Height / 2 - Settings.Margin);
-            Draw.Rect(pointer, Settings.Width + Settings.Margin, Settings.Height + Settings.Margin, BackdropColor);
+            Vector2 pointer = new Vector2(Engine.Width / 2 - Settings.Width / 2 - Settings.Margin * 2, Engine.Height / 2 - Settings.Height / 2 - Settings.Margin);
+            Draw.Rect(pointer, Settings.Width + Settings.Margin * 4, Settings.Height + Settings.Margin * 2, BackdropColor);
 
             //Render Title
             Move(ref pointer, Settings.Margin * 2, Settings.Margin);
+            Vector2 origPointer = MoveCopy(pointer, 0, 0);
             Vector2 titleMeasures = DrawHelper.DrawText(Settings.TitleText, pointer, Settings.FontMultLarge, Color.White);
             Vector2 contentPointer = MoveCopy(pointer, 0, titleMeasures.Y + Settings.ContentYMargin);
 
@@ -130,6 +131,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             //Render Tab content
+            Tabs[SelectedTab].PageHeight = Settings.Height - (contentPointer.Y - origPointer.Y);
+            Tabs[SelectedTab].PageWidth = Settings.Width;
             Tabs[SelectedTab].Position = contentPointer;
             Tabs[SelectedTab].Render();
         }
