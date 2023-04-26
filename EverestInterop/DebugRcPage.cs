@@ -15,6 +15,7 @@ using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Monocle;
 using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses;
 using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Requests;
+using Celeste.Mod.ConsistencyTracker.Utility;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop
 {
@@ -762,6 +763,11 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 subFolderName = SanitizeFolderFileName(subFolderName);
                 fileName = SanitizeFolderFileName(fileName);
                 extension = SanitizeFolderFileName(extension);
+
+                if ($"{fileName}.{extension}" == PacePingManager.SaveStateSecretFileName) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"This file is protected from being read via this API");
+                    return;
+                }
 
                 string combinedPath;
                 if (subFolderName == null) {

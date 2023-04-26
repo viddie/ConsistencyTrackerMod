@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker
 {
@@ -1161,6 +1162,51 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
             subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
             subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
+
+            menu.Add(subMenu);
+        }
+        #endregion
+
+
+        #region Record Path Settings
+        public bool PacePing { get; set; } = false;
+
+        [SettingIgnore]
+        public bool PacePingEnabled { get; set; } = true;
+
+        public void CreatePacePingEntry(TextMenu menu, bool inGame) {
+            if (!inGame) return;
+
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Pace Ping Settings", false);
+
+            bool hasPath = Mod.CurrentChapterPath != null;
+            bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
+            PaceTiming paceTiming = null;
+            if (hasCurrentRoom) { 
+                paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
+            }
+
+            string toggleRoomTimingText = paceTiming == null ? "Current Room: Enable Pace Ping" : "Current Room: Disable Pace Ping";
+            subMenu.Add(new TextMenu.Button(toggleRoomTimingText) {
+                OnPressed = Mod.PacePingManager.ToggleCurrentRoomPacePing,
+                Disabled = !hasCurrentRoom
+            });
+            subMenu.Add(new TextMenu.Button("Test Pace Ping For This Room") {
+                OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
+                Disabled = !hasCurrentRoom
+            });
+
+            TextMenu.Item menuItem;
+            subMenu.Add(menuItem = new TextMenu.Button("Import Webhook URL from Clipboard").Pressed(() => {
+                string text = TextInput.GetClipboardText();
+                Mod.Log($"Importing webhook url from clipboard...");
+                try {
+                    Mod.PacePingManager.SaveDiscordWebhook(text);
+                } catch (Exception ex) {
+                    Mod.Log($"Couldn't import webhook url from clipboard: {ex}");
+                }
+            }));
+            subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
 
             menu.Add(subMenu);
         }

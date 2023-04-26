@@ -123,6 +123,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public TextOverlay IngameOverlay;
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
+        public PacePingManager PacePingManager;
 
 
         public ConsistencyTrackerModule() {
@@ -157,6 +158,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             HookStuff();
 
             StatsManager = new StatManager();
+            PacePingManager = new PacePingManager();
 
             DebugRcPage.Load();
 
@@ -670,6 +672,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //engineDelayTimer = 0;
             //engineDelayHadSetTimer = false;
+            PacePingManager.CheckPacePing(CurrentChapterPath, CurrentChapterStats);
         }
 
         private void SetRoomCompleted(bool resetOnDeath=false) {
