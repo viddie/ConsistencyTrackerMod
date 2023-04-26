@@ -222,6 +222,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         public override void Render() {
             base.Render();
 
+            if (MissingPath) return;
+
             Vector2 pointer = Position;
 
             Move(ref pointer, 50, 0);

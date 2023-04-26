@@ -182,12 +182,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             //Walk the path BACKWARDS (d1d7 reference???)
             for (int cpIndex = chapterPath.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {
                 CheckpointInfo cpInfo = chapterPath.Checkpoints[cpIndex];
+                List<RoomInfo> gameplayRooms = cpInfo.GameplayRooms;
 
-                for (int roomIndex = cpInfo.Rooms.Count - 1; roomIndex >= 0; roomIndex--) {
-                    RoomInfo rInfo = cpInfo.Rooms[roomIndex];
+                for (int roomIndex = gameplayRooms.Count - 1; roomIndex >= 0; roomIndex--) {
+                    RoomInfo rInfo = gameplayRooms[roomIndex];
+                    RoomStats rStats = chapterStats.GetRoom(rInfo);
 
-                    int goldenDeaths = chapterStats.GetRoom(rInfo.DebugRoomName).GoldenBerryDeaths;
-                    int goldenDeathsSession = chapterStats.GetRoom(rInfo.DebugRoomName).GoldenBerryDeathsSession;
+                    int goldenDeaths = rStats.GoldenBerryDeaths;
+                    int goldenDeathsSession = rStats.GoldenBerryDeathsSession;
 
                     if (goldenDeaths > 0) {
                         string roomName = rInfo.GetFormattedRoomName(nameFormat);

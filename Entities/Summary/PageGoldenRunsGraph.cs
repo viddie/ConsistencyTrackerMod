@@ -66,7 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                         CheckpointNumber = cpInfo.CPNumberInChapter
                     });
                 }
-                CheckpointEntriesCount.Add(Tuple.Create(cpInfo.Name, cpInfo.RoomCount, cpInfo.Stats.GoldenBerryDeaths));
+                CheckpointEntriesCount.Add(Tuple.Create(cpInfo.Name, cpInfo.GameplayRoomCount, cpInfo.Stats.GoldenBerryDeaths));
             }
 
             TotalGoldenDeaths = path.Stats.GoldenBerryDeaths;

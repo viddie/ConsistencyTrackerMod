@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
     public class LineChart : Chart {
 
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+
         private List<LineSeries> AllSeries { get; set; } = new List<LineSeries>();
 
         private Vector2 DataPointer { get; set; }
@@ -56,6 +58,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
         }
 
         public void RenderSeries(LineSeries series) {
+            Mod.Log($"Rendering series: {series.Name}");
             Vector2 prevPosition = Vector2.Zero;
             LineDataPoint prevPoint = null;
 
@@ -63,6 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             float seriesMax = series.MaxYValue;
 
             for (int i = 0; i < series.Data.Count; i++) {
+                Mod.Log($"Rendering point i={i}");
                 LineDataPoint point = series.Data[i];
                 float value = point.Y;
 
@@ -82,19 +86,24 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
                 }
                 
                 Vector2 position = new Vector2(x, y);
-                if(series.PointSize > 0)
+                Mod.Log($"At position '{position}' with value '{value}'", isFollowup:true);
+                
+                if (series.PointSize > 0)
                     Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor ?? series.LineColor, 10);
-
+                
+                Mod.Log($"Drawing line to previous point", isFollowup:true);
                 //For all but the first point, draw a line to the previous point
                 if (i > 0 && prevPosition != Vector2.Zero) {
                     Draw.Line(position, prevPosition, series.LineColor, series.LineThickness * Settings.Scale);
                 }
 
+                Mod.Log($"Drawing label for previous point", isFollowup: true);
                 //Draw the label for the previous point
                 if (i > 1 && series.ShowLabels) {
                     float strokeThickness = Math.Max(1, 2 * Settings.Scale);
                     Color strokeColor = Color.Black;
                     string label = prevPoint.Label ?? Settings.YAxisLabelFormatter(prevPoint.Y);
+                    Mod.Log($"Label for previous point: '{label}'", isFollowup: true);
 
                     if (series.LabelPosition == LabelPosition.Middle) {
                         ActiveFont.DrawOutline(label, prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
@@ -116,6 +125,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
         }
 
         public void RenderXAxisTicksAndLabels() {
+            if (AllSeries.Count == 0) return;
+
             for (int i = 0; i < AllSeries[0].Data.Count; i++) {
                 LineDataPoint point = AllSeries[0].Data[i];
                 float x = GetXValuePosition(i);

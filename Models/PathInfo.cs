@@ -28,13 +28,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("roomCount")]
         public int RoomCount {
             get {
-                return Checkpoints.Sum((cpInfo) => cpInfo.Rooms.Count);
+                return Checkpoints.Sum((cpInfo) => cpInfo.RoomCount);
             }
         }
         [JsonProperty("gameplayRoomCount")]
         public int GameplayRoomCount {
             get {
-                return Checkpoints.Sum((cpInfo) => cpInfo.GameplayRooms.Count);
+                return Checkpoints.Sum((cpInfo) => cpInfo.GameplayRoomCount);
             }
         }
 
@@ -99,6 +99,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         public void SetCheckpointRefs() {
             foreach (CheckpointInfo cpInfo in Checkpoints) {
+                cpInfo.Chapter = this;
                 cpInfo.SetCheckpointRefs();
             }
         }
@@ -106,6 +107,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
     [Serializable]
     public class CheckpointInfo {
+
+        [JsonIgnore]
+        public PathInfo Chapter { get; set; }
 
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -116,8 +120,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("roomCount")]
         public int RoomCount {
             get => Rooms.Count;
-            private set {
-            }
+        }
+        [JsonProperty("gameplayRoomCount")]
+        public int GameplayRoomCount {
+            get => GameplayRooms.Count;
         }
 
         [JsonProperty("rooms")]
@@ -176,6 +182,121 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonIgnore]
         public CheckpointInfo Checkpoint { get; set; }
 
+        [JsonIgnore]
+        public RoomInfo NextRoomInCheckpoint { 
+            get {
+                if (Checkpoint == null) return null;
+
+                int index = Checkpoint.Rooms.IndexOf(this);
+                if (index == Checkpoint.Rooms.Count - 1) return null;
+
+                return Checkpoint.Rooms[index + 1];
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo NextGameplayRoomInCheckpoint {
+            get {
+                RoomInfo nextRoom = NextRoomInCheckpoint;
+                while (nextRoom != null && nextRoom.IsNonGameplayRoom) {
+                    nextRoom = nextRoom.NextRoomInCheckpoint;
+                }
+                if (nextRoom == null || nextRoom.IsNonGameplayRoom) return null;
+                return nextRoom;
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo PreviousRoomInCheckpoint {
+            get {
+                if (Checkpoint == null) return null;
+
+                int index = Checkpoint.Rooms.IndexOf(this);
+                if (index == 0) return null;
+
+                return Checkpoint.Rooms[index - 1];
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo PreviousGameplayRoomInCheckpoint {
+            get {
+                RoomInfo prevRoom = PreviousRoomInCheckpoint;
+                while (prevRoom != null && prevRoom.IsNonGameplayRoom) {
+                    prevRoom = prevRoom.PreviousRoomInCheckpoint;
+                }
+                if (prevRoom == null || prevRoom.IsNonGameplayRoom) return null;
+                return prevRoom;
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo NextRoomInChapter {
+            get {
+                if (Checkpoint == null) return null;
+
+                RoomInfo nextRoom = NextRoomInCheckpoint;
+                if (nextRoom != null) return nextRoom;
+
+                bool retNext = false;
+                CheckpointInfo nextCp = null;
+                foreach (CheckpointInfo cpInfo in Checkpoint.Chapter.Checkpoints) {
+                    if (retNext == true) {
+                        nextCp = cpInfo;
+                        break;
+                    }
+                    if (cpInfo == Checkpoint) {
+                        retNext = true;
+                    }
+                }
+
+                if (nextCp == null) return null;
+                if (nextCp.RoomCount == 0) return null;
+                return nextCp.Rooms[0];
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo NextGameplayRoomInChapter {
+            get {
+                RoomInfo nextRoom = NextRoomInChapter;
+                while (nextRoom != null && nextRoom.IsNonGameplayRoom) {
+                    nextRoom = nextRoom.NextRoomInChapter;
+                }
+                if (nextRoom == null || nextRoom.IsNonGameplayRoom) return null;
+                return nextRoom;
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo PreviousRoomInChapter {
+            get {
+                if (Checkpoint == null) return null;
+
+                RoomInfo previousRoom = PreviousRoomInCheckpoint;
+                if (previousRoom != null) return previousRoom;
+                
+                CheckpointInfo prevCp = null;
+                foreach (CheckpointInfo cpInfo in Checkpoint.Chapter.Checkpoints) {
+                    if (cpInfo == Checkpoint) {
+                        break;
+                    }
+                    prevCp = cpInfo;
+                }
+
+                if (prevCp == null) return null;
+                if (prevCp.RoomCount == 0) return null;
+                return prevCp.Rooms[prevCp.RoomCount - 1];
+            }
+        }
+        [JsonIgnore]
+        public RoomInfo PreviousGameplayRoomInChapter {
+            get {
+                RoomInfo prevRoom = PreviousRoomInCheckpoint;
+                while (prevRoom != null && prevRoom.IsNonGameplayRoom) {
+                    prevRoom = prevRoom.PreviousRoomInCheckpoint;
+                }
+                if (prevRoom == null || prevRoom.IsNonGameplayRoom) return null;
+                return prevRoom;
+            }
+        }
+
+
+
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
 
@@ -200,12 +321,31 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string GetFormattedRoomName(RoomNameDisplayType format) {
             if (!string.IsNullOrEmpty(CustomRoomName)) return CustomRoomName;
 
-            if (IsNonGameplayRoom) {
-                switch (format) {
-                    case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
-                        return $"T-{RoomNumberInChapter}";
-                    case RoomNameDisplayType.FullNameAndRoomNumberInCP:
-                        return $"Transition-{RoomNumberInChapter}";
+            if (format != RoomNameDisplayType.DebugRoomName && IsNonGameplayRoom) {
+                RoomInfo nextRoom = NextGameplayRoomInChapter;
+
+                if (nextRoom == null) {
+                    switch (format) {
+                        case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                        case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                            return $"End";
+                    }
+                } else {
+                    if (string.IsNullOrEmpty(nextRoom.CustomRoomName)) {
+                        switch (format) {
+                            case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                                return $"{nextRoom.Checkpoint.Abbreviation}-T{nextRoom.RoomNumberInCP}";
+                            case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                                return $"{nextRoom.Checkpoint.Name}-T{nextRoom.RoomNumberInCP}";
+                        }
+                    } else {
+                        switch (format) {
+                            case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                                return $"T-{nextRoom.CustomRoomName}";
+                            case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                                return $"Transition-{nextRoom.CustomRoomName}";
+                        }
+                    }
                 }
             }
             

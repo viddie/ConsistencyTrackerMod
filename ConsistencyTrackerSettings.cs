@@ -84,18 +84,43 @@ namespace Celeste.Mod.ConsistencyTracker
 
             TextMenu.Item menuItem;
             subMenu.Add(new TextMenu.SubHeader("Path Editing"));
+            bool hasPath = Mod.CurrentChapterPath != null;
+            bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
+            
             subMenu.Add(new TextMenu.Button("Open Path Edit Tool In Browser (Coming Soon...)") {
                 Disabled = true,
             });
             subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
-                OnPressed = Mod.RemoveRoomFromChapterPath
+                OnPressed = Mod.RemoveRoomFromChapterPath,
+                Disabled = !hasCurrentRoom
             });
             subMenu.Add(new TextMenu.Button("Group Current And Previous Rooms") {
-                OnPressed = Mod.GroupRoomsOnChapterPath
+                OnPressed = Mod.GroupRoomsOnChapterPath,
+                Disabled = !hasCurrentRoom
             });
             subMenu.Add(new TextMenu.Button("Ungroup Current From Previous Room") {
-                OnPressed = Mod.UngroupRoomsOnChapterPath
+                OnPressed = Mod.UngroupRoomsOnChapterPath,
+                Disabled = !hasCurrentRoom
             });
+            
+            bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
+            //add button to toggle transition flag for room
+            string buttonText = currentRoomIsTransition == null ? "Toggle Current Room As Transition" : (currentRoomIsTransition.Value ? "Set Current Room As Gameplay Room" : "Set Current Room As Transition Room");
+            subMenu.Add(menuItem = new TextMenu.Button(buttonText) {
+                OnPressed = () => {
+                    if (Mod.CurrentChapterPath == null) return;
+                    if (Mod.CurrentChapterPath.CurrentRoom == null) return;
+                    Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom = !Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom;
+                    Mod.SavePathToFile();
+                    Mod.StatsManager.AggregateStatsPassOnce(Mod.CurrentChapterPath);
+                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                },
+                Disabled = !hasCurrentRoom
+            });
+
+            string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
+            //Add an option to input a custom room name
+
             subMenu.Add(new TextMenu.OnOff("Show Room Names On Debug Map", ShowCCTRoomNamesOnDebugMap) {
                 OnValueChange = v => {
                     ShowCCTRoomNamesOnDebugMap = v;
@@ -103,10 +128,13 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             subMenu.Add(new TextMenu.SubHeader("Import / Export"));
-            subMenu.Add(new TextMenu.Button("Export path to Clipboard").Pressed(() => {
-                if (Mod.CurrentChapterPath == null) return;
-                TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
-            }));
+            subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
+                OnPressed = () => {
+                    if (Mod.CurrentChapterPath == null) return;
+                    TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
+                },
+                Disabled = !hasPath
+            });
             subMenu.Add(menuItem = new TextMenu.Button("Import path from Clipboard").Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing path from clipboard...");

@@ -61,7 +61,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             TextAttemptCount = Stats.FormatVariableFormat(format);
 
             //Update progress bars for best runs
-            ChapterRoomCount = path.RoomCount;
+            ChapterRoomCount = path.GameplayRoomCount;
             for (int i = 0; i < countBestRuns; i++) {
                 string[] split = Stats.FormatVariableFormat($"{{pb:bestSession#{i + 1}}};{{pb:bestRoomNumberSession#{i + 1}}}").Split(';');
                 string bestRoom = split[0];

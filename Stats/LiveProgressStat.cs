@@ -22,8 +22,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class LiveProgressStat : Stat {
 
         public static string ChapterRoomCount = "{chapter:roomCount}";
-        
+        public static string ChapterAllRoomsCount = "{chapter:allRoomsCount}";
+
         public static string CheckpointRoomCount = "{checkpoint:roomCount}";
+        public static string CheckpointAllRoomsCount = "{checkpoint:allRoomsCount}";
         public static string RoomNumberInChapter = "{room:roomNumberInChapter}";
         public static string RoomNumberInCheckpoint = "{room:roomNumberInCheckpoint}";
         public static string RoomChapterProgressPercent = "{room:chapterProgressPercent}";
@@ -52,8 +54,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, ChapterRoomCount);
-                
+                format = StatManager.MissingPathFormat(format, ChapterAllRoomsCount);
+
                 format = StatManager.MissingPathFormat(format, CheckpointRoomCount);
+                format = StatManager.MissingPathFormat(format, CheckpointAllRoomsCount);
                 format = StatManager.MissingPathFormat(format, RoomNumberInChapter);
                 format = StatManager.MissingPathFormat(format, RoomNumberInCheckpoint);
                 format = StatManager.MissingPathFormat(format, RoomChapterProgressPercent);
@@ -69,12 +73,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             
             int decimalPlaces = StatManager.DecimalPlaces;
 
-            int chapterRoomCount = chapterPath.RoomCount;
+            int chapterRoomCount = chapterPath.GameplayRoomCount;
             format = format.Replace(ChapterRoomCount, $"{chapterRoomCount}");
+            format = format.Replace(ChapterAllRoomsCount, $"{chapterPath.RoomCount}");
 
 
             if (chapterPath.CurrentRoom == null) { //Player is not on path
                 format = StatManager.NotOnPathFormat(format, CheckpointRoomCount);
+                format = StatManager.NotOnPathFormat(format, CheckpointAllRoomsCount);
 
                 format = StatManager.NotOnPathFormat(format, RoomNumberInChapter);
                 format = StatManager.NotOnPathFormat(format, RoomNumberInCheckpoint);
@@ -82,12 +88,30 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.NotOnPathFormatPercent(format, RoomCheckpointProgressPercent);
                 
             } else {
-                int checkpointRoomCount = chapterPath.CurrentRoom.Checkpoint.Rooms.Count;
+                RoomInfo rInfo = chapterPath.CurrentRoom;
 
-                int roomNumberInChapter = chapterPath.CurrentRoom.RoomNumberInChapter;
-                int roomNumberInCP = chapterPath.CurrentRoom.RoomNumberInCP;
-
+                int checkpointRoomCount = rInfo.Checkpoint.GameplayRooms.Count;
+                int checkpointAllRoomsCount = rInfo.Checkpoint.Rooms.Count;
+                
                 format = format.Replace(CheckpointRoomCount, $"{checkpointRoomCount}");
+                format = format.Replace(CheckpointAllRoomsCount, $"{checkpointAllRoomsCount}");
+
+                int roomNumberInChapter = rInfo.RoomNumberInChapter;
+                int roomNumberInCP = rInfo.RoomNumberInCP;
+
+                if (rInfo.IsNonGameplayRoom) {
+                    //Use the data from next room, or 100% if no next room in CP
+                    RoomInfo nextRoom = rInfo.NextGameplayRoomInChapter;
+                    if (nextRoom == null) {
+                        nextRoom = rInfo.PreviousGameplayRoomInChapter;
+                        if (nextRoom == null)
+                            nextRoom = rInfo;
+                    }
+                    
+                    roomNumberInChapter = nextRoom.RoomNumberInChapter;
+                    roomNumberInCP = nextRoom.RoomNumberInCP;
+                }
+
                 format = format.Replace(RoomNumberInChapter, $"{roomNumberInChapter}");
                 format = format.Replace(RoomNumberInCheckpoint, $"{roomNumberInCP}");
 

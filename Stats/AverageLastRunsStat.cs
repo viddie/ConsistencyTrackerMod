@@ -66,7 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             foreach (RoomStats rStats in chapterStats.Rooms.Values) {
                 RoomInfo rInfo = chapterPath.FindRoom(rStats);
-                if (rInfo == null) //rStats room is not on the path
+                if (rInfo == null || rInfo.IsNonGameplayRoom) //rStats room is not on the path or is transition room
                     continue;
 
                 countRunsTotal += rStats.GoldenBerryDeaths;

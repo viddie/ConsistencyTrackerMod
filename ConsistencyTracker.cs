@@ -933,7 +933,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CheckDefaultPathFile(farewellName, $"{assetPath}/{farewellAssetName}");
         }
         private void CheckDefaultPathFile(string name, string assetPath) {
-            string path = GetPathToFile(PathsFolder, $"{name}.txt");
+            string path = GetPathToFile(PathsFolder, name);
 
             if (!File.Exists(path)) {
                 CreatePathFileFromStream(name, assetPath);
