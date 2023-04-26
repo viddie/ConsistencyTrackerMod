@@ -1172,12 +1172,13 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PacePing { get; set; } = false;
 
         [SettingIgnore]
-        public bool PacePingEnabled { get; set; } = true;
+        public bool PacePingEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
 
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Pace Ping Settings", false);
+            TextMenu.Item menuItem;
 
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
@@ -1186,17 +1187,24 @@ namespace Celeste.Mod.ConsistencyTracker
                 paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
 
-            string toggleRoomTimingText = paceTiming == null ? "Current Room: Enable Pace Ping" : "Current Room: Disable Pace Ping";
-            subMenu.Add(new TextMenu.Button(toggleRoomTimingText) {
-                OnPressed = Mod.PacePingManager.ToggleCurrentRoomPacePing,
-                Disabled = !hasCurrentRoom
+            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
+            subMenu.Add(new TextMenu.OnOff("Pace Pings Enabled", PacePingEnabled) {
+                OnValueChange = v => {
+                    PacePingEnabled = v;
+                }
             });
-            subMenu.Add(new TextMenu.Button("Test Pace Ping For This Room") {
-                OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
-                Disabled = !hasCurrentRoom
+            subMenu.Add(new TextMenu.Button("Import Default Ping Message from Clipboard") { 
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing default ping message from clipboard...");
+                    try {
+                        Mod.PacePingManager.SaveDefaultPingMessage(text);
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import default ping message from clipboard: {ex}");
+                    }
+                },
             });
 
-            TextMenu.Item menuItem;
             subMenu.Add(menuItem = new TextMenu.Button("Import Webhook URL from Clipboard").Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing webhook url from clipboard...");
@@ -1207,6 +1215,31 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             }));
             subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
+
+
+            subMenu.Add(new TextMenu.SubHeader("=== Current Room ==="));
+            string toggleRoomTimingText = paceTiming == null ? "Enable Pace Ping" : "Disable Pace Ping";
+            subMenu.Add(new TextMenu.Button(toggleRoomTimingText) {
+                OnPressed = Mod.PacePingManager.ToggleCurrentRoomPacePing,
+                Disabled = !hasCurrentRoom
+            });
+            subMenu.Add(new TextMenu.Button("Import Ping Message from Clipboard") {
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing custom ping message from clipboard...");
+                    try {
+                        Mod.PacePingManager.SaveCustomPingMessage(text);
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import custom ping message from clipboard: {ex}");
+                    }
+                },
+                Disabled = paceTiming == null,
+            });
+            
+            subMenu.Add(new TextMenu.Button("Test Pace Ping For This Room") {
+                OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
+                Disabled = paceTiming == null,
+            });
 
             menu.Add(subMenu);
         }

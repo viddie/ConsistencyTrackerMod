@@ -30,6 +30,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             [JsonProperty("defaultPingMessage")]
             public string DefaultPingMessage { get; set; } = $"We got a run to {{room:name}} <:pausefrogeline:991638917944184842>! @viddie_";
 
+            [JsonProperty("defaultPingDescription")]
+            public string DefaultPingDescription { get; set; } = $"Of the campaign '{{campaign:name}}'";
+
             [JsonProperty("pacePingTimings")]
             public Dictionary<string, List<PaceTiming>> PacePingTimings { get; set; } = new Dictionary<string, List<PaceTiming>>();
         }
@@ -128,6 +131,24 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             StateSecret.WebhookUrl = webhook;
             SaveState();
         }
+
+        public void SaveDefaultPingMessage(string message) {
+            State.DefaultPingMessage = message;
+            SaveState();
+        }
+
+        public void SaveCustomPingMessage(string message) {
+            PathInfo path = Mod.CurrentChapterPath;
+            if (path == null || path.CurrentRoom == null) return;
+
+            string id = path.ChapterSID;
+
+            PaceTiming paceTiming = GetPaceTiming(id, path.CurrentRoom.DebugRoomName);
+            if (paceTiming == null) return;
+
+            paceTiming.CustomPingMessage = message;
+            SaveState();
+        }
         #endregion
 
         public PaceTiming GetPaceTiming(string chapterSID, string debugRoomName) {
@@ -146,6 +167,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         public void CheckPacePing(PathInfo path, ChapterStats stats, bool ignoreGolden = false) {
             if (path == null) return; //No path = no ping
             if (path.CurrentRoom == null) return; //Not on path = no ping
+            if (!Mod.ModSettings.PacePingEnabled) return;
 
             if (!stats.ModState.PlayerIsHoldingGolden && ignoreGolden == false) return; //No golden = no ping
             PaceTiming paceTiming = GetPaceTiming(path.ChapterSID, path.CurrentRoom.DebugRoomName);
@@ -168,6 +190,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 string message = paceTiming.CustomPingMessage ?? State.DefaultPingMessage;
                 message = Mod.StatsManager.FormatVariableFormat(message);
 
+                string description = State.DefaultPingDescription;
+                description = Mod.StatsManager.FormatVariableFormat(description);
+
                 string campaign = path.CampaignName;
                 string chapterName = path.ChapterName;
                 string sideAddition = path.SideName == "A-Side" ? "" : $" {path.SideName}";
@@ -183,6 +208,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
                 float totalSuccessRate = path.Stats.SuccessRate;
 
+                string pbs = "{pb:best} | {pb:best#2} | {pb:best#3} | {pb:best#4} | {pb:best#5}";
+                pbs = Mod.StatsManager.FormatVariableFormat(pbs);
+                string pbsSession = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
+                pbsSession = Mod.StatsManager.FormatVariableFormat(pbsSession);
+
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                     Username = "Happylandeline",
                     Content = message,
@@ -190,15 +220,16 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     new DiscordWebhookRequest.Embed(){
                         //Author = new DiscordWebhookRequest.Author() { Name = "Embed Author" },
                         Title = chapterField,
-                        Description = $"Of the campaign '{campaign}'",
+                        Description = description,
                         Color = 15258703,
                         Fields = new List<DiscordWebhookRequest.Field>(){
-                            //new DiscordWebhookRequest.Field() { Inline = false, Name = "Chapter", Value = chapterField },
-                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Entries Total", Value = $"{entries}" },
-                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Entries Session", Value = $"{entriesSession}" },
-                            new DiscordWebhookRequest.Field() { Inline = false, Name = "Total Success Rate", Value = $"{StatManager.FormatPercentage(totalSuccessRate)}" },
-                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Overall Deaths", Value = $"{totalDeaths}" },
-                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Overall Deaths Session", Value = $"{totalDeathsSession}" },
+                            new DiscordWebhookRequest.Field() { Inline = true, Name = $"Entries to '{rInfo.GetFormattedRoomName(StatManager.RoomNameType)}'", Value = $"{entries}" },
+                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Entries This Session", Value = $"{entriesSession}" },
+                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Chapter Success Rate", Value = $"{StatManager.FormatPercentage(totalSuccessRate)}" },
+                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths", Value = $"{totalDeaths}" },
+                            new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths (Session)", Value = $"{totalDeathsSession}" },
+                            new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs", Value = $"> {pbs}" },
+                            new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs (Session)", Value = $"> {pbsSession}" },
                         }
                     },
                 },
