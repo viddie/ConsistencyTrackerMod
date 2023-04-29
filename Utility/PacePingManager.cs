@@ -187,7 +187,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         
         public void SendPing(PathInfo path, ChapterStats stats, PaceTiming paceTiming) {
-            RoomInfo rInfo = path.FindRoom(paceTiming.DebugRoomName);
+            RoomInfo rInfo = path.GetRoom(paceTiming.DebugRoomName);
 
             Mod.Log($"Sending pace ping! (Room: {rInfo.GetFormattedRoomName(StatManager.RoomNameType)})");
             try {

@@ -110,8 +110,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                 //Draw header
                 Vector2 headerStart = DrawHelper.MoveCopy(pointer, 0, Settings.SeparatorWidth);
                 foreach (DataColumn col in Data.Columns) {
+                    ColumnSettings colSettings = GetColumnSettings(col);
                     Vector2 padded = DrawHelper.MoveCopy(headerStart, Settings.CellPadding, Settings.CellPadding);
-                    string text = col.ColumnName;
+                    string text = colSettings.NoHeader ? "" : col.ColumnName;
 
                     Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll * 0.5f * Settings.FontMultHeader;
                     DrawHelper.Move(ref padded, ColumnContentWidths[col] / 2, measure.Y / 2);

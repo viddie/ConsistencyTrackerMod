@@ -14,8 +14,8 @@ using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageCurrentSession : SummaryHudPage {
 
-        public string TextLastRuns { get; set; }
-        public string TextBestRuns { get; set; }
+        //public string TextLastRuns { get; set; }
+        //public string TextBestRuns { get; set; }
         public string TextAttemptCount { get; set; }
         
         public List<string> GoldenDeathsTree { get; set; }
@@ -24,6 +24,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private List<ProgressBar> BestRunsProgressBars { get; set; }
         private List<Tuple<string, int>> BestRunsData { get; set; } = new List<Tuple<string, int>>();
         private int ChapterRoomCount { get; set; }
+
+        private Table LastRunsTable { get; set; }
+        private readonly int LastRunCount = 10;
 
         private LineChart SessionChart { get; set; }
 
@@ -41,6 +44,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             for (int i = 0; i < countBestRuns; i++) {
                 BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = BarWith, BarHeight = BarHeight });
             }
+
+            LastRunsTable = new Table() {
+                Settings = new TableSettings() {
+                    Title = "Last Runs",
+                    FontMultAll = 0.5f,
+                },
+            };
 
             SessionChart = new LineChart(new ChartSettings() {
                 ChartWidth = ChartWidth,
@@ -87,21 +97,55 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
                 BestRunsData.Add(Tuple.Create(bestRoom, bestRoomNumber));
             }
-            
 
-            format = "Last runs\n1 -> ({chapter:lastRunDistance#1}/{chapter:roomCount})" +
-                "\n2 -> ({chapter:lastRunDistance#2}/{chapter:roomCount})" +
-                "\n3 -> ({chapter:lastRunDistance#3}/{chapter:roomCount})" +
-                "\n4 -> ({chapter:lastRunDistance#4}/{chapter:roomCount})" +
-                "\n5 -> ({chapter:lastRunDistance#5}/{chapter:roomCount})" +
-                "\n6 -> ({chapter:lastRunDistance#6}/{chapter:roomCount})" +
-                "\n7 -> ({chapter:lastRunDistance#7}/{chapter:roomCount})" +
-                "\n8 -> ({chapter:lastRunDistance#8}/{chapter:roomCount})" +
-                "\n9 -> ({chapter:lastRunDistance#9}/{chapter:roomCount})" +
-                "\n10 -> ({chapter:lastRunDistance#10}/{chapter:roomCount})";
-            TextLastRuns = Stats.FormatVariableFormat(format);
 
-            
+            //Last Runs
+            DataColumn lastRunNumber = new DataColumn("", typeof(string));
+            DataColumn lastRunRoomName = new DataColumn("Room", typeof(string));
+            DataColumn lastRunDistance = new DataColumn("Distance", typeof(string));
+
+            DataTable lastRunsData = new DataTable();
+            lastRunsData.Columns.Add(lastRunNumber);
+            lastRunsData.Columns.Add(lastRunRoomName);
+            lastRunsData.Columns.Add(lastRunDistance);
+
+            LastRunsTable.ColSettings.Add(lastRunNumber, new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, NoHeader = true });
+            LastRunsTable.ColSettings.Add(lastRunRoomName, new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center });
+            LastRunsTable.ColSettings.Add(lastRunDistance, new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center });
+
+            for (int i = 0; i < LastRunCount; i++){
+                string number = i == 0 ? $"Last Run" : $"#{i+1}";
+                string distance = "-";
+                string roomName = "-";
+
+                int index = stats.LastGoldenRuns.Count - 1 - i;
+                if (index >= 0) {
+                    RoomInfo rInfo = path.GetRoom(stats.LastGoldenRuns[index]);
+                    distance = $"{rInfo.RoomNumberInChapter}/{ChapterRoomCount}";
+                    roomName = rInfo.GetFormattedRoomName(StatManager.RoomNameType);
+                }
+
+                lastRunsData.Rows.Add(number, roomName, distance);
+            }
+
+            LastRunsTable.Data = lastRunsData;
+            LastRunsTable.Update();
+
+
+            //format = "Last runs\n1 -> ({chapter:lastRunDistance#1}/{chapter:roomCount})" +
+            //    "\n2 -> ({chapter:lastRunDistance#2}/{chapter:roomCount})" +
+            //    "\n3 -> ({chapter:lastRunDistance#3}/{chapter:roomCount})" +
+            //    "\n4 -> ({chapter:lastRunDistance#4}/{chapter:roomCount})" +
+            //    "\n5 -> ({chapter:lastRunDistance#5}/{chapter:roomCount})" +
+            //    "\n6 -> ({chapter:lastRunDistance#6}/{chapter:roomCount})" +
+            //    "\n7 -> ({chapter:lastRunDistance#7}/{chapter:roomCount})" +
+            //    "\n8 -> ({chapter:lastRunDistance#8}/{chapter:roomCount})" +
+            //    "\n9 -> ({chapter:lastRunDistance#9}/{chapter:roomCount})" +
+            //    "\n10 -> ({chapter:lastRunDistance#10}/{chapter:roomCount})";
+            //TextLastRuns = Stats.FormatVariableFormat(format);
+
+
+
             GoldenDeathsTree = new List<string>() { };
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomGoldenSuccessRateData = ChokeRateStat.GetRoomData(path, stats);
             //Walk path
@@ -256,11 +300,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
 
-            Move(ref pointer, 0, measure.Y - BasicMargin);
-            measure = DrawText(TextLastRuns, pointer, FontMultSmall, Color.White);
+            Move(ref pointer, 0, measure.Y - BasicMargin * 2);
 
-            Move(ref pointer, 0, measure.Y + BasicMargin);
+            //measure = DrawText(TextLastRuns, pointer, FontMultSmall, Color.White);
+            //Move(ref pointer, 0, measure.Y + BasicMargin);
 
+            LastRunsTable.Position = MoveCopy(pointer, 0, 0);
+            LastRunsTable.Render();
 
             //Right Column: Chart
             Vector2 separator = MoveCopy(pointerCol2, -50, 0);

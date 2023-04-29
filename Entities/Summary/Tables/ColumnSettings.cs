@@ -12,6 +12,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
             Right
         }
 
+        public bool NoHeader { get; set; } = false;
         public TextAlign Alignment { get; set; } = TextAlign.Left;
         public Func<object, string> ValueFormatter { get; set; } = (obj) => obj.ToString();
 

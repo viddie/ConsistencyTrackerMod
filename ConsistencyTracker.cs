@@ -1187,10 +1187,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 foreach (LevelTemplate template in levels) {
                     string name = template.Name;
-                    RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
+                    RoomInfo rInfo = CurrentChapterPath.GetRoom(name);
                     if (rInfo == null) {
                         string resolvedName = ResolveGroupedRoomName(name);
-                        rInfo = CurrentChapterPath.FindRoom(resolvedName);
+                        rInfo = CurrentChapterPath.GetRoom(resolvedName);
 
                         if (rInfo == null) {
                             continue;
@@ -1232,10 +1232,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 foreach (LevelTemplate template in levels) {
                     string name = template.Name;
-                    RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
+                    RoomInfo rInfo = CurrentChapterPath.GetRoom(name);
                     if (rInfo == null) {
                         string resolvedName = ResolveGroupedRoomName(name);
-                        rInfo = CurrentChapterPath.FindRoom(resolvedName);
+                        rInfo = CurrentChapterPath.GetRoom(resolvedName);
 
                         if (rInfo == null) {
                             continue;

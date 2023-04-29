@@ -63,9 +63,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public RoomInfo GetRoom(RoomStats roomStats) {
-            return FindRoom(roomStats.DebugRoomName);
+            return GetRoom(roomStats.DebugRoomName);
         }
-        public RoomInfo FindRoom(string roomName) {
+        public RoomInfo GetRoom(string roomName) {
             foreach (CheckpointInfo cpInfo in Checkpoints) {
                 RoomInfo rInfo = cpInfo.Rooms.Find((r) => r.DebugRoomName == roomName);
                 if (rInfo != null) return rInfo;
