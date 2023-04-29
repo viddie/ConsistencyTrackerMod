@@ -53,8 +53,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
         }
-
-        public bool CountTeleportsForRoomTransitions { get; set; } = true;
+        
         public bool VerboseLogging { get; set; } = false;
 
         #endregion

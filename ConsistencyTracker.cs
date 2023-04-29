@@ -379,7 +379,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SetNewRoom(newCurrentRoom, false, holdingGolden);
             }
             //Teleporters?
-            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) {
+            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
