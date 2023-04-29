@@ -71,9 +71,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<LineDataPoint> dataRollingAvg3 = new List<LineDataPoint>();
             List<LineDataPoint> dataRollingAvg10 = new List<LineDataPoint>();
 
-            List<double> rollingAvg1 = AverageLastRunsStat.GetRollingAverages(path, stats, 1, stats.CurrentChapterLastGoldenRuns);
-            List<double> rollingAvg3 = AverageLastRunsStat.GetRollingAverages(path, stats, 3, stats.CurrentChapterLastGoldenRuns);
-            List<double> rollingAvg10 = AverageLastRunsStat.GetRollingAverages(path, stats, 10, stats.CurrentChapterLastGoldenRuns);
+            List<double> rollingAvg1 = AverageLastRunsStat.GetRollingAverages(path, stats, 1, stats.LastGoldenRuns);
+            List<double> rollingAvg3 = AverageLastRunsStat.GetRollingAverages(path, stats, 3, stats.LastGoldenRuns);
+            List<double> rollingAvg10 = AverageLastRunsStat.GetRollingAverages(path, stats, 10, stats.LastGoldenRuns);
 
             for (int i = 0; i < rollingAvg1.Count; i++) {
                 dataRollingAvg1.Add(new LineDataPoint() {

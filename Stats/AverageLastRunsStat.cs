@@ -65,7 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int countRunsTotalSession = 0;
 
             foreach (RoomStats rStats in chapterStats.Rooms.Values) {
-                RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                RoomInfo rInfo = chapterPath.GetRoom(rStats);
                 if (rInfo == null || rInfo.IsNonGameplayRoom) //rStats room is not on the path or is transition room
                     continue;
 
@@ -145,10 +145,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             double averageRunDistanceLastXSession = 0;
             int runCountLastXSession = 0;
-            for (int i = chapterStats.CurrentChapterLastGoldenRuns.Count - 1; i >= 0; i--) {
-                RoomStats rStats = chapterStats.CurrentChapterLastGoldenRuns[i];
+            for (int i = chapterStats.LastGoldenRuns.Count - 1; i >= 0; i--) {
+                RoomStats rStats = chapterStats.GetRoom(chapterStats.LastGoldenRuns[i]);
 
-                RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                RoomInfo rInfo = chapterPath.GetRoom(rStats);
                 if (rInfo == null) continue;
 
                 averageRunDistanceLastXSession += rInfo.RoomNumberInChapter;
@@ -199,13 +199,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             Dictionary<int, string> rollingAverageOutputs = new Dictionary<int, string>();
 
             foreach (int windowSize in matchList) {
-                int count = chapterStats.CurrentChapterLastGoldenRuns.Count;
+                int count = chapterStats.LastGoldenRuns.Count;
                 if (count < windowSize || windowSize < 1) {
                     rollingAverageOutputs.Add(windowSize, StatManager.ValueNotAvailable);
                     continue;
                 }
 
-                List<double> graph = GetRollingAverages(chapterPath, chapterStats, windowSize, chapterStats.CurrentChapterLastGoldenRuns);
+                List<double> graph = GetRollingAverages(chapterPath, chapterStats, windowSize, chapterStats.LastGoldenRuns);
 
                 string output = string.Join(", ", graph);
                 switch (StatManager.ListOutputFormat) {
@@ -272,7 +272,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int countRunsTotalSession = 0;
 
             foreach (RoomStats rStats in chapterStats.Rooms.Values) {
-                RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                RoomInfo rInfo = chapterPath.GetRoom(rStats);
                 if (rInfo == null || rInfo.IsNonGameplayRoom) //rStats room is not on the path or is transition room
                     continue;
 
@@ -292,7 +292,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         
 
-        public static List<double> GetRollingAverages(PathInfo chapterPath, ChapterStats chapterStats, int windowSize, List<RoomStats> pastRuns) {
+        public static List<double> GetRollingAverages(PathInfo chapterPath, ChapterStats chapterStats, int windowSize, List<string> pastRuns) {
             int count = pastRuns.Count;
             List<double> graph = new List<double>();
 
@@ -306,8 +306,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 double avg = 0;
                 for (int j = 0; j < windowSize; j++) {
                     int index = i + j;
-                    RoomStats rStats = pastRuns[index];
-                    RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                    RoomStats rStats = chapterStats.GetRoom(pastRuns[index]);
+                    RoomInfo rInfo = chapterPath.GetRoom(rStats);
                     avg += rInfo.RoomNumberInChapter;
                 }
                 graph.Add(avg / windowSize);

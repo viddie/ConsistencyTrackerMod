@@ -62,7 +62,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             };
         }
 
-        public RoomInfo FindRoom(RoomStats roomStats) {
+        public RoomInfo GetRoom(RoomStats roomStats) {
             return FindRoom(roomStats.DebugRoomName);
         }
         public RoomInfo FindRoom(string roomName) {

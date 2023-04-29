@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using Celeste.Mod.ConsistencyTracker.Stats;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -39,18 +40,23 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("rooms")]
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
 
-        public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
-        
-        [JsonIgnore]
-        public List<RoomStats> CurrentChapterLastGoldenRuns {
-            get {
-                if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
-                    LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
-                }
-                return LastGoldenRuns[ChapterDebugName];
-            }
-            private set { }
-        }
+        [JsonProperty("lastGoldenRuns")]
+        public List<string> LastGoldenRuns { get; set; } = new List<string>();
+
+        [JsonProperty("oldSessions")]
+        public List<OldSession> OldSessions { get; set; } = new List<OldSession>();
+        //public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
+
+        //[JsonIgnore]
+        //public List<RoomStats> CurrentChapterLastGoldenRuns {
+        //    get {
+        //        if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
+        //            LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
+        //        }
+        //        return LastGoldenRuns[ChapterDebugName];
+        //    }
+        //    private set { }
+        //}
 
         public ModState ModState { get; set; } = new ModState();
 
@@ -85,7 +91,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 }
             }
             
-            CurrentChapterLastGoldenRuns.Add(rStats);
+            LastGoldenRuns.Add(rStats.DebugRoomName);
             rStats.GoldenBerryDeaths++;
             rStats.GoldenBerryDeathsSession++;
         }
@@ -122,6 +128,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 room.GoldenBerryDeathsSession = 0;
             }
 
+            LastGoldenRuns = new List<string>(); //Create new list since old one is used in old session data
             SessionStarted = DateTime.Now;
         }
 
@@ -138,12 +145,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return;
             }
 
+            Tuple<double, double> runDistanceAvgs = AverageLastRunsStat.GetAverageRunDistance(chapterPath, this);
+
             OldSession oldSession = new OldSession() {
                 SessionStarted = SessionStarted,
                 TotalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths,
                 TotalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession,
                 TotalSuccessRate = chapterPath.Stats.SuccessRate,
+                LastGoldenRuns = LastGoldenRuns,
+                AverageRunDistance = (float)runDistanceAvgs.Item1,
+                AverageRunDistanceSession = (float)runDistanceAvgs.Item2,
             };
+
+            OldSessions.Add(oldSession);
         }
         
         /// <summary>
