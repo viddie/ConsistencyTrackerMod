@@ -62,8 +62,6 @@ namespace Celeste.Mod.ConsistencyTracker
         #region Record Path Settings
         public bool RecordPath { get; set; } = false;
         
-        [SettingIgnore]
-        public bool ShowCCTRoomNamesOnDebugMap { get; set; } = true;
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
 
@@ -121,12 +119,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             //Add an option to input a custom room name
-
-            subMenu.Add(new TextMenu.OnOff("Show Room Names On Debug Map", ShowCCTRoomNamesOnDebugMap) {
-                OnValueChange = v => {
-                    ShowCCTRoomNamesOnDebugMap = v;
-                }
-            });
 
             subMenu.Add(new TextMenu.SubHeader("Import / Export"));
             subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
@@ -599,6 +591,13 @@ namespace Celeste.Mod.ConsistencyTracker
         [JsonIgnore]
         public bool IngameOverlay { get; set; } = false;
 
+        //Debug Map
+        [SettingIgnore]
+        public bool ShowCCTRoomNamesOnDebugMap { get; set; } = true;
+        [SettingIgnore]
+        public bool ShowSuccessRateBordersOnDebugMap { get; set; } = false;
+
+        //Text Overlay
         [SettingIgnore]
         public bool IngameOverlayTextEnabled { get; set; } = false;
         
@@ -736,7 +735,19 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Ingame Overlay Settings", false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader("Text Overlay"));
+            subMenu.Add(new TextMenu.SubHeader("=== Debug Map ==="));
+            subMenu.Add(new TextMenu.OnOff("Show Room Names", ShowCCTRoomNamesOnDebugMap) {
+                OnValueChange = v => {
+                    ShowCCTRoomNamesOnDebugMap = v;
+                }
+            });
+            subMenu.Add(new TextMenu.OnOff("Show Success Rate Borders", ShowSuccessRateBordersOnDebugMap) {
+                OnValueChange = v => {
+                    ShowSuccessRateBordersOnDebugMap = v;
+                }
+            });
+
+            subMenu.Add(new TextMenu.SubHeader("=== Text Overlay ==="));
             subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
                 OnValueChange = v => {
                     IngameOverlayTextEnabled = v;
@@ -764,7 +775,7 @@ namespace Celeste.Mod.ConsistencyTracker
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
 
             // ========== Text 1 ==========
-            subMenu.Add(new TextMenu.SubHeader("Text 1"));
+            subMenu.Add(new TextMenu.SubHeader("=== Text 1 ==="));
             subMenu.Add(new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText1Enabled = v;
@@ -827,7 +838,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 2 ==========
-            subMenu.Add(new TextMenu.SubHeader("Text 2"));
+            subMenu.Add(new TextMenu.SubHeader("=== Text 2 ==="));
             subMenu.Add(new TextMenu.OnOff("Text 2 Enabled", IngameOverlayText2Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText2Enabled = v;
@@ -889,7 +900,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             // ========== Text 3 ==========
-            subMenu.Add(new TextMenu.SubHeader("Text 3"));
+            subMenu.Add(new TextMenu.SubHeader("=== Text 3 ==="));
             subMenu.Add(new TextMenu.OnOff("Text 3 Enabled", IngameOverlayText3Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText3Enabled = v;
@@ -952,7 +963,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 4 ==========
-            subMenu.Add(new TextMenu.SubHeader("Text 4"));
+            subMenu.Add(new TextMenu.SubHeader("=== Text 4 ==="));
             subMenu.Add(new TextMenu.OnOff("Text 4 Enabled", IngameOverlayText4Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText4Enabled = v;

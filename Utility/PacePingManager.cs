@@ -20,6 +20,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const string FolderName = "pace-ping";
         private const string SavedStateFileName = "state.json";
         public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM.json";
+        private bool PingedThisRun { get; set; } = false;
 
         public class PaceStateSecret {
             [JsonProperty("webhookUrl")]
@@ -27,11 +28,17 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         
         public class PaceState {
+            [JsonProperty("webhookUsername")]
+            public string WebhookUsername { get; set; } = $"Pace-Bot";
+            
             [JsonProperty("defaultPingMessage")]
-            public string DefaultPingMessage { get; set; } = $"We got a run to {{room:name}} <:pausefrogeline:991638917944184842>! @viddie_";
+            public string DefaultPingMessage { get; set; } = $"We got a run to '{{room:name}}'!";
 
             [JsonProperty("defaultPingDescription")]
             public string DefaultPingDescription { get; set; } = $"Of the campaign '{{campaign:name}}'";
+
+            [JsonProperty("defaultDeathMessage")]
+            public string DefaultDeathMessage { get; set; } = $"Death to '{{room:name}}' ({{room:roomNumberInChapter}}/{{chapter:roomCount}})";
 
             [JsonProperty("pacePingTimings")]
             public Dictionary<string, List<PaceTiming>> PacePingTimings { get; set; } = new Dictionary<string, List<PaceTiming>>();
@@ -178,7 +185,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             SendPing(path, stats, paceTiming);
         }
-
+        
         public void SendPing(PathInfo path, ChapterStats stats, PaceTiming paceTiming) {
             RoomInfo rInfo = path.FindRoom(paceTiming.DebugRoomName);
 
@@ -214,7 +221,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 pbsSession = Mod.StatsManager.FormatVariableFormat(pbsSession);
 
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                    Username = "Happylandeline",
+                    Username = State.WebhookUsername,
                     Content = message,
                     Embeds = new List<DiscordWebhookRequest.Embed>() {
                     new DiscordWebhookRequest.Embed(){
@@ -230,13 +237,31 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                             new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths (Session)", Value = $"{totalDeathsSession}" },
                             new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs", Value = $"> {pbs}" },
                             new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs (Session)", Value = $"> {pbsSession}" },
-                        }
+                            }
+                        },
                     },
-                },
                 }, StateSecret.WebhookUrl);
+
+                PingedThisRun = true;
             } catch (Exception ex) {
                 Mod.Log($"An exception occurred while trying to send pace ping: {ex}", isFollowup:true);
             }
+        }
+
+        public void ResetRun() {
+            PingedThisRun = false;
+        }
+        public void DiedWithGolden() {
+            if (!PingedThisRun) return; //no ping, no follow-up message
+            PingedThisRun = false;
+
+            string message = State.DefaultDeathMessage;
+            message = Mod.StatsManager.FormatVariableFormat(message);
+
+            SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                Username = State.WebhookUsername,
+                Content = message,
+            }, StateSecret.WebhookUrl);
         }
 
         public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url) {

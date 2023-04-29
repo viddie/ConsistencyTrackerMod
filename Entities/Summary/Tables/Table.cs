@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
     public class Table : Entity {
 
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+
         public DataTable Data { get; set; } = new DataTable();
         public Dictionary<DataColumn, ColumnSettings> ColSettings { get; set; } = new Dictionary<DataColumn, ColumnSettings>();
         private ColumnSettings DefaultColSettings { get; set; } = new ColumnSettings();
@@ -18,8 +20,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
 
         private Dictionary<DataColumn, float> ColumnContentWidths { get; set; } = new Dictionary<DataColumn, float>();
         public float TotalWidth { get; set; } = -1;
-        public float TotalHeight { get; set; } = -1;
-        private float TitleHeight { get; set; } = -1;
+        public float TotalHeight { get; set; } = 0;
+        private float TitleHeight { get; set; } = 0;
 
         private ColumnSettings GetColumnSettings(DataColumn col) {
             if (ColSettings.ContainsKey(col)) {
@@ -45,7 +47,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                     ColumnSettings colSettings = GetColumnSettings(col);
                     string text = colSettings.ValueFormatter(row[col]);
 
-                    float width = ActiveFont.Measure(text).X * Settings.FontMultAll;
+                    float width = ActiveFont.Measure(text).X * Settings.FontMultAll * 0.5f;
                     if (width > ColumnContentWidths[col]) {
                         ColumnContentWidths[col] = width;
                     }
@@ -55,10 +57,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
             //Measure header and minimum widths
             foreach (DataColumn col in Data.Columns) {
                 ColumnSettings colSettings = GetColumnSettings(col);
-                string text = col.ColumnName;
-                float width = ActiveFont.Measure(text).X * Settings.FontMultAll * Settings.FontMultHeader;
-                if (width > ColumnContentWidths[col]) {
-                    ColumnContentWidths[col] = width;
+                if (Settings.ShowHeader) {
+                    string text = col.ColumnName;
+                    float width = ActiveFont.Measure(text).X * Settings.FontMultAll * 0.5f * Settings.FontMultHeader;
+                    if (width > ColumnContentWidths[col]) {
+                        ColumnContentWidths[col] = width;
+                    }
                 }
 
                 if (colSettings.MinWidth.HasValue && colSettings.MinWidth.Value > ColumnContentWidths[col]) {
@@ -87,47 +91,53 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
 
             //Draw title at the very top
             if (!string.IsNullOrEmpty(Settings.Title)) {
-                Vector2 measure = ActiveFont.Measure(Settings.Title) * Settings.FontMultAll * Settings.FontMultTitle;
+                
+                Vector2 measure = ActiveFont.Measure(Settings.Title) * Settings.FontMultAll * 0.5f * Settings.FontMultTitle;
                 Vector2 titleStart = DrawHelper.MoveCopy(pointer, TotalWidth / 2, measure.Y / 2);
-                DrawHelper.DrawText(Settings.Title, titleStart, Settings.FontMultAll * Settings.FontMultTitle, Settings.TextColor, new Vector2(0.5f, 0.5f));
+                DrawHelper.DrawText(Settings.Title, titleStart, Settings.FontMultAll * 0.5f * Settings.FontMultTitle, Settings.TextColor, new Vector2(0.5f, 0.5f));
                 DrawHelper.Move(ref pointer, 0, measure.Y + 5);
                 TitleHeight = measure.Y + 5;
             }
 
-            //Draw separator at the top
-            Draw.Line(pointer, DrawHelper.MoveCopy(pointer, TotalWidth, 0), Settings.SeparatorColor, Settings.SeparatorWidth);
-
-            //Draw header
-            Vector2 headerStart = DrawHelper.MoveCopy(pointer, 0, Settings.SeparatorWidth);
+            Vector2 contentStart = DrawHelper.MoveCopy(pointer, 0, 0);
             float rowContentHeight = 0;
-            foreach (DataColumn col in Data.Columns) {
-                Vector2 padded = DrawHelper.MoveCopy(headerStart, Settings.CellPadding, Settings.CellPadding);
-                string text = col.ColumnName;
+            
+            if (Settings.ShowHeader) {
 
-                Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll * Settings.FontMultHeader;
-                DrawHelper.Move(ref padded, ColumnContentWidths[col] / 2, measure.Y / 2);
+                //Draw separator at the top
+                Draw.Line(pointer, DrawHelper.MoveCopy(pointer, TotalWidth, 0), Settings.SeparatorColor, Settings.SeparatorWidth);
 
-                measure = DrawHelper.DrawText(text, padded, Settings.FontMultAll * Settings.FontMultHeader, Settings.TextColor, new Vector2(0.5f, 0.5f));
+                //Draw header
+                Vector2 headerStart = DrawHelper.MoveCopy(pointer, 0, Settings.SeparatorWidth);
+                foreach (DataColumn col in Data.Columns) {
+                    Vector2 padded = DrawHelper.MoveCopy(headerStart, Settings.CellPadding, Settings.CellPadding);
+                    string text = col.ColumnName;
 
-                if (rowContentHeight < measure.Y) rowContentHeight = measure.Y;
+                    Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll * 0.5f * Settings.FontMultHeader;
+                    DrawHelper.Move(ref padded, ColumnContentWidths[col] / 2, measure.Y / 2);
 
-                DrawHelper.Move(ref headerStart, ColumnContentWidths[col] + Settings.CellPadding * 2 + Settings.SeparatorWidth, 0);
+                    measure = DrawHelper.DrawText(text, padded, Settings.FontMultAll * 0.5f * Settings.FontMultHeader, Settings.TextColor, new Vector2(0.5f, 0.5f));
+
+                    if (rowContentHeight < measure.Y) rowContentHeight = measure.Y;
+
+                    DrawHelper.Move(ref headerStart, ColumnContentWidths[col] + Settings.CellPadding * 2 + Settings.SeparatorWidth, 0);
+                }
+
+                //Draw another separator
+                DrawHelper.Move(ref contentStart, 0, Settings.SeparatorWidth + Settings.CellPadding * 2 + rowContentHeight);
+                Draw.Line(contentStart, DrawHelper.MoveCopy(contentStart, TotalWidth, 0), Settings.SeparatorColor, Settings.SeparatorWidth);
+                DrawHelper.Move(ref contentStart, 0, Settings.SeparatorWidth);
             }
 
-            //Draw another separator
-            Vector2 contentStart = DrawHelper.MoveCopy(pointer, 0, Settings.SeparatorWidth + Settings.CellPadding * 2 + rowContentHeight);
-            Draw.Line(contentStart, DrawHelper.MoveCopy(contentStart, TotalWidth, 0), Settings.SeparatorColor, Settings.SeparatorWidth);
 
             //Draw content
-            DrawHelper.Move(ref contentStart, 0, Settings.SeparatorWidth);
-
             int rowNumber = 0;
             foreach (DataRow row in Data.Rows) {
                 rowContentHeight = 0;
                 //Find the height of the row
                 foreach (DataColumn col in Data.Columns) {
                     string text = GetColumnSettings(col).ValueFormatter(row[col]);
-                    Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll;
+                    Vector2 measure = ActiveFont.Measure(text) * Settings.FontMultAll * 0.5f;
                     if (rowContentHeight < measure.Y) rowContentHeight = measure.Y;
                 }
 
@@ -164,7 +174,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                             throw new NotImplementedException();
                     }
 
-                    DrawHelper.DrawText(text, contentPos, Settings.FontMultAll, Settings.TextColor, justify);
+                    DrawHelper.DrawText(text, contentPos, Settings.FontMultAll * 0.5f, Settings.TextColor, justify);
 
                     DrawHelper.Move(ref rowStart, ColumnContentWidths[col] + Settings.CellPadding * 2 + Settings.SeparatorWidth, 0);
                 }
@@ -186,7 +196,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables {
                     continue;
                 }
 
-                Draw.Line(pointer, DrawHelper.MoveCopy(pointer, 0, TotalHeight - TitleHeight), Settings.SeparatorColor, Settings.SeparatorWidth);
+                Draw.Line(pointer, DrawHelper.MoveCopy(pointer, 0, (float)Math.Floor(TotalHeight - TitleHeight)), Settings.SeparatorColor, Settings.SeparatorWidth);
                 DrawHelper.Move(ref pointer, ColumnContentWidths[col] + Settings.CellPadding * 2 + Settings.SeparatorWidth, 0);
             }
         }

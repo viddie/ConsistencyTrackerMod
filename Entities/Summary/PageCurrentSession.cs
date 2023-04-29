@@ -27,23 +27,37 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
         private LineChart SessionChart { get; set; }
 
+        private double AverageRunDistance { get; set; }
+        private double AverageRunDistanceSession { get; set; }
+        private Table AverageRunTable { get; set; }
+
+        private float BarWith = 400;
+        private float BarHeight = 13;
+        private float ChartWidth = 610;
+        private float ChartHeight = 420;
+
         public PageCurrentSession(string name) : base(name) {
-            int barWidth = 400;
-            int barHeight = 13;
             BestRunsProgressBars = new List<ProgressBar>();
             for (int i = 0; i < countBestRuns; i++) {
-                BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = barWidth, BarHeight = barHeight });
+                BestRunsProgressBars.Add(new ProgressBar(0, 100) { BarWidth = BarWith, BarHeight = BarHeight });
             }
 
             SessionChart = new LineChart(new ChartSettings() {
-                ChartWidth = 610,
-                ChartHeight = 420,
+                ChartWidth = ChartWidth,
+                ChartHeight = ChartHeight,
                 YMin = 1,
                 YAxisLabelFontMult = 0.5f,
                 TitleFontMult = 0.5f,
                 LegendFontMult = 0.5f,
                 Title = "Run Distances (+Average)",
             });
+
+            AverageRunTable = new Table() {
+                Settings = new TableSettings() {
+                    ShowHeader = false,
+                    FontMultAll = 0.7f,
+                },
+            };
         }
 
         public override void Update() {
@@ -102,6 +116,27 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             UpdateSessionChart(path, stats);
+
+            //Update average run distance
+            Tuple<double, double> avgRunDistances = AverageLastRunsStat.GetAverageRunDistance(path, stats);
+            AverageRunDistance = avgRunDistances.Item1;
+            AverageRunDistanceSession = avgRunDistances.Item2;
+
+            DataTable avgData = new DataTable();
+            avgData.Columns.Add(new DataColumn("Stat", typeof(string)));
+            avgData.Columns.Add(new DataColumn("Value", typeof(string)));
+
+            foreach (DataColumn col in avgData.Columns) {
+                AverageRunTable.ColSettings.Add(col, new ColumnSettings() { 
+                    Alignment = ColumnSettings.TextAlign.Center,
+                });
+            }
+
+            avgData.Rows.Add("Average Run Distance", $"{StatManager.FormatDouble(AverageRunDistance)}");
+            avgData.Rows.Add("Average Run Distance\n(Session)", $"{StatManager.FormatDouble(AverageRunDistanceSession)}");
+
+            AverageRunTable.Data = avgData;
+            AverageRunTable.Update();
         }
 
         private void UpdateSessionChart(PathInfo path, ChapterStats stats) {
@@ -233,6 +268,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             SessionChart.Position = pointerCol2;
             SessionChart.Render();
+
+            Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 50 + BasicMargin * 2);
+            AverageRunTable.Position = pointerTable;
+            AverageRunTable.Render();
         }
     }
 }

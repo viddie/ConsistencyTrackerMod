@@ -355,9 +355,14 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Not triggered when teleporting via debug map
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
-            Log($"level.Session.LevelData.Name={SanitizeRoomName(level.Session.LevelData.Name)}");
 
-            
+            string roomName = SanitizeRoomName(level.Session.LevelData.Name);
+            Log($"level.Session.LevelData.Name={roomName}");
+
+            //if (ModSettings.CountTeleportsForRoomTransitions && CurrentRoomName != null && roomName != CurrentRoomName) {
+            //    bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+            //    SetNewRoom(roomName, true, holdingGolden);
+            //}
         }
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
@@ -414,6 +419,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                         CurrentChapterStats.AddAttempt(false);
                     }
                 }
+
+                PacePingManager.DiedWithGolden();
             }
 
             if (DoRecordPath) {
@@ -578,6 +585,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             PhysicsLog.IsInMap = true;
+            PacePingManager.ResetRun();
         }
 
         public void SetCurrentChapterPath(PathInfo path) {
@@ -614,7 +622,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             return roomName;
         }
 
-        public void SetNewRoom(string newRoomName, bool countDeath=true, bool holdingGolden=false) {
+        public void SetNewRoom(string newRoomName, bool countSuccess=true, bool holdingGolden=false) {
             PlayerIsHoldingGolden = holdingGolden;
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
@@ -663,7 +671,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
-                if (countDeath && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden)) {
+                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden)) {
                     CurrentChapterStats.AddAttempt(true);
                 }
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
@@ -681,18 +689,25 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private bool PlayerIsHoldingGoldenBerry(Player player) {
-            if (player == null || player.Leader == null || player.Leader.Followers == null)
+            if (player == null || player.Leader == null || player.Leader.Followers == null || player.Leader.Followers.Count == 0) {
+                //Log($"player '{player}', player.Leader '{player?.Leader}', player.Leader.Followers '{player?.Leader?.Followers}', follower count '{player?.Leader?.Followers?.Count}'");
                 return false;
+            }
 
             return player.Leader.Followers.Any((f) => {
-                if (!(f.Entity is Strawberry))
+                if (!(f.Entity is Strawberry)) {
+                    //Log($"Follower wasn't a strawberry");
                     return false;
+                }
 
                 Strawberry berry = (Strawberry)f.Entity;
 
-                if (!berry.Golden || berry.Winged)
+                if (!berry.Golden || berry.Winged) {
+                    //Log($"Follower wasn't either a Golden '{berry.Golden}' or a Winged '{berry.Winged}' berry");
                     return false;
+                }
 
+                //Log($"Follower was a Golden!");
                 return true;
             });
         }
@@ -1155,53 +1170,117 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
             orig(self);
 
-            if (!ModSettings.Enabled || CurrentChapterPath == null || !ModSettings.ShowCCTRoomNamesOnDebugMap) return;
+            if (!ModSettings.Enabled || CurrentChapterPath == null) return;
             
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
             Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");
 
-            Draw.SpriteBatch.Begin(
-                    SpriteSortMode.Deferred,
-                    BlendState.AlphaBlend,
-                    SamplerState.LinearClamp,
-                    DepthStencilState.None,
-                    RasterizerState.CullNone,
-                    null,
-                    Engine.ScreenMatrix);
+            if (ModSettings.ShowCCTRoomNamesOnDebugMap) {
+                Draw.SpriteBatch.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        SamplerState.LinearClamp,
+                        DepthStencilState.None,
+                        RasterizerState.CullNone,
+                        null,
+                        Engine.ScreenMatrix);
 
-            foreach (LevelTemplate template in levels) {
-                string name = template.Name;
-                RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
-                if (rInfo == null) {
-                    string resolvedName = ResolveGroupedRoomName(name);
-                    rInfo = CurrentChapterPath.FindRoom(resolvedName);
-
+                foreach (LevelTemplate template in levels) {
+                    string name = template.Name;
+                    RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
                     if (rInfo == null) {
-                        continue;
+                        string resolvedName = ResolveGroupedRoomName(name);
+                        rInfo = CurrentChapterPath.FindRoom(resolvedName);
+
+                        if (rInfo == null) {
+                            continue;
+                        }
                     }
+                    string formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
+
+                    int x = template.X;
+                    int y = template.Y;
+
+                    Vector2 pos = new Vector2(x + template.Width / 2, y);
+                    pos -= camera.Position;
+                    pos = new Vector2((float)Math.Ceiling(pos.X), (float)Math.Ceiling(pos.Y));
+                    pos *= camera.Zoom;
+                    pos += new Vector2(960f, 540f);
+
+                    ActiveFont.DrawOutline(
+                        formattedName,
+                        pos,
+                        new Vector2(0.5f, 0),
+                        Vector2.One * camera.Zoom / 6,
+                        Color.White * 0.9f,
+                        2f * camera.Zoom / 6,
+                        Color.Black * 0.7f);
                 }
-                string formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
 
-                int x = template.X;
-                int y = template.Y;
-
-                Vector2 pos = new Vector2(x + template.Rect.Width / 2, y);
-                pos -= camera.Position;
-                pos = new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
-                pos *= camera.Zoom;
-                pos += new Vector2(960f, 540f);
-
-                ActiveFont.DrawOutline(
-                    formattedName,
-                    pos,
-                    new Vector2(0.5f, 0),
-                    Vector2.One * camera.Zoom / 6,
-                    Color.White * 0.9f,
-                    2f * camera.Zoom / 6,
-                    Color.Black * 0.7f);
+                Draw.SpriteBatch.End();
             }
 
-            Draw.SpriteBatch.End();
+            if (ModSettings.ShowSuccessRateBordersOnDebugMap) { //Insert Mod Option setting here
+                Draw.SpriteBatch.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        SamplerState.LinearClamp,
+                        DepthStencilState.None,
+                        RasterizerState.CullNone,
+                        null,
+                        Engine.ScreenMatrix);
+
+                foreach (LevelTemplate template in levels) {
+                    string name = template.Name;
+                    RoomInfo rInfo = CurrentChapterPath.FindRoom(name);
+                    if (rInfo == null) {
+                        string resolvedName = ResolveGroupedRoomName(name);
+                        rInfo = CurrentChapterPath.FindRoom(resolvedName);
+
+                        if (rInfo == null) {
+                            continue;
+                        }
+                    }
+
+                    RoomStats rStats = CurrentChapterStats.GetRoom(rInfo);
+                    Color color = Color.Gray;
+                    float successRate = rStats.AverageSuccessOverSelectedN() * 100;
+                    if (successRate > ModSettings.ExternalOverlayChapterBarLightGreenPercent) {
+                        color = new Color(0, 230, 0);
+                    } else if (successRate > ModSettings.ExternalOverlayChapterBarGreenPercent) {
+                        color = Color.Green;
+                    } else if (successRate > ModSettings.ExternalOverlayChapterBarYellowPercent) {
+                        color = new Color(194, 194, 41);
+                    } else if (!float.IsNaN(successRate)) {
+                        color = new Color(231, 45, 45);
+                    }
+
+                    int x = template.X;
+                    int y = template.Y;
+
+                    int width = template.Width;
+                    int height = template.Height;
+
+                    Vector2 pos = new Vector2(x, y);
+                    pos -= camera.Position;
+                    pos = new Vector2((float)Math.Ceiling(pos.X), (float)Math.Ceiling(pos.Y));
+                    pos *= camera.Zoom;
+                    pos += new Vector2(960f, 540f);
+
+                    //Draw.Rect(pos, width * camera.Zoom, height * camera.Zoom, new Color(color.R, color.G, color.B, 0));
+                    Vector2 topRight = pos + new Vector2(width * camera.Zoom, 0);
+                    Vector2 bottomLeft = pos + new Vector2(0, height * camera.Zoom);
+                    Vector2 bottomRight = pos + new Vector2(width * camera.Zoom, height * camera.Zoom);
+
+                    float thickness = 1.5f * camera.Zoom;
+                    Draw.Line(pos, topRight, color, thickness);
+                    Draw.Line(pos, bottomLeft, color, thickness);
+                    Draw.Line(topRight, bottomRight, color, thickness);
+                    Draw.Line(bottomLeft, bottomRight, color, thickness);
+                }
+
+                Draw.SpriteBatch.End();
+            }
         }
 
         public void SaveRecordedRoomPath() {

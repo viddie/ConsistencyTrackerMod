@@ -260,6 +260,36 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
             return HighestRollingAverages[stats.ChapterDebugName];
         }
+
+        /// <summary>
+        /// Returns averageRunDistance and averageRunDistanceSession as Tuple
+        /// </summary>
+        public static Tuple<double, double> GetAverageRunDistance(PathInfo chapterPath, ChapterStats chapterStats) {
+            double averageRunDistance = 0;
+            int countRunsTotal = 0;
+
+            double averageRunDistanceSession = 0;
+            int countRunsTotalSession = 0;
+
+            foreach (RoomStats rStats in chapterStats.Rooms.Values) {
+                RoomInfo rInfo = chapterPath.FindRoom(rStats);
+                if (rInfo == null || rInfo.IsNonGameplayRoom) //rStats room is not on the path or is transition room
+                    continue;
+
+                countRunsTotal += rStats.GoldenBerryDeaths;
+                averageRunDistance += rInfo.RoomNumberInChapter * rStats.GoldenBerryDeaths;
+
+                countRunsTotalSession += rStats.GoldenBerryDeathsSession;
+                averageRunDistanceSession += rInfo.RoomNumberInChapter * rStats.GoldenBerryDeathsSession;
+            }
+
+            if (countRunsTotal > 0)
+                averageRunDistance /= countRunsTotal;
+            if (countRunsTotalSession > 0)
+                averageRunDistanceSession /= countRunsTotalSession;
+
+            return Tuple.Create(averageRunDistance, averageRunDistanceSession);
+        }
         
 
         public static List<double> GetRollingAverages(PathInfo chapterPath, ChapterStats chapterStats, int windowSize, List<RoomStats> pastRuns) {

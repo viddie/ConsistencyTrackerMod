@@ -27,6 +27,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private int ChapterRoomCount { get; set; }
         
         public Table TestTable { get; set; }
+        public Table CheckpointStatsTable { get; set; }
 
         public PageOverall(string name) : base(name) {
             int barWidth = 400;
@@ -38,9 +39,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             TestTable = new Table() {
                 Settings = new TableSettings() {
-                    FontMultAll = 0.3f,
-                    BackgroundColorEven = new Color(0.1f, 0.1f, 0.1f, 0.1f),
-                    BackgroundColorOdd = new Color(0.2f, 0.2f, 0.2f, 0.25f),
+                    FontMultAll = 0.5f,
+                    //BackgroundColorEven = new Color(0.1f, 0.1f, 0.1f, 0.1f),
+                    //BackgroundColorOdd = new Color(0.2f, 0.2f, 0.2f, 0.25f),
+                },
+            };
+
+            CheckpointStatsTable = new Table() {
+                Settings = new TableSettings() { 
+                    FontMultAll = 0.5f,
                 },
             };
         }
@@ -63,19 +70,32 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 "\nChapter Golden Chance: {chapter:goldenChance}";
             TextAvgSuccessRate = Stats.FormatVariableFormat(format);
 
-            TextAvgSuccessRateCheckpoints = "Checkpoints:";
+
+            //Checkpoint Stats Table
+            DataColumn checkpointName = new DataColumn("Checkpoint", typeof(string));
+            DataColumn cpSuccessRate = new DataColumn("Success Rate", typeof(string));
+            DataColumn cpGoldenChance = new DataColumn("Golden Chance", typeof(string));
+            DataTable cpData = new DataTable();
+            cpData.Columns.AddRange(new DataColumn[] { checkpointName, cpSuccessRate, cpGoldenChance });
+            CheckpointStatsTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
+                [checkpointName] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
+                [cpSuccessRate] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Right },
+                [cpGoldenChance] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Right },
+            };
+            
+            //TextAvgSuccessRateCheckpoints = "Checkpoints:";
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                TextAvgSuccessRateCheckpoints += $"\n  {cpInfo.Name} -> SR {StatManager.FormatPercentage(cpInfo.Stats.SuccessRate)}, Golden Chance {StatManager.FormatPercentage(cpInfo.Stats.GoldenChance)}";
+                //TextAvgSuccessRateCheckpoints += $"\n  {cpInfo.Name} -> SR {StatManager.FormatPercentage(cpInfo.Stats.SuccessRate)}, Golden Chance {StatManager.FormatPercentage(cpInfo.Stats.GoldenChance)}";
+
+                cpData.Rows.Add(cpInfo.Name, StatManager.FormatPercentage(cpInfo.Stats.SuccessRate), StatManager.FormatPercentage(cpInfo.Stats.GoldenChance));
             }
 
-            //format = "Best Runs" +
-            //    "\n#1 {pb:best} ({pb:bestRoomNumber}/{chapter:roomCount})" +
-            //    "\n#2 {pb:best#2} ({pb:bestRoomNumber#2}/{chapter:roomCount})" +
-            //    "\n#3 {pb:best#3} ({pb:bestRoomNumber#3}/{chapter:roomCount})" +
-            //    "\n#4 {pb:best#4} ({pb:bestRoomNumber#4}/{chapter:roomCount})" +
-            //    "\n#5 {pb:best#5} ({pb:bestRoomNumber#5}/{chapter:roomCount})";
-            //TextBestRuns = Stats.FormatVariableFormat(format);
-            ChapterRoomCount = path.RoomCount;
+            CheckpointStatsTable.Data = cpData;
+            CheckpointStatsTable.Update();
+
+
+            //Best runs
+            ChapterRoomCount = path.GameplayRoomCount;
             for (int i = 0; i < countBestRuns; i++) {
                 string[] split = Stats.FormatVariableFormat($"{{pb:best#{i + 1}}};{{pb:bestRoomNumber#{i + 1}}}").Split(';');
                 string bestRoom = split[0];
@@ -106,6 +126,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 }
             }
 
+
+            //Room Table
             DataColumn roomColumn = new DataColumn("Room", typeof(string));
             DataColumn successRateColumn = new DataColumn("Choke Rate", typeof(float));
             DataColumn deathsColumn = new DataColumn("Successes/Entries", typeof(string));
@@ -114,7 +136,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Columns = { roomColumn, successRateColumn, deathsColumn }
             };
             //Walk path
-            StatCount = (int) Math.Ceiling(((float)path.RoomCount) / 20);
+            StatCount = (int) Math.Ceiling(((float)path.GameplayRoomCount) / 20);
             int startIndex = SelectedStat * 20;
             int index = 0;
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
@@ -161,10 +183,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             measure = DrawText(TextAvgSuccessRate, pointer, FontMultSmall, Color.White);
 
             Move(ref pointer, 0, measure.Y + BasicMargin);
-            measure = DrawText(TextAvgSuccessRateCheckpoints, pointer, FontMultSmall, Color.White);
+            //measure = DrawText(TextAvgSuccessRateCheckpoints, pointer, FontMultSmall, Color.White);
+            CheckpointStatsTable.Position = MoveCopy(pointer, 0, 0);
+            CheckpointStatsTable.Render();
 
-
-            Move(ref pointer, 0, measure.Y + BasicMargin * 2);
+            Move(ref pointer, 0, CheckpointStatsTable.TotalHeight + BasicMargin * 2);
             measure = DrawText("Best Runs", pointer, FontMultSmall, Color.White);
 
             Move(ref pointer, 0, measure.Y + BasicMargin * 3);
@@ -200,11 +223,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Move(ref pointer, 0, Math.Max(bar.BarHeight, measure.Y) + maxLabelHeight + BasicMargin);
             }
             
-
             Move(ref pointer, 0, measure.Y - BasicMargin);
-            measure = DrawText(TextRedRooms, pointer, FontMultSmall, Color.White);
-
-            Move(ref pointer, 0, measure.Y + BasicMargin);
+            
+            //measure = DrawText(TextRedRooms, pointer, FontMultSmall, Color.White);
+            //Move(ref pointer, 0, measure.Y + BasicMargin);
 
             //Right Column: Draw deaths tree
             //We start drawing GoldenDeathTree lines at pointerCol2, moving the pointer downwards until we hit the limit
