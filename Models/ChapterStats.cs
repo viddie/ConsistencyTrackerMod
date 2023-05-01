@@ -157,7 +157,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 AverageRunDistanceSession = (float)runDistanceAvgs.Item2,
             };
 
-            OldSessions.Add(oldSession);
+            if (OldSessions.Count > 0) {
+                OldSession olderSession = OldSessions[OldSessions.Count - 1];
+                if (!OldSession.IsSessionEmpty(oldSession, olderSession)) {
+                    ConsistencyTrackerModule.Instance.Log($"Saving old session data from '{SessionStarted}'");
+                    OldSessions.Add(oldSession);
+                } else {
+                    ConsistencyTrackerModule.Instance.Log($"Old session data from '{SessionStarted}' was empty, not saving...");
+                }
+            } else {
+                OldSessions.Add(oldSession);
+            }
         }
         
         /// <summary>

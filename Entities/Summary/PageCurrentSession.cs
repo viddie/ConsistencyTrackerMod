@@ -315,7 +315,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             SessionChart.Position = pointerCol2;
             SessionChart.Render();
 
-            Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 50 + BasicMargin * 2);
+            Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 60 + BasicMargin * 2);
             AverageRunTable.Position = pointerTable;
             AverageRunTable.Render();
         }

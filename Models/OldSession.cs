@@ -27,5 +27,20 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         
         [JsonProperty("averageRunDistanceSession")]
         public float AverageRunDistanceSession { get; set; }
+
+        /// <summary>
+        /// Checks if nothing has happened in a session compared to another session.
+        /// </summary>
+        /// <returns>True if nothing happened in a session, False if there was some change in data</returns>
+        public static bool IsSessionEmpty(OldSession session, OldSession compareTo) {
+            bool isEmpty = true;
+            isEmpty &= session.TotalGoldenDeaths == compareTo.TotalGoldenDeaths;
+            isEmpty &= session.TotalGoldenDeathsSession == 0;
+            isEmpty &= session.TotalSuccessRate == compareTo.TotalSuccessRate;
+            isEmpty &= session.LastGoldenRuns.Count == 0;
+            isEmpty &= session.AverageRunDistance == compareTo.AverageRunDistance;
+            isEmpty &= session.AverageRunDistanceSession == 0;
+            return isEmpty;
+        }
     }
 }
