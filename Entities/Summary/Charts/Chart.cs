@@ -29,7 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             //Draw title
             Vector2 measure = DrawHelper.DrawText(Settings.Title, pointer, 1.5f * Settings.TitleFontMult * Settings.FontMult * Settings.Scale, Settings.TitleColor);
 
-            DrawHelper.Move(ref pointer, 0, measure.Y + 5 * Settings.Scale);
+            DrawHelper.Move(ref pointer, 0, measure.Y + 5 * Settings.Scale + Settings.TitleMargin * Settings.Scale);
             Draw.Rect(pointer, Settings.ChartWidth, Settings.ChartHeight, Settings.BackgroundColor);
 
             if (Settings.ShowXAxis) {

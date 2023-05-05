@@ -45,18 +45,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("oldSessions")]
         public List<OldSession> OldSessions { get; set; } = new List<OldSession>();
-        //public static Dictionary<string, List<RoomStats>> LastGoldenRuns { get; set; } = new Dictionary<string, List<RoomStats>>(); //Latest runs will always be at the end of the list
-
-        //[JsonIgnore]
-        //public List<RoomStats> CurrentChapterLastGoldenRuns {
-        //    get {
-        //        if (!LastGoldenRuns.ContainsKey(ChapterDebugName)) {
-        //            LastGoldenRuns.Add(ChapterDebugName, new List<RoomStats>());
-        //        }
-        //        return LastGoldenRuns[ChapterDebugName];
-        //    }
-        //    private set { }
-        //}
 
         public ModState ModState { get; set; } = new ModState();
 

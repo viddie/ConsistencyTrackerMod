@@ -50,7 +50,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             HudBounds = new Rectangle(Engine.Width / 2 - Settings.Width / 2, Engine.Height / 2 - Settings.Height / 2, Settings.Width, Settings.Height);
 
-            Tabs.Add(new PageCurrentSession("Session"));
+            Tabs.Add(new PageCurrentSession("Sessions"));
             Tabs.Add(new PageOverall("Overall"));
             Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
             Tabs.Add(new PageChartTest("Charts"));
@@ -90,6 +90,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             if (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed) {
                 Tabs[SelectedTab].ChangedSelectedStat(1);
                 Tabs[SelectedTab].Update();
+                
+                //try {
+                //    Engine.Commands.ExecuteCommand("invoke", new string[] { "Player.MoveV", "1" });
+                //    Mod.Log($"Executed command 'invoke Player.Move 1'");
+                //} catch (Exception ex) {
+                //    Mod.Log($"Error executing command: {ex}");
+                //}
+                
             }
             if (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed) {
                 Tabs[SelectedTab].ChangedSelectedStat(-1);

@@ -11,6 +11,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
         //General
         public string Title { get; set; }
         public float TitleFontMult { get; set; } = 1f;
+        public float TitleMargin { get; set; } = 0f;
         public Color TitleColor { get; set; } = Color.White;
 
         public float ChartWidth { get; set; }

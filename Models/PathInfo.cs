@@ -3,6 +3,7 @@ using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Celeste.Mod.ConsistencyTracker.Models {
@@ -72,6 +73,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns the actual RoomInfo objects to a given list of room debug names. Eliminates null values (deaths to rooms not on the path)
+        /// </summary>
+        public List<RoomInfo> GetRoomsForLastRuns(List<string> lastRuns) {
+            List<RoomInfo> lastRunsRooms = lastRuns.Select((roomName) => GetRoom(roomName)).ToList();
+            lastRunsRooms.RemoveAll((roomInfo) => roomInfo == null);
+            return lastRunsRooms;
         }
 
         public override string ToString() {

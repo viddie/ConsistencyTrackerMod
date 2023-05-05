@@ -234,9 +234,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         /// <summary>
         /// Gets the following data for every room: Golden Entries, Golden Success Rate, Golden Entries Session, Golden Success Rate Session
         /// </summary>
-        /// <param name="chapterPath"></param>
-        /// <param name="chapterStats"></param>
-        /// <returns></returns>
         public static Dictionary<RoomInfo, Tuple<int, float, int, float>> GetRoomData(PathInfo chapterPath, ChapterStats chapterStats) {
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomData = new Dictionary<RoomInfo, Tuple<int, float, int, float>>();
 
@@ -284,7 +281,63 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return roomData;
         }
 
-        
+
+        /// <summary>
+        /// Gets the following data for every room: Golden Entries Session, Golden Success Rate Session
+        /// </summary>
+        public static Dictionary<RoomInfo, Tuple<int, float>> GetRoomDataSession(PathInfo chapterPath, List<RoomInfo> lastRuns) {
+            //Count golden deaths for old session
+            Dictionary<RoomInfo, int> goldenDeathsSession = new Dictionary<RoomInfo, int>();
+            foreach (RoomInfo rInfo in lastRuns) {
+                if (goldenDeathsSession.ContainsKey(rInfo)) {
+                    goldenDeathsSession[rInfo]++;
+                } else {
+                    goldenDeathsSession.Add(rInfo, 1);
+                }
+            }
+
+            //Calculate stats
+            Dictionary<RoomInfo, Tuple<int, float>> roomData = new Dictionary<RoomInfo, Tuple<int, float>>();
+            foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+
+                    bool pastRoom = false;
+                    int goldenDeathsInRoom = 0;
+                    int goldenDeathsAfterRoom = 0;
+
+                    foreach (CheckpointInfo cpInfoTemp in chapterPath.Checkpoints) {
+                        foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
+                            int roomGoldenBerryDeathsSession = 0;
+                            if (goldenDeathsSession.ContainsKey(rInfoTemp)) {
+                                roomGoldenBerryDeathsSession = goldenDeathsSession[rInfoTemp];
+                            }
+
+                            if (pastRoom) {
+                                goldenDeathsAfterRoom += roomGoldenBerryDeathsSession;
+                            }
+
+                            if (rInfo == rInfoTemp) {
+                                pastRoom = true;
+                                goldenDeathsInRoom = roomGoldenBerryDeathsSession;
+                            }
+                        }
+                    }
+
+                    float crRoomSession;
+
+                    //Calculate
+                    if (goldenDeathsInRoom + goldenDeathsAfterRoom == 0) crRoomSession = float.NaN;
+                    else crRoomSession = (float)goldenDeathsInRoom / (goldenDeathsInRoom + goldenDeathsAfterRoom);
+
+                    //Format
+                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom + goldenDeathsAfterRoom, 1 - crRoomSession));
+                }
+            }
+
+            return roomData;
+        }
+
+
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
                 new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many golden runs died to this room / how many golden runs entered this room)"),

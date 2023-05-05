@@ -165,6 +165,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //https://github.com/EverestAPI/CelesteTAS-EverestInterop/blob/master/CelesteTAS-EverestInterop/Source/Communication/StudioCommunicationClient.cs
             //idk how to use this class to get GameBananaId
             //ModUpdateInfo updateInfo = new ModUpdateInfo();
+
+            
         }
 
         public override void Unload() {
@@ -185,7 +187,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
-
             Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
             On.Celeste.Level.TeleportTo += Level_TeleportTo;
             //Track deaths
@@ -216,7 +217,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
 
-            //On.Celeste.Player.Update += LogPhysicsUpdate;
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
             //On.Monocle.Engine.Update += Engine_Update;
 
@@ -255,7 +255,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
-            //On.Celeste.Player.Update -= LogPhysicsUpdate;
             On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
         }
 
