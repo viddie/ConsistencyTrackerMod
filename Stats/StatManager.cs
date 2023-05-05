@@ -533,18 +533,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         
         
         public static string FormatPercentage(int a, int b, int decimals=int.MaxValue) {
-            if (decimals == int.MaxValue) {
-                decimals = DecimalPlaces;
-            }
-
-            double res = Math.Round(((double)a / b) * 100, decimals);
-
-            return $"{res}%";
+            return FormatPercentage(a / b, decimals);
         }
         public static string FormatPercentage(double d, int decimals = int.MaxValue) {
             if (decimals == int.MaxValue) {
                 decimals = DecimalPlaces;
             }
+            if (double.IsNaN(d)) return $"{ValueNotAvailable}%";
 
             double res = Math.Round(d * 100, decimals);
 

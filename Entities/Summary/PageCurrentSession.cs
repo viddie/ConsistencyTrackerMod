@@ -22,6 +22,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         public string TextAttemptCount { get; set; }
         public int AttemptCount { get; set; }
         public int AttemptCountSession { get; set; }
+        public float TotalSuccessRate { get; set; }
 
         public List<string> GoldenDeathsTree { get; set; }
 
@@ -95,7 +96,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             OldSession oldSession = isCurrentSession ? null : stats.OldSessions[stats.OldSessions.Count - SelectedStat];
 
             if (isCurrentSession) {
-                SessionTitle = $"Current Session (since {stats.SessionStarted.ToShortTimeString()})";
+                SessionTitle = $"Session #{stats.OldSessions.Count + 1} from 'Today, since {stats.SessionStarted.ToShortTimeString()}'";
             } else {
                 string date = null;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
@@ -103,11 +104,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 } else {
                     date = oldSession.SessionStarted.ToString("M");
                 }
-                SessionTitle = $"Session from '{date}'";
+                SessionTitle = $"Session #{stats.OldSessions.Count - SelectedStat + 1} from '{date}'";
             }
             
             AttemptCount = isCurrentSession ? path.Stats.GoldenBerryDeaths : oldSession.TotalGoldenDeaths;
             AttemptCountSession = isCurrentSession ? path.Stats.GoldenBerryDeathsSession : oldSession.TotalGoldenDeathsSession;
+            TotalSuccessRate = isCurrentSession ? path.Stats.SuccessRate : oldSession.TotalSuccessRate;
 
             List<string> lastRuns = oldSession?.LastGoldenRuns ?? stats.LastGoldenRuns;
             List<RoomInfo> lastRunsRooms = path.GetRoomsForLastRuns(lastRuns);
@@ -205,13 +207,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             avgData.Columns.Add(new DataColumn("Value", typeof(string)));
 
             foreach (DataColumn col in avgData.Columns) {
+                float? minWidth = null;
+                if (col.ColumnName == "Value") minWidth = 75f;
                 AverageRunTable.ColSettings.Add(col, new ColumnSettings() { 
                     Alignment = ColumnSettings.TextAlign.Center,
+                    MinWidth = minWidth,
                 });
             }
             
             avgData.Rows.Add("Runs Total", $"{AttemptCount}");
             avgData.Rows.Add("Runs this Session", $"{AttemptCountSession}");
+            avgData.Rows.Add("Chapter Success Rate", $"{StatManager.FormatPercentage(TotalSuccessRate)}");
             avgData.Rows.Add("Average Run Distance", $"{StatManager.FormatDouble(AverageRunDistance)}");
             avgData.Rows.Add("Average Run Distance\n(Session)", $"{StatManager.FormatDouble(AverageRunDistanceSession)}");
 

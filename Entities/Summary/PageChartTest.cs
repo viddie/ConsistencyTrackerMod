@@ -54,7 +54,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             if (isOverall) {
                 ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Overall)";
             } else if (isCurrentSession) {
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session: 'Current')";
+                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count + 1}: 'Today')";
             } else {
                 string date;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
@@ -62,7 +62,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 } else {
                     date = oldSession.SessionStarted.ToString("M");
                 }
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session: '{date}')";
+                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count - SelectedStat}: '{date}')";
             }
 
             UpdateChart(path, stats, lastRunsRooms, isOverall);
