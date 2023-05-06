@@ -149,7 +149,27 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 OldSession olderSession = OldSessions[OldSessions.Count - 1];
                 if (!OldSession.IsSessionEmpty(oldSession, olderSession)) {
                     ConsistencyTrackerModule.Instance.Log($"Saving old session data from '{SessionStarted}'");
-                    OldSessions.Add(oldSession);
+                    if (olderSession.SessionStarted.Date == oldSession.SessionStarted.Date) {
+                        ConsistencyTrackerModule.Instance.Log($"Merging into previous session '{olderSession.SessionStarted}' from the same day", isFollowup: true);
+                        
+                        //Calculate new session average
+                        int osDeaths = olderSession.TotalGoldenDeathsSession;
+                        int nsDeaths = oldSession.TotalGoldenDeathsSession;
+                        float osAvg = olderSession.AverageRunDistanceSession;
+                        float nsAvg = oldSession.AverageRunDistanceSession;
+                        float newAvg = (osDeaths * osAvg + nsDeaths * nsAvg) / (osDeaths + nsDeaths);
+                        olderSession.AverageRunDistanceSession = newAvg;
+
+                        //Copy over stats
+                        olderSession.TotalGoldenDeaths = oldSession.TotalGoldenDeaths;
+                        olderSession.TotalGoldenDeathsSession += oldSession.TotalGoldenDeathsSession;
+                        olderSession.TotalSuccessRate = oldSession.TotalSuccessRate;
+                        olderSession.LastGoldenRuns.AddRange(oldSession.LastGoldenRuns);
+                        olderSession.AverageRunDistance = oldSession.AverageRunDistance;
+                    } else {
+                        ConsistencyTrackerModule.Instance.Log($"Saving as new session", isFollowup: true);
+                        OldSessions.Add(oldSession);
+                    }
                 } else {
                     ConsistencyTrackerModule.Instance.Log($"Old session data from '{SessionStarted}' was empty, not saving...");
                 }

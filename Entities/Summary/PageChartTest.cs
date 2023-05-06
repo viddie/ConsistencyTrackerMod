@@ -62,7 +62,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 } else {
                     date = oldSession.SessionStarted.ToString("M");
                 }
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count - SelectedStat}: '{date}')";
+                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count - (SelectedStat - 2)}: '{date}')";
             }
 
             UpdateChart(path, stats, lastRunsRooms, isOverall);
