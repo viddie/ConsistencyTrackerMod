@@ -694,8 +694,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             return player.Leader.Followers.Any((f) => {
+                //Log($"Follower class: '{f.Entity.GetType().Name}'");
+                if (f.Entity.GetType().Name == "PlatinumBerry") {
+                    return true;
+                }
+                
                 if (!(f.Entity is Strawberry)) {
-                    //Log($"Follower wasn't a strawberry");
                     return false;
                 }
 
