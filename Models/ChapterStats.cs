@@ -134,6 +134,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             Tuple<double, double> runDistanceAvgs = AverageLastRunsStat.GetAverageRunDistance(chapterPath, this);
+            
+            RoomInfo alltimePB = PersonalBestStat.GetPBRoom(chapterPath, this);
+            Tuple<RoomInfo, int> sessionPB = PersonalBestStat.GetSessionPBRoomFromLastRuns(chapterPath, LastGoldenRuns);
+            RoomInfo sessionPBRoom = null;
+            int sessionPBDeaths = 0;
+            if (sessionPB != null) {
+                sessionPBRoom = sessionPB.Item1;
+                sessionPBDeaths = sessionPB.Item2;
+            }
 
             OldSession oldSession = new OldSession() {
                 SessionStarted = SessionStarted,
@@ -143,38 +152,59 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 LastGoldenRuns = LastGoldenRuns,
                 AverageRunDistance = (float)runDistanceAvgs.Item1,
                 AverageRunDistanceSession = (float)runDistanceAvgs.Item2,
+
+                PBRoomName = alltimePB?.DebugRoomName,
+                SessionPBRoomName = sessionPBRoom?.DebugRoomName,
+                SessionPBRoomDeaths = sessionPBDeaths,
             };
 
-            if (OldSessions.Count > 0) {
-                OldSession olderSession = OldSessions[OldSessions.Count - 1];
-                if (!OldSession.IsSessionEmpty(oldSession, olderSession)) {
-                    ConsistencyTrackerModule.Instance.Log($"Saving old session data from '{SessionStarted}'");
-                    if (olderSession.SessionStarted.Date == oldSession.SessionStarted.Date) {
-                        ConsistencyTrackerModule.Instance.Log($"Merging into previous session '{olderSession.SessionStarted}' from the same day", isFollowup: true);
-                        
-                        //Calculate new session average
-                        int osDeaths = olderSession.TotalGoldenDeathsSession;
-                        int nsDeaths = oldSession.TotalGoldenDeathsSession;
-                        float osAvg = olderSession.AverageRunDistanceSession;
-                        float nsAvg = oldSession.AverageRunDistanceSession;
-                        float newAvg = (osDeaths * osAvg + nsDeaths * nsAvg) / (osDeaths + nsDeaths);
-                        olderSession.AverageRunDistanceSession = newAvg;
-
-                        //Copy over stats
-                        olderSession.TotalGoldenDeaths = oldSession.TotalGoldenDeaths;
-                        olderSession.TotalGoldenDeathsSession += oldSession.TotalGoldenDeathsSession;
-                        olderSession.TotalSuccessRate = oldSession.TotalSuccessRate;
-                        olderSession.LastGoldenRuns.AddRange(oldSession.LastGoldenRuns);
-                        olderSession.AverageRunDistance = oldSession.AverageRunDistance;
-                    } else {
-                        ConsistencyTrackerModule.Instance.Log($"Saving as new session", isFollowup: true);
-                        OldSessions.Add(oldSession);
-                    }
-                } else {
-                    ConsistencyTrackerModule.Instance.Log($"Old session data from '{SessionStarted}' was empty, not saving...");
-                }
-            } else {
+            if (OldSessions.Count == 0) {
                 OldSessions.Add(oldSession);
+                return;
+            }
+
+            OldSession olderSession = OldSessions[OldSessions.Count - 1];
+            if (OldSession.IsSessionEmpty(oldSession, olderSession)) {
+                ConsistencyTrackerModule.Instance.Log($"Old session data from '{SessionStarted}' was empty, not saving...");
+                return;
+            }
+            
+            ConsistencyTrackerModule.Instance.Log($"Saving old session data from '{SessionStarted}'");
+            if (olderSession.SessionStarted.Date != oldSession.SessionStarted.Date) {
+                ConsistencyTrackerModule.Instance.Log($"Saving as new session", isFollowup: true);
+                OldSessions.Add(oldSession);
+                return;
+            }
+            
+            ConsistencyTrackerModule.Instance.Log($"Merging into previous session '{olderSession.SessionStarted}' from the same day", isFollowup: true);
+            //Calculate new session average
+            int osDeaths = olderSession.TotalGoldenDeathsSession;
+            int nsDeaths = oldSession.TotalGoldenDeathsSession;
+            float osAvg = olderSession.AverageRunDistanceSession;
+            float nsAvg = oldSession.AverageRunDistanceSession;
+            float newAvg = (osDeaths * osAvg + nsDeaths * nsAvg) / (osDeaths + nsDeaths);
+            olderSession.AverageRunDistanceSession = newAvg;
+
+            //Copy over stats
+            olderSession.TotalGoldenDeaths = oldSession.TotalGoldenDeaths;
+            olderSession.TotalGoldenDeathsSession += oldSession.TotalGoldenDeathsSession;
+            olderSession.TotalSuccessRate = oldSession.TotalSuccessRate;
+            olderSession.LastGoldenRuns.AddRange(oldSession.LastGoldenRuns);
+            olderSession.AverageRunDistance = oldSession.AverageRunDistance;
+
+            //Copy over PBs
+            olderSession.PBRoomName = oldSession.PBRoomName; //Always use newer session global PB, since PBs can't go backwards
+            RoomInfo olderSessionPB = chapterPath.GetRoom(olderSession.SessionPBRoomName);
+            RoomInfo oldSessionPB = chapterPath.GetRoom(oldSession.SessionPBRoomName);
+
+            if (olderSessionPB == null) { //If older session didn't have a PB
+                olderSession.SessionPBRoomName = oldSession.SessionPBRoomName;
+                olderSession.SessionPBRoomDeaths = oldSession.SessionPBRoomDeaths;
+            } else if (oldSessionPB == null) { //If newer session didn't have a PB
+                //Do nothing, use older session stats
+            } else if (oldSessionPB.RoomNumberInChapter > olderSessionPB.RoomNumberInChapter) { //If newer session PB is better than older session PB
+                olderSession.SessionPBRoomName = oldSession.SessionPBRoomName;
+                olderSession.SessionPBRoomDeaths = oldSession.SessionPBRoomDeaths;
             }
         }
         

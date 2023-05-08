@@ -2,9 +2,11 @@
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
+using Celeste.Mod.UI;
 using IL.Monocle;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -115,6 +117,33 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasCurrentRoom
             });
+
+            //bool hasCustomName = hasCurrentRoom && Mod.CurrentChapterPath.CurrentRoom.CustomRoomName != null;
+            //buttonText = hasCustomName ? $"Custom Room Name: {Mod.CurrentChapterPath.CurrentRoom.CustomRoomName}" : $"Set Custom Room Name";
+            //subMenu.Add(new TextMenu.Button(buttonText) {
+            //    OnPressed = () => {
+            //        Mod.Log($"Starting string input scene...");
+            //        Audio.Play(SFX.ui_main_savefile_rename_start);
+                    
+            //        Overworld overworld = menu.SceneAs<Overworld>();
+            //        Mod.Log($"overworld == null {overworld == null}", isFollowup: true);
+                    
+            //        OuiModOptionString modOptionsString = overworld.Goto<OuiModOptionString>();
+            //        Mod.Log($"modOptionsString == null {modOptionsString == null}", isFollowup: true);
+
+            //        modOptionsString.Init<OuiModOptions>(
+            //            Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType),
+            //            v => {
+            //                Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = v;
+            //                Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{v}'");
+            //                //Mod.SavePathToFile();
+            //            },
+            //            30,
+            //            1
+            //        );
+            //    },
+            //    Disabled = !hasCurrentRoom
+            //});
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             //Add an option to input a custom room name
@@ -236,7 +265,8 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button("Create Chapter Summary") {
                 OnPressed = () => {
                     Mod.CreateChapterSummary(SummarySelectedAttemptCount);
-                }
+                },
+                Disabled = Mod.CurrentChapterPath == null,
             });
 
             menu.Add(subMenu);
@@ -1176,9 +1206,8 @@ namespace Celeste.Mod.ConsistencyTracker
             menu.Add(subMenu);
         }
         #endregion
-
-
-        #region Record Path Settings
+        
+        #region Pace Ping Settings
         public bool PacePing { get; set; } = false;
 
         [SettingIgnore]

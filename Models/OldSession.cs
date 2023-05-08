@@ -22,6 +22,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("lastGoldenRuns")]
         public List<string> LastGoldenRuns { get; set; } = new List<string>();
 
+        [JsonProperty("pbRoomName")]
+        public string PBRoomName { get; set; }
+        
+        [JsonProperty("sessionPbRoomName")]
+        public string SessionPBRoomName { get; set; }
+        [JsonProperty("sessionPbRoomDeaths")]
+        public int SessionPBRoomDeaths { get; set; }
+
         [JsonProperty("averageRunDistance")]
         public float AverageRunDistance { get; set; }
         

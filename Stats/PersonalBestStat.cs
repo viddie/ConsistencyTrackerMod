@@ -262,6 +262,45 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return format;
         }
 
+        public static RoomInfo GetPBRoom(PathInfo path, ChapterStats stats) {
+            RoomInfo pbRoom = null;
+
+            for (int i = path.Checkpoints.Count - 1; i >= 0; i--) {
+                CheckpointInfo cpInfo = path.Checkpoints[i];
+
+                for (int j = cpInfo.Rooms.Count - 1; j >= 0; j--) {
+                    RoomInfo rInfo = cpInfo.Rooms[j];
+                    RoomStats rStats = stats.GetRoom(rInfo);
+                    
+                    if (rStats.GoldenBerryDeaths > 0) {
+                        pbRoom = rInfo;
+                        break;
+                    }
+                }
+
+                if (pbRoom != null) break;
+            }
+
+            return pbRoom;
+        }
+        public static Tuple<RoomInfo, int> GetSessionPBRoomFromLastRuns(PathInfo path, List<string> lastRuns) {
+            RoomInfo pbRoom = null;
+            int deaths = 0;
+
+            List<RoomInfo> rooms = path.GetRoomsForLastRuns(lastRuns);
+            foreach (RoomInfo rInfo in rooms) {
+                if (pbRoom == null || rInfo.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
+                    pbRoom = rInfo;
+                    deaths = 1;
+                } else if (rInfo.RoomNumberInChapter == pbRoom.RoomNumberInChapter) {
+                    deaths++;
+                }
+            }
+
+            if (pbRoom == null) return null;
+            return Tuple.Create(pbRoom, deaths);
+        }
+
         public override string FormatSummary(PathInfo chapterPath, ChapterStats chapterStats) {
             return null;
         }
