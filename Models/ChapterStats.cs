@@ -61,13 +61,24 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public void AddAttempt(bool success) {
             CurrentRoom.AddAttempt(success);
 
+
+            bool doNegativeStreakTracking = true;
             if (success) {
-                CurrentRoom.SuccessStreak++;
+                if (CurrentRoom.SuccessStreak <= 0) {
+                    CurrentRoom.SuccessStreak = 1;
+                } else { 
+                    CurrentRoom.SuccessStreak++;
+                }
+                
                 if (CurrentRoom.SuccessStreak > CurrentRoom.SuccessStreakBest) {
                     CurrentRoom.SuccessStreakBest = CurrentRoom.SuccessStreak;
                 }
             } else {
-                CurrentRoom.SuccessStreak = 0;
+                if (CurrentRoom.SuccessStreak > 0 || !doNegativeStreakTracking) {
+                    CurrentRoom.SuccessStreak = 0;
+                } else {
+                    CurrentRoom.SuccessStreak--;
+                }
             }
         }
 
