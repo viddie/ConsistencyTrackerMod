@@ -795,80 +795,102 @@ namespace Celeste.Mod.ConsistencyTracker {
             return true;
         }
 
-
-        public bool PathInfoExists() {
-            string path = GetPathToFile(PathsFolder, $"{CurrentChapterDebugName}.txt");
-            return File.Exists(path);
-        }
+        
         public PathInfo GetPathInputInfo(string pathName = null) {
             if(pathName == null) {
                 pathName = CurrentChapterDebugName;
             }
             Log($"Fetching path info for chapter '{pathName}'");
 
-            string path = GetPathToFile(PathsFolder, $"{pathName}.txt");
-            Log($"\tSearching for path '{path}'", true);
+            string pathTXT = GetPathToFile(PathsFolder, $"{pathName}.txt");
+            string pathJSON = GetPathToFile(PathsFolder, $"{pathName}.json");
+            Log($"\tSearching for path '{pathJSON}' or .txt equiv", true);
 
-            if (File.Exists(path)) { //Parse File
-                Log($"\tFound file, parsing...", true);
-                string content = File.ReadAllText(path);
+            if (!File.Exists(pathJSON) && !File.Exists(pathTXT)) {
+                Log($"\tDidn't find file at '{pathJSON}', returned null.", true);
+                return null;
+            }
+            
+            
+            string content = null;
+            bool readAsTXT = false;
+            if (File.Exists(pathJSON)) {
+                content = File.ReadAllText(pathJSON);
+            } else if (File.Exists(pathTXT)) {
+                content = File.ReadAllText(pathTXT);
+                readAsTXT = true;
+            }
 
-                //[Try 1] New file format: JSON
-                try {
-                    return JsonConvert.DeserializeObject<PathInfo>(content);
-                } catch (Exception) {
-                    Log($"\tCouldn't read path info as JSON, trying old path format...", true);
+            string logExt = readAsTXT ? "txt" : "json";
+            Log($"\tFound '.{logExt}' version of file, parsing...", true);
+
+            //[Try 1] New file format: JSON
+            try {
+                PathInfo pathInfo = JsonConvert.DeserializeObject<PathInfo>(content);
+                if (readAsTXT) { //Move file to json format
+                    File.Move(pathTXT, pathJSON);
                 }
+                return pathInfo;
+            } catch (Exception) {
+                Log($"\tCouldn't read path info as JSON, trying old path format...", true);
+            }
 
-                //[Try 2] Old file format: selfmade text format
-                try {
-                    PathInfo parsedOldFormat = PathInfo.ParseString(content);
-                    Log($"\tSaving path for map '{pathName}' in new format!", true);
-                    SavePathToFile(parsedOldFormat, pathName); //Save in new format
-                    return parsedOldFormat;
-                } catch (Exception) {
-                    Log($"\tCouldn't read old path info. Old path info content:\n{content}", true);
-                    return null;
-                }
-
-            } else { //Create new
-                Log($"\tDidn't find file at '{path}', returned null.", true);
+            //[Try 2] Old file format: selfmade text format
+            try {
+                PathInfo parsedOldFormat = PathInfo.ParseString(content);
+                Log($"\tSaving path for map '{pathName}' in new format!", true);
+                SavePathToFile(parsedOldFormat, pathName); //Save in new format (json)
+                return parsedOldFormat;
+            } catch (Exception) {
+                Log($"\tCouldn't read old path info. Old path info content:\n{content}", true);
                 return null;
             }
         }
 
         public ChapterStats GetCurrentChapterStats() {
-            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
+            string pathTXT = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
+            string pathJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
 
             Log($"CurrentChapterName: '{CurrentChapterDebugName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
             ChapterStats toRet = null;
 
-            if (File.Exists(path)) { //Parse File
-                string content = File.ReadAllText(path);
-
-                //[Try 1] New file format: JSON
-                try {
-                    toRet = JsonConvert.DeserializeObject<ChapterStats>(content);
-                } catch (Exception) {
-                    Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
-                }
-
-                if (toRet == null) {
-                    //[Try 2] Old file format: selfmade text format
-                    try {
-                        toRet = ChapterStats.ParseString(content);
-                        Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!", true);
-                    } catch (Exception) {
-                        Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}", true);
-                        toRet = new ChapterStats();
-                        toRet.SetCurrentRoom(CurrentRoomName);
-                    }
-                }
-                
-            } else { //Create new
+            if (!File.Exists(pathTXT) && !File.Exists(pathJSON)) { //Create new
                 toRet = new ChapterStats();
                 toRet.SetCurrentRoom(CurrentRoomName);
+                return toRet;
+            }
+
+            string content = null;
+            bool readAsTXT = false;
+            if (File.Exists(pathJSON)) {
+                content = File.ReadAllText(pathJSON);
+            } else if (File.Exists(pathTXT)) {
+                content = File.ReadAllText(pathTXT);
+                readAsTXT = true;
+            }
+
+            //[Try 1] New file format: JSON
+            try {
+                toRet = JsonConvert.DeserializeObject<ChapterStats>(content);
+            } catch (Exception) {
+                Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
+            }
+
+            if (toRet == null) {
+                //[Try 2] Old file format: selfmade text format
+                try {
+                    toRet = ChapterStats.ParseString(content);
+                    Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!", true);
+                } catch (Exception) {
+                    Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}", true);
+                    toRet = new ChapterStats();
+                    toRet.SetCurrentRoom(CurrentRoomName);
+                }
+            }
+
+            if (readAsTXT) { //Try to move file from TXT to JSON path 
+                File.Move(pathTXT, pathJSON);
             }
 
             return toRet;
@@ -895,7 +917,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
 
 
-            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
+            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
             File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats, Formatting.Indented));
 
             string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
@@ -908,17 +930,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void CreateChapterSummary(int attemptCount) {
             Log($"Attempting to create tracker summary, attemptCount = '{attemptCount}'");
-
-            bool hasPathInfo = PathInfoExists();
-
             string outPath = GetPathToFile(SummariesFolder, $"{CurrentChapterDebugName}.txt");
-
-            if (!hasPathInfo) {
-                Log($"Called CreateChapterSummary without chapter path info. Please create a path before using this feature");
-                File.WriteAllText(outPath, "No path info was found for the current chapter.\nPlease create a path before using the summary feature");
-                return;
-            }
-
             CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
         }
 
@@ -1306,10 +1318,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 pathName = CurrentChapterDebugName;
             }
 
-            string relativeOutPath = $"{PathsFolder}/{pathName}.txt";
-            string outPath = GetPathToFile(relativeOutPath);
+            string outPath = GetPathToFile(PathsFolder, $"{pathName}.json");
             File.WriteAllText(outPath, JsonConvert.SerializeObject(path, Formatting.Indented));
-            Log($"Wrote path data to '{relativeOutPath}'");
+            Log($"Wrote path data to '{outPath}'");
         }
 
         public void RemoveRoomFromChapterPath() {
