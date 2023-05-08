@@ -265,10 +265,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url) {
-            WebClient client = new WebClient();
-            client.Headers.Add("Content-Type", "application/json");
-            string payload = JsonConvert.SerializeObject(request);
-            client.UploadData(url, Encoding.UTF8.GetBytes(payload));
+            Task.Run(() => {
+                WebClient client = new WebClient();
+                client.Headers.Add("Content-Type", "application/json");
+                string payload = JsonConvert.SerializeObject(request);
+                client.UploadData(url, Encoding.UTF8.GetBytes(payload));
+            });
         }
     }
 }
