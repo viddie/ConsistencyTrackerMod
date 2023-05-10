@@ -21,6 +21,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using System.Xml.Linq;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary;
+using MonoMod.ModInterop;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -160,13 +161,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             StatsManager = new StatManager();
             PacePingManager = new PacePingManager();
 
+            //Interop
             DebugRcPage.Load();
+            typeof(ConsistencyTrackerAPI).ModInterop();
 
             //https://github.com/EverestAPI/CelesteTAS-EverestInterop/blob/master/CelesteTAS-EverestInterop/Source/Communication/StudioCommunicationClient.cs
             //idk how to use this class to get GameBananaId
             //ModUpdateInfo updateInfo = new ModUpdateInfo();
 
-            
+
         }
 
         public override void Unload() {
