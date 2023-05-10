@@ -67,30 +67,28 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             for (int i = 0; i < series.Data.Count; i++) {
                 LineDataPoint point = series.Data[i];
                 float value = point.Y;
+                Vector2 position = Vector2.Zero;
 
-                if (float.IsNaN(value)) {
-                    prevPosition = Vector2.Zero;
-                    continue;
-                }
+                if (!float.IsNaN(value)) {
+                    float x, y;
 
-                float x, y;
+                    if (series.IndepedentOfYAxis) {
+                        x = GetXValuePosition(i);
+                        y = GetYValuePosition(value, seriesMin, seriesMax);
+                    } else {
+                        x = GetXValuePosition(i);
+                        y = GetYValuePosition(value);
+                    }
 
-                if (series.IndepedentOfYAxis) {
-                    x = GetXValuePosition(i);
-                    y = GetYValuePosition(value, seriesMin, seriesMax);
-                } else { 
-                    x = GetXValuePosition(i);
-                    y = GetYValuePosition(value);
-                }
-                
-                Vector2 position = new Vector2(x, y);
-                
-                if (series.PointSize > 0)
-                    Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor ?? series.LineColor, 10);
-                
-                //For all but the first point, draw a line to the previous point
-                if (i > 0 && prevPosition != Vector2.Zero) {
-                    Draw.Line(position, prevPosition, series.LineColor, series.LineThickness * Settings.Scale);
+                    position = new Vector2(x, y);
+
+                    if (series.PointSize > 0)
+                        Draw.Circle(position, series.PointSize * Settings.Scale, point.Color ?? series.PointColor ?? series.LineColor, 10);
+
+                    //For all but the first point, draw a line to the previous point
+                    if (i > 0 && prevPosition != Vector2.Zero) {
+                        Draw.Line(position, prevPosition, series.LineColor, series.LineThickness * Settings.Scale);
+                    }
                 }
 
                 //Draw the label for the previous point
@@ -98,18 +96,20 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
                     float strokeThickness = Math.Max(1, 2 * Settings.Scale);
                     Color strokeColor = Color.Black;
                     string label = prevPoint.Label ?? Settings.YAxisLabelFormatter(prevPoint.Y);
+                    
+                    if (label != "") { //If label is an empty string, DONT draw this particular label
+                        if (series.LabelPosition == LabelPosition.Middle) {
+                            ActiveFont.DrawOutline(label, prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                        } else {
+                            Vector2 labelPosition = DrawHelper.MoveCopy(prevPosition, 0, 10 * Settings.Scale * (series.LabelPosition == LabelPosition.Top ? -1 : 1));
+                            Vector2 justify = new Vector2(0.5f, series.LabelPosition == LabelPosition.Top ? 1f : 0f);
 
-                    if (series.LabelPosition == LabelPosition.Middle) {
-                        ActiveFont.DrawOutline(label, prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
-                    } else {
-                        Vector2 labelPosition = DrawHelper.MoveCopy(prevPosition, 0, 10 * Settings.Scale * (series.LabelPosition == LabelPosition.Top ? -1 : 1));
-                        Vector2 justify = new Vector2(0.5f, series.LabelPosition == LabelPosition.Top ? 1f : 0f);
+                            //Draw line to label position
+                            Draw.Line(prevPosition, labelPosition, Settings.GridLineColor, Settings.GridLineThickness * Settings.Scale);
 
-                        //Draw line to label position
-                        Draw.Line(prevPosition, labelPosition, Settings.GridLineColor, Settings.GridLineThickness * Settings.Scale);
-
-                        //Draw label
-                        ActiveFont.DrawOutline(label, labelPosition, justify, Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                            //Draw label
+                            ActiveFont.DrawOutline(label, labelPosition, justify, Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
+                        }
                     }
                 }
 

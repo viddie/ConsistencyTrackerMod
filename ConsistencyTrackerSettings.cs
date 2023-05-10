@@ -1129,7 +1129,7 @@ namespace Celeste.Mod.ConsistencyTracker
         }
         #endregion
 
-        #region Debug Settings
+        #region Physics Inspector Settings
         [JsonIgnore]
         public bool PhysicsLoggerSettings { get; set; } = false;
 
@@ -1193,6 +1193,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped");
+            subMenu.AddDescription(menu, menuItem, "Multiple buttons for one input don't work properly!");
             subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogPhysicsFlipY) {
                 OnValueChange = v => {
                     LogPhysicsFlipY = v;

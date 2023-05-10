@@ -52,8 +52,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Tabs.Add(new PageCurrentSession("Sessions"));
             Tabs.Add(new PageOverall("Overall"));
-            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
             Tabs.Add(new PageChartTest("Charts"));
+            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
 
             ApplyModSettings();
 
@@ -81,7 +81,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             if (Mod.ModSettings.ButtonToggleSummaryHud.Pressed) {
                 Visible = !Visible;
                 Mod.Log($"Summary HUD is now '{Visible}'");
-                Tabs[SelectedTab].Update();
+                //Tabs[SelectedTab].Update();
+                //Update all tabs when opening the hud to make sure the StatCounts are up to date
+                if (Visible) {
+                    foreach (SummaryHudPage tab in Tabs) {
+                        tab.Update();
+                    }
+                }
             }
             if (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed) {
                 SelectedTab = (SelectedTab + 1) % Tabs.Count;

@@ -136,7 +136,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// </summary>
         public void StoreOldSessionData(PathInfo chapterPath) {
             //Backwards compatibility. If the session started is null, it means the session was started before the session history was implemented
-            if (SessionStarted == null) {
+            if (SessionStarted == null || SessionStarted == DateTime.MinValue) {
                 return;
             }
             //No path = no session trackable
@@ -147,6 +147,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             Tuple<double, double> runDistanceAvgs = AverageLastRunsStat.GetAverageRunDistance(chapterPath, this);
             
             RoomInfo alltimePB = PersonalBestStat.GetPBRoom(chapterPath, this);
+            int alltimePBDeaths = 0;
+            if (alltimePB != null) {
+                alltimePBDeaths = GetRoom(alltimePB).GoldenBerryDeaths;
+            }
             Tuple<RoomInfo, int> sessionPB = PersonalBestStat.GetSessionPBRoomFromLastRuns(chapterPath, LastGoldenRuns);
             RoomInfo sessionPBRoom = null;
             int sessionPBDeaths = 0;
@@ -165,6 +169,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 AverageRunDistanceSession = (float)runDistanceAvgs.Item2,
 
                 PBRoomName = alltimePB?.DebugRoomName,
+                PBRoomDeaths = alltimePBDeaths,
                 SessionPBRoomName = sessionPBRoom?.DebugRoomName,
                 SessionPBRoomDeaths = sessionPBDeaths,
             };

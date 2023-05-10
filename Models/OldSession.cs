@@ -24,7 +24,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("pbRoomName")]
         public string PBRoomName { get; set; }
-        
+        [JsonProperty("pbRoomDeaths")]
+        public int PBRoomDeaths { get; set; }
+
         [JsonProperty("sessionPbRoomName")]
         public string SessionPBRoomName { get; set; }
         [JsonProperty("sessionPbRoomDeaths")]

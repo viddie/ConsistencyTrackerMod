@@ -302,13 +302,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Vector2 pointer = MoveCopy(Position, 0, 0);
             Vector2 pointerCol2 = MoveCopy(pointer, PageWidth / 2 - 100, 0);
 
-            //Left Column
+            //========== Left Column ==========
+
+            //===== Session Title =====
             Vector2 measure = DrawText(SessionTitle, pointer, FontMultMediumSmall, Color.White);
             Move(ref pointer, 0, measure.Y + BasicMargin * 2);
 
-            //measure = DrawText(TextAttemptCount, pointer, FontMultMediumSmall, Color.White);
-            //Move(ref pointer, 0, measure.Y + BasicMargin * 2);
-            
+
+            //===== Best Runs Bars =====
             measure = DrawText("Best Runs", pointer, FontMultSmall, Color.White);
 
             Move(ref pointer, 0, measure.Y + BasicMargin * 3);
@@ -345,21 +346,22 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
 
+            //===== Last Runs Table =====
             Move(ref pointer, 0, measure.Y - BasicMargin * 3);
-
-            //measure = DrawText(TextLastRuns, pointer, FontMultSmall, Color.White);
-            //Move(ref pointer, 0, measure.Y + BasicMargin);
-
             LastRunsTable.Position = MoveCopy(pointer, 0, 0);
             LastRunsTable.Render();
-
-            //Right Column: Chart
+            
+            //===== Separator =====
             Vector2 separator = MoveCopy(pointerCol2, -50, 0);
             Draw.Line(separator, MoveCopy(separator, 0, PageHeight), Color.Gray, 2);
 
+            //========== Right Column ==========
+
+            //===== Session Chart =====
             SessionChart.Position = pointerCol2;
             SessionChart.Render();
 
+            //===== Average Run Table =====
             Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 60 + BasicMargin * 2);
             AverageRunTable.Position = pointerTable;
             AverageRunTable.Render();
