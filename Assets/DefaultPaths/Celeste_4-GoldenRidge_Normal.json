@@ -1,0 +1,253 @@
+{
+  "campaignName": "Celeste",
+  "chapterName": "Golden Ridge",
+  "chapterSID": "Celeste/4-GoldenRidge",
+  "sideName": "A-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 11,
+      "gameplayRoomCount": 10,
+      "rooms": [
+        {
+          "debugRoomName": "a-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-01x",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "a-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-03",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-05",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-06",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-07",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-08",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-09",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Shrine",
+      "abbreviation": "SH",
+      "roomCount": 5,
+      "gameplayRoomCount": 4,
+      "rooms": [
+        {
+          "debugRoomName": "b-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "b-05",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-08b",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-08",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Old Trail",
+      "abbreviation": "OT",
+      "roomCount": 8,
+      "gameplayRoomCount": 8,
+      "rooms": [
+        {
+          "debugRoomName": "c-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-05",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-06",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-09",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-07",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-08",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Cliff Face",
+      "abbreviation": "CF",
+      "roomCount": 11,
+      "gameplayRoomCount": 9,
+      "rooms": [
+        {
+          "debugRoomName": "d-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "d-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-03",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-05",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-06",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-07",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-08",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-09",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-10",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        }
+      ]
+    }
+  ],
+  "roomCount": 35,
+  "gameplayRoomCount": 31,
+  "ignoredRooms": []
+}

@@ -1,0 +1,187 @@
+{
+  "campaignName": "Celeste",
+  "chapterName": "Mirror Temple",
+  "chapterSID": "Celeste/5-MirrorTemple",
+  "sideName": "B-Side",
+  "checkpoints": [
+    {
+      "name": "Start",
+      "abbreviation": "ST",
+      "roomCount": 4,
+      "gameplayRoomCount": 3,
+      "rooms": [
+        {
+          "debugRoomName": "start",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "a-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "a-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Central Chamber",
+      "abbreviation": "CC",
+      "roomCount": 9,
+      "gameplayRoomCount": 7,
+      "rooms": [
+        {
+          "debugRoomName": "b-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "b-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "b-06",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-07",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-03",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-08",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "b-09",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Through the Mirror",
+      "abbreviation": "TtM",
+      "roomCount": 5,
+      "gameplayRoomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "c-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-03",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "c-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    },
+    {
+      "name": "Mix Master",
+      "abbreviation": "MM",
+      "roomCount": 6,
+      "gameplayRoomCount": 5,
+      "rooms": [
+        {
+          "debugRoomName": "d-00",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": true
+        },
+        {
+          "debugRoomName": "d-01",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-02",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-03",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-04",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        },
+        {
+          "debugRoomName": "d-05",
+          "groupedRooms": [],
+          "customRoomName": null,
+          "isNonGameplayRoom": false
+        }
+      ]
+    }
+  ],
+  "roomCount": 24,
+  "gameplayRoomCount": 20,
+  "ignoredRooms": []
+}

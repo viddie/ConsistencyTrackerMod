@@ -305,6 +305,11 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             LogVerbose($"Strawberry on player");
             SetRoomCompleted(resetOnDeath: true);
+
+            if (self.Golden) {
+                PlayerIsHoldingGolden = true;
+                SaveChapterStats();
+            }
         }
 
         private void Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
@@ -409,9 +414,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
 
-                if (ModSettings.Enabled && !ModSettings.PauseDeathTracking) { //Only count golden berry deaths when enabled
+                if (ModSettings.Enabled && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    if (ModSettings.OnlyTrackWithGoldenBerry) {
+                    if (ModSettings.TrackingOnlyWithGoldenBerry) {
                         CurrentChapterStats.AddAttempt(false);
                     }
                 }
@@ -432,7 +437,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || PlayerIsHoldingGolden))
+            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
                 CurrentChapterStats?.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
@@ -504,7 +509,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (ModSettings.Enabled) {
-                if (!ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden))
+                if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden))
                     CurrentChapterStats?.AddAttempt(false);
 
                 if(CurrentChapterStats != null)
@@ -667,7 +672,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
-                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.OnlyTrackWithGoldenBerry || holdingGolden)) {
+                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden)) {
                     CurrentChapterStats.AddAttempt(true);
                 }
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
@@ -738,6 +743,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (!savedvalues.ContainsKey(type)) {
                 Log("Trying to load state without prior saving a state...");
                 return;
+            }
+
+            //Register the death if setting is enabled
+            if (ModSettings.TrackingSaveStateCountsForGoldenDeath && CurrentChapterStats != null) {
+                if (PlayerIsHoldingGolden && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
+                    CurrentChapterStats.AddGoldenBerryDeath();
+                }
             }
 
             IngameOverlay = level.Tracker.GetEntity<TextOverlay>();
@@ -948,27 +960,35 @@ namespace Celeste.Mod.ConsistencyTracker {
                 "7-Summit",
                 "9-Core",
             };
-            string farewellName = "Celeste_LostLevels_Normal.txt";
-            string farewellAssetName = "Celeste_LostLevels_Normal";
+            string farewellLevelName = "Celeste_LostLevels_Normal";
 
             foreach (string level in levelNames) {
                 foreach (string side in sideNames) {
-                    string name = $"Celeste_{level}_{side}.txt";
-                    string assetName = $"Celeste_{level}_{side}";
-                    LogVerbose($"Checking path file '{name}'...");
-                    CheckDefaultPathFile(name, $"{assetPath}/{assetName}");
+                    string levelName = $"Celeste_{level}_{side}";
+                    LogVerbose($"Checking path file '{levelName}'...");
+                    CheckDefaultPathFile(levelName, $"{assetPath}/{levelName}.json");
                 }
             }
 
-            CheckDefaultPathFile(farewellName, $"{assetPath}/{farewellAssetName}");
+            CheckDefaultPathFile(farewellLevelName, $"{assetPath}/{farewellLevelName}.json");
         }
-        private void CheckDefaultPathFile(string name, string assetPath) {
-            string path = GetPathToFile(PathsFolder, name);
+        private void CheckDefaultPathFile(string levelName, string assetPath) {
+            string nameTXT = $"{levelName}.txt";
+            string nameJSON = $"{levelName}.json";
+            string pathTXT = GetPathToFile(PathsFolder, nameTXT);
+            string pathJSON = GetPathToFile(PathsFolder, nameJSON);
 
-            if (!File.Exists(path)) {
-                CreatePathFileFromStream(name, assetPath);
+            if (File.Exists(pathTXT) && !File.Exists(pathJSON)) {
+                File.Move(pathTXT, pathJSON);
+            }
+            if (File.Exists(pathTXT) && File.Exists(pathJSON)) {
+                File.Delete(pathTXT);
+            }
+
+            if (!File.Exists(pathJSON)) {
+                CreatePathFileFromStream(nameJSON, assetPath);
             } else {
-                LogVerbose($"Path file '{name}' already exists, skipping");
+                LogVerbose($"Path file '{nameJSON}' already exists, skipping");
             }
         }
 
@@ -1045,24 +1065,23 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else {
                 Log($"Physics Inspector is up to date at version {VersionsCurrent.PhysicsInspector}");
             }
-
         }
 
-        private void CreateExternalToolFileFromStream(string name, string assetPath) {
-            CreateFileFromStream(ExternalToolsFolder, name, assetPath);
+        private void CreateExternalToolFileFromStream(string fileName, string assetPath) {
+            CreateFileFromStream(ExternalToolsFolder, fileName, assetPath);
         }
-        private void CreatePathFileFromStream(string name, string assetPath) {
-            CreateFileFromStream(PathsFolder, name, assetPath);
+        private void CreatePathFileFromStream(string fileName, string assetPath) {
+            CreateFileFromStream(PathsFolder, fileName, assetPath);
         }
-        private void CreateFileFromStream(string folder, string name, string assetPath) {
-            string path = GetPathToFile(folder, name);
+        private void CreateFileFromStream(string folder, string fileName, string assetPath) {
+            string path = GetPathToFile(folder, fileName);
 
             LogVerbose($"Trying to access asset at '{assetPath}'");
             if (Everest.Content.TryGet(assetPath, out ModAsset value, true)) {
                 using (var fileStream = File.Create(path)) {
                     value.Stream.Seek(0, SeekOrigin.Begin);
                     value.Stream.CopyTo(fileStream);
-                    LogVerbose($"Wrote file '{name}' to path '{path}'");
+                    LogVerbose($"Wrote file '{fileName}' to path '{path}'");
                 }
             } else {
                 Log($"No asset found with content path '{assetPath}'");
