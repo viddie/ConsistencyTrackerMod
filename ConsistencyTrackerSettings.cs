@@ -60,6 +60,8 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool TrackingSaveStateCountsForGoldenDeath { get; set; } = true;
         [SettingIgnore]
+        public bool TrackingRestartChapterCountsForGoldenDeath { get; set; } = true;
+        [SettingIgnore]
         public bool TrackNegativeStreaks { get; set; } = true;
         [SettingIgnore]
         public bool VerboseLogging { get; set; } = false;
@@ -88,8 +90,15 @@ namespace Celeste.Mod.ConsistencyTracker
                     TrackingSaveStateCountsForGoldenDeath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When auto-load of savestate is enabled, CCT doesn't get notified of golden deaths");
+            subMenu.AddDescription(menu, menuItem, "When auto-load of savestates is enabled, CCT doesn't get notified of golden deaths");
             subMenu.AddDescription(menu, menuItem, "Turn this on to enable counting golden deaths when loading a savestate");
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Restarting Chapter", TrackingRestartChapterCountsForGoldenDeath) {
+                OnValueChange = v => {
+                    TrackingRestartChapterCountsForGoldenDeath = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Similarly to above, restarting chapter normally doesn't cause a golden death event");
 
             subMenu.Add(new TextMenu.SubHeader("=== Stats ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Track Negative Streaks", TrackNegativeStreaks) {
@@ -300,34 +309,48 @@ namespace Celeste.Mod.ConsistencyTracker
         #region Summary Settings
         [JsonIgnore]
         public bool CreateSummary { get; set; } = false;
+        [SettingIgnore]
+        public bool IngameSummaryEnabled { get; set; } = true;
+        [SettingIgnore]
         public int SummarySelectedAttemptCount { get; set; } = 20;
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
 
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Tracker Summary", false);
-            subMenu.Add(new TextMenu.SubHeader("Outputs some cool data of the current chapter in a readable .txt format"));
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Summary", false);
+            TextMenu.Item menuItem;
 
+            subMenu.Add(new TextMenu.SubHeader("=== In-Game Summary ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Enabled", IngameSummaryEnabled) {
+                OnValueChange = v => {
+                    IngameSummaryEnabled = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Bind a button to open the in-game summary!");
+            subMenu.AddDescription(menu, menuItem, "Default for navigating the summary: <Grab> go through pages, <Up>/<Down> navigate on a page");
+            subMenu.AddDescription(menu, menuItem, "You can replace the default navigation bindings by binding your own buttons!");
 
-            subMenu.Add(new TextMenu.SubHeader("When calculating the consistency stats, only the last X attempts will be counted"));
+            subMenu.Add(new TextMenu.SubHeader("=== Export ==="));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
                 OnValueChange = (value) => {
                     SummarySelectedAttemptCount = value;
                 }
             });
+            subMenu.AddDescription(menu, menuItem, "When calculating the consistency stats, only the last X attempts will be counted");
 
 
-            subMenu.Add(new TextMenu.Button("Create Chapter Summary") {
+            subMenu.Add(menuItem = new TextMenu.Button("Export Tracker Summary") {
                 OnPressed = () => {
                     Mod.CreateChapterSummary(SummarySelectedAttemptCount);
                 },
                 Disabled = Mod.CurrentChapterPath == null,
             });
+            subMenu.AddDescription(menu, menuItem, "This feature is outdated, I might update this eventually");
 
             menu.Add(subMenu);
         }

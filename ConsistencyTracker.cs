@@ -411,6 +411,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"mode={mode}, snow={snow}");
             if (mode == LevelExit.Mode.Restart) {
                 DidRestart = true;
+                if (PlayerIsHoldingGolden 
+                    && ModSettings.Enabled && ModSettings.TrackingRestartChapterCountsForGoldenDeath
+                    && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
+                    CurrentChapterStats?.AddGoldenBerryDeath();
+                }
+
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
 
