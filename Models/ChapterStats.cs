@@ -61,8 +61,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public void AddAttempt(bool success) {
             CurrentRoom.AddAttempt(success);
 
-
-            bool doNegativeStreakTracking = true;
+            bool doNegativeStreakTracking = ConsistencyTrackerModule.Instance.ModSettings.TrackNegativeStreaks;
             if (success) {
                 if (CurrentRoom.SuccessStreak <= 0) {
                     CurrentRoom.SuccessStreak = 1;

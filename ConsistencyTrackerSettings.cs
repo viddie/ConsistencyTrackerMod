@@ -47,17 +47,68 @@ namespace Celeste.Mod.ConsistencyTracker
         }
         private bool _PauseDeathTracking { get; set; } = false;
 
-        public bool OnlyTrackWithGoldenBerry { get; set; } = false;
-        public void CreateOnlyTrackWithGoldenBerryEntry(TextMenu menu, bool inGame) {
-            menu.Add(new TextMenu.OnOff("Only Track Deaths With Golden Berry", this.OnlyTrackWithGoldenBerry) {
+        #endregion
+
+        #region Tracking Settings
+        [JsonIgnore]
+        public bool TrackingSettings { get; set; } = false;
+
+        [SettingIgnore]
+        public bool TrackingOnlyWithGoldenBerry { get; set; } = false;
+        [SettingIgnore]
+        public bool TrackingAlwaysGoldenDeaths { get; set; } = true;
+        [SettingIgnore]
+        public bool TrackingSaveStateCountsForGoldenDeath { get; set; } = true;
+        [SettingIgnore]
+        public bool TrackNegativeStreaks { get; set; } = true;
+        [SettingIgnore]
+        public bool VerboseLogging { get; set; } = false;
+        public void CreateTrackingSettingsEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Tracking Settings", false);
+            TextMenu.Item menuItem;
+
+            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Only Track Deaths With Golden Berry", TrackingOnlyWithGoldenBerry) {
                 OnValueChange = v => {
-                    this.OnlyTrackWithGoldenBerry = v;
+                    TrackingOnlyWithGoldenBerry = v;
                 }
             });
-        }
-        
-        public bool VerboseLogging { get; set; } = false;
+            subMenu.AddDescription(menu, menuItem, "Various stats (e.g. Success Rate, Streak, ...) are always tracked, even without the golden");
+            subMenu.AddDescription(menu, menuItem, "Turn this off to ONLY track these stats when doing golden runs");
 
+            subMenu.Add(menuItem = new TextMenu.OnOff("Always Track Golden Deaths", TrackingAlwaysGoldenDeaths) {
+                OnValueChange = v => {
+                    TrackingAlwaysGoldenDeaths = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "When you paused death tracking, this will make golden deaths still count");
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Loading Savestate", TrackingSaveStateCountsForGoldenDeath) {
+                OnValueChange = v => {
+                    TrackingSaveStateCountsForGoldenDeath = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "When auto-load of savestate is enabled, CCT doesn't get notified of golden deaths");
+            subMenu.AddDescription(menu, menuItem, "Turn this on to enable counting golden deaths when loading a savestate");
+
+            subMenu.Add(new TextMenu.SubHeader("=== Stats ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Track Negative Streaks", TrackNegativeStreaks) {
+                OnValueChange = v => {
+                    TrackNegativeStreaks = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Some people might not like seeing how shit a room is going rn :)");
+
+            subMenu.Add(new TextMenu.SubHeader("=== Other ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Verbose Logging", VerboseLogging) {
+                OnValueChange = v => {
+                    VerboseLogging = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Increases file size of logs dramatically. Only used for debugging purposes.");
+
+            menu.Add(subMenu);
+        }
         #endregion
 
         #region Record Path Settings
@@ -83,7 +134,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             TextMenu.Item menuItem;
-            subMenu.Add(new TextMenu.SubHeader("Path Editing"));
+            subMenu.Add(new TextMenu.SubHeader("=== Path Editing ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             
@@ -184,30 +235,37 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
             subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
 
+            bool hasPath = Mod.CurrentChapterPath != null;
+            bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
+
 
             subMenu.Add(new TextMenu.SubHeader("=== ROOM ==="));
             subMenu.Add(new TextMenu.Button("Remove Last Attempt") {
                 OnPressed = () => {
                     Mod.RemoveLastAttempt();
-                }
+                },
+                Disabled = !hasCurrentRoom
             });
 
             subMenu.Add(new TextMenu.Button("Remove Last Death Streak") {
                 OnPressed = () => {
                     Mod.RemoveLastDeathStreak();
-                }
+                },
+                Disabled = !hasCurrentRoom
             });
 
             subMenu.Add(new TextMenu.Button("Remove All Attempts") {
                 OnPressed = () => {
                     Mod.WipeRoomData();
-                }
+                },
+                Disabled = !hasCurrentRoom
             });
 
             subMenu.Add(new TextMenu.Button("Remove Golden Berry Deaths") {
                 OnPressed = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
-                }
+                },
+                Disabled = !hasCurrentRoom
             });
 
 
@@ -215,13 +273,15 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button("Reset All Attempts") {
                 OnPressed = () => {
                     Mod.WipeChapterData();
-                }
+                },
+                Disabled = !hasPath
             });
 
             subMenu.Add(new TextMenu.Button("Reset All Golden Berry Deaths") {
                 OnPressed = () => {
                     Mod.WipeChapterGoldenBerryDeaths();
-                }
+                },
+                Disabled = !hasPath
             });
 
             subMenu.Add(new TextMenu.SubHeader("=== LIVE-DATA ==="));
@@ -305,7 +365,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
 
             
-            subMenu.Add(new TextMenu.SubHeader($"Format Editing"));
+            subMenu.Add(new TextMenu.SubHeader($"=== Format Editing ==="));
             subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
@@ -322,7 +382,7 @@ namespace Celeste.Mod.ConsistencyTracker
             }));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"Settings"));
+            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
                 OnValueChange = (value) => {
                     LiveDataFileOutputEnabled = value;
@@ -363,6 +423,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                 OnValueChange = (value) => {
                     LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
+                    Mod.SaveChapterStats();
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Whether you want checkpoint names to be full or abbreviated in the room name.");
@@ -1152,7 +1213,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Inspector Settings", false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader($"Physics Inspector"));
+            subMenu.Add(new TextMenu.SubHeader($"=== General ==="));
             subMenu.Add(new TextMenu.Button("Open Inspector In Browser") {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
@@ -1171,7 +1232,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "Enabling this settings starts the recording, disabling it stops the recording");
 
 
-            subMenu.Add(new TextMenu.SubHeader($"Recording Settings"));
+            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Death", LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;
