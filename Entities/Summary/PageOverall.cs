@@ -418,28 +418,82 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
         public void UpdateChokeRateTable(PathInfo path, ChapterStats stats, int tablePage) {
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomGoldenSuccessRateData = ChokeRateStat.GetRoomData(path, stats);
-            
+
+            //Sort dictionary into List based off the value.Item2 (choke rate) ascending
+            //float.NaN should be at the end
+            List<KeyValuePair<RoomInfo, Tuple<int, float, int, float>>> sortedRoomGoldenSuccessRateData = roomGoldenSuccessRateData.ToList();
+
+            //Filter out non-gameplay rooms
+            sortedRoomGoldenSuccessRateData = sortedRoomGoldenSuccessRateData.Where(pair => !pair.Key.IsNonGameplayRoom).ToList();
+
+            sortedRoomGoldenSuccessRateData.Sort((pair1, pair2) => {
+                if (float.IsNaN(pair1.Value.Item2) && float.IsNaN(pair2.Value.Item2) ||
+                    pair1.Value.Item2 == pair2.Value.Item2) {
+                    return pair1.Key.RoomNumberInChapter.CompareTo(pair2.Key.RoomNumberInChapter);
+                }
+                if (float.IsNaN(pair1.Value.Item2)) {
+                    return 1;
+                } else if (float.IsNaN(pair2.Value.Item2)) {
+                    return -1;
+                } else {
+                    return pair1.Value.Item2.CompareTo(pair2.Value.Item2);
+                }
+            });
+
             DataColumn roomColumn = new DataColumn("Room", typeof(string));
             DataColumn successRateColumn = new DataColumn("Choke Rate", typeof(float));
             DataColumn deathsColumn = new DataColumn("Successes/Entries", typeof(string));
+            DataColumn noteColumn = new DataColumn("Note", typeof(string));
 
             DataTable testData = new DataTable() {
-                Columns = { roomColumn, successRateColumn, deathsColumn }
+                Columns = { roomColumn, successRateColumn, deathsColumn, noteColumn }
             };
-            //Walk path
+            
+            int earlyRoomBoundary = 0;
+            int roomCount = path.GameplayRoomCount;
+            if (roomCount > 150) {
+                earlyRoomBoundary = 15;
+            } else if (roomCount > 100) {
+                earlyRoomBoundary = 10;
+            } else if (roomCount > 50) {
+                earlyRoomBoundary = 7;
+            } else if (roomCount > 30) {
+                earlyRoomBoundary = 5;
+            } else if (roomCount > 20) {
+                earlyRoomBoundary = 4;
+            } else if (roomCount > 10) {
+                earlyRoomBoundary = 3;
+            } else if (roomCount > 7) {
+                earlyRoomBoundary = 2;
+            } else {
+                earlyRoomBoundary = 1;
+            }
+
             int startIndex = tablePage * ChokeRateTablePageSize;
             int index = 0;
-            foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
-                    RoomStats rStats = stats.GetRoom(rInfo);
-                    Tuple<int, float, int, float> data = roomGoldenSuccessRateData[rInfo];
-
-                    if (index >= startIndex && index < startIndex + ChokeRateTablePageSize) {
-                        testData.Rows.Add(rInfo.GetFormattedRoomName(StatManager.RoomNameType), float.IsNaN(data.Item2) ? float.NaN : 1 - data.Item2, $"{data.Item1 - rStats.GoldenBerryDeaths}/{data.Item1}");
-                    }
-                    index++;
+            foreach (KeyValuePair<RoomInfo, Tuple<int, float, int, float>> kvPair in sortedRoomGoldenSuccessRateData) {
+                RoomInfo rInfo = kvPair.Key;
+                RoomStats rStats = stats.GetRoom(rInfo);
+                Tuple<int, float, int, float> data = kvPair.Value;
+                List<string> notes = new List<string>();
+                if (rInfo.RoomNumberInChapter <= earlyRoomBoundary) {
+                    notes.Add($"early room");
                 }
+                if (!float.IsNaN(kvPair.Value.Item2) && kvPair.Value.Item1 <= 5) {
+                    notes.Add($"few runs");
+                }
+                string note = $"";
+                if (notes.Count > 0) {
+                    note = $"({string.Join(", ", notes)})";
+                }
+
+                if (index >= startIndex && index < startIndex + ChokeRateTablePageSize) {
+                    testData.Rows.Add(rInfo.GetFormattedRoomName(StatManager.RoomNameType), float.IsNaN(data.Item2) ? float.NaN : 1 - data.Item2, $"{data.Item1 - rStats.GoldenBerryDeaths}/{data.Item1}", note);
+                }
+                index++;
             }
+
+
             ChokeRateTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
                 [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 120 },
                 [successRateColumn] = new ColumnSettings() {
@@ -450,6 +504,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     }
                 },
                 [deathsColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center },
+                [noteColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 100 }
             };
             ChokeRateTable.Data = testData;
             ChokeRateTable.Settings.Title = $"Table Page ({tablePage + 1}/{StatCount - (int)SubPage.ChokeRateTable})";
