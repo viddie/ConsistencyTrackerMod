@@ -42,6 +42,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             public static string TitleText { get; set; } = "Summary";
         }
+
+        //Track user input
+        private int lastMoveY = 0;
         
         public SummaryHud() {
             Instance = this;
@@ -81,7 +84,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             if (Mod.ModSettings.ButtonToggleSummaryHud.Pressed) {
                 Visible = !Visible;
                 Mod.Log($"Summary HUD is now '{Visible}'");
-                //Tabs[SelectedTab].Update();
+                
                 //Update all tabs when opening the hud to make sure the StatCounts are up to date
                 if (Visible) {
                     foreach (SummaryHudPage tab in Tabs) {
@@ -89,11 +92,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     }
                 }
             }
-            if (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed) {
+            if (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed || Input.Grab.Pressed) {
                 SelectedTab = (SelectedTab + 1) % Tabs.Count;
                 Tabs[SelectedTab].Update();
             }
-            if (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed) {
+            if (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed || (lastMoveY != Input.MoveY.Value && Input.MoveY.Value < 0)) {
                 Tabs[SelectedTab].ChangedSelectedStat(1);
                 Tabs[SelectedTab].Update();
                 
@@ -105,10 +108,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 //}
                 
             }
-            if (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed) {
+            if (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed || (lastMoveY != Input.MoveY.Value && Input.MoveY.Value > 0)) {
                 Tabs[SelectedTab].ChangedSelectedStat(-1);
                 Tabs[SelectedTab].Update();
             }
+
+            lastMoveY = Input.MoveY.Value;
         }
         
         public override void Render() {
