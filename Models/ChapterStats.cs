@@ -76,6 +76,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             } else {
                 if (CurrentRoom.SuccessStreak > 0 || !doNegativeStreakTracking) {
                     CurrentRoom.SuccessStreak = 0;
+                } else if (CurrentRoom.SuccessStreak == 0) {
+                    CurrentRoom.SuccessStreak = -2;
                 } else {
                     CurrentRoom.SuccessStreak--;
                 }

@@ -164,12 +164,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Interop
             DebugRcPage.Load();
             typeof(ConsistencyTrackerAPI).ModInterop();
-
-            //https://github.com/EverestAPI/CelesteTAS-EverestInterop/blob/master/CelesteTAS-EverestInterop/Source/Communication/StudioCommunicationClient.cs
-            //idk how to use this class to get GameBananaId
-            //ModUpdateInfo updateInfo = new ModUpdateInfo();
-
-
         }
 
         public override void Unload() {
