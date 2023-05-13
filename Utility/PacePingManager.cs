@@ -103,9 +103,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         #endregion
 
         #region Mod Options Actions
-        public void ToggleCurrentRoomPacePing() {
+        public bool ToggleCurrentRoomPacePing() {
+            bool isNowEnabled = false;
             PathInfo path = Mod.CurrentChapterPath;
-            if (path == null || path.CurrentRoom == null) return;
+            if (path == null || path.CurrentRoom == null) return isNowEnabled;
             
             string id = path.ChapterSID;
 
@@ -120,11 +121,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     CustomPingMessage = null,
                     LastPingedAt = DateTime.MinValue
                 });
+
+                isNowEnabled = true;
             } else {
                 State.PacePingTimings[id].Remove(paceTiming);
             }
 
             SaveState();
+            return isNowEnabled;
         }
 
         public void TestPingForCurrentRoom() {

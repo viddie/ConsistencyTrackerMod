@@ -127,9 +127,10 @@ namespace Celeste.Mod.ConsistencyTracker
             if (!inGame) return;
 
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
+            TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader("!!! The existing path will be overwritten !!!"));
-            subMenu.Add(new TextMenu.OnOff("Record Path", Mod.DoRecordPath) {
+            subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Record Path", Mod.DoRecordPath) {
                 OnValueChange = v => {
                     if (v)
                         Mod.Log($"Recording chapter path...");
@@ -141,8 +142,10 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.SaveChapterStats();
                 }
             });
+            subMenu.AddDescription(menu, menuItem, "Turn this on to start recording a path for the current chapter. Disable in the last room");
+            subMenu.AddDescription(menu, menuItem, "of the map, or complete the map, to stop the recording and save the path.");
+            subMenu.AddDescription(menu, menuItem, "WILL OVERRIDE ANY EXISTING PATH (unless disabled just after starting recording)");
 
-            TextMenu.Item menuItem;
             subMenu.Add(new TextMenu.SubHeader("=== Path Editing ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
@@ -208,7 +211,7 @@ namespace Celeste.Mod.ConsistencyTracker
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             //Add an option to input a custom room name
 
-            subMenu.Add(new TextMenu.SubHeader("Import / Export"));
+            subMenu.Add(new TextMenu.SubHeader("=== Import / Export ==="));
             subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
                 OnPressed = () => {
                     if (Mod.CurrentChapterPath == null) return;
@@ -329,7 +332,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "Default for navigating the summary: <Grab> go through pages, <Up>/<Down> navigate on a page");
             subMenu.AddDescription(menu, menuItem, "You can replace the default navigation bindings by binding your own buttons!");
 
-            subMenu.Add(new TextMenu.SubHeader("=== Export ==="));
+            subMenu.Add(new TextMenu.SubHeader("=== Export (outdated) ==="));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
@@ -386,55 +389,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
             TextMenu.Item menuItem;
-
             
-            subMenu.Add(new TextMenu.SubHeader($"=== Format Editing ==="));
-            subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
-                OnPressed = () => {
-                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
-                    string path = System.IO.Path.GetFullPath(relPath);
-                    Mod.LogVerbose($"Opening format editor at '{path}'");
-                    Process.Start("explorer", path);
-                },
-            });
-            subMenu.Add(new TextMenu.Button("Open Format Text File").Pressed(() => {
-                string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
-                string path = System.IO.Path.GetFullPath(relPath);
-                Mod.LogVerbose($"Opening format file at '{path}'");
-                Process.Start("explorer", path);
-            }));
-
-
             subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
-                OnValueChange = (value) => {
-                    LiveDataFileOutputEnabled = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Disabling this might improve performance. Ingame Overlay is unaffected by this.");
-            subMenu.AddDescription(menu, menuItem, "DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.");
-
-            List<int> DigitCounts = new List<int>() { 1, 2, 3, 4, 5 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
-                OnValueChange = (value) => {
-                    LiveDataDecimalPlaces = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Floating point numbers will be rounded to this decimal.");
-
-            List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(5, "5"),
-                    new KeyValuePair<int, string>(10, "10"),
-                    new KeyValuePair<int, string>(20, "20"),
-                    new KeyValuePair<int, string>(100, "100"),
-                };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
-                OnValueChange = (value) => {
-                    LiveDataSelectedAttemptCount = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts in each room will be counted.");
-
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "DT-3"),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Determination-3"),
@@ -451,6 +407,50 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "Whether you want checkpoint names to be full or abbreviated in the room name.");
 
+            subMenu.Add(menuItem = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
+                OnValueChange = v => {
+                    LiveDataHideFormatsWithoutPath = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "If a format depends on path information and no path is set, the format will be blanked out.");
+
+            List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
+                    new KeyValuePair<int, string>(5, "5"),
+                    new KeyValuePair<int, string>(10, "10"),
+                    new KeyValuePair<int, string>(20, "20"),
+                    new KeyValuePair<int, string>(100, "100"),
+                };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
+                OnValueChange = (value) => {
+                    LiveDataSelectedAttemptCount = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts in each room will be counted.");
+
+            List<int> DigitCounts = new List<int>() { 1, 2, 3, 4, 5 };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
+                OnValueChange = (value) => {
+                    LiveDataDecimalPlaces = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Floating point numbers will be rounded to this decimal.");
+            
+            subMenu.Add(menuItem = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
+                OnValueChange = v => {
+                    LiveDataIgnoreUnplayedRooms = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
+
+            subMenu.Add(new TextMenu.SubHeader($"=== File Output ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
+                OnValueChange = (value) => {
+                    LiveDataFileOutputEnabled = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Disabling this might improve performance. Ingame Overlay is unaffected by this.");
+            subMenu.AddDescription(menu, menuItem, "DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.");
+
             List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>((int)ListFormat.Plain, "Plain"),
                     new KeyValuePair<int, string>((int)ListFormat.Json, "JSON"),
@@ -462,24 +462,23 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "Output format for lists. Plain is easily readable, JSON is for programming purposes.");
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
-                OnValueChange = v => {
-                    LiveDataHideFormatsWithoutPath = v;
-                }
+            subMenu.Add(new TextMenu.SubHeader($"=== Format Editing ==="));
+            subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
+                OnPressed = () => {
+                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
+                    string path = System.IO.Path.GetFullPath(relPath);
+                    Mod.LogVerbose($"Opening format editor at '{path}'");
+                    Process.Start("explorer", path);
+                },
             });
-            subMenu.AddDescription(menu, menuItem, "If a format depends on path information and no path is set, the format will be blanked out.");
-
-            subMenu.Add(menuItem = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
-                OnValueChange = v => {
-                    LiveDataIgnoreUnplayedRooms = v;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
-
-
-            
-            subMenu.Add(new TextMenu.SubHeader($"Reload the format file, after editing 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'!"));
-            subMenu.Add(new TextMenu.Button("Reload format file") {
+            subMenu.Add(menuItem = new TextMenu.Button("Open Format Text File").Pressed(() => {
+                string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
+                string path = System.IO.Path.GetFullPath(relPath);
+                Mod.LogVerbose($"Opening format file at '{path}'");
+                Process.Start("explorer", path);
+            }));
+            subMenu.AddDescription(menu, menuItem, $"After manually editing, make sure to reload the format file with the button below!");
+            subMenu.Add(menuItem = new TextMenu.Button("Reload Format File") {
                 OnPressed = () => {
                     Mod.StatsManager.LoadFormats();
                     Mod.SaveChapterStats();
@@ -550,7 +549,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             subMenu.Add(new TextMenu.SubHeader("REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS"));
             //General Settings
-            subMenu.Add(new TextMenu.SubHeader("General Settings"));
+            subMenu.Add(new TextMenu.SubHeader("=== General Settings ==="));
             subMenu.Add(menuItem = new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
                 OnValueChange = (value) => {
                     ExternalOverlayRefreshTimeSeconds = value;
@@ -591,6 +590,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
 
+            subMenu.Add(new TextMenu.SubHeader("=== Component Settings ==="));
 
             //Text Segment Display
             subMenu.Add(new TextMenu.SubHeader("The text stats segment at the top left / top middle / top right"));
@@ -1219,18 +1219,23 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool LogPhysicsEnabled { get; set; } = false;
-
         [SettingIgnore]
         public bool LogSegmentOnDeath { get; set; } = true;
-
         [SettingIgnore]
         public bool LogSegmentOnLoadState { get; set; } = true;
-
         [SettingIgnore]
         public bool LogPhysicsInputsToTasFile { get; set; } = false;
+        [SettingIgnore]
+        public bool LogFlipY { get; set; } = false;
 
         [SettingIgnore]
-        public bool LogPhysicsFlipY { get; set; } = false;
+        public bool LogFlagDashes { get; set; } = false;
+        [SettingIgnore]
+        public bool LogFlagMaxDashes { get; set; } = false;
+        [SettingIgnore]
+        public bool LogFlagDashDir { get; set; } = false;
+        [SettingIgnore]
+        public bool LogFlagFacing { get; set; } = false;
 
         public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Inspector Settings", false);
@@ -1278,15 +1283,46 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped");
             subMenu.AddDescription(menu, menuItem, "Multiple buttons for one input don't work properly!");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogPhysicsFlipY) {
+            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogFlipY) {
                 OnValueChange = v => {
-                    LogPhysicsFlipY = v;
+                    LogFlipY = v;
                     Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
             subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
             subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
+
+            
+            subMenu.Add(new TextMenu.SubHeader($"=== Optional Flags ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Count Flag", LogFlagDashes) {
+                OnValueChange = v => {
+                    LogFlagDashes = v;
+                    Mod.Log($"Optional flag '{nameof(LogFlagDashes)}' {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player has on any frame");
+            subMenu.Add(menuItem = new TextMenu.OnOff("Max Dash Count Flag", LogFlagMaxDashes) {
+                OnValueChange = v => {
+                    LogFlagMaxDashes = v;
+                    Mod.Log($"Optional flag '{nameof(LogFlagMaxDashes)}' {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player can have at max usually. Only works when above is enabled.");
+            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Direction Flag", LogFlagDashDir) {
+                OnValueChange = v => {
+                    LogFlagDashDir = v;
+                    Mod.Log($"Optional flag '{nameof(LogFlagDashDir)}' {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Shows the last dash's direction on any frame");
+            subMenu.Add(menuItem = new TextMenu.OnOff("Player Facing Flag", LogFlagFacing) {
+                OnValueChange = v => {
+                    LogFlagFacing = v;
+                    Mod.Log($"Optional flag '{nameof(LogFlagFacing)}' {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Shows the direction the player is facing on any frame");
 
             menu.Add(subMenu);
         }
@@ -1312,11 +1348,15 @@ namespace Celeste.Mod.ConsistencyTracker
             }
 
             subMenu.Add(new TextMenu.SubHeader("=== General ==="));
-            subMenu.Add(new TextMenu.OnOff("Pace Pings Enabled", PacePingEnabled) {
+            subMenu.Add(menuItem = new TextMenu.OnOff("Pace Pings Enabled", PacePingEnabled) {
                 OnValueChange = v => {
                     PacePingEnabled = v;
                 }
             });
+            subMenu.AddDescription(menu, menuItem, "If you own a Discord server, you can use this feature to automatically notify");
+            subMenu.AddDescription(menu, menuItem, "users in your server when you are on a good run! You will need to setup a");
+            subMenu.AddDescription(menu, menuItem, "Discord webhook (Google how to) and paste the URL in the settings below.");
+
             subMenu.Add(new TextMenu.Button("Import Default Ping Message from Clipboard") { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
@@ -1342,12 +1382,9 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader("=== Current Room ==="));
-            string toggleRoomTimingText = paceTiming == null ? "Enable Pace Ping" : "Disable Pace Ping";
-            subMenu.Add(new TextMenu.Button(toggleRoomTimingText) {
-                OnPressed = Mod.PacePingManager.ToggleCurrentRoomPacePing,
-                Disabled = !hasCurrentRoom
-            });
-            subMenu.Add(new TextMenu.Button("Import Ping Message from Clipboard") {
+            string toggleRoomTimingText = paceTiming == null ? "Toggle Pace Ping For This Room" : "Remove Pace Ping From This Room";
+            
+            TextMenu.Button importMessageButton = new TextMenu.Button("Import Ping Message from Clipboard") {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing custom ping message from clipboard...");
@@ -1358,12 +1395,25 @@ namespace Celeste.Mod.ConsistencyTracker
                     }
                 },
                 Disabled = paceTiming == null,
-            });
-            
-            subMenu.Add(new TextMenu.Button("Test Pace Ping For This Room") {
+            };
+            TextMenu.Button testButton = new TextMenu.Button("Test Pace Ping For This Room") {
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
-            });
+            };
+            TextMenu.Button togglePacePingButton = new TextMenu.Button(toggleRoomTimingText) {
+                OnPressed = () => {
+                    bool isEnabledNow = Mod.PacePingManager.ToggleCurrentRoomPacePing();
+                    //TextMenu.Button thisAsButton = this as TextMenu.Button;
+                    //togglePacePingButton.Label = isEnabledNow ? "Remove Pace Ping From This Room" : "Set This Room As Pace Ping";
+                    importMessageButton.Disabled = !isEnabledNow;
+                    testButton.Disabled = !isEnabledNow;
+                },
+                Disabled = !hasCurrentRoom
+            };
+
+            subMenu.Add(togglePacePingButton);
+            subMenu.Add(importMessageButton);
+            subMenu.Add(testButton);
 
             menu.Add(subMenu);
         }

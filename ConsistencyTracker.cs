@@ -700,7 +700,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 //Log($"player '{player}', player.Leader '{player?.Leader}', player.Leader.Followers '{player?.Leader?.Followers}', follower count '{player?.Leader?.Followers?.Count}'");
                 return false;
             }
-
+            
             return player.Leader.Followers.Any((f) => {
                 //Log($"Follower class: '{f.Entity.GetType().Name}'");
                 if (f.Entity.GetType().Name == "PlatinumBerry") {

@@ -45,8 +45,25 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 set => ModSettings.LogPhysicsInputsToTasFile = value;
             }
             public static bool FlipY {
-                get => ModSettings.LogPhysicsFlipY;
-                set => ModSettings.LogPhysicsFlipY = value;
+                get => ModSettings.LogFlipY;
+                set => ModSettings.LogFlipY = value;
+            }
+
+            public static bool FlagDashes {
+                get => ModSettings.LogFlagDashes;
+                set => ModSettings.LogFlagDashes = value;
+            }
+            public static bool FlagMaxDashes {
+                get => ModSettings.LogFlagMaxDashes;
+                set => ModSettings.LogFlagMaxDashes = value;
+            }
+            public static bool FlagDashDir {
+                get => ModSettings.LogFlagDashDir;
+                set => ModSettings.LogFlagDashDir = value;
+            }
+            public static bool FlagFacing {
+                get => ModSettings.LogFlagFacing;
+                set => ModSettings.LogFlagFacing = value;
             }
         }
 
@@ -57,7 +74,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private bool LastFrameEnabled = false;
         private int FrameNumber = -1;
         private long RTAFrameOffset = -1;
-        //private bool LogPosition, LogSpeed, LogVelocity, LogLiftBoost, LogSpeedRetention, LogStamina, LogFlags, LogInputs;
         private Player LastPlayer = null;
 
         private int TasFrameCount = 0;
@@ -320,11 +336,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             if (wallSpeedRetentionTimer > 0) {
                 flags.Add($"Retained({wallSpeedRetentionTimer.ToCeilingFrames()})");
             }
-
-            //if (player.LiftSpeedGraceTime > 0) {
-            //    flags.Add($"LiftBoost({player.LiftSpeedGraceTime.ToCeilingFrames()})");
-            //}
-
+            
             if (level.InCutscene) {
                 flags.Add("Cutscene");
             }
@@ -334,6 +346,18 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 return holdable.Check(player);
             })) {
                 flags.Add("Grab");
+            }
+
+            if (Settings.FlagDashes) {
+                string maxDashesAddition = Settings.FlagMaxDashes ? $"/{player.MaxDashes}" : "";
+                flags.Add($"Dashes({player.Dashes}{maxDashesAddition})");
+            }
+            if (Settings.FlagDashDir) {
+                flags.Add($"DashDir({Math.Round(player.DashDir.X, 2)}|{Math.Round(player.DashDir.Y, 2)})");
+            }
+            if (Settings.FlagFacing) {
+                string facingDir = player.Facing == Facings.Left ? "L" : "R";
+                flags.Add($"Facing({facingDir})");
             }
 
             return flags;
