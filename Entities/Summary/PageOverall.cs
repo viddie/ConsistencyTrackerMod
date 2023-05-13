@@ -507,7 +507,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [noteColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 100 }
             };
             ChokeRateTable.Data = testData;
-            ChokeRateTable.Settings.Title = $"Table Page ({tablePage + 1}/{StatCount - (int)SubPage.ChokeRateTable})";
+            ChokeRateTable.Settings.Title = $"Rooms By Choke Rate ({tablePage + 1}/{StatCount - (int)SubPage.ChokeRateTable})";
             ChokeRateTable.Update();
         }
 

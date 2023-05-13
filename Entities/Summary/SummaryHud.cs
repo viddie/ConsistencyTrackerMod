@@ -92,13 +92,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     }
                 }
             }
-            if (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed 
-                || (!Mod.ModSettings.ButtonSummaryHudNextTab.Binding.HasInput && Input.Grab.Pressed)) {
+            if (Visible && 
+                (Mod.ModSettings.ButtonSummaryHudNextTab.Pressed 
+                  || (!Mod.ModSettings.ButtonSummaryHudNextTab.Binding.HasInput && Input.Grab.Pressed))) {
                 SelectedTab = (SelectedTab + 1) % Tabs.Count;
                 Tabs[SelectedTab].Update();
             }
-            if (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed 
-                || (!Mod.ModSettings.ButtonSummaryHudNextStat.Binding.HasInput && lastMoveY != Input.MoveY.Value && Input.MoveY.Value < 0)) {
+            if (Visible && 
+                (Mod.ModSettings.ButtonSummaryHudNextStat.Pressed 
+                  || (!Mod.ModSettings.ButtonSummaryHudNextStat.Binding.HasInput && lastMoveY != Input.MoveY.Value && Input.MoveY.Value < 0))) {
                 Tabs[SelectedTab].ChangedSelectedStat(1);
                 Tabs[SelectedTab].Update();
                 
@@ -111,8 +113,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 
             }
             
-            if (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed 
-                || (!Mod.ModSettings.ButtonSummaryHudPreviousStat.Binding.HasInput && lastMoveY != Input.MoveY.Value && Input.MoveY.Value > 0)) {
+            if (Visible && 
+                (Mod.ModSettings.ButtonSummaryHudPreviousStat.Pressed 
+                  || (!Mod.ModSettings.ButtonSummaryHudPreviousStat.Binding.HasInput && lastMoveY != Input.MoveY.Value && Input.MoveY.Value > 0))) {
                 Tabs[SelectedTab].ChangedSelectedStat(-1);
                 Tabs[SelectedTab].Update();
             }
