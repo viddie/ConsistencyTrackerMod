@@ -179,13 +179,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int pbNumberSession = 0;
             RoomNameDisplayType nameFormat = StatManager.RoomNameType;
 
-            //Walk the path BACKWARDS (d1d7 reference???)
+            //Walk the path BACKWARDS (d1d7 reference???) 
             for (int cpIndex = chapterPath.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {
                 CheckpointInfo cpInfo = chapterPath.Checkpoints[cpIndex];
-                List<RoomInfo> gameplayRooms = cpInfo.GameplayRooms;
+                List<RoomInfo> rooms = cpInfo.Rooms;
 
-                for (int roomIndex = gameplayRooms.Count - 1; roomIndex >= 0; roomIndex--) {
-                    RoomInfo rInfo = gameplayRooms[roomIndex];
+                for (int roomIndex = rooms.Count - 1; roomIndex >= 0; roomIndex--) {
+                    RoomInfo rInfo = rooms[roomIndex];
                     RoomStats rStats = chapterStats.GetRoom(rInfo);
 
                     int goldenDeaths = rStats.GoldenBerryDeaths;

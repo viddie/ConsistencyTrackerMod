@@ -222,29 +222,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         /// <summary>For data that shouldn't be done on every update but rather once when chapter is changed.</summary>
         public void AggregateStatsPassOnce(PathInfo pathInfo) {
             //Walk the path
-            int cpNumber = 0;
-            int roomNumber = 0;
-            int transitionNumber = 0;
+            int cpNumber = 1;
+            int roomNumber = 1;
             foreach (CheckpointInfo cpInfo in pathInfo.Checkpoints) {
-                cpNumber++;
                 cpInfo.CPNumberInChapter = cpNumber;
 
-                int roomNumberInCP = 0;
-                int transitionNumberInCP = 0;
+                int roomNumberInCP = 1;
 
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    if (rInfo.IsNonGameplayRoom) {
-                        transitionNumber++;
-                        transitionNumberInCP++;
-                        rInfo.RoomNumberInChapter = transitionNumber;
-                        rInfo.RoomNumberInCP = transitionNumberInCP;
-                    } else { 
+                    rInfo.RoomNumberInChapter = roomNumber;
+                    rInfo.RoomNumberInCP = roomNumberInCP;
+                    if (!rInfo.IsNonGameplayRoom) { 
                         roomNumber++;
                         roomNumberInCP++;
-                        rInfo.RoomNumberInChapter = roomNumber;
-                        rInfo.RoomNumberInCP = roomNumberInCP;
                     }
                 }
+                
+                cpNumber++;
             }
         }
         #endregion
