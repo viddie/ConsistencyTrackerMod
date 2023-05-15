@@ -13,7 +13,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
      {room:chokeRateSession}
      {checkpoint:chokeRate}
      {checkpoint:chokeRateSession}
-
          */
 
     public class ChokeRateStat : Stat {
@@ -31,13 +30,19 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string RoomGoldenEntriesSession = "{room:goldenEntriesSession}";
         public static string RoomGoldenSuccesses = "{room:goldenSuccesses}";
         public static string RoomGoldenSuccessesSession = "{room:goldenSuccessesSession}";
+
+        public static string RoomGoldenEntryChance = "{room:goldenEntryChance}";
+        public static string RoomGoldenEntryChanceSession = "{room:goldenEntryChanceSession}";
         public static List<string> IDs = new List<string>() {
             RoomChokeRate, RoomChokeRateSession,
             CheckpointChokeRate, CheckpointChokeRateSession,
             RoomGoldenSuccessRate, RoomGoldenSuccessRateSession,
             CheckpointGoldenSuccessRate, CheckpointGoldenSuccessRateSession,
+            
             RoomGoldenEntries, RoomGoldenEntriesSession,
             RoomGoldenSuccesses, RoomGoldenSuccessesSession,
+
+            RoomGoldenEntryChance, RoomGoldenEntryChanceSession
         };
 
         public ChokeRateStat() : base(IDs) { }
@@ -59,6 +64,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.MissingPathFormat(format, RoomGoldenSuccesses);
                 format = StatManager.MissingPathFormat(format, RoomGoldenSuccessesSession);
 
+                format = StatManager.MissingPathFormat(format, RoomGoldenEntryChance);
+                format = StatManager.MissingPathFormat(format, RoomGoldenEntryChanceSession);
+
                 return format;
                 
             } else if (chapterPath.CurrentRoom == null) { //Player is not on the path
@@ -76,6 +84,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.NotOnPathFormat(format, RoomGoldenEntriesSession);
                 format = StatManager.NotOnPathFormat(format, RoomGoldenSuccesses);
                 format = StatManager.NotOnPathFormat(format, RoomGoldenSuccessesSession);
+                
+                format = StatManager.NotOnPathFormatPercent(format, RoomGoldenEntryChance);
+                format = StatManager.NotOnPathFormatPercent(format, RoomGoldenEntryChanceSession);
 
                 return format;
             }
@@ -158,6 +169,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             format = format.Replace(RoomGoldenSuccesses, roomSuccesses.ToString());
             format = format.Replace(RoomGoldenSuccessesSession, roomSuccessesSession.ToString());
+
+            //Format Golden Run Chance
+            int totalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths;
+            int totalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession;
+            if (totalGoldenDeaths == 0) {
+                format = format.Replace(RoomGoldenEntryChance, $"-%");
+            } else {
+                format = format.Replace(RoomGoldenEntryChance, StatManager.FormatPercentage((float)roomEntries / totalGoldenDeaths));
+            }
+
+            if (totalGoldenDeathsSession == 0) {
+                format = format.Replace(RoomGoldenEntryChanceSession, $"-%");
+            } else {
+                format = format.Replace(RoomGoldenEntryChanceSession, StatManager.FormatPercentage((float)roomEntriesSession / totalGoldenDeathsSession));
+            }
 
 
             //======== Checkpoint ========
@@ -354,6 +380,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(RoomGoldenSuccesses, "Count of successes of a room with the golden berry"),
                 new KeyValuePair<string, string>(RoomGoldenSuccessesSession, "Count of successes of a room with the golden berry in the current session"),
 
+                new KeyValuePair<string, string>(RoomGoldenEntryChance, "Chance for a run to get to the current room from the start (calculated off of all golden runs)"),
+                new KeyValuePair<string, string>(RoomGoldenEntryChanceSession, "Chance for a run to get to the current room from the start (calculated off of golden runs in the current session)"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
