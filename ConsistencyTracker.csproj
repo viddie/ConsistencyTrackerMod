@@ -80,6 +80,7 @@
 
   <Target Name="CopyFiles" AfterTargets="Build">
     <Copy SourceFiles="$(OutputPath)\ConsistencyTracker.dll" DestinationFolder="bin" />
+    <Copy SourceFiles="$(OutputPath)\ConsistencyTracker.pdb" DestinationFolder="bin" />
   </Target>
 
 </Project>

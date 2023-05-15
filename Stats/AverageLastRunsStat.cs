@@ -306,8 +306,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 double avg = 0;
                 for (int j = 0; j < windowSize; j++) {
                     int index = i + j;
-                    RoomStats rStats = chapterStats.GetRoom(pastRuns[index]);
-                    RoomInfo rInfo = chapterPath.GetRoom(rStats);
+                    RoomInfo rInfo = chapterPath.GetRoom(pastRuns[index]);
+                    if (rInfo == null) continue;
                     avg += rInfo.RoomNumberInChapter;
                 }
                 graph.Add(avg / windowSize);

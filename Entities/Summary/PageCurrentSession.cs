@@ -178,8 +178,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 int index = lastRuns.Count - 1 - i;
                 if (index >= 0) {
                     RoomInfo rInfo = path.GetRoom(lastRuns[index]);
-                    distance = $"{rInfo.RoomNumberInChapter}/{ChapterRoomCount}";
-                    roomName = rInfo.GetFormattedRoomName(StatManager.RoomNameType);
+                    if (rInfo == null) {
+                        distance = $"-/{ChapterRoomCount}";
+                        roomName = $"<{lastRuns[index]}>";
+                    } else { 
+                        distance = $"{rInfo.RoomNumberInChapter}/{ChapterRoomCount}";
+                        roomName = rInfo.GetFormattedRoomName(StatManager.RoomNameType);
+                    }
                 }
 
                 lastRunsData.Rows.Add(number, roomName, distance);
@@ -237,11 +242,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<double> rollingAvg10 = AverageLastRunsStat.GetRollingAverages(path, stats, 10, lastRuns);
 
             for (int i = 0; i < rollingAvg1.Count; i++) {
-                dataRollingAvg1.Add(new LineDataPoint() {
-                    XAxisLabel = $"{i + 1}",
-                    Y = (float)rollingAvg1[i],
-                    Label = rollingAvg1[i].ToString(),
-                });
+                if (rollingAvg1[i] == 0) {
+                    dataRollingAvg1.Add(new LineDataPoint() {
+                        XAxisLabel = $"{i + 1}",
+                        Y = float.NaN,
+                        Label = "",
+                    });
+                } else {
+                    dataRollingAvg1.Add(new LineDataPoint() {
+                        XAxisLabel = $"{i + 1}",
+                        Y = (float)rollingAvg1[i],
+                        Label = rollingAvg1[i].ToString(),
+                    });
+                }
 
                 float val3 = float.NaN;
                 if (i > 0 && i < rollingAvg1.Count - 1 && rollingAvg1.Count >= 3) {
