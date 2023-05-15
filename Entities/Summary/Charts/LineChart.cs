@@ -97,7 +97,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
                     Color strokeColor = Color.Black;
                     string label = prevPoint.Label ?? Settings.YAxisLabelFormatter(prevPoint.Y);
                     
-                    if (label != "") { //If label is an empty string, DONT draw this particular label
+                    if (label != "" && prevPoint.Y <= Settings.YMin) { //If label is an empty string or Y is equal to YMin, DONT draw this particular label
                         if (series.LabelPosition == LabelPosition.Middle) {
                             ActiveFont.DrawOutline(label, prevPosition, new Vector2(0.5f, 0.5f), Vector2.One * Settings.FontMult * series.LabelFontMult * Settings.Scale, Settings.AxisLabelColor, strokeThickness, strokeColor);
                         } else {
