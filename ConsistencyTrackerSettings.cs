@@ -371,20 +371,27 @@ namespace Celeste.Mod.ConsistencyTracker
         
         [SettingIgnore]
         public bool LiveDataFileOutputEnabled { get; set; } = false;
+        [SettingIgnore]
         public int LiveDataDecimalPlaces { get; set; } = 2;
+        [SettingIgnore]
         public int LiveDataSelectedAttemptCount { get; set; } = 20;
 
         [SettingIgnore]
         public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
-
         [SettingIgnore]
         public ListFormat LiveDataListOutputFormat { get; set; } = ListFormat.Json;
-
         [SettingIgnore]
         public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
-
         [SettingIgnore]
         public bool LiveDataIgnoreUnplayedRooms { get; set; } = false;
+
+
+        [SettingIgnore]
+        public int LiveDataChapterBarLightGreenPercent { get; set; } = 95;
+        [SettingIgnore]
+        public int LiveDataChapterBarGreenPercent { get; set; } = 80;
+        [SettingIgnore]
+        public int LiveDataChapterBarYellowPercent { get; set; } = 50;
 
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
@@ -441,6 +448,28 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
+
+
+            subMenu.Add(new TextMenu.SubHeader($"Success Rate Colors")); 
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
+                OnValueChange = (value) => {
+                    LiveDataChapterBarLightGreenPercent = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Default: 95%");
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), LiveDataChapterBarGreenPercent) {
+                OnValueChange = (value) => {
+                    LiveDataChapterBarGreenPercent = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Default: 80%");
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), LiveDataChapterBarYellowPercent) {
+                OnValueChange = (value) => {
+                    LiveDataChapterBarYellowPercent = value;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Default: 50%");
+
 
             subMenu.Add(new TextMenu.SubHeader($"=== File Output ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
@@ -528,12 +557,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool ExternalOverlayChapterBarEnabled { get; set; } = true;
-        [SettingIgnore]
-        public int ExternalOverlayChapterBarLightGreenPercent { get; set; } = 95;
-        [SettingIgnore]
-        public int ExternalOverlayChapterBarGreenPercent { get; set; } = 80;
-        [SettingIgnore]
-        public int ExternalOverlayChapterBarYellowPercent { get; set; } = 50;
         [SettingIgnore]
         public int ExternalOverlayChapterBorderWidthMultiplier { get; set; } = 2;
 
@@ -643,24 +666,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             //subMenu.Add(new TextMenu.SubHeader($"Success rate in a room to get a certain color (default: light green 95%, green 80%, yellow 50%)"));
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), ExternalOverlayChapterBarLightGreenPercent) {
-                OnValueChange = (value) => {
-                    ExternalOverlayChapterBarLightGreenPercent = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Default: 95%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), ExternalOverlayChapterBarGreenPercent) {
-                OnValueChange = (value) => {
-                    ExternalOverlayChapterBarGreenPercent = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Default: 80%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), ExternalOverlayChapterBarYellowPercent) {
-                OnValueChange = (value) => {
-                    ExternalOverlayChapterBarYellowPercent = value;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, "Default: 50%");
+            
 
 
             //Room Attempts Display

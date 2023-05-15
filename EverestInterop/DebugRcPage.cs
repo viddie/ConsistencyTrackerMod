@@ -155,9 +155,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                         chapterBarDisplay = new SettingsResponse.ChapterBarDisplay() {
                             enabled = mod.ModSettings.ExternalOverlayChapterBarEnabled,
                             borderWidthMultiplier = mod.ModSettings.ExternalOverlayChapterBorderWidthMultiplier,
-                            lightGreenCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarLightGreenPercent / 100,
-                            greenCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarGreenPercent / 100,
-                            yellowCutoff = (float)mod.ModSettings.ExternalOverlayChapterBarYellowPercent / 100,
+                            lightGreenCutoff = (float)mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100,
+                            greenCutoff = (float)mod.ModSettings.LiveDataChapterBarGreenPercent / 100,
+                            yellowCutoff = (float)mod.ModSettings.LiveDataChapterBarYellowPercent / 100,
                         },
                         textStatsDisplay = new SettingsResponse.TextStatsDisplay() {
                             enabled = mod.ModSettings.ExternalOverlayTextDisplayEnabled,

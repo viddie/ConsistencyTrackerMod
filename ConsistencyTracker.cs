@@ -1282,11 +1282,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     RoomStats rStats = CurrentChapterStats.GetRoom(rInfo);
                     Color color = Color.Gray;
                     float successRate = rStats.AverageSuccessOverSelectedN() * 100;
-                    if (successRate > ModSettings.ExternalOverlayChapterBarLightGreenPercent) {
+                    if (successRate > ModSettings.LiveDataChapterBarLightGreenPercent) {
                         color = new Color(0, 230, 0);
-                    } else if (successRate > ModSettings.ExternalOverlayChapterBarGreenPercent) {
+                    } else if (successRate > ModSettings.LiveDataChapterBarGreenPercent) {
                         color = Color.Green;
-                    } else if (successRate > ModSettings.ExternalOverlayChapterBarYellowPercent) {
+                    } else if (successRate > ModSettings.LiveDataChapterBarYellowPercent) {
                         color = new Color(194, 194, 41);
                     } else if (!float.IsNaN(successRate)) {
                         color = new Color(231, 45, 45);
