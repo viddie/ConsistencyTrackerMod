@@ -122,9 +122,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 int cpEntriesCount = cpEntries.Item2;
                 int cpGoldenDeaths = cpEntries.Item3;
 
+                string deathsString = cpGoldenDeaths == 1 ? "death" : "deaths";
+
                 float totalHeight = cpEntriesCount * sliceHeight;
                 Move(ref cpLabelPointer, 0, totalHeight / 2);
-                DrawText($"{cpName} ({cpGoldenDeaths} deaths)", cpLabelPointer, FontMultSmall, Color.White, new Vector2(0f, 0.5f));
+                DrawText($"{cpName} ({cpGoldenDeaths} {deathsString})", cpLabelPointer, FontMultSmall, Color.White, new Vector2(0f, 0.5f));
                 Move(ref cpLabelPointer, 0, totalHeight / 2);
             }
         }
