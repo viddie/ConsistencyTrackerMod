@@ -164,6 +164,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Interop
             DebugRcPage.Load();
             typeof(ConsistencyTrackerAPI).ModInterop();
+
         }
 
         public override void Unload() {
@@ -201,8 +202,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.ClutterSwitch.OnDashed += ClutterSwitch_OnDashed; //works
 
             //Picking up a strawberry
-            On.Celeste.Strawberry.OnCollect += Strawberry_OnCollect; //doesnt work :(
             On.Celeste.Strawberry.OnPlayer += Strawberry_OnPlayer; //sorta works, but triggers very often for a single berry
+            On.Celeste.Strawberry.OnCollect += On_Strawberry_OnCollect;
 
             //Changing lava/ice in Core
             On.Celeste.CoreModeToggle.OnChangeMode += CoreModeToggle_OnChangeMode; //works
@@ -242,6 +243,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Picking up a strawberry
             On.Celeste.Strawberry.OnPlayer -= Strawberry_OnPlayer;
+            On.Celeste.Strawberry.OnCollect -= On_Strawberry_OnCollect;
 
             //Changing lava/ice in Core
             On.Celeste.CoreModeToggle.OnChangeMode -= CoreModeToggle_OnChangeMode;
@@ -312,10 +314,22 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        private void Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
-            LogVerbose($"Collected a strawberry");
+        private void On_Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
             orig(self);
-            SetRoomCompleted(resetOnDeath: false);
+
+            Log($"On.Strawberry.OnCollect triggered:");
+            Log($"Golden: {self.Golden}", isFollowup: true);
+            Log($"Winged: {self.Winged}", isFollowup: true);
+
+            bool isCollected = Util.GetPrivateProperty<bool>(self, "collected");
+            bool isGhostBerry = Util.GetPrivateProperty<bool>(self, "isGhostBerry");
+
+            Log($"collected: {isCollected}", isFollowup: true);
+            Log($"isGhostBerry: {isGhostBerry}", isFollowup: true);
+
+            if (self.Golden) {
+                CollectedGoldenBerry();
+            }
         }
 
         private void CoreModeToggle_OnChangeMode(On.Celeste.CoreModeToggle.orig_OnChangeMode orig, CoreModeToggle self, Session.CoreModes mode) {
@@ -721,6 +735,15 @@ namespace Celeste.Mod.ConsistencyTracker {
                 //Log($"Follower was a Golden!");
                 return true;
             });
+        }
+
+        public void CollectedGoldenBerry() {
+            Log($"Golden collected! GG catpog");
+            CurrentChapterStats.GoldenCollectedCount++;
+            CurrentChapterStats.LastGoldenRuns.Add(null);
+            SaveChapterStats();
+
+            PacePingManager.CollectedGolden();
         }
 
         #region Speedrun Tool Save States

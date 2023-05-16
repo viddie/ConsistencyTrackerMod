@@ -31,6 +31,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("sideName")]
         public string SideName { get; set; }
 
+        [JsonProperty("goldenCollectedCount")]
+        public int GoldenCollectedCount { get; set; } = 0;
+
         [JsonProperty("sessionStarted")]
         public DateTime SessionStarted { get; set; }
 
@@ -40,6 +43,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("rooms")]
         public Dictionary<string, RoomStats> Rooms { get; set; } = new Dictionary<string, RoomStats>();
 
+        //A list of debug room names of all golden runs in the session
+        //Special value: null as entry in this list is a golden win!
         [JsonProperty("lastGoldenRuns")]
         public List<string> LastGoldenRuns { get; set; } = new List<string>();
 
