@@ -114,6 +114,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
             }
 
+            //Account for winning runs
+            goldenDeathsAfterRoom[0] += chapterStats.GoldenCollectedCount;
+            goldenDeathsAfterRoom[1] += chapterStats.GoldenCollectedCountSession;
+
             float crRoom, crRoomSession;
             float goldenSuccessRateRoom, goldenSuccessRateRoomSession;
 
@@ -171,8 +175,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(RoomGoldenSuccessesSession, roomSuccessesSession.ToString());
 
             //Format Golden Run Chance
-            int totalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths;
-            int totalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession;
+            int totalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths + chapterStats.GoldenCollectedCount;
+            int totalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession + chapterStats.GoldenCollectedCountSession;
             if (totalGoldenDeaths == 0) {
                 format = format.Replace(RoomGoldenEntryChance, $"-%");
             } else {
@@ -207,6 +211,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     goldenDeathsInCP[1] = cpInfo.Stats.GoldenBerryDeathsSession;
                 }
             }
+
+            //Account for winning runs
+            goldenDeathsAfterCP[0] += chapterStats.GoldenCollectedCount;
+            goldenDeathsAfterCP[1] += chapterStats.GoldenCollectedCountSession;
 
             float crCheckpoint, crCheckpointSession;
             float goldenSuccessRateCp, goldenSuccessRateCpSession;
@@ -287,8 +295,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                         }
                     }
 
-                    float crRoom, crRoomSession;
+                    goldenDeathsAfterRoom[0] += chapterStats.GoldenCollectedCount;
+                    goldenDeathsAfterRoom[1] += chapterStats.GoldenCollectedCountSession;
 
+                    float crRoom, crRoomSession;
                     //Calculate
                     if (goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0] == 0) crRoom = float.NaN;
                     else crRoom = (float)goldenDeathsInRoom[0] / (goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0]);
@@ -314,7 +324,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static Dictionary<RoomInfo, Tuple<int, float>> GetRoomDataSession(PathInfo chapterPath, List<RoomInfo> lastRuns) {
             //Count golden deaths for old session
             Dictionary<RoomInfo, int> goldenDeathsSession = new Dictionary<RoomInfo, int>();
+            int goldenCollectionsSession = 0;
+            
             foreach (RoomInfo rInfo in lastRuns) {
+                if (rInfo == null) {
+                    goldenCollectionsSession++;
+                    continue;
+                }
+                
                 if (goldenDeathsSession.ContainsKey(rInfo)) {
                     goldenDeathsSession[rInfo]++;
                 } else {
@@ -348,6 +365,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                             }
                         }
                     }
+
+                    goldenDeathsAfterRoom += goldenCollectionsSession;
 
                     float crRoomSession;
 

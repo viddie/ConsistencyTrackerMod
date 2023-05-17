@@ -121,7 +121,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             //string name2 = isOverall ? "Session Room Entries" : "Room Entries";
 
             LineSeries data1 = new LineSeries() { Data = dataChokeRates, LineColor = Color.LightBlue, Depth = 1, Name = name1, ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.6f };
-            LineSeries data2 = new LineSeries() { Data = dataRoomEntries, LineColor = Color.Orange, Depth = 0, Name = name2, ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.6f, IndepedentOfYAxis = true };
+            LineSeries data2 = new LineSeries() { Data = dataRoomEntries, LineColor = Color.Orange, Depth = 0, Name = name2, ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.6f, IndepedentOfYAxis = true, IndependentYMin = 0f };
 
             List<LineSeries> series = new List<LineSeries>() { data1, data2 };
             ChokeRateChart.Settings.YMax = 100;

@@ -146,12 +146,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             double averageRunDistanceLastXSession = 0;
             int runCountLastXSession = 0;
             for (int i = chapterStats.LastGoldenRuns.Count - 1; i >= 0; i--) {
-                RoomStats rStats = chapterStats.GetRoom(chapterStats.LastGoldenRuns[i]);
+                
+                int roomNumber = chapterPath.GetRunRoomNumberInChapter(chapterStats.LastGoldenRuns[i]);
 
-                RoomInfo rInfo = chapterPath.GetRoom(rStats);
-                if (rInfo == null) continue;
-
-                averageRunDistanceLastXSession += rInfo.RoomNumberInChapter;
+                averageRunDistanceLastXSession += roomNumber;
                 runCountLastXSession++;
 
                 if (runCountsToFormatSession.ContainsKey(runCountLastXSession)) {
@@ -160,7 +158,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
 
                 if (lastRunNumbersToFormat.ContainsKey(runCountLastXSession)) {
-                    lastRunNumbersToFormat[runCountLastXSession] = $"{rInfo.RoomNumberInChapter}";
+                    lastRunNumbersToFormat[runCountLastXSession] = $"{roomNumber}";
                 }
 
                 if (runCountLastXSession == 10) {
@@ -283,6 +281,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 averageRunDistanceSession += rInfo.RoomNumberInChapter * rStats.GoldenBerryDeathsSession;
             }
 
+            averageRunDistance += (chapterPath.GameplayRoomCount + 1) * chapterStats.GoldenCollectedCount;
+            countRunsTotal += chapterStats.GoldenCollectedCount;
+
+            averageRunDistanceSession += (chapterPath.GameplayRoomCount + 1) * chapterStats.GoldenCollectedCountSession;
+            countRunsTotalSession += chapterStats.GoldenCollectedCountSession;
+
             if (countRunsTotal > 0)
                 averageRunDistance /= countRunsTotal;
             if (countRunsTotalSession > 0)
@@ -306,9 +310,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 double avg = 0;
                 for (int j = 0; j < windowSize; j++) {
                     int index = i + j;
-                    RoomInfo rInfo = chapterPath.GetRoom(pastRuns[index]);
-                    if (rInfo == null) continue;
-                    avg += rInfo.RoomNumberInChapter;
+
+                    int roomNumber = chapterPath.GetRunRoomNumberInChapter(pastRuns[index]);
+                    if (roomNumber == 0) continue; //Not on path
+                    
+                    avg += roomNumber;
                 }
                 graph.Add(avg / windowSize);
             }

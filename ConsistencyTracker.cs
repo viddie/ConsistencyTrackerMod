@@ -738,12 +738,15 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void CollectedGoldenBerry() {
-            Log($"Golden collected! GG catpog");
-            CurrentChapterStats.GoldenCollectedCount++;
-            CurrentChapterStats.LastGoldenRuns.Add(null);
-            SaveChapterStats();
+            try { //we DONT want to crash when winning
+                Log($"Golden collected! GG catpog");
+                CurrentChapterStats.CollectedGolden();
+                SaveChapterStats();
 
-            PacePingManager.CollectedGolden();
+                PacePingManager.CollectedGolden();
+            } catch (Exception ex) {
+                Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
+            }
         }
 
         #region Speedrun Tool Save States

@@ -76,12 +76,46 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         /// <summary>
-        /// Returns the actual RoomInfo objects to a given list of room debug names. Eliminates null values (deaths to rooms not on the path)
+        /// Returns the actual RoomInfo objects to a given list of room debug names.
+        /// Removes deaths to rooms not on the path, but keeps null values (golden win runs)
         /// </summary>
         public List<RoomInfo> GetRoomsForLastRuns(List<string> lastRuns) {
-            List<RoomInfo> lastRunsRooms = lastRuns.Select((roomName) => GetRoom(roomName)).ToList();
-            lastRunsRooms.RemoveAll((roomInfo) => roomInfo == null);
-            return lastRunsRooms;
+            List<RoomInfo> filtered = new List<RoomInfo>();
+
+            foreach (string roomName in lastRuns) {
+                if (roomName == null) {
+                    filtered.Add(null);
+                    continue;
+                }
+
+                RoomInfo rInfo = GetRoom(roomName);
+                if (rInfo != null) {
+                    filtered.Add(rInfo);
+                }
+            }
+            
+            return filtered;
+        }
+
+        /// <summary>
+        /// Returns the room number of a given run. If the run is a golden win, rInfo is null and GameplayRoomCount+1 is returned.
+        /// </summary>
+        /// <param name="rInfo">RoomInfo of the run, or null if it's a golden win run</param>
+        /// <returns>Room number associated with the run</returns>
+        public int GetRunRoomNumberInChapter(RoomInfo rInfo) {
+            if (rInfo == null) return GetWinRoomNumber();
+            return rInfo.RoomNumberInChapter;
+        }
+        public int GetRunRoomNumberInChapter(string debugRoomName) {
+            if (debugRoomName == null) return GetWinRoomNumber();
+
+            RoomInfo rInfo = GetRoom(debugRoomName); //Room not on path
+            if (rInfo == null) return 0;
+
+            return rInfo.RoomNumberInChapter;
+        }
+        public int GetWinRoomNumber() {
+            return GameplayRoomCount + 1;
         }
 
         public override string ToString() {

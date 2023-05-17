@@ -38,6 +38,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("averageRunDistanceSession")]
         public float AverageRunDistanceSession { get; set; }
 
+        [JsonProperty("totalGoldenCollections")]
+        public int TotalGoldenCollections { get; set; }
+
+        [JsonProperty("totalGoldenCollectionsSession")]
+        public int TotalGoldenCollectionsSession { get; set; }
+
+
+
         /// <summary>
         /// Checks if nothing has happened in a session compared to another session.
         /// </summary>

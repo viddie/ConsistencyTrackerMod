@@ -33,6 +33,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("goldenCollectedCount")]
         public int GoldenCollectedCount { get; set; } = 0;
+        [JsonProperty("goldenCollectedCountSession")]
+        public int GoldenCollectedCountSession { get; set; } = 0;
 
         [JsonProperty("sessionStarted")]
         public DateTime SessionStarted { get; set; }
@@ -101,6 +103,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             rStats.GoldenBerryDeathsSession++;
         }
 
+        public void CollectedGolden() {
+            GoldenCollectedCount++;
+            GoldenCollectedCountSession++;
+            LastGoldenRuns.Add(null);
+        }
+
         public void SetCurrentRoom(string debugRoomName) {
             RoomStats targetRoom = GetRoom(debugRoomName);
             CurrentRoom = targetRoom;
@@ -134,6 +142,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             LastGoldenRuns = new List<string>(); //Create new list since old one is used in old session data
+            GoldenCollectedCountSession = 0;
             SessionStarted = DateTime.Now;
         }
 
@@ -152,7 +161,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             Tuple<double, double> runDistanceAvgs = AverageLastRunsStat.GetAverageRunDistance(chapterPath, this);
             
-            RoomInfo alltimePB = PersonalBestStat.GetPBRoom(chapterPath, this);
+            RoomInfo alltimePB = PersonalBestStat.GetFurthestDeathRoom(chapterPath, this);
             int alltimePBDeaths = 0;
             if (alltimePB != null) {
                 alltimePBDeaths = GetRoom(alltimePB).GoldenBerryDeaths;
@@ -178,6 +187,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 PBRoomDeaths = alltimePBDeaths,
                 SessionPBRoomName = sessionPBRoom?.DebugRoomName,
                 SessionPBRoomDeaths = sessionPBDeaths,
+
+                TotalGoldenCollections = GoldenCollectedCount,
+                TotalGoldenCollectionsSession = GoldenCollectedCountSession,
             };
 
             if (OldSessions.Count == 0) {
@@ -200,11 +212,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             
             ConsistencyTrackerModule.Instance.Log($"Merging into previous session '{olderSession.SessionStarted}' from the same day", isFollowup: true);
             //Calculate new session average
-            int osDeaths = olderSession.TotalGoldenDeathsSession;
-            int nsDeaths = oldSession.TotalGoldenDeathsSession;
+            int osRuns = olderSession.TotalGoldenDeathsSession + olderSession.TotalGoldenCollections;
+            int nsRuns = oldSession.TotalGoldenDeathsSession + oldSession.TotalGoldenCollectionsSession;
             float osAvg = olderSession.AverageRunDistanceSession;
             float nsAvg = oldSession.AverageRunDistanceSession;
-            float newAvg = (osDeaths * osAvg + nsDeaths * nsAvg) / (osDeaths + nsDeaths);
+            float newAvg = (osRuns * osAvg + nsRuns * nsAvg) / (osRuns + nsRuns);
             olderSession.AverageRunDistanceSession = newAvg;
 
             //Copy over stats
@@ -213,6 +225,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             olderSession.TotalSuccessRate = oldSession.TotalSuccessRate;
             olderSession.LastGoldenRuns.AddRange(oldSession.LastGoldenRuns);
             olderSession.AverageRunDistance = oldSession.AverageRunDistance;
+
+            //Copy over golden collection stats
+            olderSession.TotalGoldenCollections = oldSession.TotalGoldenCollections;
+            olderSession.TotalGoldenCollectionsSession += oldSession.TotalGoldenCollectionsSession;
 
             //Copy over PBs
             olderSession.PBRoomName = oldSession.PBRoomName; //Always use newer session global PB, since PBs can't go backwards

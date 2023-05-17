@@ -39,6 +39,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string NotOnPathOutput = "-";
         public static string ValueNotAvailable = "-";
 
+        public static string WinRoomName = "Golden";
+
         private static string FormatFilePath => ConsistencyTrackerModule.GetPathToFile($"{BaseFolder}/{FormatFileName}");
 
         public static bool HideFormatsWithoutPath { get => Mod.ModSettings.LiveDataHideFormatsWithoutPath; }

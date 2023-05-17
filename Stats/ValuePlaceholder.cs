@@ -43,7 +43,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                     } catch (FormatException) {
                         //ConsistencyTrackerModule.Instance.Log($"[{nameof(ValuePlaceholder<T>)}] [{nameof(GetMatchList)}] Exception when converting string '{matchedValue}' to type '{typeof(T)}': Incorrect format of input");
-                    } catch (Exception ex) {
+                    } catch (Exception) {
                         //ConsistencyTrackerModule.Instance.Log($"[{nameof(ValuePlaceholder<T>)}] [{nameof(GetMatchList)}] Exception when converting string '{matchedValue}' to type '{typeof(T)}': {ex.Message}");
                     }
                 }

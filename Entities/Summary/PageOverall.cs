@@ -42,6 +42,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private LineChart PersonalBestChart { get; set; }
         private LineChart AvgRunDistancesChart { get; set; }
         private LineChart TotalSuccessRateChart { get; set; }
+        private float LabelFontMult = 0.45f;
 
 
         public PageOverall(string name) : base(name) {
@@ -146,7 +147,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             //Best runs
-            ChapterRoomCount = path.GameplayRoomCount;
+            ChapterRoomCount = path.GetWinRoomNumber();
             for (int i = 0; i < countBestRuns; i++) {
                 string[] split = Stats.FormatVariableFormat($"{{pb:best#{i + 1}}};{{pb:bestRoomNumber#{i + 1}}}").Split(';');
                 string bestRoom = split[0];
@@ -155,6 +156,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 if (!int.TryParse(bestRoomNumberStr, out int bestRoomNumber)) {
                     bestRoomNumber = 0;
                 }
+
+                if (bestRoom.StartsWith(StatManager.WinRoomName)) bestRoomNumber++;
 
                 BestRunsData.Add(Tuple.Create(bestRoom, bestRoomNumber));
             }
@@ -182,7 +185,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         }
 
         public void UpdatePersonalBestChart(PathInfo path, ChapterStats stats) {
-            PersonalBestChart.Settings.YMax = path.GameplayRoomCount;
+            PersonalBestChart.Settings.YMax = path.GetWinRoomNumber();
 
             List<LineDataPoint> dataOverallPB = new List<LineDataPoint>();
             List<LineDataPoint> dataSessionPB = new List<LineDataPoint>();
@@ -199,9 +202,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 string label = null;
                 if (overallPBRoom != null) { 
                     value = overallPBRoom.RoomNumberInChapter;
-                    int goldenDeaths = session.PBRoomDeaths;
-                    string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
-                    label = $"{overallPBRoom.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    //int goldenDeaths = session.PBRoomDeaths;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //label = $"{overallPBRoom.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    label = $"{value}";
                 }
                 dataOverallPB.Add(new LineDataPoint() {
                     Y = value,
@@ -212,11 +216,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
                 value = float.NaN;
                 label = null;
-                if (sessionPBRoom != null) { 
+
+                if (session.TotalGoldenCollectionsSession > 0) {
+                    value = path.GetWinRoomNumber();
+                    //int goldenDeaths = session.TotalGoldenCollectionsSession;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //label = $"{StatManager.WinRoomName}{addition}";
+                    label = $"{value}";
+                } else if (sessionPBRoom != null) { 
                     value = sessionPBRoom.RoomNumberInChapter;
-                    int goldenDeaths = session.SessionPBRoomDeaths;
-                    string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
-                    label = $"{overallPBRoom.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    //int goldenDeaths = session.SessionPBRoomDeaths;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //label = $"{overallPBRoom.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    label = $"{value}";
                 }
                 dataSessionPB.Add(new LineDataPoint() { 
                     Y = value,
@@ -232,16 +244,23 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             // Add Current Session
-            RoomInfo currentOverallPB = PersonalBestStat.GetPBRoom(path, stats);
+            RoomInfo currentOverallPB = PersonalBestStat.GetFurthestDeathRoom(path, stats);
             Tuple<RoomInfo, int> currentSessionPB = PersonalBestStat.GetSessionPBRoomFromLastRuns(path, stats.LastGoldenRuns);
             if (currentSessionPB != null) { //Don't add current session if there is no data yet
                 float value = float.NaN;
                 string label = null;
-                if (currentOverallPB != null) {
+                if (stats.GoldenCollectedCountSession > 0) {
+                    value = path.GetWinRoomNumber();
+                    //int goldenDeaths = stats.GoldenCollectedCountSession;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //label = $"{StatManager.WinRoomName}{addition}";
+                    label = $"{value}";
+                } else if (currentOverallPB != null) {
                     value = currentOverallPB.RoomNumberInChapter;
-                    int goldenDeaths = stats.GetRoom(currentOverallPB).GoldenBerryDeaths;
-                    string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
-                    label = $"{currentOverallPB.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    //int goldenDeaths = stats.GetRoom(currentOverallPB).GoldenBerryDeaths;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //label = $"{currentOverallPB.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    label = $"{value}";
                 }
                 dataOverallPB.Add(new LineDataPoint() {
                     Y = value,
@@ -253,10 +272,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 value = float.NaN;
                 label = null;
                 if (currentSessionPB != null) {
-                    value = currentSessionPB.Item1.RoomNumberInChapter;
-                    int goldenDeaths = currentSessionPB.Item2;
-                    string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
-                    label = $"{currentSessionPB.Item1.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    value = path.GetRunRoomNumberInChapter(currentSessionPB.Item1);
+                    //int goldenDeaths = currentSessionPB.Item2;
+                    //string addition = goldenDeaths > 1 ? $" x{goldenDeaths}" : "";
+                    //if (currentSessionPB.Item1 == null) { //Golden win run
+                    //    label = $"{StatManager.WinRoomName}{addition}";
+                    //} else {
+                    //    label = $"{currentSessionPB.Item1.GetFormattedRoomName(StatManager.RoomNameType)}{addition}";
+                    //}
+                    label = $"{value}";
                 }
                 dataSessionPB.Add(new LineDataPoint() {
                     Y = value,
@@ -272,8 +296,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataOverallPB, LineColor = Color.LightBlue, Depth = 1, Name = "Overall PB", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
-            LineSeries seriesSession = new LineSeries() { Data = dataSessionPB, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session PB", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = 0.75f };
+            LineSeries seriesOverall = new LineSeries() { Data = dataOverallPB, LineColor = Color.LightBlue, Depth = 1, Name = "Overall PB", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesSession = new LineSeries() { Data = dataSessionPB, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session PB", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
 
             List<LineSeries> series = new List<LineSeries>() { seriesOverall, seriesSession };
 
@@ -297,7 +321,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         }
 
         public void UpdateAverageRunDistanceChart(PathInfo path, ChapterStats stats) {
-            AvgRunDistancesChart.Settings.YMax = path.GameplayRoomCount;
+            AvgRunDistancesChart.Settings.YMax = path.GetWinRoomNumber();
 
             List<LineDataPoint> dataOverallAvg = new List<LineDataPoint>();
             List<LineDataPoint> dataSessionAvg = new List<LineDataPoint>();
@@ -341,8 +365,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataOverallAvg, LineColor = Color.LightBlue, Depth = 1, Name = "Overall Avg.", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = 0.75f };
-            LineSeries seriesSession = new LineSeries() { Data = dataSessionAvg, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session Avg.", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
+            LineSeries seriesOverall = new LineSeries() { Data = dataOverallAvg, LineColor = Color.LightBlue, Depth = 1, Name = "Overall Avg.", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesSession = new LineSeries() { Data = dataSessionAvg, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session Avg.", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
 
             List<LineSeries> series = new List<LineSeries>() { seriesOverall, seriesSession };
 
@@ -394,7 +418,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataSuccessRate, LineColor = Color.Green, Depth = 1, Name = "Total Success Rate", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
+            LineSeries seriesOverall = new LineSeries() { Data = dataSuccessRate, LineColor = Color.Green, Depth = 1, Name = "Total Success Rate", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult };
             List<LineSeries> series = new List<LineSeries>() { seriesOverall };
 
             int pointCount = dataSuccessRate.Count;

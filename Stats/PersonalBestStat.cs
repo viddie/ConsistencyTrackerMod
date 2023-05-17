@@ -178,6 +178,33 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int pbNumber = 0;
             int pbNumberSession = 0;
             RoomNameDisplayType nameFormat = StatManager.RoomNameType;
+            int winRoomNumber = chapterPath.GetWinRoomNumber() - 1;
+
+            //Check for wins first
+            if (chapterStats.GoldenCollectedCount > 0) {
+                pbNumber++;
+                
+                if (pbRoomsToFormat.ContainsKey(pbNumber)) {
+                    string roomName = StatManager.WinRoomName;
+                    if (chapterStats.GoldenCollectedCount > 1) roomName = $"{roomName} x{chapterStats.GoldenCollectedCount}";
+                    pbRoomsToFormat[pbNumber] = roomName;
+                }
+                if (pbRoomNumbersToFormat.ContainsKey(pbNumber)) {
+                    pbRoomNumbersToFormat[pbNumber] = $"{winRoomNumber}";
+                }
+            }
+            if (chapterStats.GoldenCollectedCountSession > 0) {
+                pbNumberSession++;
+                
+                if (pbRoomsToFormatSession.ContainsKey(pbNumberSession)) {
+                    string roomName = StatManager.WinRoomName;
+                    if (chapterStats.GoldenCollectedCountSession > 1) roomName = $"{roomName} x{chapterStats.GoldenCollectedCountSession}";
+                    pbRoomsToFormatSession[pbNumberSession] = roomName;
+                }
+                if (pbRoomNumbersToFormatSession.ContainsKey(pbNumberSession)) {
+                    pbRoomNumbersToFormatSession[pbNumberSession] = $"{winRoomNumber}";
+                }
+            }
 
             //Walk the path BACKWARDS (d1d7 reference???) 
             for (int cpIndex = chapterPath.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {
@@ -262,7 +289,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return format;
         }
 
-        public static RoomInfo GetPBRoom(PathInfo path, ChapterStats stats) {
+        public static RoomInfo GetFurthestDeathRoom(PathInfo path, ChapterStats stats) {
             RoomInfo pbRoom = null;
 
             for (int i = path.Checkpoints.Count - 1; i >= 0; i--) {
@@ -284,20 +311,31 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return pbRoom;
         }
         public static Tuple<RoomInfo, int> GetSessionPBRoomFromLastRuns(PathInfo path, List<string> lastRuns) {
+            bool isWin = false;
             RoomInfo pbRoom = null;
+            int pbRoomNumber = 0;
             int deaths = 0;
 
             List<RoomInfo> rooms = path.GetRoomsForLastRuns(lastRuns);
             foreach (RoomInfo rInfo in rooms) {
-                if (pbRoom == null || rInfo.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
+                int roomNumber = path.GetRunRoomNumberInChapter(rInfo);
+                if (roomNumber == 0) continue; //Not on path
+
+                if (pbRoom == null || roomNumber > pbRoomNumber) {
                     pbRoom = rInfo;
+                    pbRoomNumber = roomNumber;
                     deaths = 1;
-                } else if (rInfo.RoomNumberInChapter == pbRoom.RoomNumberInChapter) {
+                    
+                    if (rInfo == null) { //rInfo being null means the run was a win
+                        isWin = true;
+                    }
+                    
+                } else if (roomNumber == pbRoomNumber) {
                     deaths++;
                 }
             }
 
-            if (pbRoom == null) return null;
+            if (isWin == false && pbRoom == null) return null;
             return Tuple.Create(pbRoom, deaths);
         }
 

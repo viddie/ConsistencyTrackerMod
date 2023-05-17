@@ -23,7 +23,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
         private List<Entry> Entries { get; set; }
         private List<Tuple<string, int, int>> CheckpointEntriesCount { get; set; }
-        private int TotalGoldenDeaths { get; set; }
+        private int TotalGoldenRuns { get; set; }
 
         private static readonly List<Color> CheckpointColors = new List<Color>() { 
             Color.Orange,
@@ -69,7 +69,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 CheckpointEntriesCount.Add(Tuple.Create(cpInfo.Name, cpInfo.GameplayRoomCount, cpInfo.Stats.GoldenBerryDeaths));
             }
 
-            TotalGoldenDeaths = path.Stats.GoldenBerryDeaths;
+            TotalGoldenRuns = path.Stats.GoldenBerryDeaths + stats.GoldenCollectedCount;
         }
 
         public override void Render() {
@@ -81,7 +81,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             Vector2 pointer = Position;
             Vector2 labelPointer = MoveCopy(pointer, GoldenDeathFilterWidth + BasicMargin, sliceHeight / 2);
-            int runsRemaining = TotalGoldenDeaths;
+            int runsRemaining = TotalGoldenRuns;
 
             //Backdrop
             Draw.Rect(pointer, GoldenDeathFilterWidth, GoldenDeathFilterHeight, new Color(0.7f, 0.7f, 0.7f, 0.7f));
@@ -91,12 +91,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             foreach (Entry entry in Entries) {
                 Color color = CheckpointColors[(entry.CheckpointNumber-1) % CheckpointColors.Count];
                 
-                float widthTop = (float)runsRemaining / TotalGoldenDeaths * GoldenDeathFilterWidth;
+                float widthTop = (float)runsRemaining / TotalGoldenRuns * GoldenDeathFilterWidth;
                 if (widthTop != 0) widthTop = Math.Max(1f, widthTop);
                 
                 runsRemaining -= entry.GoldenDeaths;
                 
-                float widthBottom = (float)runsRemaining / TotalGoldenDeaths * GoldenDeathFilterWidth;
+                float widthBottom = (float)runsRemaining / TotalGoldenRuns * GoldenDeathFilterWidth;
                 if (widthBottom != 0) widthBottom = Math.Max(1f, widthBottom);
 
                 Vector2 measure = DrawText(entry.RoomName, labelPointer, FontMultAnt, Color.White, new Vector2(0f, 0.5f));

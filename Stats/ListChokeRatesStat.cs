@@ -58,6 +58,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                         }
                     }
 
+                    //Account for winning runs
+                    goldenDeathsAfterRoom[0] += chapterStats.GoldenCollectedCount;
+                    goldenDeathsAfterRoom[1] += chapterStats.GoldenCollectedCountSession;
+
                     float crRoom, crRoomSession;
 
                     //Calculate

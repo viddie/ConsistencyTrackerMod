@@ -40,6 +40,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             [JsonProperty("defaultDeathMessage")]
             public string DefaultDeathMessage { get; set; } = $"Death to '{{room:name}}' ({{room:roomNumberInChapter}}/{{chapter:roomCount}})";
 
+            [JsonProperty("winMessage")]
+            public string WinMessage { get; set; } = $"WIN!!!";
+
             [JsonProperty("pacePingTimings")]
             public Dictionary<string, List<PaceTiming>> PacePingTimings { get; set; } = new Dictionary<string, List<PaceTiming>>();
         }
@@ -266,6 +269,23 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 Username = State.WebhookUsername,
                 Content = message,
             }, StateSecret.WebhookUrl);
+        }
+
+        public void CollectedGolden() {
+            try { //Just in case. We DONT want a crash when winning
+                if (!PingedThisRun) return; //no ping, no follow-up message
+                PingedThisRun = false;
+
+                string message = State.WinMessage;
+                message = Mod.StatsManager.FormatVariableFormat(message);
+
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = message,
+                }, StateSecret.WebhookUrl);
+            } catch (Exception ex) {
+                Mod.Log($"An exception occurred while trying to send win message: {ex}", isFollowup: true);
+            }
         }
 
         public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url) {

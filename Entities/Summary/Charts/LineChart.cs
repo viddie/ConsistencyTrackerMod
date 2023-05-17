@@ -61,8 +61,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
             Vector2 prevPosition = Vector2.Zero;
             LineDataPoint prevPoint = null;
 
-            float seriesMin = series.MinYValue;
-            float seriesMax = series.MaxYValue;
+            float seriesMin = series.IndependentYMin ?? series.MinYValue;
+            float seriesMax = series.IndependentYMax ?? series.MaxYValue;
 
             for (int i = 0; i < series.Data.Count; i++) {
                 LineDataPoint point = series.Data[i];

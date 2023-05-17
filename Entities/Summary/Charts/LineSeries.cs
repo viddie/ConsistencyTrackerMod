@@ -24,6 +24,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts {
         public LabelPosition LabelPosition { get; set; } = LabelPosition.Top;
 
         public bool IndepedentOfYAxis { get; set; } = false;
+        public float? IndependentYMin { get; set; } = null;
+        public float? IndependentYMax { get; set; } = null;
 
         public int Depth { get; set; } = 0;
     }

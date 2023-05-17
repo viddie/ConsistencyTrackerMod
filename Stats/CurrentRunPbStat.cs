@@ -68,8 +68,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
 
-            int totalGoldenDeaths = chapterPath.Stats.GoldenBerryDeaths;
-            int totalGoldenDeathsSession = chapterPath.Stats.GoldenBerryDeathsSession;
+            int totalGoldenRuns = chapterPath.Stats.GoldenBerryDeaths + chapterStats.GoldenCollectedCount;
+            int totalGoldenRunsSession = chapterPath.Stats.GoldenBerryDeathsSession + chapterStats.GoldenCollectedCountSession;
 
             int goldenDeathsUntilRoom = 0;
             int goldenDeathsUntilRoomSession = 0;
@@ -90,8 +90,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             //Output Run Status
-            int runStatus = (totalGoldenDeaths - goldenDeathsUntilRoom) + 1;
-            int runStatusSession = (totalGoldenDeathsSession - goldenDeathsUntilRoomSession) + 1;
+            int runStatus = (totalGoldenRuns - goldenDeathsUntilRoom) + 1;
+            int runStatusSession = (totalGoldenRunsSession - goldenDeathsUntilRoomSession) + 1;
 
             string runStatusStr = runStatus == 1 ? $"PB" : $"{runStatus}";
             string runStatusSessionStr = runStatusSession == 1 ? $"PB" : $"{runStatusSession}";
@@ -103,21 +103,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             string runStatusPercentStr, runStatusPercentSessionStr;
             string topXPercentStr, topXPercentSessionStr;
 
-            if (totalGoldenDeaths == 0) {
+            if (totalGoldenRuns == 0) {
                 runStatusPercentStr = "100%";
                 topXPercentStr = "0%";
             } else {
-                double runStatusPercent = (double)goldenDeathsUntilRoom / totalGoldenDeaths;
+                double runStatusPercent = (double)goldenDeathsUntilRoom / totalGoldenRuns;
 
                 runStatusPercentStr = $"{StatManager.FormatPercentage(runStatusPercent)}";
                 topXPercentStr = $"{StatManager.FormatPercentage(1 - runStatusPercent)}";
             }
 
-            if (totalGoldenDeathsSession == 0) {
+            if (totalGoldenRunsSession == 0) {
                 runStatusPercentSessionStr = "100%";
                 topXPercentSessionStr = "0%";
             } else {
-                double runStatusPercentSession = (double)goldenDeathsUntilRoomSession / totalGoldenDeathsSession;
+                double runStatusPercentSession = (double)goldenDeathsUntilRoomSession / totalGoldenRunsSession;
 
                 runStatusPercentSessionStr = $"{StatManager.FormatPercentage(runStatusPercentSession)}";
                 topXPercentSessionStr = $"{StatManager.FormatPercentage(1 - runStatusPercentSession)}";
