@@ -1,6 +1,7 @@
 ﻿using Celeste.Editor;
 using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary;
+using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
@@ -305,8 +306,22 @@ namespace Celeste.Mod.ConsistencyTracker {
             LogVerbose($"Strawberry on player");
             SetRoomCompleted(resetOnDeath: true);
 
+            GoldenType goldenType = GoldenType.Golden;
+            switch (self.GetType().Name) {
+                case "Strawberry":
+                    goldenType = GoldenType.Golden;
+                    break;
+                case "SilverBerry":
+                    goldenType = GoldenType.Silver;
+                    break;
+                case "PlatinumBerry":
+                    goldenType = GoldenType.Platinum;
+                    break;
+            }
+
             if (self.Golden) {
                 PlayerIsHoldingGolden = true;
+                CurrentChapterStats.GoldenBerryType = goldenType;
                 SaveChapterStats();
             }
         }
@@ -314,18 +329,23 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void On_Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
             orig(self);
 
-            Log($"On.Strawberry.OnCollect triggered:");
-            Log($"Golden: {self.Golden}", isFollowup: true);
-            Log($"Winged: {self.Winged}", isFollowup: true);
-
-            bool isCollected = Util.GetPrivateProperty<bool>(self, "collected");
-            bool isGhostBerry = Util.GetPrivateProperty<bool>(self, "isGhostBerry");
-
-            Log($"collected: {isCollected}", isFollowup: true);
-            Log($"isGhostBerry: {isGhostBerry}", isFollowup: true);
+            Log($"Berry collected! Type Name: '{self.GetType().Name}', Golden: '{self.Golden}', Winged: '{self.Winged}'");
+            
+            GoldenType goldenType = GoldenType.Golden;
+            switch (self.GetType().Name) {
+                case "Strawberry":
+                    goldenType = GoldenType.Golden;
+                    break;
+                case "SilverBerry":
+                    goldenType = GoldenType.Silver;
+                    break;
+                case "PlatinumBerry":
+                    goldenType = GoldenType.Platinum;
+                    break;
+            }
 
             if (self.Golden) {
-                CollectedGoldenBerry();
+                CollectedGoldenBerry(goldenType);
             }
         }
 
@@ -736,12 +756,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             });
         }
 
-        public void CollectedGoldenBerry() {
+        public void CollectedGoldenBerry(GoldenType goldenType) {
             try { //we DONT want to crash when winning
                 Log($"Golden collected! GG catpog");
-                CurrentChapterStats.CollectedGolden();
+                CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
-
+                
                 PacePingManager.CollectedGolden();
             } catch (Exception ex) {
                 Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
@@ -1259,6 +1279,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                         }
                     }
                     string formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
+                    PacePingManager.PaceTiming paceTiming = PacePingManager.GetPaceTiming(CurrentChapterPath.ChapterSID, rInfo.DebugRoomName, dontLog:true);
+                    if (paceTiming != null) formattedName = $"{formattedName}\n>Ping<";
 
                     int x = template.X;
                     int y = template.Y;
@@ -1273,7 +1295,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                         formattedName,
                         pos,
                         new Vector2(0.5f, 0),
-                        Vector2.One * camera.Zoom / 6,
+                        Vector2.One * camera.Zoom / (paceTiming == null ? 6 : 8),
                         Color.White * 0.9f,
                         2f * camera.Zoom / 6,
                         Color.Black * 0.7f);

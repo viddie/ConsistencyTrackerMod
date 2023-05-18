@@ -157,7 +157,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     bestRoomNumber = 0;
                 }
 
-                if (bestRoom.StartsWith(StatManager.WinRoomName)) bestRoomNumber++;
+                if (bestRoom.StartsWith(StatManager.GetWinningRoomName(stats))) bestRoomNumber++;
 
                 BestRunsData.Add(Tuple.Create(bestRoom, bestRoomNumber));
             }

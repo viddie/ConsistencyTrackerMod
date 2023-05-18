@@ -556,6 +556,21 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string GetFormattedRoomName(RoomInfo rInfo) {
             return rInfo.GetFormattedRoomName(RoomNameType);
         }
+
+        public static string GetWinningRoomName(ChapterStats stats) {
+            GoldenType goldenType = stats.GoldenBerryType;
+
+            switch (goldenType) {
+                case GoldenType.Golden:
+                    return "Golden";
+                case GoldenType.Silver:
+                    return "Silver";
+                case GoldenType.Platinum:
+                    return "Platinum";
+                default:
+                    return "Win";
+            }
+        }
         #endregion
     }
 }

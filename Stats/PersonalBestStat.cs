@@ -45,8 +45,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return Regex.IsMatch(format, BestPattern) || Regex.IsMatch(format, BestPatternSession) || Regex.IsMatch(format, RoomNumberPattern) || Regex.IsMatch(format, RoomNumberPatternSession);
         }
 
-        public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
-            if (chapterPath == null) {
+        public override string FormatStat(PathInfo path, ChapterStats stats, string format) {
+            if (path == null) {
                 format = StatManager.MissingPathFormat(format, PBBest);
                 format = StatManager.MissingPathFormat(format, PBBestSession);
                 format = Regex.Replace(format, BestPattern, StatManager.MissingPathOutput);
@@ -178,27 +178,27 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             int pbNumber = 0;
             int pbNumberSession = 0;
             RoomNameDisplayType nameFormat = StatManager.RoomNameType;
-            int winRoomNumber = chapterPath.GetWinRoomNumber() - 1;
+            int winRoomNumber = path.GetWinRoomNumber() - 1;
 
             //Check for wins first
-            if (chapterStats.GoldenCollectedCount > 0) {
+            if (stats.GoldenCollectedCount > 0) {
                 pbNumber++;
                 
                 if (pbRoomsToFormat.ContainsKey(pbNumber)) {
-                    string roomName = StatManager.WinRoomName;
-                    if (chapterStats.GoldenCollectedCount > 1) roomName = $"{roomName} x{chapterStats.GoldenCollectedCount}";
+                    string roomName = StatManager.GetWinningRoomName(stats);
+                    if (stats.GoldenCollectedCount > 1) roomName = $"{roomName} x{stats.GoldenCollectedCount}";
                     pbRoomsToFormat[pbNumber] = roomName;
                 }
                 if (pbRoomNumbersToFormat.ContainsKey(pbNumber)) {
                     pbRoomNumbersToFormat[pbNumber] = $"{winRoomNumber}";
                 }
             }
-            if (chapterStats.GoldenCollectedCountSession > 0) {
+            if (stats.GoldenCollectedCountSession > 0) {
                 pbNumberSession++;
                 
                 if (pbRoomsToFormatSession.ContainsKey(pbNumberSession)) {
-                    string roomName = StatManager.WinRoomName;
-                    if (chapterStats.GoldenCollectedCountSession > 1) roomName = $"{roomName} x{chapterStats.GoldenCollectedCountSession}";
+                    string roomName = StatManager.GetWinningRoomName(stats);
+                    if (stats.GoldenCollectedCountSession > 1) roomName = $"{roomName} x{stats.GoldenCollectedCountSession}";
                     pbRoomsToFormatSession[pbNumberSession] = roomName;
                 }
                 if (pbRoomNumbersToFormatSession.ContainsKey(pbNumberSession)) {
@@ -207,13 +207,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
             //Walk the path BACKWARDS (d1d7 reference???) 
-            for (int cpIndex = chapterPath.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {
-                CheckpointInfo cpInfo = chapterPath.Checkpoints[cpIndex];
+            for (int cpIndex = path.Checkpoints.Count - 1; cpIndex >= 0; cpIndex--) {
+                CheckpointInfo cpInfo = path.Checkpoints[cpIndex];
                 List<RoomInfo> rooms = cpInfo.Rooms;
 
                 for (int roomIndex = rooms.Count - 1; roomIndex >= 0; roomIndex--) {
                     RoomInfo rInfo = rooms[roomIndex];
-                    RoomStats rStats = chapterStats.GetRoom(rInfo);
+                    RoomStats rStats = stats.GetRoom(rInfo);
 
                     int goldenDeaths = rStats.GoldenBerryDeaths;
                     int goldenDeathsSession = rStats.GoldenBerryDeathsSession;

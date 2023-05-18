@@ -155,7 +155,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
                 if (i < bestRunsList.Count) {
                     RoomInfo rInfo = bestRunsList[i].Key;
-                    bestRoom = rInfo == null ? StatManager.WinRoomName : rInfo.GetFormattedRoomName(StatManager.RoomNameType);
+                    bestRoom = rInfo == null ? StatManager.GetWinningRoomName(stats) : rInfo.GetFormattedRoomName(StatManager.RoomNameType);
                     if (bestRunsList[i].Value > 1) {
                         bestRoom += $" x{bestRunsList[i].Value}";
                     }
@@ -193,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     
                     if (lastRunRoomName == null) {
                         distance = $"{ChapterRoomCount}/{ChapterRoomCount}";
-                        roomName = $"{StatManager.WinRoomName}";
+                        roomName = $"{StatManager.GetWinningRoomName(stats)}";
                     } else if (rInfo == null) {
                         distance = $"-/{ChapterRoomCount}";
                         roomName = $"<{lastRuns[index]}>";
@@ -236,8 +236,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 });
             }
 
-            string attemptAddition = GoldenCount > 0 ? $" (+{GoldenCount} golden run"+(GoldenCount == 1 ? "" : "s")+")" : "";
-            string attemptAdditionSession = GoldenCountSession > 0 ? $" (+{GoldenCountSession} golden run" + (GoldenCountSession == 1 ? "" : "s") + ")" : "";
+            string berryType = StatManager.GetWinningRoomName(stats);
+            string attemptAddition = GoldenCount > 0 ? $" (+{GoldenCount} {berryType} run"+(GoldenCount == 1 ? "" : "s")+")" : "";
+            string attemptAdditionSession = GoldenCountSession > 0 ? $" (+{GoldenCountSession} {berryType} run" + (GoldenCountSession == 1 ? "" : "s") + ")" : "";
 
             avgData.Rows.Add("Runs Total", $"{AttemptCount}{attemptAddition}");
             avgData.Rows.Add("Runs this Session", $"{AttemptCountSession}{attemptAdditionSession}");
@@ -394,7 +395,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             SessionChart.Render();
 
             //===== Average Run Table =====
-            Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 60 + BasicMargin * 2);
+            Vector2 pointerTable = MoveCopy(pointerCol2, 0, ChartHeight + 60 + BasicMargin * 3);
             AverageRunTable.Position = pointerTable;
             AverageRunTable.Render();
         }

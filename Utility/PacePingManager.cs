@@ -165,13 +165,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         #endregion
 
-        public PaceTiming GetPaceTiming(string chapterSID, string debugRoomName) {
+        public PaceTiming GetPaceTiming(string chapterSID, string debugRoomName, bool dontLog = false) {
             if (State.PacePingTimings == null) {
                 State.PacePingTimings = new Dictionary<string, List<PaceTiming>>();
             }
             
             if (!State.PacePingTimings.TryGetValue(chapterSID, out List<PaceTiming> timings)) {
-                Mod.Log($"Didn't find room timings for chapter {chapterSID}");
+                if (!dontLog) {
+                    Mod.Log($"Didn't find room timings for chapter {chapterSID}");
+                }
                 return null;
             }
 

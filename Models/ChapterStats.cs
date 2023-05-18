@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.ConsistencyTracker.EverestInterop;
+﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Newtonsoft.Json;
 using System;
@@ -35,6 +36,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int GoldenCollectedCount { get; set; } = 0;
         [JsonProperty("goldenCollectedCountSession")]
         public int GoldenCollectedCountSession { get; set; } = 0;
+        [JsonProperty("goldenType")]
+        public GoldenType GoldenBerryType { get; set; } = GoldenType.Golden;
 
         [JsonProperty("sessionStarted")]
         public DateTime SessionStarted { get; set; }
@@ -103,10 +106,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             rStats.GoldenBerryDeathsSession++;
         }
 
-        public void CollectedGolden() {
+        public void CollectedGolden(GoldenType type) {
             GoldenCollectedCount++;
             GoldenCollectedCountSession++;
             LastGoldenRuns.Add(null);
+            GoldenBerryType = type;
         }
 
         public void SetCurrentRoom(string debugRoomName) {
