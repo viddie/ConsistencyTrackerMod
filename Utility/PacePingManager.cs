@@ -106,7 +106,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         #endregion
 
         #region Mod Options Actions
-        public bool ToggleCurrentRoomPacePing() {
+        public bool SetCurrentRoomPacePingEnabled(bool isEnabled) {
             bool isNowEnabled = false;
             PathInfo path = Mod.CurrentChapterPath;
             if (path == null || path.CurrentRoom == null) return isNowEnabled;
@@ -114,7 +114,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             string id = path.ChapterSID;
 
             PaceTiming paceTiming = GetPaceTiming(id, path.CurrentRoom.DebugRoomName);
-            if (paceTiming == null) {
+            if (paceTiming == null && isEnabled) {
                 if (!State.PacePingTimings.ContainsKey(id)) {
                     State.PacePingTimings.Add(id, new List<PaceTiming>());
                 }
@@ -126,7 +126,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 });
 
                 isNowEnabled = true;
-            } else {
+            } else if (paceTiming != null && isEnabled) {
+                isNowEnabled = true;
+            } else if (paceTiming != null && !isEnabled) {
                 State.PacePingTimings[id].Remove(paceTiming);
             }
 

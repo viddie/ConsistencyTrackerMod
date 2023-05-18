@@ -1411,18 +1411,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
             };
-            TextMenu.Button togglePacePingButton = new TextMenu.Button(toggleRoomTimingText) {
-                OnPressed = () => {
-                    bool isEnabledNow = Mod.PacePingManager.ToggleCurrentRoomPacePing();
-                    //TextMenu.Button thisAsButton = this as TextMenu.Button;
-                    //togglePacePingButton.Label = isEnabledNow ? "Remove Pace Ping From This Room" : "Set This Room As Pace Ping";
-                    importMessageButton.Disabled = !isEnabledNow;
-                    testButton.Disabled = !isEnabledNow;
+            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff($"Pace Ping This Room", paceTiming != null) {
+                OnValueChange = (isEnabled) => {
+                    bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
+                    importMessageButton.Disabled = !isNowEnabled;
+                    testButton.Disabled = !isNowEnabled;
                 },
                 Disabled = !hasCurrentRoom
             };
 
             subMenu.Add(togglePacePingButton);
+            subMenu.AddDescription(menu, togglePacePingButton, "Sends a message to Discord when entering this room with the golden berry");
             subMenu.Add(importMessageButton);
             subMenu.Add(testButton);
 
