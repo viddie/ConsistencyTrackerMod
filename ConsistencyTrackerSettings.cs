@@ -137,7 +137,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     else
                         Mod.Log($"Stopped recording path. Outputting info...");
 
-                    this.RecordPath = v;
+                    //this.RecordPath = v;
                     Mod.DoRecordPath = v;
                     Mod.SaveChapterStats();
                 }
@@ -168,12 +168,17 @@ namespace Celeste.Mod.ConsistencyTracker
             
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
             //add button to toggle transition flag for room
-            string buttonText = currentRoomIsTransition == null ? "Toggle Current Room As Transition" : (currentRoomIsTransition.Value ? "Set Current Room As Gameplay Room" : "Set Current Room As Transition Room");
-            subMenu.Add(menuItem = new TextMenu.Button(buttonText) {
-                OnPressed = () => {
+            //string buttonText = currentRoomIsTransition == null ? "Toggle Current Room As Transition" : (currentRoomIsTransition.Value ? "Set Current Room As Gameplay Room" : "Set Current Room As Transition Room");
+            
+            List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
+                    new KeyValuePair<bool, string>(false, "Gameplay"),
+                    new KeyValuePair<bool, string>(true, "Transition"),
+            };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>("Current Room Type", RoomType, currentRoomIsTransition ?? false) {
+                OnValueChange = (newValue) => {
                     if (Mod.CurrentChapterPath == null) return;
                     if (Mod.CurrentChapterPath.CurrentRoom == null) return;
-                    Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom = !Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom;
+                    Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom = newValue;
                     Mod.SavePathToFile();
                     Mod.StatsManager.AggregateStatsPassOnce(Mod.CurrentChapterPath);
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation

@@ -1,27 +1,22 @@
-﻿using Celeste.Mod.ConsistencyTracker.Models;
+﻿using Celeste.Editor;
+using Celeste.Mod.ConsistencyTracker.Entities;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary;
+using Celeste.Mod.ConsistencyTracker.EverestInterop;
+using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.PhysicsLog;
+using Celeste.Mod.ConsistencyTracker.Stats;
+using Celeste.Mod.ConsistencyTracker.ThirdParty;
+using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Monocle;
+using MonoMod.ModInterop;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Celeste.Mod.ConsistencyTracker.ThirdParty;
-using Celeste.Mod.ConsistencyTracker.Stats;
-using Celeste.Mod.ConsistencyTracker.EverestInterop;
-using Celeste.Mod.ConsistencyTracker.Properties;
-using Celeste.Mod.ConsistencyTracker.Utility;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using Celeste.Mod.ConsistencyTracker.Entities;
-using Monocle;
-using System.Reflection;
-using Celeste.Mod.ConsistencyTracker.PhysicsLog;
-using Celeste.Mod.SpeedrunTool.TeleportRoom;
-using Celeste.Editor;
-using Microsoft.Xna.Framework.Graphics;
-using Celeste.Mod.ConsistencyTracker.Enums;
-using System.Xml.Linq;
-using Celeste.Mod.ConsistencyTracker.Entities.Summary;
-using MonoMod.ModInterop;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -82,11 +77,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
 
                 _DoRecordPath = value;
+                Log($"DoRecordPath is now '{_DoRecordPath}'");
             }
         }
         private bool _DoRecordPath = false;
         private PathRecorder PathRec;
         private string DisabledInRoomName;
+        private bool AbortPathRecording = false;
 
         #endregion
 
@@ -444,7 +441,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PacePingManager.DiedWithGolden();
             }
 
-            if (DoRecordPath) {
+            if (DoRecordPath) { //Abort path recording when exiting level
+                AbortPathRecording = true;
                 DoRecordPath = false;
                 ModSettings.RecordPath = false;
             }
@@ -461,6 +459,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats?.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
+
+            if (DoRecordPath) { //Auto disable path recording when completing level
+                DoRecordPath = false;
+                ModSettings.RecordPath = false;
+            }
         }
 
         private void Level_Begin(On.Celeste.Level.orig_Begin orig, Level level) {
@@ -595,10 +598,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = CurrentRoomName;
             } else {
                 LastRoomWithCheckpoint = null;
-            }
-
-            if (!DoRecordPath && ModSettings.RecordPath) { // TODO figure out why i did this
-                DoRecordPath = true;
             }
 
             if (PhysicsLogger.Settings.IsRecording && PhysicsLog.IsInMap) {
@@ -1349,14 +1348,20 @@ namespace Celeste.Mod.ConsistencyTracker {
         public void SaveRecordedRoomPath() {
             Log($"Saving recorded path...");
             if (PathRec.TotalRecordedRooms <= 1) {
-                Log($"Path is too short to save. ({PathRec.TotalRecordedRooms} rooms)");
+                Log($"Path is too short to save. ({PathRec.TotalRecordedRooms} rooms)", isFollowup: true);
                 return;
             }
-            
+            if (AbortPathRecording) {
+                Log($"AbortPathRecording is set, not saving path.", isFollowup:true);
+                return;
+            }
+
             DisabledInRoomName = CurrentRoomName;
             SetCurrentChapterPath(PathRec.ToPathInfo());
-            Log($"Recorded path:\n{JsonConvert.SerializeObject(CurrentChapterPath)}", true);
+            Log($"Recorded path:\n{JsonConvert.SerializeObject(CurrentChapterPath)}", isFollowup: true);
             SavePathToFile();
+            
+            SaveChapterStats();//Output stats with updated path
         }
         public void SavePathToFile(PathInfo path = null, string pathName = null) {
             if (path == null) {
