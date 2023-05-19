@@ -109,5 +109,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             return false;
         }
+
+        public static string DictionaryToString<K, V>(Dictionary<K, V> dict) {
+            if (dict == null) return "null";
+            StringBuilder sb = new StringBuilder();
+            foreach (KeyValuePair<K, V> kvp in dict) {
+                sb.Append($"[{kvp.Key}] -> '{kvp.Value}'");
+            }
+            return sb.ToString();
+        }
     }
 }

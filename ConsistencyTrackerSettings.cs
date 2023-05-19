@@ -1,10 +1,12 @@
-﻿using Celeste.Mod.ConsistencyTracker.Enums;
+﻿using Celeste.Mod.ConsistencyTracker.Entities;
+using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Celeste.Mod.UI;
 using IL.Monocle;
 using Microsoft.Xna.Framework.Input;
+using Mono.Cecil;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,6 +15,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Celeste.Mod.ConsistencyTracker.Entities.WidgetLayout;
 using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker
@@ -1457,6 +1460,146 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonSummaryHudNextTab { get; set; }
         public ButtonBinding ButtonSummaryHudNextStat { get; set; }
         public ButtonBinding ButtonSummaryHudPreviousStat { get; set; }
+        #endregion
+
+        #region Test
+        public int TestCount { get; set; } = 1;
+        [SettingIgnore]
+        public int TestSelectedLayout { get; set; } = 0;
+        [SettingIgnore]
+        public List<WidgetLayout> TestLayoutList { get; set; } = new List<WidgetLayout>() {
+            new WidgetLayout(),
+        };
+        public void CreateTestCountEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Test Overlay Settings", false);
+
+            //Remove all entries in TestLayoutList that are over TestCount
+            if (TestLayoutList.Count > TestCount) {
+                TestLayoutList.RemoveRange(TestCount, TestLayoutList.Count - TestCount);
+            }
+            if (TestSelectedLayout < 0) TestSelectedLayout = 0;
+            if (TestSelectedLayout > TestLayoutList.Count - 1) TestSelectedLayout = TestLayoutList.Count - 1;
+
+            // ========= General Settings =========
+            TextMenu.Slider textCountSlider = new TextMenu.Slider("Text Count", (v) => v == 1 ? $"1 Text" : $"{v} Texts", 1, 100, TestCount);
+            TextMenu.Slider selectedTextSlider = new TextMenu.Slider("Selected Text", (v) => $"Text {v+1}", 0, TestCount - 1, TestCount);
+
+
+
+            // ========== Text 1 ==========
+            TextMenu.OnOff onOffEnabled = new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {
+                OnValueChange = v => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].Enabled = v;
+                }
+            };
+            TextMenuExt.EnumSlider<LayoutAnchor> sliderPosition = new TextMenuExt.EnumSlider<LayoutAnchor>("Position", TestLayoutList[TestSelectedLayout].Anchor) {
+                OnValueChange = v => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].Anchor = v;
+                }
+            };
+            TextMenu.OnOff onOffHideInGolden = new TextMenu.OnOff("Hide In Golden Run", TestLayoutList[TestSelectedLayout].HideWithGolden) {
+                OnValueChange = v => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].HideWithGolden = v;
+                }
+            };
+            TextMenuExt.EnumerableSlider<int> sliderSize = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), TestLayoutList[TestSelectedLayout].Size) {
+                OnValueChange = (v) => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].Size = v;
+                }
+            };
+            TextMenuExt.IntSlider sliderOffsetX = new TextMenuExt.IntSlider("Offset X", 0, 2000, TestLayoutList[TestSelectedLayout].OffsetX) {
+                OnValueChange = (v) => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].OffsetX = v;
+                }
+            };
+            TextMenuExt.IntSlider sliderOffsetY = new TextMenuExt.IntSlider("Offset Y", 0, 2000, TestLayoutList[TestSelectedLayout].OffsetY) {
+                OnValueChange = (v) => {
+                    if (TestSelectedLayout < 0 || TestSelectedLayout > TestLayoutList.Count - 1) return;
+                    TestLayoutList[TestSelectedLayout].OffsetY = v;
+                }
+            };
+
+            Action<WidgetLayout> displayLayout = (layout) => {
+                onOffEnabled.PreviousIndex = onOffEnabled.Index = GetIndexOfOptionValueList(onOffEnabled.Values, layout.Enabled);
+                sliderPosition.PreviousIndex = sliderPosition.Index = GetIndexOfOptionValueList(sliderPosition.Values, layout.Anchor);
+                onOffHideInGolden.PreviousIndex = onOffHideInGolden.Index = GetIndexOfOptionValueList(onOffHideInGolden.Values, layout.HideWithGolden);
+                sliderSize.PreviousIndex = sliderSize.Index = GetIndexOfOptionValueList(sliderSize.Values, layout.Size);
+                sliderOffsetX.PreviousIndex = sliderOffsetX.Index = layout.OffsetX;
+                sliderOffsetY.PreviousIndex = sliderOffsetY.Index = layout.OffsetY;
+
+                onOffEnabled.SelectWiggler.Start();
+                sliderPosition.SelectWiggler.Start();
+                onOffHideInGolden.SelectWiggler.Start();
+                sliderSize.SelectWiggler.Start();
+                sliderOffsetX.SelectWiggler.Start();
+                sliderOffsetY.SelectWiggler.Start();
+            };
+
+
+            textCountSlider.OnValueChange = v => {
+                TestCount = v;
+                for (int i = 0; i < selectedTextSlider.Values.Count; i++) {
+                    Tuple<string, int> value = selectedTextSlider.Values[i];
+                    if (value.Item2 + 1 > v) {
+                        if (selectedTextSlider.Index == i) {
+                            int index = Math.Max(0, i - 1);
+                            selectedTextSlider.Index = index;
+                            selectedTextSlider.PreviousIndex = index;
+
+                            TestSelectedLayout = index;
+                            displayLayout(TestLayoutList[TestSelectedLayout]);
+                        }
+                        selectedTextSlider.Values.Remove(value);
+                    }
+                }
+
+                while (v > TestLayoutList.Count) {
+                    TestLayoutList.Add(new WidgetLayout());
+                }
+                while (v > selectedTextSlider.Values.Count) {
+                    Tuple<string, int> last = selectedTextSlider.Values[selectedTextSlider.Values.Count - 1];
+                    selectedTextSlider.Values.Add(Tuple.Create($"Text {last.Item2 + 2}", last.Item2 + 1));
+                }
+            };
+
+            selectedTextSlider.OnValueChange = v => {
+                TestSelectedLayout = v;
+                WidgetLayout layout = TestLayoutList[TestSelectedLayout];
+                displayLayout(layout);
+            };
+
+
+            subMenu.Add(new TextMenu.SubHeader("=== General Settings ==="));
+            subMenu.Add(textCountSlider);
+            subMenu.Add(selectedTextSlider);
+
+            subMenu.Add(new TextMenu.SubHeader("=== Text Settings ==="));
+            subMenu.Add(onOffEnabled);
+            subMenu.Add(sliderPosition);
+            subMenu.Add(onOffHideInGolden);
+            subMenu.Add(sliderSize);
+            subMenu.Add(sliderOffsetX);
+            subMenu.Add(sliderOffsetY);
+
+            //menu.Add(subMenu);
+        }
+
+        /// <summary>
+        /// Returns the index of the searched value in the list, or 0 if the search value wasn't found
+        /// </summary>
+        public int GetIndexOfOptionValueList<T>(List<Tuple<string, T>> values, T search) {
+            for (int i = 0; i < values.Count; i++) {
+                Tuple<string, T> value = values[i];
+                if (value.Item2.Equals(search)) return i;
+            }
+
+            return 0;
+        }
         #endregion
 
         #region Helpers
