@@ -55,6 +55,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         
         public static string SaveStateRoomName = "{savestate:roomName}";
 
+        public static string PathSegmentName = "{segment:name}";
+
         public static List<string> IDs = new List<string>() {
             //PlayerHoldingGolden,
             //ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
@@ -62,6 +64,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             CheckpointName, CheckpointAbbreviation, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
             /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
             //CampaignName
+            PathSegmentName,
         };
 
         public BasicInfoStat() : base(IDs) { }
@@ -79,6 +82,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.MissingPathFormat(format, ChapterGoldenDeaths);
                 format = StatManager.MissingPathFormat(format, ChapterGoldenDeathsSession);
                 format = StatManager.MissingPathFormat(format, ChapterGoldenChance);
+
+                format = StatManager.MissingPathFormat(format, PathSegmentName);
                 return format;
             }
             
@@ -116,7 +121,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             } else {
                 format = format.Replace(SaveStateRoomName, $"{chapterPath.SpeedrunToolSaveStateRoom.GetFormattedRoomName(nameType)}");
             }
-            
+
+            //Path Segment
+            PathSegment segment = chapterPath.SegmentList.CurrentSegment;
+            if (segment == null) {
+                format = format.Replace(PathSegmentName, $"{StatManager.ValueNotAvailable}");
+            } else {
+                format = format.Replace(PathSegmentName, $"{segment.Name}");
+            }
 
             return format;
         }
@@ -171,6 +183,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModRecordingPath, "Whether the path is currently being recorded"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModModVersion, "Current version of the mod"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ModOverlayVersion, "Most recent version of the overlay"),
+
+                //Path Segment
+                new KeyValuePair<string, string>(PathSegmentName, "Name of the current path segment"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
