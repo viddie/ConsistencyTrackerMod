@@ -93,8 +93,24 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Used to cache and prevent unnecessary operations via DebugRC
         public long CurrentUpdateFrame;
 
-        public PathInfo CurrentChapterPath;
-        public ChapterStats CurrentChapterStats;
+        public PathSegmentList CurrentChapterPathSegmentList { get; set; }
+        public PathInfo CurrentChapterPath {
+            get => CurrentChapterPathSegmentList?.CurrentPath;
+            set {
+                if (CurrentChapterPathSegmentList != null) {
+                    CurrentChapterPathSegmentList.CurrentPath = value;
+                }
+            }
+        }
+        public int SelectedPathSegmentIndex {
+            get => CurrentChapterPathSegmentList?.SelectedIndex ?? 0;
+        }
+
+        public ChapterStatsList CurrentChapterStatsList { get; set; }
+        public ChapterStats CurrentChapterStats { 
+            get => CurrentChapterStatsList?.GetStats(SelectedPathSegmentIndex);
+            set => CurrentChapterStatsList?.SetStats(SelectedPathSegmentIndex, value);
+        }
 
         public string CurrentChapterDebugName;
         public string PreviousRoomName;
@@ -162,7 +178,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Interop
             DebugRcPage.Load();
             typeof(ConsistencyTrackerAPI).ModInterop();
-
         }
 
         public override void Unload() {
@@ -446,6 +461,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     && ModSettings.Enabled && ModSettings.TrackingRestartChapterCountsForGoldenDeath
                     && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
+                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
                 }
 
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
@@ -456,9 +472,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                     if (ModSettings.TrackingOnlyWithGoldenBerry) {
                         CurrentChapterStats.AddAttempt(false);
                     }
+                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
                 }
-
-                PacePingManager.DiedWithGolden();
             }
 
             if (DoRecordPath) { //Abort path recording when exiting level
@@ -573,14 +588,11 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void ChangeChapter(Session session) {
             Log($"Called chapter change");
-            AreaData area = AreaData.Areas[session.Area.ID];
-            string chapName = area.Name;
-            string chapNameClean = chapName.DialogCleanOrNull() ?? chapName.SpacedPascalCase();
-            string campaignName = DialogExt.CleanLevelSet(area.GetLevelSet());
+            ChapterMetaInfo chapterInfo = new ChapterMetaInfo(session);
 
-            Log($"Level->{session.Level}, session.Area.GetSID()->{session.Area.GetSID()}, session.Area.Mode->{session.Area.Mode}, chapterNameClean->{chapNameClean}, campaignName->{campaignName}");
+            Log($"Level->{session.Level}, chapterInfo->'{chapterInfo}'");
 
-            CurrentChapterDebugName = ($"{session.MapData.Data.SID}_{session.Area.Mode}").Replace("/", "_");
+            CurrentChapterDebugName = chapterInfo.ChapterDebugName;
 
             //string test2 = Dialog.Get($"luma_farewellbb_FarewellBB_b_intro");
             //Log($"Dialog Test 2: {test2}");
@@ -588,15 +600,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
-            CurrentChapterStats = GetCurrentChapterStats();
-            CurrentChapterStats.ChapterDebugName = CurrentChapterDebugName;
-            CurrentChapterStats.CampaignName = campaignName;
-            CurrentChapterStats.ChapterName = chapNameClean;
-            CurrentChapterStats.ChapterSID = session.MapData.Data.SID;
-            CurrentChapterStats.ChapterSIDDialogSanitized = SanitizeSIDForDialog(session.MapData.Data.SID);
-            CurrentChapterStats.SideName = session.Area.Mode.ToReadableString();
+            CurrentChapterStatsList = GetCurrentChapterStats();
+            SetCurrentChapterPathList(GetPathInfo(), chapterInfo);
 
-            SetCurrentChapterPath(GetPathInputInfo());
+            //Set the meta info after the path has been read, to ensure the selected segment (which might not be 0) has correct meta info
+            SetChapterMetaInfo(chapterInfo);
 
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
@@ -628,19 +636,70 @@ namespace Celeste.Mod.ConsistencyTracker {
             PacePingManager.ResetRun();
         }
 
-        public void SetCurrentChapterPath(PathInfo path) {
-            CurrentChapterPath = path;
+        public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo, ChapterStats stats = null) {
+            if (stats == null) stats = CurrentChapterStats;
+            if (stats == null) return;
+
+            CurrentChapterStats.ChapterDebugName = CurrentChapterDebugName;
+            CurrentChapterStats.CampaignName = chapterInfo.CampaignName;
+            CurrentChapterStats.ChapterName = chapterInfo.ChapterName;
+            CurrentChapterStats.ChapterSID = chapterInfo.ChapterSID;
+            CurrentChapterStats.ChapterSIDDialogSanitized = chapterInfo.ChapterSIDDialogSanitized;
+            CurrentChapterStats.SideName = chapterInfo.SideName;
+        }
+
+        public void SetCurrentChapterPathList(PathSegmentList pathList, ChapterMetaInfo chapterInfo = null) {
+            CurrentChapterPathSegmentList = pathList;
             if (CurrentChapterPath != null) {
+                CurrentChapterPath.SegmentList = CurrentChapterPathSegmentList;
+                
                 CurrentChapterPath.SetCheckpointRefs();
 
-                if (CurrentChapterPath.ChapterName == null && CurrentChapterStats != null) {
-                    CurrentChapterPath.CampaignName = CurrentChapterStats.CampaignName;
-                    CurrentChapterPath.ChapterName = CurrentChapterStats.ChapterName;
-                    CurrentChapterPath.ChapterSID = CurrentChapterStats.ChapterSID;
-                    CurrentChapterPath.SideName = CurrentChapterStats.SideName;
+                if (CurrentChapterPath.ChapterName == null && chapterInfo != null) {
+                    CurrentChapterPath.CampaignName = chapterInfo.CampaignName;
+                    CurrentChapterPath.ChapterName = chapterInfo.ChapterName;
+                    CurrentChapterPath.ChapterSID = chapterInfo.ChapterSID;
+                    CurrentChapterPath.SideName = chapterInfo.SideName;
                     SavePathToFile();
                 }
             }
+        }
+        public void SetCurrentChapterPath(PathInfo path, ChapterMetaInfo chapterInfo = null) {
+            if (CurrentChapterPathSegmentList == null) {
+                CurrentChapterPathSegmentList = PathSegmentList.Create();
+            }
+
+            CurrentChapterPath = path;
+            SetCurrentChapterPathList(CurrentChapterPathSegmentList, chapterInfo);
+        }
+
+        public void SetCurrentChapterPathSegment(int segmentIndex) {
+            if (CurrentChapterPathSegmentList == null) return;
+            CurrentChapterPathSegmentList.SelectedIndex = segmentIndex;
+
+            ChapterMetaInfo chapterInfo = null;
+            if (Engine.Scene is Level level) {
+                chapterInfo = new ChapterMetaInfo(level.Session);
+            }
+            SetCurrentChapterPath(CurrentChapterPath, chapterInfo);//To set checkpoint refs and stuff
+            
+            SavePathToFile();
+            if (CurrentChapterPath != null) {
+                StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
+            }
+            SetNewRoom(CurrentRoomName, false);
+            //SetCurrentChapterPath(CurrentChapterPath);//To set checkpoint refs and stuff again
+        }
+        public PathSegment AddCurrentChapterPathSegment() {
+            if (CurrentChapterPathSegmentList == null) return null;
+
+            PathSegment segment = new PathSegment() {
+                Name = $"Segment {CurrentChapterPathSegmentList.Segments.Count + 1}",
+                Path = null,
+            };
+            CurrentChapterPathSegmentList.Segments.Add(segment);
+            SavePathToFile();
+            return segment;
         }
 
         public string ResolveGroupedRoomName(string roomName) {
@@ -662,8 +721,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             return roomName;
         }
 
-        public void SetNewRoom(string newRoomName, bool countSuccess=true, bool holdingGolden=false) {
-            PlayerIsHoldingGolden = holdingGolden;
+        public void SetNewRoom(string newRoomName, bool countSuccess=true, bool? holdingGolden=null) {
+            if (holdingGolden != null) { 
+                PlayerIsHoldingGolden = holdingGolden.Value;
+            }
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
             //Resolve grouped room name
@@ -711,7 +772,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (ModSettings.Enabled && CurrentChapterStats != null) {
-                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden)) {
+                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden.Value)) {
                     CurrentChapterStats.AddAttempt(true);
                 }
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
@@ -800,6 +861,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (ModSettings.TrackingSaveStateCountsForGoldenDeath && CurrentChapterStats != null) {
                 if (PlayerIsHoldingGolden && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
                     CurrentChapterStats.AddGoldenBerryDeath();
+                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
                 }
             }
 
@@ -856,7 +918,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         
-        public PathInfo GetPathInputInfo(string pathName = null) {
+        public PathSegmentList GetPathInfo(string pathName = null) {
             if(pathName == null) {
                 pathName = CurrentChapterDebugName;
             }
@@ -884,40 +946,58 @@ namespace Celeste.Mod.ConsistencyTracker {
             string logExt = readAsTXT ? "txt" : "json";
             Log($"\tFound '.{logExt}' version of file, parsing...", true);
 
+            try {
+                Log($"Trying to parse PathSegmentList...");
+                PathSegmentList psl = JsonConvert.DeserializeObject<PathSegmentList>(content);
+                Log($"Successfully parsed PathSegmentList: Segments.Count -> {psl.Segments.Count}", isFollowup: true);
+                return psl;
+            } catch (Exception ex) {
+                Log($"Couldn't parse PathSegmentList. Exception: {ex.Message}", isFollowup: true);
+            }
+
+            
+            PathInfo oldPathFormat = null;
             //[Try 1] New file format: JSON
             try {
                 PathInfo pathInfo = JsonConvert.DeserializeObject<PathInfo>(content);
                 if (readAsTXT) { //Move file to json format
                     File.Move(pathTXT, pathJSON);
                 }
-                return pathInfo;
+                oldPathFormat = pathInfo;
             } catch (Exception) {
                 Log($"\tCouldn't read path info as JSON, trying old path format...", true);
             }
 
-            //[Try 2] Old file format: selfmade text format
-            try {
-                PathInfo parsedOldFormat = PathInfo.ParseString(content);
-                Log($"\tSaving path for map '{pathName}' in new format!", true);
-                SavePathToFile(parsedOldFormat, pathName); //Save in new format (json)
-                return parsedOldFormat;
-            } catch (Exception) {
-                Log($"\tCouldn't read old path info. Old path info content:\n{content}", true);
-                return null;
+            if (oldPathFormat == null) {
+                //[Try 2] Old file format: selfmade text format
+                try {
+                    PathInfo parsedOldFormat = PathInfo.ParseString(content);
+                    Log($"\tSaving path for map '{pathName}' in new format!", true);
+                    oldPathFormat = parsedOldFormat;
+                } catch (Exception) {
+                    Log($"\tCouldn't read old path info. Old path info content:\n{content}", true);
+                }
             }
+
+            if (oldPathFormat == null) return null;
+            PathSegmentList pathList = PathSegmentList.Create();
+            pathList.Segments[0].Path = oldPathFormat;
+
+            SavePathToFile(pathList, pathName); //Save in new format (json)
+            return pathList;
         }
 
-        public ChapterStats GetCurrentChapterStats() {
+        public ChapterStatsList GetCurrentChapterStats() {
             string pathTXT = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
             string pathJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
 
             Log($"CurrentChapterName: '{CurrentChapterDebugName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
-            ChapterStats toRet = null;
 
+            ChapterStatsList toRet = null;
             if (!File.Exists(pathTXT) && !File.Exists(pathJSON)) { //Create new
-                toRet = new ChapterStats();
-                toRet.SetCurrentRoom(CurrentRoomName);
+                toRet = new ChapterStatsList();
+                toRet.GetStats(0).SetCurrentRoom(CurrentRoomName);
                 return toRet;
             }
 
@@ -930,22 +1010,30 @@ namespace Celeste.Mod.ConsistencyTracker {
                 readAsTXT = true;
             }
 
+            try {
+                toRet = JsonConvert.DeserializeObject<ChapterStatsList>(content);
+                return toRet;
+            } catch (Exception) {
+                Log($"\tCouldn't read chapter stats list, trying older stats formats...", true);
+            }
+
+            ChapterStats chapterStats = null;
             //[Try 1] New file format: JSON
             try {
-                toRet = JsonConvert.DeserializeObject<ChapterStats>(content);
+                chapterStats = JsonConvert.DeserializeObject<ChapterStats>(content);
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
             }
 
-            if (toRet == null) {
+            if (chapterStats == null) {
                 //[Try 2] Old file format: selfmade text format
                 try {
-                    toRet = ChapterStats.ParseString(content);
+                    chapterStats = ChapterStats.ParseString(content);
                     Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!", true);
                 } catch (Exception) {
                     Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}", true);
-                    toRet = new ChapterStats();
-                    toRet.SetCurrentRoom(CurrentRoomName);
+                    chapterStats = new ChapterStats();
+                    chapterStats.SetCurrentRoom(CurrentRoomName);
                 }
             }
 
@@ -953,16 +1041,35 @@ namespace Celeste.Mod.ConsistencyTracker {
                 File.Move(pathTXT, pathJSON);
             }
 
+            //When a stats file was parsed from an old format, the path segment is always 0 (default)
+            toRet = new ChapterStatsList();
+            toRet.SetStats(0, chapterStats);
+
             return toRet;
         }
 
         public void SaveChapterStats() {
+            if (CurrentChapterStatsList == null) {
+                Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStatsList)}' is null");
+                return;
+            }
             if (CurrentChapterStats == null) {
                 Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
             if (!ModSettings.Enabled) {
                 return;
+            }
+
+            if (CurrentChapterStats.ChapterName == null) {
+                if (Engine.Scene is Level level && level.Session != null) {
+                    ChapterMetaInfo chapterInfo = new ChapterMetaInfo(level.Session);
+                    SetChapterMetaInfo(chapterInfo);
+                    Log($"Fixed missing meta info on '{nameof(CurrentChapterStats)}'");
+                } else {
+                    Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' doesn't have meta info set.");
+                    return;
+                }
             }
 
             CurrentUpdateFrame++;
@@ -978,7 +1085,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
-            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStats, Formatting.Indented));
+            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
 
             string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
 
@@ -1374,27 +1481,35 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
             if (AbortPathRecording) {
+                AbortPathRecording = false;
                 Log($"AbortPathRecording is set, not saving path.", isFollowup:true);
                 return;
             }
 
+            PathInfo path = PathRec.ToPathInfo();
+
+            ChapterMetaInfo chapterInfo = null;
+            if (Engine.Scene is Level level && level.Session != null) {
+                chapterInfo = new ChapterMetaInfo(level.Session);
+            }
+
             DisabledInRoomName = CurrentRoomName;
-            SetCurrentChapterPath(PathRec.ToPathInfo());
+            SetCurrentChapterPath(path, chapterInfo);
             Log($"Recorded path:\n{JsonConvert.SerializeObject(CurrentChapterPath)}", isFollowup: true);
             SavePathToFile();
             
             SaveChapterStats();//Output stats with updated path
         }
-        public void SavePathToFile(PathInfo path = null, string pathName = null) {
-            if (path == null) {
-                path = CurrentChapterPath;
+        public void SavePathToFile(PathSegmentList pathList = null, string pathName = null) {
+            if (pathList == null) {
+                pathList = CurrentChapterPathSegmentList;
             }
             if (pathName == null) {
                 pathName = CurrentChapterDebugName;
             }
 
             string outPath = GetPathToFile(PathsFolder, $"{pathName}.json");
-            File.WriteAllText(outPath, JsonConvert.SerializeObject(path, Formatting.Indented));
+            File.WriteAllText(outPath, JsonConvert.SerializeObject(pathList, Formatting.Indented));
             Log($"Wrote path data to '{outPath}'");
         }
 

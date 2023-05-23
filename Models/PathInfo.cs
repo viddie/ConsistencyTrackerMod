@@ -44,24 +44,16 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;
-        
+
         [JsonIgnore]
         public RoomInfo CurrentRoom { get; set; } = null;
-        
+
+        [JsonIgnore]
+        public PathSegmentList SegmentList { get; set; } = null;
+
         [JsonIgnore]
         public RoomInfo SpeedrunToolSaveStateRoom { get; set; } = null;
-
-        [JsonIgnore]
-        public string ParseError { get; set; }
-
-        public static PathInfo GetTestPathInfo() {
-            return new PathInfo() {
-                Checkpoints = new List<CheckpointInfo>() {
-                    new CheckpointInfo(){ Name="Start", Abbreviation="0M" },
-                    new CheckpointInfo(){ Name="500 M", Abbreviation="500M" },
-                },
-            };
-        }
+        
 
         public RoomInfo GetRoom(RoomStats roomStats) {
             return GetRoom(roomStats.DebugRoomName);

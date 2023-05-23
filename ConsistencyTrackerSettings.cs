@@ -131,6 +131,36 @@ namespace Celeste.Mod.ConsistencyTracker
 
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
             TextMenu.Item menuItem;
+            
+            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
+            bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
+            List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
+                new KeyValuePair<int, string>(0, "Default"),
+            };
+            if (hasPathList) {
+                SegmentList.Clear();
+                for (int i = 0; i < Mod.CurrentChapterPathSegmentList.Segments.Count; i++) {
+                    PathSegment segment = Mod.CurrentChapterPathSegmentList.Segments[i];
+                    SegmentList.Add(new KeyValuePair<int, string>(i, segment.Name));
+                }
+            }
+            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>("Current Segment", SegmentList, Mod.SelectedPathSegmentIndex) {
+                OnValueChange = (newValue) => {
+                    Mod.SetCurrentChapterPathSegment(newValue);
+                },
+                Disabled = !hasPathList
+            };
+            subMenu.Add(sliderCurrentSegment);
+            subMenu.Add(menuItem = new TextMenu.Button("Add Segment") {
+                OnPressed = () => {
+                    PathSegment segment = Mod.AddCurrentChapterPathSegment();
+                    if (segment != null) {
+                        sliderCurrentSegment.Values.Add(Tuple.Create(segment.Name, Mod.CurrentChapterPathSegmentList.Segments.Count - 1));
+                        sliderCurrentSegment.SelectWiggler.Start();
+                    }
+                },
+                Disabled = !hasPathList
+            });
 
             subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Record Path", Mod.DoRecordPath) {
@@ -145,7 +175,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Turn this on to start recording a path for the current chapter. Disable in the last room");
+            subMenu.AddDescription(menu, menuItem, "Turn this on to start recording a path for the current segment. Disable in the last room");
             subMenu.AddDescription(menu, menuItem, "of the map, or complete the map, to stop the recording and save the path.");
             subMenu.AddDescription(menu, menuItem, "WILL OVERRIDE ANY EXISTING PATH (unless disabled just after starting recording)");
 
@@ -1347,6 +1377,12 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public bool PacePingEnabled { get; set; } = false;
+        
+        [SettingIgnore]
+        public PbPingType PacePingPbPingType { get; set; } = PbPingType.NoPing;
+
+        [SettingIgnore]
+        public bool PacePingAllDeathsEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
@@ -1394,10 +1430,33 @@ namespace Celeste.Mod.ConsistencyTracker
             }));
             subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
 
+            subMenu.Add(new TextMenu.SubHeader($"=== PB Ping ==="));
+            List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
+                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, "No Ping"),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, "Ping On PB Entry"),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, "Ping On PB Passed"),
+            };
+            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>("Ping On PB?", pbPingTypes, PacePingPbPingType) {
+                OnValueChange = (newValue) => {
+                    PacePingPbPingType = newValue;
+                }
+            });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Current Room ==="));
-            string toggleRoomTimingText = paceTiming == null ? "Toggle Pace Ping For This Room" : "Remove Pace Ping From This Room";
-            
+            subMenu.Add(new TextMenu.Button("Import PB Ping Message from Clipboard") {
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing pb ping message from clipboard...");
+                    try {
+                        Mod.PacePingManager.SavePBPingMessage(text);
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import pb ping message from clipboard: {ex}");
+                    }
+                },
+            });
+
+
+            string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
+            subMenu.Add(new TextMenu.SubHeader($"=== Current Room{roomAddition} ==="));
             TextMenu.Button importMessageButton = new TextMenu.Button("Import Ping Message from Clipboard") {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
@@ -1410,15 +1469,22 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = paceTiming == null,
             };
-            TextMenu.Button testButton = new TextMenu.Button("Test Pace Ping For This Room") {
+            TextMenu.Button testButton = new TextMenu.Button("Test Pace/PB Ping For This Room") {
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
+            };
+            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff($"Enable Embeds In Ping", paceTiming == null ? true : paceTiming.EmbedsEnabled) {
+                OnValueChange = (isEnabled) => {
+                    Mod.PacePingManager.SavePaceTimingEmbedsEnabled(isEnabled);
+                },
+                Disabled = paceTiming == null
             };
             TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff($"Pace Ping This Room", paceTiming != null) {
                 OnValueChange = (isEnabled) => {
                     bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
                     importMessageButton.Disabled = !isNowEnabled;
                     testButton.Disabled = !isNowEnabled;
+                    toggleEmbedsEnabledButton.Disabled = !isNowEnabled;
                 },
                 Disabled = !hasCurrentRoom
             };
@@ -1426,7 +1492,42 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(togglePacePingButton);
             subMenu.AddDescription(menu, togglePacePingButton, "Sends a message to Discord when entering this room with the golden berry");
             subMenu.Add(importMessageButton);
+            subMenu.Add(toggleEmbedsEnabledButton);
             subMenu.Add(testButton);
+
+
+            subMenu.Add(new TextMenu.SubHeader("=== All Deaths ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Message On Every Golden Death", PacePingAllDeathsEnabled) {
+                OnValueChange = v => {
+                    PacePingAllDeathsEnabled = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Will send a message to Discord when you die in any room with the golden berry");
+            subMenu.AddDescription(menu, menuItem, "You'd probably not want to ping a role for this");
+
+            subMenu.Add(new TextMenu.Button("Import All Deaths Message from Clipboard") {
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing all deaths message from clipboard...");
+                    try {
+                        Mod.PacePingManager.SaveAllDeathsMessage(text);
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import all deaths message from clipboard: {ex}");
+                    }
+                },
+            });
+
+            subMenu.Add(menuItem = new TextMenu.Button("Import Webhook URL from Clipboard").Pressed(() => {
+                string text = TextInput.GetClipboardText();
+                Mod.Log($"Importing webhook url from clipboard...");
+                try {
+                    Mod.PacePingManager.SaveDiscordWebhookAllDeaths(text);
+                } catch (Exception ex) {
+                    Mod.Log($"Couldn't import webhook url from clipboard: {ex}");
+                }
+            }));
+            subMenu.AddDescription(menu, menuItem, "This webhook can be different from the pace ping webhook.");
+            subMenu.AddDescription(menu, menuItem, "ALSO DON'T SHOW THIS URL ON STREAM");
 
             menu.Add(subMenu);
         }
