@@ -21,6 +21,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const string SavedStateFileName = "state.json";
         public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM.json";
         private bool PingedThisRun { get; set; } = false;
+        private bool PBPingedThisRun { get; set; } = false;
 
         public enum PbPingType {
             NoPing,
@@ -246,7 +247,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (!stats.ModState.PlayerIsHoldingGolden && ignoreGolden == false) return; //No golden = no ping
 
-            if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && CheckPbRunPing(path, stats)) {
+            if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && !PBPingedThisRun && CheckPbRunPing(path, stats)) {
                 return; //Pinged from the PB ping, skip checking normal pace ping
             }
 
@@ -279,9 +280,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbEntry && currentRoom == pbRoom) {
                 SendPing(path, stats, currentRoom, State.PbPingMessage, true);
+                PBPingedThisRun = true;
                 return true;
             } else if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbPassed && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
                 SendPing(path, stats, currentRoom, State.PbPingMessage, true);
+                PBPingedThisRun = true;
                 return true;
             }
 
@@ -351,12 +354,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public void ResetRun() {
             PingedThisRun = false;
+            PBPingedThisRun = false;
         }
         public void DiedWithGolden(PathInfo path, ChapterStats stats) {
             if (Mod.ModSettings.PacePingAllDeathsEnabled) SendAllDeathsMessage(path, stats);
             
             if (!PingedThisRun) return; //no ping, no follow-up message
             PingedThisRun = false;
+            PBPingedThisRun = false;
 
             string message = State.AfterPingDeathMessage;
             message = Mod.StatsManager.FormatVariableFormat(message);
