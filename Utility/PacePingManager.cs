@@ -171,6 +171,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             CheckPacePing(path, Mod.CurrentChapterStats, ignoreGolden:true);
         }
 
+        public void ReloadStateFile() {
+            LoadState();
+        }
+
         public void SaveDiscordWebhook(string webhook) {
             StateSecret.WebhookUrl = webhook;
             SaveState();
