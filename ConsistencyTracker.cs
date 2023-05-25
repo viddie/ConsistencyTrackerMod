@@ -392,7 +392,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             string roomName = SanitizeRoomName(level.Session.LevelData.Name);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
-            if (ModSettings.Enabled && DoRecordPath) {
+            if (DoRecordPath) {
                 InsertCheckpointIntoPath(cp, roomName);
             }
 
@@ -458,7 +458,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (mode == LevelExit.Mode.Restart) {
                 DidRestart = true;
                 if (PlayerIsHoldingGolden 
-                    && ModSettings.Enabled && ModSettings.TrackingRestartChapterCountsForGoldenDeath
+                    && ModSettings.TrackingRestartChapterCountsForGoldenDeath
                     && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
@@ -467,7 +467,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
 
-                if (ModSettings.Enabled && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) { //Only count golden berry deaths when enabled
+                if (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     if (ModSettings.TrackingOnlyWithGoldenBerry) {
                         CurrentChapterStats.AddAttempt(false);
@@ -490,7 +490,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(ModSettings.Enabled && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
+            if(!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
                 CurrentChapterStats?.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
@@ -566,15 +566,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 _CurrentRoomCompleted = false;
             }
 
-            if (ModSettings.Enabled) {
-                if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden))
-                    CurrentChapterStats?.AddAttempt(false);
+            if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden))
+                CurrentChapterStats?.AddAttempt(false);
 
-                if(CurrentChapterStats != null)
-                    CurrentChapterStats.CurrentRoom.DeathsInCurrentRun++;
+            if(CurrentChapterStats != null)
+                CurrentChapterStats.CurrentRoom.DeathsInCurrentRun++;
 
-                SaveChapterStats();
-            }
+            SaveChapterStats();
         }
 
         #endregion
@@ -771,7 +769,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PathRec.AddRoom(newRoomName);
             }
 
-            if (ModSettings.Enabled && CurrentChapterStats != null) {
+            if (CurrentChapterStats != null) {
                 if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden.Value)) {
                     CurrentChapterStats.AddAttempt(true);
                 }
@@ -1055,9 +1053,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             if (CurrentChapterStats == null) {
                 Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' is null");
-                return;
-            }
-            if (!ModSettings.Enabled) {
                 return;
             }
 
@@ -1359,7 +1354,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
             orig(self);
 
-            if (!ModSettings.Enabled || CurrentChapterPath == null) return;
+            if (CurrentChapterPath == null) return;
             
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
             Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");

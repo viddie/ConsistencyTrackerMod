@@ -37,7 +37,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public void ApplyModSettings() {
             ConsistencyTrackerSettings settings = Mod.ModSettings;
 
-            Visible = settings.IngameOverlayTextEnabled && settings.Enabled;
+            Visible = settings.IngameOverlayTextEnabled;
 
             SetTextVisible(1, settings.IngameOverlayText1Enabled);
             SetTextHideInGolden(1, settings.IngameOverlayText1HideWithGolden);
@@ -73,7 +73,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         
         public void SetVisibility(bool visible) {
             bool prev = Visible;
-            Visible = visible && Mod.ModSettings.Enabled;
+            Visible = visible;
             
             if (prev != Visible) { 
                 Mod.LogVerbose($"Set text overlay visibility to '{visible}'");
