@@ -11,7 +11,6 @@ using Celeste.Mod.ConsistencyTracker.Entities.Summary;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class DrawHelper {
-
         
         public static void Move(ref Vector2 vec, float x, float y) {
             SummaryHud.Move(ref vec, x, y);
@@ -46,13 +45,39 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             vertices[4] = new VertexPositionColor(new Vector3(points[2], depth), color);
             vertices[5] = new VertexPositionColor(new Vector3(points[3], depth), color);
 
+            Matrix m = Engine.ScreenMatrix;
+            string matrix = $"[ {m.M11}, {m.M12}, {m.M13}, {m.M14} ]\n" +
+                            $"[ {m.M21}, {m.M22}, {m.M23}, {m.M24} ]\n" +
+                            $"[ {m.M31}, {m.M32}, {m.M33}, {m.M34} ]\n" +
+                            $"[ {m.M41}, {m.M42}, {m.M43}, {m.M44} ]";
+            ConsistencyTrackerModule.Instance.LogOnce("matrix", $"Engine.ScreenMatrix:" +
+                $"\n{matrix}" +
+                $"\nEngine.ScreenMatrix.Translation: {m.Translation}");
+
             DrawVertices(Matrix.Identity, vertices);
         }
 
         public static void DrawVertices(Matrix mat, VertexPositionColor[] vertices) {
-            try { Draw.SpriteBatch.End(); } catch (Exception) { }
+            SpriteSortMode ssm = SpriteSortMode.Deferred;
+            BlendState bs = BlendState.AlphaBlend;
+            SamplerState ss = SamplerState.LinearClamp;
+            DepthStencilState dss = DepthStencilState.None;
+            RasterizerState rs = RasterizerState.CullCounterClockwise;
+            Effect effect = null;
+
+            try {
+                GraphicsDevice gd = Draw.SpriteBatch.GraphicsDevice;
+                bs = gd.BlendState;
+                ss = gd.SamplerStates[0];
+                dss = gd.DepthStencilState;
+                rs = gd.RasterizerState;
+                
+            } catch (Exception) { }
+            try {
+                Draw.SpriteBatch.End(); 
+            } catch (Exception) { }
             GFX.DrawVertices(mat, vertices, vertices.Length);
-            try { Draw.SpriteBatch.Begin(); } catch (Exception) { }
+            try { Draw.SpriteBatch.Begin(ssm, bs, ss, dss, rs, effect, mat); } catch (Exception) { }
 
         }
     }

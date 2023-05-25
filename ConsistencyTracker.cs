@@ -1678,14 +1678,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             };
             LogInitialized = true;
         }
-        public void Log(string log, bool isFollowup = false, bool isComingFromVerbose = false) {
+        public void Log(string log, bool isFollowup = false, bool isComingFromOtherLogMethod = false) {
             if (!LogInitialized) {
                 return;
             }
 
             if (!isFollowup) {
                 int frameBack = 1;
-                if (isComingFromVerbose) {
+                if (isComingFromOtherLogMethod) {
                     frameBack = 2;
                 }
 
@@ -1705,6 +1705,23 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (ModSettings.VerboseLogging) { 
                 Log(message, isFollowup, true);
             }
+        }
+
+        private readonly HashSet<string> _LogOnceKeys = new HashSet<string>();
+        public void LogOnce(string key, string message) {
+            if (_LogOnceKeys.Contains(key)) return;
+            _LogOnceKeys.Add(key);
+
+            Log(message, false, true);
+        }
+        public void ResetLogOnce() {
+            _LogOnceKeys.Clear();
+        }
+
+        private int _LogCounter = 0;
+        public void LogCount(string message="Log Counter -> ") {
+            _LogCounter++;
+            Log($"{message} {_LogCounter}", false, true);
         }
 
         public void LogCleanup() {
