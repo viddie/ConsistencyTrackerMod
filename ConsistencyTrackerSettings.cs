@@ -1430,6 +1430,11 @@ namespace Celeste.Mod.ConsistencyTracker
             }));
             subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
 
+            TextMenu.Button testButton = new TextMenu.Button("Reload state file") {
+                OnPressed = Mod.PacePingManager.ReloadStateFile,
+            };
+            subMenu.AddDescription(menu, menuItem, "If you manually edit the state.json file, use this button to reload it in CCT");
+
             subMenu.Add(new TextMenu.SubHeader($"=== PB Ping ==="));
             List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
                 new KeyValuePair<PbPingType, string>(PbPingType.NoPing, "No Ping"),
