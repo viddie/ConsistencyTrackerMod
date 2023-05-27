@@ -30,5 +30,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             SegmentStats[index] = stats;
         }
+
+
+        /// <summary>
+        /// Removes the segment at the given index, unless it's the only segment
+        /// </summary>
+        /// <param name="index"></param>
+        public void RemoveSegment(int index) {
+            //Check if index is in range
+            if (index < 0 || index >= SegmentStats.Count || SegmentStats.Count <= 1) return;
+
+            //Remove the segment
+            SegmentStats.RemoveAt(index);
+        }
     }
 }

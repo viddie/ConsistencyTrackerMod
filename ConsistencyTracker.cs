@@ -686,7 +686,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
             }
             SetNewRoom(CurrentRoomName, false);
-            //SetCurrentChapterPath(CurrentChapterPath);//To set checkpoint refs and stuff again
+        }
+        public void SetCurrentChapterPathSegmentName(string name) {
+            if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return;
+
+            CurrentChapterPathSegmentList.CurrentSegment.Name = name;
+            SavePathToFile();
+            SaveChapterStats();
         }
         public PathSegment AddCurrentChapterPathSegment() {
             if (CurrentChapterPathSegmentList == null) return null;
@@ -698,6 +704,20 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPathSegmentList.Segments.Add(segment);
             SavePathToFile();
             return segment;
+        }
+        public void DeleteCurrentChapterPathSegment() {
+            if (CurrentChapterPathSegmentList == null) return;
+            int segmentIndex = CurrentChapterPathSegmentList.SelectedIndex;
+            if (segmentIndex >= CurrentChapterPathSegmentList.Segments.Count || CurrentChapterPathSegmentList.Segments.Count <= 1) return;
+            
+            CurrentChapterPathSegmentList.RemoveSegment(segmentIndex);
+            CurrentChapterStatsList.RemoveSegment(segmentIndex);
+            
+            SavePathToFile();
+            if (CurrentChapterPath != null) {
+                StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
+            }
+            SetNewRoom(CurrentRoomName, false);
         }
 
         public string ResolveGroupedRoomName(string roomName) {

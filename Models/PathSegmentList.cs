@@ -39,6 +39,25 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         /// <summary>
+        /// Removes the segment at the given index, unless it's the only segment
+        /// </summary>
+        /// <param name="index"></param>
+        public void RemoveSegment(int index) {
+            //Check if index is in range
+            if (index < 0 || index >= Segments.Count || Segments.Count <= 1) return;
+
+            bool isSelectedIndex = index == SelectedIndex;
+
+            //Remove the segment
+            Segments.RemoveAt(index);
+
+            //Update the selected index
+            if (isSelectedIndex) { 
+                SelectedIndex = Segments.Count - 1;
+            }
+        }
+
+        /// <summary>
         /// Create a new PathSegmentList with a default segment.
         /// </summary>
         /// <returns></returns>

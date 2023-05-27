@@ -161,6 +161,15 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasPathList
             });
+            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name From Clipboard").Pressed(() => {
+                string text = TextInput.GetClipboardText();
+                Mod.Log($"Importing segment name from clipboard...");
+                try {
+                    Mod.SetCurrentChapterPathSegmentName(text);
+                } catch (Exception ex) {
+                    Mod.Log($"Couldn't import segment name from clipboard: {ex}");
+                }
+            }));
 
             subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Record Path", Mod.DoRecordPath) {
@@ -270,6 +279,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             }));
             subMenu.AddDescription(menu, menuItem, "!!! The existing path will be overwritten !!!");
+
+            subMenu.Add(new TextMenu.SubHeader("=== Danger Zone ==="));
+            subMenu.Add(menuItem = new TextMenu.Button("Delete Current Segment") {
+                OnPressed = () => {
+                    Mod.DeleteCurrentChapterPathSegment();
+                    sliderCurrentSegment.Index = Mod.SelectedPathSegmentIndex;
+                    sliderCurrentSegment.SelectWiggler.Start();
+                },
+                Disabled = !hasPathList
+            });
+            subMenu.AddDescription(menu, menuItem, "!!! This action cannot be undone !!!");
 
             menu.Add(subMenu);
         }
