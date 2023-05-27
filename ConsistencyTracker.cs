@@ -705,10 +705,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             SavePathToFile();
             return segment;
         }
-        public void DeleteCurrentChapterPathSegment() {
-            if (CurrentChapterPathSegmentList == null) return;
+        public bool DeleteCurrentChapterPathSegment() {
+            if (CurrentChapterPathSegmentList == null) return false;
             int segmentIndex = CurrentChapterPathSegmentList.SelectedIndex;
-            if (segmentIndex >= CurrentChapterPathSegmentList.Segments.Count || CurrentChapterPathSegmentList.Segments.Count <= 1) return;
+            if (segmentIndex >= CurrentChapterPathSegmentList.Segments.Count || CurrentChapterPathSegmentList.Segments.Count <= 1) return false;
             
             CurrentChapterPathSegmentList.RemoveSegment(segmentIndex);
             CurrentChapterStatsList.RemoveSegment(segmentIndex);
@@ -718,6 +718,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
             }
             SetNewRoom(CurrentRoomName, false);
+            return true;
         }
 
         public string ResolveGroupedRoomName(string roomName) {

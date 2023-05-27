@@ -134,6 +134,7 @@ namespace Celeste.Mod.ConsistencyTracker
             
             subMenu.Add(new TextMenu.SubHeader("=== General ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
+            int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
             List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
                 new KeyValuePair<int, string>(0, "Default"),
             };
@@ -281,15 +282,24 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, "!!! The existing path will be overwritten !!!");
 
             subMenu.Add(new TextMenu.SubHeader("=== Danger Zone ==="));
-            subMenu.Add(menuItem = new TextMenu.Button("Delete Current Segment") {
-                OnPressed = () => {
-                    Mod.DeleteCurrentChapterPathSegment();
+            TextMenu.Button deleteButton = new TextMenu.Button("Delete Current Segment") {
+                Disabled = !hasPathList || segmentCount <= 1
+            };
+            deleteButton.OnPressed = () => {
+                int index = Mod.SelectedPathSegmentIndex;
+                bool didDelete = Mod.DeleteCurrentChapterPathSegment();
+
+                if (didDelete) {
+                    sliderCurrentSegment.Values.RemoveAt(index);
                     sliderCurrentSegment.Index = Mod.SelectedPathSegmentIndex;
                     sliderCurrentSegment.SelectWiggler.Start();
-                },
-                Disabled = !hasPathList
-            });
-            subMenu.AddDescription(menu, menuItem, "!!! This action cannot be undone !!!");
+                }
+
+                deleteButton.Disabled = Mod.CurrentChapterPathSegmentList.Segments.Count <= 1;
+            };
+            subMenu.Add(deleteButton);
+            subMenu.AddDescription(menu, deleteButton, "Also deletes the stats of this segment!");
+            subMenu.AddDescription(menu, deleteButton, "!!! This action cannot be undone !!!");
 
             menu.Add(subMenu);
         }
