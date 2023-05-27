@@ -137,7 +137,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// </summary>
         public void ResetCurrentSession(PathInfo chapterPath) {
             //Store current session data in session history first
-            StoreOldSessionData(chapterPath);
+            try {
+                StoreOldSessionData(chapterPath);
+            } catch (Exception ex) {
+                ConsistencyTrackerModule.Instance.Log($"There was an exception when storing old session data for chapter '{ChapterDebugName}': {ex}");
+                ConsistencyTrackerModule.Instance.Log($"Old Session count: {OldSessions.Count}", isFollowup: true);
+                ConsistencyTrackerModule.Instance.Log($"Path is null: {chapterPath == null}", isFollowup: true);
+            }
 
             //Then reset current session data
             foreach (string name in Rooms.Keys) {
