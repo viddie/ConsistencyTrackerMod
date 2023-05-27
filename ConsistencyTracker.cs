@@ -687,12 +687,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             SetNewRoom(CurrentRoomName, false);
         }
-        public void SetCurrentChapterPathSegmentName(string name) {
-            if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return;
+        public bool SetCurrentChapterPathSegmentName(string name) {
+            if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return false;
 
             CurrentChapterPathSegmentList.CurrentSegment.Name = name;
             SavePathToFile();
             SaveChapterStats();
+            return true;
         }
         public PathSegment AddCurrentChapterPathSegment() {
             if (CurrentChapterPathSegmentList == null) return null;

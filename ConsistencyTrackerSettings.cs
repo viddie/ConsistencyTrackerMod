@@ -166,7 +166,11 @@ namespace Celeste.Mod.ConsistencyTracker
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing segment name from clipboard...");
                 try {
-                    Mod.SetCurrentChapterPathSegmentName(text);
+                    bool renamed = Mod.SetCurrentChapterPathSegmentName(text);
+                    if (renamed) { 
+                        sliderCurrentSegment.Values[Mod.SelectedPathSegmentIndex] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
+                        sliderCurrentSegment.SelectWiggler.Start();
+                    }
                 } catch (Exception ex) {
                     Mod.Log($"Couldn't import segment name from clipboard: {ex}");
                 }
