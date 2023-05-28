@@ -1,10 +1,12 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Entities;
+using Celeste.Mod.ConsistencyTracker.Entities.Menu;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Celeste.Mod.UI;
 using IL.Monocle;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Mono.Cecil;
 using Newtonsoft.Json;
@@ -162,22 +164,25 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasPathList
             });
-            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name From Clipboard").Pressed(() => {
-                string text = TextInput.GetClipboardText();
-                Mod.Log($"Importing segment name from clipboard...");
-                try {
-                    bool renamed = Mod.SetCurrentChapterPathSegmentName(text);
-                    if (renamed) { 
-                        sliderCurrentSegment.Values[Mod.SelectedPathSegmentIndex] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
-                        sliderCurrentSegment.SelectWiggler.Start();
+            
+            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name From Clipboard") { 
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing segment name from clipboard...");
+                    try {
+                        bool renamed = Mod.SetCurrentChapterPathSegmentName(text);
+                        if (renamed) {
+                            sliderCurrentSegment.Values[Mod.SelectedPathSegmentIndex] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
+                            sliderCurrentSegment.SelectWiggler.Start();
+                        }
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import segment name from clipboard: {ex}");
                     }
-                } catch (Exception ex) {
-                    Mod.Log($"Couldn't import segment name from clipboard: {ex}");
-                }
-            }));
+                },
+            });
 
             subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Record Path", Mod.DoRecordPath) {
+            subMenu.Add(menuItem = new ColoredOnOff("Record Path", Mod.DoRecordPath) {
                 OnValueChange = v => {
                     if (v)
                         Mod.Log($"Recording chapter path...");
@@ -187,11 +192,12 @@ namespace Celeste.Mod.ConsistencyTracker
                     //this.RecordPath = v;
                     Mod.DoRecordPath = v;
                     Mod.SaveChapterStats();
-                }
+                },
+                HighlightColor = Color.Yellow
             });
             subMenu.AddDescription(menu, menuItem, "Turn this on to start recording a path for the current segment. Disable in the last room");
-            subMenu.AddDescription(menu, menuItem, "of the map, or complete the map, to stop the recording and save the path.");
-            subMenu.AddDescription(menu, menuItem, "WILL OVERRIDE ANY EXISTING PATH (unless disabled just after starting recording)");
+            subMenu.AddDescription(menu, menuItem, "of the segment, or complete the map, to stop the recording and save the path.");
+            subMenu.AddDescription(menu, menuItem, "WILL OVERRIDE ANY EXISTING PATH (unless disabled immediately after starting recording)");
 
             subMenu.Add(new TextMenu.SubHeader("=== Path Editing ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
@@ -261,7 +267,24 @@ namespace Celeste.Mod.ConsistencyTracker
             //});
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
-            //Add an option to input a custom room name
+            
+            subMenu.Add(menuItem = new TextMenu.Button("Import Custom Room Name From Clipboard") { 
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing custom room name from clipboard...");
+                    try {
+                        if (Mod.CurrentChapterPath == null) return;
+                        if (Mod.CurrentChapterPath.CurrentRoom == null) return;
+                        Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = text;
+                        Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{text}'");
+                        Mod.SavePathToFile();
+                        Mod.SaveChapterStats();//Recalc stats
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import custom room name from clipboard: {ex}");
+                    }
+                },
+                Disabled = !hasCurrentRoom
+            });
 
             subMenu.Add(new TextMenu.SubHeader("=== Import / Export ==="));
             subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
@@ -271,25 +294,29 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasPath
             });
-            subMenu.Add(menuItem = new TextMenu.Button("Import path from Clipboard").Pressed(() => {
-                string text = TextInput.GetClipboardText();
-                Mod.Log($"Importing path from clipboard...");
-                try {
-                    PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
-                    Mod.SetCurrentChapterPath(path);
-                    Mod.SavePathToFile();
-                    Mod.SaveChapterStats();
-                } catch (Exception ex) {
-                    Mod.Log($"Couldn't import path from clipboard: {ex}");
-                }
-            }));
-            subMenu.AddDescription(menu, menuItem, "!!! The existing path will be overwritten !!!");
+            subMenu.Add(menuItem = new DoubleConfirmButton("Import path from Clipboard") { 
+                OnDoubleConfirmation = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing path from clipboard...");
+                    try {
+                        PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
+                        Mod.SetCurrentChapterPath(path);
+                        Mod.SavePathToFile();
+                        Mod.SaveChapterStats();
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import path from clipboard: {ex}");
+                    }
+                },
+                HighlightColor = Color.Yellow,
+            });
+            subMenu.AddDescription(menu, menuItem, "!!! The existing path segment will be overwritten !!!");
 
             subMenu.Add(new TextMenu.SubHeader("=== Danger Zone ==="));
-            TextMenu.Button deleteButton = new TextMenu.Button("Delete Current Segment") {
-                Disabled = !hasPathList || segmentCount <= 1
+            DoubleConfirmButton deleteButton = new DoubleConfirmButton("Delete Current Segment") {
+                Disabled = !hasPathList || segmentCount <= 1,
+                HighlightColor = Color.Red,
             };
-            deleteButton.OnPressed = () => {
+            deleteButton.OnDoubleConfirmation = () => {
                 int index = Mod.SelectedPathSegmentIndex;
                 bool didDelete = Mod.DeleteCurrentChapterPathSegment();
 
@@ -345,8 +372,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new TextMenu.Button("Remove Golden Berry Deaths") {
-                OnPressed = () => {
+            subMenu.Add(new DoubleConfirmButton("Remove Golden Berry Deaths") {
+                OnDoubleConfirmation = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
                 },
                 Disabled = !hasCurrentRoom
@@ -354,24 +381,29 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader("=== CHAPTER ==="));
-            subMenu.Add(new TextMenu.Button("Reset All Attempts") {
-                OnPressed = () => {
+            subMenu.Add(new DoubleConfirmButton("Reset All Attempts") {
+                OnDoubleConfirmation = () => {
                     Mod.WipeChapterData();
                 },
-                Disabled = !hasPath
+                Disabled = !hasPath,
+                HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new TextMenu.Button("Reset All Golden Berry Deaths") {
-                OnPressed = () => {
+            subMenu.Add(new DoubleConfirmButton("Reset All Golden Berry Deaths") {
+                OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryDeaths();
                 },
-                Disabled = !hasPath
+                Disabled = !hasPath,
+                HighlightColor = Color.Red,
             });
 
             subMenu.Add(new TextMenu.SubHeader("=== LIVE-DATA ==="));
-            subMenu.Add(menuItem = new TextMenu.Button($"Reset '{StatManager.FormatFileName}' file").Pressed(() => {
-                Mod.StatsManager.ResetFormats();
-            }));
+            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset '{StatManager.FormatFileName}' file") { 
+                OnDoubleConfirmation = () => {
+                    Mod.StatsManager.ResetFormats();
+                },
+                HighlightColor = Color.Red,
+            });
             subMenu.AddDescription(menu, menuItem, "Resets the live-data format file back to the default values");
             subMenu.AddDescription(menu, menuItem, "This will delete all custom formats!");
             subMenu.AddDescription(menu, menuItem, "This will also generate explanations and examples for all new stats, if CCT is updated!");
