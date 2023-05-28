@@ -376,7 +376,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnDoubleConfirmation = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
                 },
-                Disabled = !hasCurrentRoom
+                Disabled = !hasCurrentRoom,
+                HighlightColor = Color.Red,
             });
 
 
