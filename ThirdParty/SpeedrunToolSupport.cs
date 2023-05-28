@@ -11,7 +11,7 @@ namespace Celeste.Mod.ConsistencyTracker.ThirdParty {
             Loaded = true;
 
             var action = new SpeedrunTool.SaveLoad.SaveLoadAction(SaveState, LoadState, ClearState);
-            SpeedrunTool.SaveLoad.SaveLoadAction.Add(action);
+            SpeedrunTool.SaveLoad.SaveLoadAction.SafeAdd(SaveState, LoadState, ClearState);
         }
 
         private static void SaveState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
