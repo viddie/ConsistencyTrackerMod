@@ -956,7 +956,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
             if (!inGame) return;
             
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Ingame Overlay Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Overlay Settings", false);
             TextMenu.Item menuItem;
 
             subMenu.Add(new TextMenu.SubHeader("=== Debug Map ==="));

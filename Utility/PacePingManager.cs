@@ -70,6 +70,29 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             //Ping Timings
             [JsonProperty("pacePingTimings")]
             public Dictionary<string, List<PaceTiming>> PacePingTimings { get; set; } = new Dictionary<string, List<PaceTiming>>();
+
+            //Additional Embed Info
+            [JsonProperty("additionalEmbed1Title")]
+            public string AdditionEmbed1Title { get; set; } = "Best Runs";
+            [JsonProperty("additionalEmbed1Content")]
+            public string AdditionEmbed1Content { get; set; } = "{pb:best} | {pb:best#2} | {pb:best#3} | {pb:best#4} | {pb:best#5}";
+
+            [JsonProperty("additionalEmbed2Title")]
+            public string AdditionEmbed2Title { get; set; } = "Best Runs (Session)";
+            [JsonProperty("additionalEmbed2Content")]
+            public string AdditionEmbed2Content { get; set; } = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
+
+            [JsonProperty("additionalEmbed3Title")]
+            public string AdditionEmbed3Title { get; set; } = null;
+            [JsonProperty("additionalEmbed3Content")]
+            public string AdditionEmbed3Content { get; set; } = null;
+
+            [JsonProperty("additionalEmbed4Title")]
+            public string AdditionEmbed4Title { get; set; } = null;
+            [JsonProperty("additionalEmbed4Content")]
+            public string AdditionEmbed4Content { get; set; } = null;
+
+
         }
 
         public class PaceTiming {
@@ -318,10 +341,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
                 float totalSuccessRate = path.Stats.SuccessRate;
 
-                string pbs = "{pb:best} | {pb:best#2} | {pb:best#3} | {pb:best#4} | {pb:best#5}";
-                pbs = Mod.StatsManager.FormatVariableFormat(pbs);
-                string pbsSession = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
-                pbsSession = Mod.StatsManager.FormatVariableFormat(pbsSession);
+                //string pbs = "{pb:best} | {pb:best#2} | {pb:best#3} | {pb:best#4} | {pb:best#5}";
+                //pbs = Mod.StatsManager.FormatVariableFormat(pbs);
+                //string pbsSession = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
+                //pbsSession = Mod.StatsManager.FormatVariableFormat(pbsSession);
 
                 List<DiscordWebhookRequest.Embed> embeds = null;
                 if (enableEmbeds) {
@@ -337,11 +360,32 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                                 new DiscordWebhookRequest.Field() { Inline = true, Name = "Chapter Success Rate", Value = $"{StatManager.FormatPercentage(totalSuccessRate)}" },
                                 new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths", Value = $"{totalDeaths}" },
                                 new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths (Session)", Value = $"{totalDeathsSession}" },
-                                new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs", Value = $"> {pbs}" },
-                                new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs (Session)", Value = $"> {pbsSession}" },
+                                //new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs", Value = $"> {pbs}" },
+                                //new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs (Session)", Value = $"> {pbsSession}" },
                             }
                         },
                     };
+
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
+                        string additionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
+                        string additionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
+                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed1Title, Value = additionEmbed1Content });
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
+                        string additionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
+                        string additionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
+                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed2Title, Value = additionEmbed2Content });
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
+                        string additionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
+                        string additionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
+                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed3Title, Value = additionEmbed3Content });
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
+                        string additionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
+                        string additionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
+                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed4Title, Value = additionEmbed4Content });
+                    }
                 }
 
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
