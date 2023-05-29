@@ -82,9 +82,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
         private bool _DoRecordPath = false;
-        private PathRecorder PathRec;
+        public PathRecorder PathRec;
         private string DisabledInRoomName;
-        private bool AbortPathRecording = false;
+        public bool AbortPathRecording = false;
 
         #endregion
 

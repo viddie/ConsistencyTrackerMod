@@ -144,5 +144,32 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return abbr.ToUpper();
             }
         }
+
+        /// <summary>
+        /// Gets the recorder's status as string. Used for Mod Options.
+        /// </summary>
+        public string GetRecorderStatus() {
+            //Format: One line per checkpoint, with the room count after the checkpoint name
+            string toRet = "Path recorded so far:\n";
+            int checkpointIndex = 0;
+            foreach (List<string> checkpoint in Checkpoints) {
+                string cpName = CheckpointNames[checkpointIndex];
+                string cpAbbreviation = CheckpointAbbreviations[checkpointIndex];
+
+                if (checkpointIndex == 0 && Checkpoints.Count == 1) {
+                    cpName = "Room";
+                    cpAbbreviation = "R";
+                }
+
+                toRet += $"{cpName} ({cpAbbreviation}): {checkpoint.Count} Rooms\n";
+
+                checkpointIndex++;
+            }
+
+            //Remove last newline
+            toRet = toRet.Substring(0, toRet.Length - 1);
+
+            return toRet;
+        }
     }
 }

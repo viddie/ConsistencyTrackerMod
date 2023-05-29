@@ -129,10 +129,15 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RecordPath { get; set; } = false;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
-            if (!inGame) return;
-
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
             TextMenu.Item menuItem;
+
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                menu.Add(subMenu);
+                return;
+            }
+
             
             subMenu.Add(new TextMenu.SubHeader("=== General ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
@@ -181,23 +186,70 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
+            
             subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
-            subMenu.Add(menuItem = new ColoredOnOff("Record Path", Mod.DoRecordPath) {
-                OnValueChange = v => {
-                    if (v)
-                        Mod.Log($"Recording chapter path...");
-                    else
-                        Mod.Log($"Stopped recording path. Outputting info...");
+            ColoredButton startPathRecordingButton = new ColoredButton("Start Path Recording") {
+                HighlightColor = Color.Yellow,
+                Disabled = Mod.DoRecordPath,
+            };
+            string recorderStateTitle = Mod.DoRecordPath ? $"On\n-----\n{Mod.PathRec.GetRecorderStatus()}" : "Off";
+            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"Path Recorder State: {recorderStateTitle}", topPadding:false);
+            DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton("Save Path") {
+                HighlightColor = Color.Yellow,
+                Disabled = !Mod.DoRecordPath,
+            };
+            DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton("Abort Recording") {
+                HighlightColor = Color.Red,
+                Disabled = !Mod.DoRecordPath,
+            };
 
-                    //this.RecordPath = v;
-                    Mod.DoRecordPath = v;
-                    Mod.SaveChapterStats();
-                },
-                HighlightColor = Color.Yellow
-            });
-            subMenu.AddDescription(menu, menuItem, "Turn this on to start recording a path for the current segment. Disable in the last room");
-            subMenu.AddDescription(menu, menuItem, "of the segment, or complete the map, to stop the recording and save the path.");
-            subMenu.AddDescription(menu, menuItem, "WILL OVERRIDE ANY EXISTING PATH (unless disabled immediately after starting recording)");
+            startPathRecordingButton.OnPressed = () => {
+                Mod.Log($"Started path recorder...");
+                Mod.DoRecordPath = true;
+                Mod.SaveChapterStats();
+                
+                startPathRecordingButton.Disabled = true;
+                savePathRecordingButton.Disabled = false;
+                abortPathRecordingButton.Disabled = false;
+
+                recorderStateHeader.Title = $"Path Recorder State: On";
+            };
+            savePathRecordingButton.OnDoubleConfirmation = () => {
+                Mod.Log($"Saving path...");
+                Mod.DoRecordPath = false;
+
+                startPathRecordingButton.Disabled = false;
+                savePathRecordingButton.Disabled = true;
+                abortPathRecordingButton.Disabled = true;
+
+                recorderStateHeader.Title = $"Path Recorder State: Off";
+            };
+            abortPathRecordingButton.OnDoubleConfirmation = () => {
+                Mod.Log($"Aborting path recording...");
+                Mod.AbortPathRecording = true;
+                Mod.DoRecordPath = false;
+
+                startPathRecordingButton.Disabled = false;
+                savePathRecordingButton.Disabled = true;
+                abortPathRecordingButton.Disabled = true;
+
+                recorderStateHeader.Title = $"Path Recorder State: Off";
+            };
+
+            subMenu.Add(new TextMenu.SubHeader("Turn this on to start recording a path for the current segment. Save path in the last room", false));
+            subMenu.Add(new TextMenu.SubHeader("of the segment, or complete the map to stop the recording save automatically.", false));
+            //subMenu.Add(new TextMenu.SubHeader("WILL OVERRIDE EXISTING PATH", false));
+            //subMenu.AddDescription(menu, startPathRecordingButton, "Turn this on to start recording a path for the current segment. Save path in the last room");
+            //subMenu.AddDescription(menu, startPathRecordingButton, "of the segment, or complete the map to stop the recording save automatically.");
+            //subMenu.AddDescription(menu, startPathRecordingButton, "WILL OVERRIDE EXISTING PATH");
+            subMenu.Add(startPathRecordingButton);
+            subMenu.Add(savePathRecordingButton);
+            subMenu.AddDescription(menu, savePathRecordingButton, "Save the recorded path to the current segment.");
+            subMenu.Add(abortPathRecordingButton);
+            subMenu.AddDescription(menu, abortPathRecordingButton, "Abort the current recording and discard the recorded path.");
+            subMenu.Add(recorderStateHeader);
+
+
 
             subMenu.Add(new TextMenu.SubHeader("=== Path Editing ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
@@ -340,10 +392,15 @@ namespace Celeste.Mod.ConsistencyTracker
         [JsonIgnore]
         public bool WipeChapter { get; set; } = false;
         public void CreateWipeChapterEntry(TextMenu menu, bool inGame) {
-            if (!inGame) return;
-
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
             TextMenu.Item menuItem;
+
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                menu.Add(subMenu);
+                return;
+            }
+
             subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
 
             bool hasPath = Mod.CurrentChapterPath != null;
@@ -422,10 +479,15 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int SummarySelectedAttemptCount { get; set; } = 20;
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
-            if (!inGame) return;
-
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Summary", false);
             TextMenu.Item menuItem;
+            
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                menu.Add(subMenu);
+                return;
+            }
+
 
             subMenu.Add(new TextMenu.SubHeader("=== In-Game Summary ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff("Enabled", IngameSummaryEnabled) {
@@ -954,10 +1016,14 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayTextDebugPositionEnabled { get; set; } = false;
 
         public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
-            if (!inGame) return;
-            
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Overlay Settings", false);
             TextMenu.Item menuItem;
+            
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                menu.Add(subMenu);
+                return;
+            }
 
             subMenu.Add(new TextMenu.SubHeader("=== Debug Map ==="));
             subMenu.Add(new TextMenu.OnOff("Show Room Names", ShowCCTRoomNamesOnDebugMap) {
@@ -1452,10 +1518,15 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
-            if (!inGame) return;
-
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Pace Ping Settings", false);
             TextMenu.Item menuItem;
+            
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                menu.Add(subMenu);
+                return;
+            }
+            
 
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
