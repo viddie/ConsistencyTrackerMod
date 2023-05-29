@@ -1,142 +1,283 @@
 {
-  "campaignName": "Celeste",
-  "chapterName": "The Summit",
-  "chapterSID": "Celeste/7-Summit",
-  "sideName": "B-Side",
-  "checkpoints": [
+  "selectedIndex": 0,
+  "segments": [
     {
-      "name": "0 M",
-      "abbreviation": "0M",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "a-00"
-        },
-        {
-          "debugRoomName": "a-01"
-        },
-        {
-          "debugRoomName": "a-02"
-        },
-        {
-          "debugRoomName": "a-03"
-        }
-      ]
+      "name": "Default",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "The Summit",
+        "chapterSID": "Celeste/7-Summit",
+        "sideName": "B-Side",
+        "checkpoints": [
+          {
+            "name": "0 M",
+            "abbreviation": "0M",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "a-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "500 M",
+            "abbreviation": "500M",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "b-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "1000 M",
+            "abbreviation": "1K",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "c-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "1500 M",
+            "abbreviation": "1.5K",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "d-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "2000 M",
+            "abbreviation": "2K",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "e-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "e-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "e-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "e-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "2500 M",
+            "abbreviation": "2.5K",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "f-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "f-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "f-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "f-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "3000 M",
+            "abbreviation": "3K",
+            "roomCount": 4,
+            "gameplayRoomCount": 4,
+            "rooms": [
+              {
+                "debugRoomName": "g-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "g-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "g-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "g-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          }
+        ],
+        "roomCount": 28,
+        "gameplayRoomCount": 28,
+        "ignoredRooms": []
+      }
     },
     {
-      "name": "500 M",
-      "abbreviation": "500M",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "b-00"
-        },
-        {
-          "debugRoomName": "b-01"
-        },
-        {
-          "debugRoomName": "b-02"
-        },
-        {
-          "debugRoomName": "b-03"
-        }
-      ]
-    },
-    {
-      "name": "1000 M",
-      "abbreviation": "1K",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "c-01"
-        },
-        {
-          "debugRoomName": "c-00"
-        },
-        {
-          "debugRoomName": "c-02"
-        },
-        {
-          "debugRoomName": "c-03"
-        }
-      ]
-    },
-    {
-      "name": "1500 M",
-      "abbreviation": "1.5K",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "d-00"
-        },
-        {
-          "debugRoomName": "d-01"
-        },
-        {
-          "debugRoomName": "d-02"
-        },
-        {
-          "debugRoomName": "d-03"
-        }
-      ]
-    },
-    {
-      "name": "2000 M",
-      "abbreviation": "2K",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "e-00"
-        },
-        {
-          "debugRoomName": "e-01"
-        },
-        {
-          "debugRoomName": "e-02"
-        },
-        {
-          "debugRoomName": "e-03"
-        }
-      ]
-    },
-    {
-      "name": "2500 M",
-      "abbreviation": "2.5K",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "f-00"
-        },
-        {
-          "debugRoomName": "f-01"
-        },
-        {
-          "debugRoomName": "f-02"
-        },
-        {
-          "debugRoomName": "f-03"
-        }
-      ]
-    },
-    {
-      "name": "3000 M",
-      "abbreviation": "3K",
-      "roomCount": 4,
-      "rooms": [
-        {
-          "debugRoomName": "g-00"
-        },
-        {
-          "debugRoomName": "g-01"
-        },
-        {
-          "debugRoomName": "g-02"
-        },
-        {
-          "debugRoomName": "g-03"
-        }
-      ]
+      "name": "Full Clear",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "The Summit",
+        "chapterSID": "Celeste/7-Summit",
+        "sideName": "B-Side",
+        "checkpoints": [
+          {
+            "name": "Room",
+            "abbreviation": "R",
+            "roomCount": 3,
+            "gameplayRoomCount": 3,
+            "rooms": [
+              {
+                "debugRoomName": "a-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          }
+        ],
+        "roomCount": 3,
+        "gameplayRoomCount": 3,
+        "ignoredRooms": []
+      }
     }
-  ],
-  "roomCount": 28
+  ]
 }

@@ -155,7 +155,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"~~~==== CCT STARTED ({time}) ====~~~");
             
             CheckFolderExists(GetPathToFile(PathsFolder));
-            CheckPrepackagedPaths();
+            CheckPrepackagedPaths(reset:false);
             
             CheckFolderExists(GetPathToFile(StatsFolder));
             CheckFolderExists(GetPathToFile(SummariesFolder));
@@ -1122,7 +1122,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Default Path Creation
 
-        public void CheckPrepackagedPaths() {
+        public void CheckPrepackagedPaths(bool reset=false) {
             string assetPath = "Assets/DefaultPaths";
             List<string> sideNames = new List<string>() { "Normal", "BSide", "CSide" };
             List<string> levelNames = new List<string>() {
@@ -1141,13 +1141,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 foreach (string side in sideNames) {
                     string levelName = $"Celeste_{level}_{side}";
                     LogVerbose($"Checking path file '{levelName}'...");
-                    CheckDefaultPathFile(levelName, $"{assetPath}/{levelName}.json");
+                    CheckDefaultPathFile(levelName, $"{assetPath}/{levelName}.json", reset);
                 }
             }
 
             CheckDefaultPathFile(farewellLevelName, $"{assetPath}/{farewellLevelName}.json");
         }
-        private void CheckDefaultPathFile(string levelName, string assetPath) {
+        private void CheckDefaultPathFile(string levelName, string assetPath, bool reset=false) {
             string nameTXT = $"{levelName}.txt";
             string nameJSON = $"{levelName}.json";
             string pathTXT = GetPathToFile(PathsFolder, nameTXT);
@@ -1160,7 +1160,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 File.Delete(pathTXT);
             }
 
-            if (!File.Exists(pathJSON)) {
+            if (!File.Exists(pathJSON) || reset) {
                 CreatePathFileFromStream(nameJSON, assetPath);
             } else {
                 LogVerbose($"Path file '{nameJSON}' already exists, skipping");

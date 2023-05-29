@@ -159,6 +159,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPathList
             };
             subMenu.Add(sliderCurrentSegment);
+            subMenu.AddDescription(menu, sliderCurrentSegment, "Each segment has it's own separate stats!");
             subMenu.Add(menuItem = new TextMenu.Button("Add Segment") {
                 OnPressed = () => {
                     PathSegment segment = Mod.AddCurrentChapterPathSegment();
@@ -455,7 +456,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== LIVE-DATA ==="));
+            subMenu.Add(new TextMenu.SubHeader("=== Vanilla Paths ==="));
+            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset All Vanilla Paths") {
+                OnDoubleConfirmation = () => {
+                    Mod.CheckPrepackagedPaths(reset:true);
+                },
+                HighlightColor = Color.Red,
+            });
+            subMenu.AddDescription(menu, menuItem, "Resets the vanilla paths (1A-8C, Farewell) to the most up-to-date version");
+            subMenu.AddDescription(menu, menuItem, "The newest version includes Full-Clear path segments, if you want to do FCs!");
+            subMenu.AddDescription(menu, menuItem, "If you are in a map, you will have to restart the map to see the changes!");
+
+            subMenu.Add(new TextMenu.SubHeader("=== Live-Data ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton($"Reset '{StatManager.FormatFileName}' file") { 
                 OnDoubleConfirmation = () => {
                     Mod.StatsManager.ResetFormats();

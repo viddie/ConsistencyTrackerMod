@@ -1,90 +1,423 @@
 {
-  "campaignName": "Celeste",
-  "chapterName": "Forsaken City",
-  "chapterSID": "Celeste/1-ForsakenCity",
-  "sideName": "A-Side",
-  "checkpoints": [
+  "selectedIndex": 0,
+  "segments": [
     {
-      "name": "Start",
-      "abbreviation": "ST",
-      "roomCount": 6,
-      "rooms": [
-        {
-          "debugRoomName": "1"
-        },
-        {
-          "debugRoomName": "2"
-        },
-        {
-          "debugRoomName": "3"
-        },
-        {
-          "debugRoomName": "4"
-        },
-        {
-          "debugRoomName": "3b"
-        },
-        {
-          "debugRoomName": "5"
-        }
-      ]
+      "name": "Default",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "Forsaken City",
+        "chapterSID": "Celeste/1-ForsakenCity",
+        "sideName": "A-Side",
+        "checkpoints": [
+          {
+            "name": "Start",
+            "abbreviation": "ST",
+            "roomCount": 6,
+            "gameplayRoomCount": 6,
+            "rooms": [
+              {
+                "debugRoomName": "1",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "2",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "3",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "4",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "3b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "5",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Crossing",
+            "abbreviation": "CR",
+            "roomCount": 8,
+            "gameplayRoomCount": 8,
+            "rooms": [
+              {
+                "debugRoomName": "6",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6c",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "7",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "9",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Chasm",
+            "abbreviation": "CH",
+            "roomCount": 6,
+            "gameplayRoomCount": 6,
+            "rooms": [
+              {
+                "debugRoomName": "9b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "10a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "11",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "12",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "12a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "end",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": true
+              }
+            ]
+          }
+        ],
+        "roomCount": 20,
+        "gameplayRoomCount": 20,
+        "ignoredRooms": []
+      }
     },
     {
-      "name": "Crossing",
-      "abbreviation": "CR",
-      "roomCount": 8,
-      "rooms": [
-        {
-          "debugRoomName": "6"
-        },
-        {
-          "debugRoomName": "6a"
-        },
-        {
-          "debugRoomName": "6b"
-        },
-        {
-          "debugRoomName": "6c"
-        },
-        {
-          "debugRoomName": "7"
-        },
-        {
-          "debugRoomName": "8"
-        },
-        {
-          "debugRoomName": "8b"
-        },
-        {
-          "debugRoomName": "9"
-        }
-      ]
-    },
-    {
-      "name": "Chasm",
-      "abbreviation": "CH",
-      "roomCount": 6,
-      "rooms": [
-        {
-          "debugRoomName": "9b"
-        },
-        {
-          "debugRoomName": "10a"
-        },
-        {
-          "debugRoomName": "11"
-        },
-        {
-          "debugRoomName": "12"
-        },
-        {
-          "debugRoomName": "12a"
-        },
-        {
-          "debugRoomName": "end"
-        }
-      ]
+      "name": "Full Clear",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "Forsaken City",
+        "chapterSID": "Celeste/1-ForsakenCity",
+        "sideName": "A-Side",
+        "checkpoints": [
+          {
+            "name": "Start",
+            "abbreviation": "ST",
+            "roomCount": 8,
+            "gameplayRoomCount": 8,
+            "rooms": [
+              {
+                "debugRoomName": "1",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "2",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "3",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "4",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "3b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "5",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "5z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "5a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Crossing",
+            "abbreviation": "CR",
+            "roomCount": 17,
+            "gameplayRoomCount": 17,
+            "rooms": [
+              {
+                "debugRoomName": "6",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "7zb",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6zb",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "s0",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "s1",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "6c",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "7z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8zb",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "7a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "9z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "8b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "9",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Chasm",
+            "abbreviation": "CH",
+            "roomCount": 12,
+            "gameplayRoomCount": 12,
+            "rooms": [
+              {
+                "debugRoomName": "9b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "10",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "10z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "10zb",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "11",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "11z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "9c",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "10a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "12",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "12z",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "12a",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "end",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": true
+              }
+            ]
+          }
+        ],
+        "roomCount": 37,
+        "gameplayRoomCount": 37,
+        "ignoredRooms": []
+      }
     }
-  ],
-  "roomCount": 20
+  ]
 }

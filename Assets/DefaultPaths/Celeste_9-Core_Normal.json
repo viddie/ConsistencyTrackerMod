@@ -1,197 +1,453 @@
 {
-  "campaignName": "Celeste",
-  "chapterName": "Core",
-  "chapterSID": "Celeste/9-Core",
-  "sideName": "A-Side",
-  "checkpoints": [
+  "selectedIndex": 0,
+  "segments": [
     {
-      "name": "Into the Core",
-      "abbreviation": "ItC",
-      "roomCount": 7,
-      "gameplayRoomCount": 7,
-      "rooms": [
-        {
-          "debugRoomName": "a-00",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "a-01",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "a-02",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "a-03",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "b-00",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "b-07b",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "b-07",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        }
-      ]
+      "name": "Default",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "Core",
+        "chapterSID": "Celeste/9-Core",
+        "sideName": "A-Side",
+        "checkpoints": [
+          {
+            "name": "Into the Core",
+            "abbreviation": "ItC",
+            "roomCount": 7,
+            "gameplayRoomCount": 7,
+            "rooms": [
+              {
+                "debugRoomName": "a-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-07b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-07",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Hot and Cold",
+            "abbreviation": "HaC",
+            "roomCount": 5,
+            "gameplayRoomCount": 5,
+            "rooms": [
+              {
+                "debugRoomName": "c-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-04",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Heart of the Mountain",
+            "abbreviation": "HotM",
+            "roomCount": 15,
+            "gameplayRoomCount": 14,
+            "rooms": [
+              {
+                "debugRoomName": "d-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-04",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-05",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-06",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-07",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-08",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-09",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10c",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-11",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "space",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": true
+              }
+            ]
+          }
+        ],
+        "roomCount": 27,
+        "gameplayRoomCount": 26,
+        "ignoredRooms": []
+      }
     },
     {
-      "name": "Hot and Cold",
-      "abbreviation": "HaC",
-      "roomCount": 5,
-      "gameplayRoomCount": 5,
-      "rooms": [
-        {
-          "debugRoomName": "c-00",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "c-01",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "c-02",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "c-03",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "c-04",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        }
-      ]
-    },
-    {
-      "name": "Heart of the Mountain",
-      "abbreviation": "HotM",
-      "roomCount": 15,
-      "gameplayRoomCount": 14,
-      "rooms": [
-        {
-          "debugRoomName": "d-00",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-01",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-02",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-03",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-04",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-05",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-06",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-07",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-08",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-09",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-10",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-10b",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-10c",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "d-11",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": false
-        },
-        {
-          "debugRoomName": "space",
-          "groupedRooms": [],
-          "customRoomName": null,
-          "isNonGameplayRoom": true
-        }
-      ]
+      "name": "Full Clear",
+      "path": {
+        "campaignName": "Celeste",
+        "chapterName": "Core",
+        "chapterSID": "Celeste/9-Core",
+        "sideName": "A-Side",
+        "checkpoints": [
+          {
+            "name": "Into the Core",
+            "abbreviation": "ItC",
+            "roomCount": 13,
+            "gameplayRoomCount": 13,
+            "rooms": [
+              {
+                "debugRoomName": "a-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "a-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-04",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-05",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-06",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-07b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "b-07",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Hot and Cold",
+            "abbreviation": "HaC",
+            "roomCount": 7,
+            "gameplayRoomCount": 7,
+            "rooms": [
+              {
+                "debugRoomName": "c-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-00b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-03b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "c-04",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              }
+            ]
+          },
+          {
+            "name": "Heart of the Mountain",
+            "abbreviation": "HotM",
+            "roomCount": 15,
+            "gameplayRoomCount": 14,
+            "rooms": [
+              {
+                "debugRoomName": "d-00",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-01",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-02",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-03",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-04",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-05",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-06",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-07",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-08",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-09",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10b",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-10c",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "d-11",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": false
+              },
+              {
+                "debugRoomName": "space",
+                "groupedRooms": [],
+                "customRoomName": null,
+                "isNonGameplayRoom": true
+              }
+            ]
+          }
+        ],
+        "roomCount": 35,
+        "gameplayRoomCount": 34,
+        "ignoredRooms": []
+      }
     }
-  ],
-  "roomCount": 27,
-  "gameplayRoomCount": 26,
-  "ignoredRooms": []
+  ]
 }
