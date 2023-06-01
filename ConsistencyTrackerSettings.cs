@@ -171,7 +171,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPathList
             });
             
-            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name From Clipboard") { 
+            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name from Clipboard") { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing segment name from clipboard...");
@@ -321,7 +321,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             
-            subMenu.Add(menuItem = new TextMenu.Button("Import Custom Room Name From Clipboard") { 
+            subMenu.Add(menuItem = new TextMenu.Button("Import Custom Room Name from Clipboard") { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing custom room name from clipboard...");
@@ -1518,6 +1518,7 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
         
         #region Pace Ping Settings
+        [JsonIgnore]
         public bool PacePing { get; set; } = false;
 
         [SettingIgnore]
@@ -1555,7 +1556,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, "If you own a Discord server, you can use this feature to automatically notify");
             subMenu.AddDescription(menu, menuItem, "users in your server when you are on a good run! You will need to setup a");
-            subMenu.AddDescription(menu, menuItem, "Discord webhook (Google how to) and paste the URL in the settings below.");
+            subMenu.AddDescription(menu, menuItem, "Discord WebHook (Google how to) and paste the URL in the settings below.");
 
             subMenu.Add(new TextMenu.Button("Import Default Ping Message from Clipboard") { 
                 OnPressed = () => {
@@ -1569,13 +1570,13 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import Webhook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
                 string text = TextInput.GetClipboardText();
-                Mod.Log($"Importing webhook url from clipboard...");
+                Mod.Log($"Importing WebHook url from clipboard...");
                 try {
                     Mod.PacePingManager.SaveDiscordWebhook(text);
                 } catch (Exception ex) {
-                    Mod.Log($"Couldn't import webhook url from clipboard: {ex}");
+                    Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
             subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
@@ -1672,18 +1673,272 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import Webhook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
                 string text = TextInput.GetClipboardText();
-                Mod.Log($"Importing webhook url from clipboard...");
+                Mod.Log($"Importing WebHook url from clipboard...");
                 try {
                     Mod.PacePingManager.SaveDiscordWebhookAllDeaths(text);
                 } catch (Exception ex) {
-                    Mod.Log($"Couldn't import webhook url from clipboard: {ex}");
+                    Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
-            subMenu.AddDescription(menu, menuItem, "This webhook can be different from the pace ping webhook.");
+            subMenu.AddDescription(menu, menuItem, "This WebHook can be different from the pace ping WebHook.");
             subMenu.AddDescription(menu, menuItem, "ALSO DON'T SHOW THIS URL ON STREAM");
 
+            menu.Add(subMenu);
+        }
+        #endregion
+
+        #region FAQ
+        [JsonIgnore]
+        public bool FAQ { get; set; } = false;
+
+        //[SettingIgnore]
+        //public bool PacePingEnabled { get; set; } = false;
+
+        public void CreateFAQEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("FAQ", false);
+
+            List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() { 
+                new FAQEntry.FAQSectionModel(){ 
+                    Title = "Path Recording",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){ 
+                        new FAQEntry.FAQEntryModel(){ 
+                            Question = "What is a Path?",
+                            Answer = "A path is a configuration of Checkpoints and Rooms, in the order that you would beat them in during a run of whatever challenge you want to do. All vanilla maps come with pre-installed paths. 1A-8A and Farewell also have a separate pre-installed Path for full clear runs!" +
+                            "\nEvery Checkpoint has a name and an abbreviation" +
+                            "\nEvery Room can have a custom room name, and if not, it will get a name from the Checkpoint it is in + the room number in the Checkpoint. Additionally, Rooms can be marked as 'transition' rooms, making them not show up in many stat calculations",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What is a Path Segment?",
+                            Answer = "A later addition to the Path system added Path Segments." +
+                            "\nEach map can have multiple Path Segments. A Path Segment is a Path with a given name, for example 'Normal', 'Full Clear', 'Silver 1' or whatever else you can think of." +
+                            " Every Path Segment has it's own separate stats!" +
+                            "\nUsing this you can track multiple different Paths for a single map (e.g. if you do segments of bigger maps, such as 9D), and switch between them easily in the 'Path Recording' menu.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I record a Path?",
+                            Answer = "1. Go into the first room of the Path Segment you want to record." +
+                            "\n2. Go to the menu 'Path Recording' and hit the button 'Start Path Recording'" +
+                            "\n3. Play through the map as normal (you can do this with invincibility and stuff if you want)" +
+                            "\n4. In the last room of the segment, hit the button 'Save Path'. Alternatively, complete the map and the path will be saved automatically." +
+                            "\n\nYou have now recorded a Path and can start tracking!"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I rename a Checkpoint in CCT?",
+                            Answer = "Sadly this cannot be done in the game currently." +
+                            "\nYou can however manually edit the file, see the FAQ entry below." +
+                            "\nIn the future, I hope to add an actual Path editing tool."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How can I manually edit a Path file?",
+                            Answer = "The easiest way to manually edit a path is:" +
+                            "\n1. Go into the map you want to edit the path for" +
+                            "\n2. Export the Path to your clipboard with 'Path Recording -> Export Path To Clipboard'" +
+                            "\n3. Paste the Path into a text editor of your choice" +
+                            "\n4. Edit the Path to your liking. You can rename checkpoints, rooms, and change the order of rooms and checkpoints. You can add custom room names and set rooms as transition rooms. But beware: The path needs to follow the JSON file format" +
+                            "\n5. Copy the edited Path back to your clipboard (CTRL + A to select all text, CTRL + C to copy)" +
+                            "\n6. Import the Path from your clipboard with 'Path Recording' -> 'Import Path from Clipboard'" +
+                            "\n\nIf done correctly, the changes should be visible immediately. If there was any error with the file format, the import will be stopped and your original path will NOT be overwritten."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I accidentally screwed up a vanilla Path file...",
+                            Answer = "You can always reset all vanilla Path files back to the original by going to '!!Data Wipe!! -> Reset All Vanilla Paths'"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I don't see the 'Full Clear' segments for 1A-8A/Farewell...",
+                            Answer = "The 'Full Clear' segments were added in a recent update. If you had CCT installed before the update, the vanilla path files aren't automatically updated." +
+                            "\nTo get all default segments added, hit the button '!!Data Wipe!! -> Reset All Vanilla Paths'. This will reset all vanilla paths to the up-to-date original."
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){ 
+                    Title = "Live-Data",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){ 
+                        new FAQEntry.FAQEntryModel(){ 
+                            Question = "What is Live-Data?",
+                            Answer = "In the beginning of CCT, only raw stats were output to text files. External applications had to calculate any meaningful stat on their own to make use of the data." +
+                            "\n\nLive-Data added mod-side calculation of stats, and a way of letting the user decide how they are formatted. As of writing this FAQ there are about 80 different stats and pieces of information from the current game state that can be output through Live-Data.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What is a Live-Data format?",
+                            Answer = "A 'format' instructs Live-Data how to output information. Each format has a name and an arbitrary text containing certain placeholders." +
+                            "\nPlaceholders look like this: {category:name}. Live-Data will insert the desired stat in place of the placeholder." +
+                            "\n\nExample: The format" +
+                            "\n'Current: {room:name} | Room: ({room:roomNumberInChapter}/{chapter:roomCount})'" +
+                            "\ncould produce the output" +
+                            "\n'Current: DT-7 | Room: (59/93)'" +
+                            "\nwhen playing Farewell.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I don't see format 'xy' in my list of formats, where is it?",
+                            Answer = "When new default formats are added in an update, they will not be added to your list of formats automatically," +
+                            " since that could potentially overwrite changes you made manually." +
+                            " To get the most up-to-date default formats, you can reset the 'format.txt' file back to default using the button:" +
+                            "\nMod Options -> !!Data Wipe!! -> Reset 'format.txt' file" +
+                            "\nbut beware that this will reset any custom formats you have created, so back those up first!",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How can I make my own format?",
+                            Answer = "There are 2 ways to make your own format:" +
+                            "\n\nFormat Editor" +
+                            "\n1. Start the Format Editor through 'Mod Options -> Live-Data Settings -> Start Format Editor In Browser'" +
+                            "\n2. In the Format Editor, click the button 'New Format' in the bottom left corner" +
+                            "\n3. Give your format a name." +
+                            "\n4. Type whatever you want in to the format text section. You can see all available placeholders in the panel on the right side. Hover over a placeholder to view an explanation of what it is for and click on a placeholder to insert it into the format text. If you are in a map, you will be able to see a preview of how the format looks in the box at the bottom." +
+                            "\n5. Hit the button 'Create new Format' at the bottom to save your format" +
+                            "\n\nManual File Editing" +
+                            "\n1. Open the 'format.txt' file through 'Mod Options -> Live-Data Settings -> Open Format Text File' in your text editor" +
+                            "\n2. Add a new line for your custom format at the bottom of the file" +
+                            "\n3. Write your format in the pattern: 'name;format'. To see all available placeholder with live previews I would still recommend the Format Editor Tool." +
+                            "\n4. Save the file" +
+                            "\n5. Reload the format file through 'Mod Options -> Live-Data Settings -> Reload Format File'" +
+                            "\n\nThe newly added format should now be selectable in the In-Game overlay!",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I would like to see a certain stat added...",
+                            Answer = "If you have an idea for a new stat, feel free to message me on Discord (viddie#4751) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!",
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "In-Game Overlay",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Why does it say <path> everywhere in the In-Game Overlay?",
+                            Answer = "CCT doesn't know how you want to go through the map from start to finish." +
+                            " To tell CCT how you want to do that, you need a path. By default, all vanilla" +
+                            " maps come with a path pre-installed." +
+                            "\nIf you want to track modded maps, you need to record a path yourself. See the Path Recording section in the FAQ for more details."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "The In-Game Overlay is annoying in maps where I don't want to track anything.",
+                            Answer = "There is an setting to automatically hide the overlay in maps where you don't have a path recorded:" +
+                            "\n'Live-Data Settings' -> 'Hide Formats When No Path'"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How can I customize the available formats for the In-Game Overlay?",
+                            Answer = "The available formats are taken from the Live-Data feature. Any changes to it will be available in the In-Game Overlay." +
+                            "\nCheck out the Live-Data section in the FAQ for more details."
+                        },
+                    },
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "External Tools",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Tool XYZ shows 'Unable to fetch (...), is CCT running?' when CCT is running!",
+                            Answer = "This happens when an external tool is unable to reach the CCT API." +
+                            "\nThe most likely cause for this is, that you have the 'Debug Mode' in the Everest settings set to 'Off'. Setting it to either 'Everest' or 'Always' should make the API reachable for the external tools." +
+                            "\n\nHint: You can test if the API is reachable by going to 'http://localhost:32270/' in your browser. If the page doesn't load, the API is not available.",
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "Physics Inspector",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What is the Physics Inspector?",
+                            Answer = "The Physics Inspector is a tool to record yourself playing a map and then looking at the recorded data in your browser, frame by frame." +
+                            "\nIt records:" +
+                            "\n- Player data such as: Position, Speed/Velocity, Acceleration, Inputs, Stamina, Liftboost, etc." +
+                            "\n- Map data such as: Room boundaries, Solid tiles, Solid/Trigger entities" +
+                            "\n- The map data is static tho. It is only recorded once on each room entry and does not change, so movement of entities isn't visible!" +
+                            "\n\nIf you ever wondered \"How did I just die???\", this tool can help you figure that out.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I use it?",
+                            Answer = "To make a recording, enable the setting 'Mod Options -> Physics Inspector Settings -> Recording Physics Enabled'." +
+                            "\n\n- Whenever you die or load a savestate, a recording is saved." +
+                            "\n- You can view a recording by going to 'Mod Options -> Physics Inspector Settings -> Open Inspector In Browser'\n(I could also recommend bookmarking that page. Reload the tab to get the newest recordings!)" +
+                            "\n- Now you can pan/zoom around the map and hover over frames to see the exact physics data" +
+                            "\n- The frames are color coded: White (No special state), Red (Dashing), Green (Holding the Jump button), Yellow (Feather), Black (Dead)" +
+                            "\n\nOnly the 10 most recent recordings are stored and available to inspect." +
+                            " You can save a recent recording to make it permanently available to inspect, by hitting the 'Save' button in the top left corner and giving the recording a name",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Why is this in CCT and not it's own mod?",
+                            Answer = "Physics Inspector requires many parts of the infrastructure that is already available in CCT." +
+                            " In the future it would be good to make this it's own mod, but, for the time being, it is easier to develop it as part of CCT.",
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "Pace Ping",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What is a Pace Ping?",
+                            Answer = "A Pace Ping is a notification of a good run to a group of people interested in that." +
+                            " In the context of CCT it means sending a Discord message to ping people, when you are far into a golden run.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Who is this feature for?",
+                            Answer = "I developed this feature for streamers that want to notify their (lurking) viewers when they are on a good run, but anyone that wants to notify some group of people can use this ofcourse." +
+                            "\nThe only requirement for sending a Pace Ping is that you have a Discord WebHook URL, for which you most likely need to own a Discord server."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I setup Pace Pings for my Discord server?",
+                            Answer = "If you own a Discord server that you want to receive Pace Pings on, follow these steps:" +
+                            "\n\n1. Go to your Discord server settings and select the 'Integrations' tab" +
+                            "\n2. Click on 'Create WebHook'" +
+                            "\n3. Select the channel you want to receive the Pace Pings on" +
+                            "\n4. Copy the WebHook URL" +
+                            "\n5. Import the WebHook URL into CCT through 'Mod Options -> Pace Ping Settings -> Import WebHook URL from Clipboard'" +
+                            "\n\nYou can then configure the default Pace Ping message, enable pinging when on PB pace or pick certain rooms in the map that should generate a Pace Ping when you enter them with the Golden Berry."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Can I have multiple different pings at different points in a map?",
+                            Answer = "Yes!" +
+                            "\n\nYou can enable Pace Ping on room entry for any room you want. Each room can have a different message (with different roles pinged) and settings.",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I ping roles in a Pace Ping message?",
+                            Answer = "To add roles in a ping message, you need to find the ID of the role you want to ping. To do this:" +
+                            "\n1. Go to your Discord server" +
+                            "\n2. Go into any chat" +
+                            "\n3. Type '\\@<role name>'" +
+                            "\n4. Hit enter (will ping said role)" +
+                            "\n\nThe resulting message that you send should look like this: '<@&123456789012345678>'" +
+                            "\nThis string is the roles ID. You can use this in the ping message and it will generate a ping to that role."
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I use emotes in a Pace Ping message?",
+                            Answer = "Same concept as pinging roles in a Pace Ping message, except you need to get the ID of the emote you want to use, in the same way that you would get the ID of a role!"
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "Other",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "My issue isn't listed...",
+                            Answer = "If your issue is not covered by this FAQ, feel free to message me on Discord (viddie#4751), or create an issue on GitHub (link can be found on the GameBanana page of CCT)" +
+                            "\n\nIn order to help me understand the situation, please provide the following details in your message:" +
+                            "\n- What version of CCT are you using?" +
+                            "\n- What happened exactly? (Including what lead up to the situation you are in, e.g. what map you were playing, etc.)" +
+                            "\n- What should have happened? (If the issue isn't self explanatory)" +
+                            "\n- Any additional information you think might be helpful (e.g. screenshots, videos)"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I love this mod :D",
+                            Answer = "Thanks! It took a long time to develop (roughly 300 hours at the time of writing this FAQ), but the amount of people using and liking this mod means a lot to me <3"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I hate this mod >:(",
+                            Answer = ":("
+                        },
+                    }
+                },
+            };
+
+            foreach (FAQEntry.FAQSectionModel section in faq) {
+                subMenu.Add(new TextMenu.SubHeader($"=== {section.Title} ==="));
+                foreach (FAQEntry.FAQEntryModel entry in section.Entries) { 
+                    subMenu.Add(new FAQEntry(entry.Question, entry.Answer));
+                }
+            }
+
+            
             menu.Add(subMenu);
         }
         #endregion

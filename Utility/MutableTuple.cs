@@ -13,6 +13,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Item1 = item1;
             Item2 = item2;
         }
+        public MutableTuple() {
+            Item1 = default;
+            Item2 = default;
+        }
     }
 
     public class MutableKeyValuePair<TKey, TValue> {
