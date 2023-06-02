@@ -22,6 +22,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             if (rStats == null) return false;
 
             mod.CurrentChapterStats.AddGoldenBerryDeath(roomName);
+            mod.SaveChapterStats();
 
             return true;
         }
