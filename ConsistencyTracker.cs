@@ -414,23 +414,23 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
             string newCurrentRoom = SanitizeRoomName(level.Session.LevelData.Name);
-            bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
 
-            Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}'");
+            Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
 
             //Changing room via golden berry death or debug map teleport
             if (playerIntro == Player.IntroTypes.Respawn && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
-                SetNewRoom(newCurrentRoom, false, holdingGolden);
+                SetNewRoom(newCurrentRoom, false, PlayerIsHoldingGolden);
             }
             //Teleporters?
             if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
-                SetNewRoom(newCurrentRoom, true, holdingGolden);
+                SetNewRoom(newCurrentRoom, true, PlayerIsHoldingGolden);
             }
 
             if (DidRestart) {
@@ -439,7 +439,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
                 Log($"\tRequested reset of PreviousRoomName to null", true);
                 DidRestart = false;
-                SetNewRoom(newCurrentRoom, false, holdingGolden);
+                SetNewRoom(newCurrentRoom, false, PlayerIsHoldingGolden);
                 PreviousRoomName = null;
             }
 
@@ -559,14 +559,14 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Player_OnDie(Player player) {
             TouchedBerries.Clear();
-            bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
+            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
 
-            Log($"Player died. (holdingGolden: {holdingGolden})");
+            Log($"Player died. (holdingGolden: {PlayerIsHoldingGolden})");
             if (_CurrentRoomCompletedResetOnDeath) {
                 _CurrentRoomCompleted = false;
             }
 
-            if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden))
+            if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
                 CurrentChapterStats?.AddAttempt(false);
 
             if(CurrentChapterStats != null)
