@@ -129,7 +129,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RecordPath { get; set; } = false;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Recording", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Management", false);
             TextMenu.Item menuItem;
 
             if (!inGame) {
@@ -1701,7 +1701,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() { 
                 new FAQEntry.FAQSectionModel(){ 
-                    Title = "Path Recording",
+                    Title = "Path Management",
                     Entries = new List<FAQEntry.FAQEntryModel>(){ 
                         new FAQEntry.FAQEntryModel(){ 
                             Question = "What is a Path?",
@@ -1820,6 +1820,29 @@ namespace Celeste.Mod.ConsistencyTracker
                             Question = "How can I customize the available formats for the In-Game Overlay?",
                             Answer = "The available formats are taken from the Live-Data feature. Any changes to it will be available in the In-Game Overlay." +
                             "\nCheck out the Live-Data section in the FAQ for more details."
+                        },
+                    },
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "In-Game Summary",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What is the In-Game Summary?",
+                            Answer = "The In-Game Summary is a way to display a bunch of data tracked by CCT within the game. It currently displays:" +
+                            "\n\n- Session History: You can look through all of your previous sessions and see how you improved!" +
+                            "\n- Overall Stats: How your stats look overall in a map and how it developed over the sessions." +
+                            "\n- Charts: Choke Rate / Room Entries chart for your overall stats and each session." +
+                            "\n- Graphs: A funky looking graphs of all your golden deaths throughout the map." +
+                            "\n\nAll of the displayed data is hand programmed, including the charts/graphs/tables. As such, issues are almost guaranteed." +
+                            "\nThere will likely be fixes/changes to this overlay in the future. If you have any suggestions, feel free to message me!"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "How do I use the In-Game Summary?",
+                            Answer = "In the Mod Options of CCT you can bind a button to open the In-Game Summary. Whenever you are in a map, you can press that button to bring up the Summary overlay." +
+                            "\n\nNavigating the In-Game Summary by default uses these buttons:" +
+                            "\n- <Grab> to switch through the tabs" +
+                            "\n- <Up>/<Down> to navigate within a tab" +
+                            "\n\nThese button bindings can be changed in Mod Options."
                         },
                     },
                 },
