@@ -658,7 +658,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public void AddAttempt(bool success) {
-            if (PreviousAttempts.Count >= ChapterStats.MAX_ATTEMPT_COUNT) {
+            while (PreviousAttempts.Count >= ChapterStats.MAX_ATTEMPT_COUNT) {
                 PreviousAttempts.RemoveAt(0);
             }
 

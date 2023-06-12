@@ -5,10 +5,10 @@ using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Celeste.Mod.UI;
-using IL.Monocle;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Mono.Cecil;
+using Monocle;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -2017,8 +2017,6 @@ namespace Celeste.Mod.ConsistencyTracker
             // ========= General Settings =========
             TextMenu.Slider textCountSlider = new TextMenu.Slider("Text Count", (v) => v == 1 ? $"1 Text" : $"{v} Texts", 1, 100, TestCount);
             TextMenu.Slider selectedTextSlider = new TextMenu.Slider("Selected Text", (v) => $"Text {v+1}", 0, TestCount - 1, TestCount);
-
-
 
             // ========== Text 1 ==========
             TextMenu.OnOff onOffEnabled = new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {

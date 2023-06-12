@@ -103,14 +103,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                   || (!Mod.ModSettings.ButtonSummaryHudNextStat.Binding.HasInput && lastMoveY != Input.MoveY.Value && Input.MoveY.Value < 0))) {
                 Tabs[SelectedTab].ChangedSelectedStat(1);
                 Tabs[SelectedTab].Update();
-                
-                //try {
-                //    Engine.Commands.ExecuteCommand("invoke", new string[] { "Player.MoveV", "1" });
-                //    Mod.Log($"Executed command 'invoke Player.Move 1'");
-                //} catch (Exception ex) {
-                //    Mod.Log($"Error executing command: {ex}");
-                //}
-                
             }
             
             if (Visible && 

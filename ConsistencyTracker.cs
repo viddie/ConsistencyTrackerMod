@@ -850,7 +850,6 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         #region Speedrun Tool Save States
-
         public void SpeedrunToolSaveState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
             Type type = GetType();
             if (!savedvalues.ContainsKey(type)) {
