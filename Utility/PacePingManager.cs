@@ -327,7 +327,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 description = Mod.StatsManager.FormatVariableFormat(description);
 
                 string campaign = path.CampaignName;
-                string chapterName = path.ChapterName;
+                string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
                 string sideAddition = path.SideName == "A-Side" ? "" : $" {path.SideName}";
                 string chapterField = $"{chapterName}{sideAddition}";
 

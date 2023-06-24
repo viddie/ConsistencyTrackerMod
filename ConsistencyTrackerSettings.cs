@@ -52,6 +52,9 @@ namespace Celeste.Mod.ConsistencyTracker
         }
         private bool _PauseDeathTracking { get; set; } = false;
 
+        [SettingIgnore]
+        public string DataRootFolderLocation { get; set; } = null;
+
         #endregion
 
         #region Tracking Settings

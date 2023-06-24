@@ -51,7 +51,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
         public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
 
-        public static readonly string BaseFolderPath = "./ConsistencyTracker/";
+        public static string BaseFolderPath = "./ConsistencyTracker/";
         public static readonly string ExternalToolsFolder = "external-tools";
         public static readonly string LogsFolder = "logs";
         public static readonly string PathsFolder = "paths";
@@ -148,7 +148,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region Load/Unload Stuff
 
         public override void Load() {
-            CheckFolderExists(BaseFolderPath);
+            CheckRootFolder();
             CheckFolderExists(GetPathToFile(LogsFolder));
             LogInit();
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -934,6 +934,25 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             return true;
+        }
+        public void CheckRootFolder() {
+            string dataRootFolder = ModSettings.DataRootFolderLocation;
+            if (dataRootFolder == null) {
+                dataRootFolder = BaseFolderPath;
+            } else {
+                dataRootFolder = Path.Combine(dataRootFolder, "ConsistencyTracker");
+            }
+
+            if (!Directory.Exists(dataRootFolder)) {
+                try { 
+                    Directory.CreateDirectory(dataRootFolder);
+                } catch (Exception) {
+                    CheckFolderExists(BaseFolderPath);
+                    dataRootFolder = BaseFolderPath;
+                }
+            }
+
+            BaseFolderPath = dataRootFolder;
         }
 
         

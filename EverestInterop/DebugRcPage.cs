@@ -1007,6 +1007,35 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
 
         #endregion
 
+        #region Meta Endpoints
+        private static readonly RCEndPoint SetRootFolderEndPoint = new RCEndPoint() {
+            Path = "/cct/setRootFolder",
+            PathHelp = "/cct/setRootFolder?path={path}",
+            Name = "Consistency Tracker Set Root Folder [GET] [JSON]",
+            InfoHTML = "Sets the root folder of CCT. Omit the parameter to reset to default folder location. Game restart required to take effect.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                string responseStr = null;
+
+                string path = GetQueryParameter(c, "path");
+                if (path == null) {
+                    Mod.ModSettings.DataRootFolderLocation = null;
+                } else {
+                    Mod.ModSettings.DataRootFolderLocation = path;
+                }
+
+                //Response
+                responseStr = FormatResponseJson(RCErrorCode.OK);
+                WriteResponse(c, responseStr);
+            }
+        };
+        #endregion
 
         #region Load / Unload
         public static void Load() {
@@ -1209,6 +1238,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
             SaveRecordingEndpoint,
             RenameRecordingEndpoint,
             DeleteRecordingEndpoint,
+
+            //Other
+            SetRootFolderEndPoint,
         };
 
         private class UpdateCache {
