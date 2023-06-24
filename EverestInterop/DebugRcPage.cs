@@ -1022,16 +1022,29 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 }
 
                 string responseStr = null;
+                string message = "";
 
                 string path = GetQueryParameter(c, "path");
                 if (path == null) {
+                    message = $"Root folder location is: {Mod.ModSettings.DataRootFolderLocation}";
+                } else if (path == "") {
                     Mod.ModSettings.DataRootFolderLocation = null;
+                    message = $"Root folder reset to default.";
+
+                    Mod.SaveSettings();
                 } else {
                     Mod.ModSettings.DataRootFolderLocation = path;
+                    message = $"Root folder location set to: {path}";
+
+                    Mod.SaveSettings();
                 }
 
+                TextResponse response = new TextResponse() {
+                    text = message,
+                };
+
                 //Response
-                responseStr = FormatResponseJson(RCErrorCode.OK);
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
                 WriteResponse(c, responseStr);
             }
         };
