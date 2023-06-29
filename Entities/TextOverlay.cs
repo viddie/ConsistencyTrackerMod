@@ -103,12 +103,35 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 Mod.Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {Mod.ModSettings.PauseDeathTracking}");
             }
 
+            
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
                 bool currentVisible = Mod.ModSettings.IngameOverlayTextEnabled;
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
 
                 Mod.Log($"ButtonToggleTextOverlayEnabled: Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
             }
+            if (Mod.ModSettings.ButtonToggleTextOverlayText1.Pressed) {
+                Mod.ModSettings.IngameOverlayText1Enabled = !Mod.ModSettings.IngameOverlayText1Enabled;
+                SetTextVisible(1, Mod.ModSettings.IngameOverlayText1Enabled);
+                Mod.Log($"ButtonToggleTextOverlayText1: Toggled text overlay text 1 to {Mod.ModSettings.IngameOverlayText1Enabled}");
+            }
+            if (Mod.ModSettings.ButtonToggleTextOverlayText2.Pressed) {
+                Mod.ModSettings.IngameOverlayText2Enabled = !Mod.ModSettings.IngameOverlayText2Enabled;
+                SetTextVisible(2, Mod.ModSettings.IngameOverlayText2Enabled);
+                Mod.Log($"ButtonToggleTextOverlayText2: Toggled text overlay text 2 to {Mod.ModSettings.IngameOverlayText2Enabled}");
+            }
+            if (Mod.ModSettings.ButtonToggleTextOverlayText3.Pressed) {
+                Mod.ModSettings.IngameOverlayText3Enabled = !Mod.ModSettings.IngameOverlayText3Enabled;
+                SetTextVisible(3, Mod.ModSettings.IngameOverlayText3Enabled);
+                Mod.Log($"ButtonToggleTextOverlayText3: Toggled text overlay text 3 to {Mod.ModSettings.IngameOverlayText3Enabled}");
+            }
+            if (Mod.ModSettings.ButtonToggleTextOverlayText4.Pressed) {
+                Mod.ModSettings.IngameOverlayText4Enabled = !Mod.ModSettings.IngameOverlayText4Enabled;
+                SetTextVisible(4, Mod.ModSettings.IngameOverlayText4Enabled);
+                Mod.Log($"ButtonToggleTextOverlayText4: Toggled text overlay text 4 to {Mod.ModSettings.IngameOverlayText4Enabled}");
+            }
+            
+
 
             if (Mod.ModSettings.ButtonAddRoomSuccess.Pressed) {
                 if (Mod.CurrentChapterStats != null) {

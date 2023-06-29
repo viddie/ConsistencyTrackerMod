@@ -1982,6 +1982,10 @@ namespace Celeste.Mod.ConsistencyTracker
 
         #region Hotkeys
         public ButtonBinding ButtonToggleTextOverlayEnabled { get; set; }
+        public ButtonBinding ButtonToggleTextOverlayText1 { get; set; }
+        public ButtonBinding ButtonToggleTextOverlayText2 { get; set; }
+        public ButtonBinding ButtonToggleTextOverlayText3 { get; set; }
+        public ButtonBinding ButtonToggleTextOverlayText4 { get; set; }
 
         public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
 
