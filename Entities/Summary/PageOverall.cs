@@ -425,15 +425,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             TotalSuccessRateChart.Settings.XAxisLabelFontMult = 1f;
             if (pointCount > 70) {
                 series[0].ShowLabels = false;
-                series[1].ShowLabels = false;
                 TotalSuccessRateChart.Settings.XAxisLabelFontMult = 0.3f;
             } else if (pointCount > 40) {
                 series[0].ShowLabels = false;
-                series[1].ShowLabels = false;
                 TotalSuccessRateChart.Settings.XAxisLabelFontMult = 0.5f;
             } else if (pointCount > 25) {
                 series[0].ShowLabels = false;
-                series[1].ShowLabels = false;
                 TotalSuccessRateChart.Settings.XAxisLabelFontMult = 0.65f;
             }
 
