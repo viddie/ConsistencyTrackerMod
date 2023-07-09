@@ -1163,7 +1163,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
             }
 
-            CheckDefaultPathFile(farewellLevelName, $"{assetPath}/{farewellLevelName}.json");
+            CheckDefaultPathFile(farewellLevelName, $"{assetPath}/{farewellLevelName}.json", reset);
         }
         private void CheckDefaultPathFile(string levelName, string assetPath, bool reset=false) {
             string nameTXT = $"{levelName}.txt";
