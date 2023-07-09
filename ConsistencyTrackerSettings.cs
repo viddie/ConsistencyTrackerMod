@@ -84,7 +84,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Various stats (e.g. Success Rate, Streak, ...) are always tracked, even without the golden");
-            subMenu.AddDescription(menu, menuItem, "Turn this off to ONLY track these stats when doing golden runs");
+            subMenu.AddDescription(menu, menuItem, "Turn this on to ONLY track these stats when doing golden runs");
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Always Track Golden Deaths", TrackingAlwaysGoldenDeaths) {
                 OnValueChange = v => {
