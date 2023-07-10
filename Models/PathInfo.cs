@@ -354,8 +354,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonIgnore]
         public int RoomNumberInChapter { get; set; } = -1;
 
-        public string GetFormattedRoomName(RoomNameDisplayType format) {
-            if (!string.IsNullOrEmpty(CustomRoomName)) return CustomRoomName;
+        public string GetFormattedRoomName(RoomNameDisplayType format, CustomNameBehavior? customNameBehavior = null) {
+            CustomNameBehavior nameBehavior = customNameBehavior ?? ConsistencyTrackerModule.Instance.ModSettings.LiveDataCustomNameBehavior;
+
+            if (!string.IsNullOrEmpty(CustomRoomName) && nameBehavior == CustomNameBehavior.Override) return CustomRoomName;
+
+            string toReturn = DebugRoomName;
 
             if (format != RoomNameDisplayType.DebugRoomName && IsNonGameplayRoom) {
                 RoomInfo nextRoom = NextGameplayRoomInChapter;
@@ -364,37 +368,53 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                     switch (format) {
                         case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
                         case RoomNameDisplayType.FullNameAndRoomNumberInCP:
-                            return $"End";
+                            toReturn = $"End";
+                            break;
                     }
                 } else {
                     if (string.IsNullOrEmpty(nextRoom.CustomRoomName)) {
                         switch (format) {
                             case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
-                                return $"{nextRoom.Checkpoint.Abbreviation}-T{nextRoom.RoomNumberInCP}";
+                                toReturn = $"{nextRoom.Checkpoint.Abbreviation}-T{nextRoom.RoomNumberInCP}";
+                                break;
                             case RoomNameDisplayType.FullNameAndRoomNumberInCP:
-                                return $"{nextRoom.Checkpoint.Name}-T{nextRoom.RoomNumberInCP}";
+                                toReturn = $"{nextRoom.Checkpoint.Name}-T{nextRoom.RoomNumberInCP}";
+                                break;
                         }
                     } else {
                         switch (format) {
                             case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
-                                return $"T-{nextRoom.CustomRoomName}";
+                                toReturn = $"T-{nextRoom.CustomRoomName}";
+                                break;
                             case RoomNameDisplayType.FullNameAndRoomNumberInCP:
-                                return $"Transition-{nextRoom.CustomRoomName}";
+                                toReturn = $"Transition-{nextRoom.CustomRoomName}";
+                                break;
                         }
                     }
                 }
-            }
-            
-            switch (format) {
-                case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
-                    return $"{Checkpoint.Abbreviation}-{RoomNumberInCP}";
-                case RoomNameDisplayType.FullNameAndRoomNumberInCP:
-                    return $"{Checkpoint.Name}-{RoomNumberInCP}";
-                case RoomNameDisplayType.DebugRoomName:
-                    return DebugRoomName;
+            } else {
+                switch (format) {
+                    case RoomNameDisplayType.AbbreviationAndRoomNumberInCP:
+                        toReturn = $"{Checkpoint.Abbreviation}-{RoomNumberInCP}";
+                        break;
+                    case RoomNameDisplayType.FullNameAndRoomNumberInCP:
+                        toReturn = $"{Checkpoint.Name}-{RoomNumberInCP}";
+                        break;
+                    case RoomNameDisplayType.DebugRoomName:
+                        toReturn = DebugRoomName;
+                        break;
+                }
             }
 
-            return DebugRoomName;
+            if (!string.IsNullOrEmpty(CustomRoomName)) {
+                if (nameBehavior == CustomNameBehavior.Append) {
+                    toReturn += $" ({CustomRoomName})";
+                } else if (nameBehavior == CustomNameBehavior.Prepend) {
+                    toReturn = $"{CustomRoomName} ({toReturn})";
+                }
+            }
+
+            return toReturn;
         }
 
     }

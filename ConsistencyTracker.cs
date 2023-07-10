@@ -1420,9 +1420,26 @@ namespace Celeste.Mod.ConsistencyTracker {
                             continue;
                         }
                     }
-                    string formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
+
+                    string formattedName;
+                    int scaleDivider = 6;
+
+                    if (ModSettings.LiveDataCustomNameBehavior == CustomNameBehavior.Override || ModSettings.LiveDataCustomNameBehavior == CustomNameBehavior.Ignore) {
+                        formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
+                    } else { 
+                        formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Override);
+                        if (!string.IsNullOrEmpty(rInfo.CustomRoomName)) {
+                            formattedName += $"\n{rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Ignore)}";
+                            scaleDivider += 2;
+                        }
+                    }
+
+
                     PacePingManager.PaceTiming paceTiming = PacePingManager.GetPaceTiming(CurrentChapterPath.ChapterSID, rInfo.DebugRoomName, dontLog:true);
-                    if (paceTiming != null) formattedName = $"{formattedName}\n>Ping<";
+                    if (paceTiming != null) { 
+                        formattedName = $"{formattedName}\n>Ping<";
+                        scaleDivider += 2;
+                    }
 
                     int x = template.X;
                     int y = template.Y;
@@ -1437,7 +1454,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                         formattedName,
                         pos,
                         new Vector2(0.5f, 0),
-                        Vector2.One * camera.Zoom / (paceTiming == null ? 6 : 8),
+                        Vector2.One * camera.Zoom / scaleDivider,
                         Color.White * 0.9f,
                         2f * camera.Zoom / 6,
                         Color.Black * 0.7f);

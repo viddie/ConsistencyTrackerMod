@@ -561,6 +561,8 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public RoomNameDisplayType LiveDataRoomNameDisplayType { get; set; } = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
         [SettingIgnore]
+        public CustomNameBehavior LiveDataCustomNameBehavior { get; set; } = CustomNameBehavior.Override;
+        [SettingIgnore]
         public ListFormat LiveDataListOutputFormat { get; set; } = ListFormat.Json;
         [SettingIgnore]
         public bool LiveDataHideFormatsWithoutPath { get; set; } = false;
@@ -576,7 +578,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public int LiveDataChapterBarYellowPercent { get; set; } = 50;
 
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live Data Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live-Data Settings", false);
             TextMenu.Item menuItem;
             
             subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
@@ -595,6 +597,13 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Whether you want checkpoint names to be full or abbreviated in the room name.");
+
+            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<CustomNameBehavior>("Custom Room Name Behavior", LiveDataCustomNameBehavior) { 
+                OnValueChange = (value) => {
+                    LiveDataCustomNameBehavior = value;
+                    Mod.SaveChapterStats();
+                }
+            });
 
             subMenu.Add(menuItem = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
                 OnValueChange = v => {
