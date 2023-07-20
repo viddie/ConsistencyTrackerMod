@@ -1711,11 +1711,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateFAQEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("FAQ", false);
 
-            List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() { 
-                new FAQEntry.FAQSectionModel(){ 
+            List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() {
+                new FAQEntry.FAQSectionModel(){
                     Title = "Path Management",
-                    Entries = new List<FAQEntry.FAQEntryModel>(){ 
-                        new FAQEntry.FAQEntryModel(){ 
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
                             Question = "What is a Path?",
                             Answer = "A path is a configuration of Checkpoints and Rooms, in the order that you would beat them in during a run of whatever challenge you want to do. All vanilla maps come with pre-installed paths. 1A-8A and Farewell also have a separate pre-installed Path for full clear runs!" +
                             "\nEvery Checkpoint has a name and an abbreviation" +
@@ -1761,6 +1761,50 @@ namespace Celeste.Mod.ConsistencyTracker
                             Question = "I don't see the 'Full Clear' segments for 1A-8A/Farewell...",
                             Answer = "The 'Full Clear' segments were added in a recent update. If you had CCT installed before the update, the vanilla path files aren't automatically updated." +
                             "\nTo get all default segments added, hit the button '!!Data Wipe!! -> Reset All Vanilla Paths'. This will reset all vanilla paths to the up-to-date original."
+                        },
+                    }
+                },
+                new FAQEntry.FAQSectionModel(){
+                    Title = "Stats Management",
+                    Entries = new List<FAQEntry.FAQEntryModel>(){
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "What stats are there?",
+                            Answer = "There are 3 types of stats being tracked:" +
+                            "\n\n1. Dying to a room with the golden" +
+                            "\n2. Dying in / Completing a room (independently of the golden)" +
+                            "\n3. Collecting the golden" +
+                            "\n\nMany stats are calculated off of the golden deaths, such as:" +
+                            "\n- Best Runs" +
+                            "\n- Current Run #" +
+                            "\n- Current Run Top x%" +
+                            "\n- Room Choke Rate" +
+                            "\n- Room Golden Success Rate" +
+                            "\n- ..." +
+                            "\n\nBut there are also a bunch of stats that are calculated off of normal room completions/deaths, such as:" +
+                            "\n- Room/Checkpoint/Chapter Success Rate" +
+                            "\n- Room Streak / Max Streak" +
+                            "\n- Golden Chance from Start / Golden Chance to End for any room" +
+                            "\n- ..." +
+                            "\n\nFor the normal room completions/deaths stats, you can configure how many of the last attempts should be counted for the calculation (default: 20)" +
+                            "\n\n\nTo get a list of all possible calculated stats take a look at the Live-Data Editor!",
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "Where are the stats saved?",
+                            Answer = "All stats are saved separate from the path. This means that you can change the path at will, and the stats stay the same." +
+                            "\n\nThe raw stats file is saved in the location:" +
+                            "\n<CelesteFolder>\\ConsistencyTracker\\stats\\<MapName>.json" +
+                            "\nWhere the <MapName> is the SID of the map (usually the campaign's or mapper's name) + the side name (Normal, BSide, CSide)"
+                        },
+                        new FAQEntry.FAQEntryModel(){
+                            Question = "I accidentally collected a golden berry while practicing...",
+                            Answer = "There is currently no ingame option to remove accidental collects of goldens, but here is how you can remove it by editing the stats file:" +
+                            "\n\n1. Don't be in the map you want to edit the stats for" +
+                            "\n2. Find the stats file in '<CelesteFolder>\\ConsistencyTracker\\stats\\<MapName>.json'" +
+                            "\n3. Find the line that says \"goldenCollectedCount\"" +
+                            "\n4. Set the value back down to 0" +
+                            "\n5. Save the file" +
+                            "\n\nOnce you enter the map now the golden will be gone from CCT's best runs." +
+                            "\n\nIt will still show up in the Ingame Summary's session history, but fixing this is much harder to do (impossible?) so I won't go into detail here."
                         },
                     }
                 },
