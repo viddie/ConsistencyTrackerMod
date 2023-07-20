@@ -170,6 +170,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInCheckpoint, "Number of the room within the current checkpoint"),
                 new KeyValuePair<string, string>(LiveProgressStat.RoomCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
 
+                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressBar.GetPlaceholder("X"), "A text-based progress bar of the chapter given the current room"),
+
                 new KeyValuePair<string, string>(SaveStateRoomName, "Name of the savestate room"),
                 new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointRoomCount, "Count of rooms in the checkpoint where the savestate is placed"),
                 new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInChapter, "Number of the savestate room in the entire chapter"),

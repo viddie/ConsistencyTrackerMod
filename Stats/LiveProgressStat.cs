@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Celeste.Mod.ConsistencyTracker.Models;
 
@@ -30,6 +31,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string RoomNumberInCheckpoint = "{room:roomNumberInCheckpoint}";
         public static string RoomChapterProgressPercent = "{room:chapterProgressPercent}";
         public static string RoomCheckpointProgressPercent = "{room:checkpointProgressPercent}";
+        
+        public static ValuePlaceholder<int> RoomChapterProgressBar = new ValuePlaceholder<int>(@"\{room:chapterProgressBar#(.*?)\}", "{room:chapterProgressBar#(.*?)}");
 
         public static string SaveStateCheckpointRoomCount = "{savestate:checkpointRoomCount}";
         public static string SaveStateRoomNumberInChapter = "{savestate:roomNumberInChapter}";
@@ -43,13 +46,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             CheckpointRoomCount,
             RoomNumberInChapter, RoomNumberInCheckpoint,
             RoomChapterProgressPercent, RoomCheckpointProgressPercent,
-            
+
             SaveStateCheckpointRoomCount,
             SaveStateRoomNumberInChapter, SaveStateRoomNumberInCheckpoint,
             SaveStateChapterProgressPercent, SaveStateCheckpointProgressPercent
         };
 
         public LiveProgressStat() : base(IDs) { }
+
+        public override bool ContainsIdentificator(string format) {
+            foreach (string id in IDs) {
+                if (format.Contains(id)) {
+                    return true;
+                }
+            }
+
+            return RoomChapterProgressBar.HasMatch(format);
+        }
 
         public override string FormatStat(PathInfo chapterPath, ChapterStats chapterStats, string format) {
             if (chapterPath == null) {
@@ -62,6 +75,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.MissingPathFormat(format, RoomNumberInCheckpoint);
                 format = StatManager.MissingPathFormat(format, RoomChapterProgressPercent);
                 format = StatManager.MissingPathFormat(format, RoomCheckpointProgressPercent);
+
+                format = RoomChapterProgressBar.ReplaceAll(format, StatManager.MissingPathOutput);
 
                 format = StatManager.MissingPathFormat(format, SaveStateCheckpointRoomCount);
                 format = StatManager.MissingPathFormat(format, SaveStateRoomNumberInChapter);
@@ -86,7 +101,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 format = StatManager.NotOnPathFormat(format, RoomNumberInCheckpoint);
                 format = StatManager.NotOnPathFormatPercent(format, RoomChapterProgressPercent);
                 format = StatManager.NotOnPathFormatPercent(format, RoomCheckpointProgressPercent);
-                
+
+                format = RoomChapterProgressBar.ReplaceAll(format, "-");
+
             } else {
                 RoomInfo rInfo = chapterPath.CurrentRoom;
 
@@ -120,6 +137,27 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = format.Replace(RoomChapterProgressPercent, $"{chapterProgressPercent}%");
                 format = format.Replace(RoomCheckpointProgressPercent, $"{checkpointProgressPercent}%");
+
+
+                //The bar should look like this:
+                // {=====---------------} for progress 25%
+                // {====================} for progress 100%
+                List<int> matchList = RoomChapterProgressBar.GetMatchList(format);
+                Dictionary<int, string> matchDict = new Dictionary<int, string>();
+                foreach (int barLength in matchList) {
+                    int barProgress = (int)Math.Floor((double)roomNumberInChapter / chapterRoomCount * barLength);
+                    string bar = "{";
+                    for (int i = 0; i < barLength; i++) {
+                        if (i < barProgress) {
+                            bar += "=";
+                        } else {
+                            bar += "-";
+                        }
+                    }
+                    bar += "}";
+                    matchDict.Add(barLength, bar);
+                }
+                format = RoomChapterProgressBar.ValueReplaceAll(format, matchDict);
             }
 
             //Save State
