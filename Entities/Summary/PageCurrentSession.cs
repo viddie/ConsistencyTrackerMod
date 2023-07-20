@@ -318,7 +318,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 SessionChart.Settings.XAxisLabelFontMult = 0.3f;
             } else if (pointCount > 40) {
                 series[0].ShowLabels = false;
-                series[1].ShowLabels = true;
+                //series[1].ShowLabels = true;
                 SessionChart.Settings.XAxisLabelFontMult = 0.5f;
             } else if (pointCount > 25) {
                 SessionChart.Settings.XAxisLabelFontMult = 0.65f;

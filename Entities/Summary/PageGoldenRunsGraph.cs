@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.ConsistencyTracker.Models;
+﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using FMOD;
@@ -35,7 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Color.Blue,
             Color.LightBlue
         };
-        private static int GoldenDeathFilterWidth = 1100;
+        private static int GoldenDeathFilterWidth = 1050;
         private static int GoldenDeathFilterHeight = 700;
 
         public PageGoldenRunsGraph(string name) : base(name) {
@@ -56,12 +57,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Entries = new List<Entry>();
             CheckpointEntriesCount = new List<Tuple<string, int, int>>();
 
+            CustomNameBehavior customNameBehavior = Mod.ModSettings.LiveDataCustomNameBehavior;
+            if (customNameBehavior == CustomNameBehavior.Prepend) {
+                customNameBehavior = CustomNameBehavior.Append;
+            }
+
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     RoomStats rStats = stats.GetRoom(rInfo);
                     Entries.Add(new Entry() {
                         GoldenDeaths = rStats.GoldenBerryDeaths,
-                        RoomName = rInfo.GetFormattedRoomName(StatManager.RoomNameType),
+                        RoomName = rInfo.GetFormattedRoomName(StatManager.RoomNameType, customNameBehavior),
                         CheckpointName = cpInfo.Name,
                         CheckpointNumber = cpInfo.CPNumberInChapter
                     });
