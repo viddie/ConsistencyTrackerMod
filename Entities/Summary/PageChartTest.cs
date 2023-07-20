@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
+using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
@@ -72,6 +73,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<LineDataPoint> dataChokeRates = new List<LineDataPoint>();
             List<LineDataPoint> dataRoomEntries = new List<LineDataPoint>();
 
+            CustomNameBehavior customRoomNameBehavior = Mod.ModSettings.LiveDataCustomNameBehavior;
+            if (customRoomNameBehavior != CustomNameBehavior.Ignore && customRoomNameBehavior != CustomNameBehavior.Override) {
+                customRoomNameBehavior = CustomNameBehavior.Ignore;
+            }
+
             Dictionary<RoomInfo, Tuple<int, float>> roomData = null;
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomDataOverall = null;
             if (isOverall) {
@@ -102,13 +108,13 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     float chokeRate = 1 - successRate;
 
                     dataChokeRates.Add(new LineDataPoint() {
-                        XAxisLabel = $"{rInfo.GetFormattedRoomName(StatManager.RoomNameType)}",
+                        XAxisLabel = $"{rInfo.GetFormattedRoomName(StatManager.RoomNameType, customRoomNameBehavior)}",
                         Y = chokeRate * 100,
                         Label = $"{Math.Round(chokeRate * 100, 2)}%",
                     });
 
                     dataRoomEntries.Add(new LineDataPoint() {
-                        XAxisLabel = $"{rInfo.GetFormattedRoomName(StatManager.RoomNameType)}",
+                        XAxisLabel = $"{rInfo.GetFormattedRoomName(StatManager.RoomNameType, customRoomNameBehavior)}",
                         Y = roomEntries,
                         Label = $"{roomEntries}",
                     });
@@ -117,8 +123,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             string name1 = "Choke Rates";
             string name2 = "Room Entries";
-            //string name1 = isOverall ? "Session Choke Rates" : "Choke Rates";
-            //string name2 = isOverall ? "Session Room Entries" : "Room Entries";
 
             LineSeries data1 = new LineSeries() { Data = dataChokeRates, LineColor = Color.LightBlue, Depth = 1, Name = name1, ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.6f };
             LineSeries data2 = new LineSeries() { Data = dataRoomEntries, LineColor = Color.Orange, Depth = 0, Name = name2, ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.6f, IndepedentOfYAxis = true, IndependentYMin = 0f };
