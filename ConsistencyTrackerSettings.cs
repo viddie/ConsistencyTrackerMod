@@ -130,6 +130,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
         #region Record Path Settings
         public bool RecordPath { get; set; } = false;
+        [SettingIgnore]
+        public bool CustomRoomNameAllSegments { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Management", false);
@@ -242,10 +244,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             subMenu.Add(new TextMenu.SubHeader("Turn this on to start recording a path for the current segment. Save path in the last room", false));
             subMenu.Add(new TextMenu.SubHeader("of the segment, or complete the map to stop the recording save automatically.", false));
-            //subMenu.Add(new TextMenu.SubHeader("WILL OVERRIDE EXISTING PATH", false));
-            //subMenu.AddDescription(menu, startPathRecordingButton, "Turn this on to start recording a path for the current segment. Save path in the last room");
-            //subMenu.AddDescription(menu, startPathRecordingButton, "of the segment, or complete the map to stop the recording save automatically.");
-            //subMenu.AddDescription(menu, startPathRecordingButton, "WILL OVERRIDE EXISTING PATH");
+
             subMenu.Add(startPathRecordingButton);
             subMenu.Add(savePathRecordingButton);
             subMenu.AddDescription(menu, savePathRecordingButton, "Save the recorded path to the current segment.");
@@ -276,9 +275,6 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
-            //add button to toggle transition flag for room
-            //string buttonText = currentRoomIsTransition == null ? "Toggle Current Room As Transition" : (currentRoomIsTransition.Value ? "Set Current Room As Gameplay Room" : "Set Current Room As Transition Room");
-            
             List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
                     new KeyValuePair<bool, string>(false, "Gameplay"),
                     new KeyValuePair<bool, string>(true, "Transition"),
@@ -295,44 +291,38 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasCurrentRoom
             });
 
-            //bool hasCustomName = hasCurrentRoom && Mod.CurrentChapterPath.CurrentRoom.CustomRoomName != null;
-            //buttonText = hasCustomName ? $"Custom Room Name: {Mod.CurrentChapterPath.CurrentRoom.CustomRoomName}" : $"Set Custom Room Name";
-            //subMenu.Add(new TextMenu.Button(buttonText) {
-            //    OnPressed = () => {
-            //        Mod.Log($"Starting string input scene...");
-            //        Audio.Play(SFX.ui_main_savefile_rename_start);
-                    
-            //        Overworld overworld = menu.SceneAs<Overworld>();
-            //        Mod.Log($"overworld == null {overworld == null}", isFollowup: true);
-                    
-            //        OuiModOptionString modOptionsString = overworld.Goto<OuiModOptionString>();
-            //        Mod.Log($"modOptionsString == null {modOptionsString == null}", isFollowup: true);
-
-            //        modOptionsString.Init<OuiModOptions>(
-            //            Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType),
-            //            v => {
-            //                Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = v;
-            //                Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{v}'");
-            //                //Mod.SavePathToFile();
-            //            },
-            //            30,
-            //            1
-            //        );
-            //    },
-            //    Disabled = !hasCurrentRoom
-            //});
-
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             
             subMenu.Add(menuItem = new TextMenu.Button("Import Custom Room Name from Clipboard") { 
                 OnPressed = () => {
-                    string text = TextInput.GetClipboardText();
+                    string text = TextInput.GetClipboardText().Trim();
                     Mod.Log($"Importing custom room name from clipboard...");
                     try {
                         if (Mod.CurrentChapterPath == null) return;
                         if (Mod.CurrentChapterPath.CurrentRoom == null) return;
-                        Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = text;
-                        Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{text}'");
+
+                        if (string.IsNullOrEmpty(text)) text = null;
+
+                        string currentRoomName = Mod.CurrentChapterPath.CurrentRoom.DebugRoomName;
+
+                        int count = 0;
+                        if (CustomRoomNameAllSegments) { //Find all other rooms with same name in other segments 
+                            foreach (PathSegment segment in Mod.CurrentChapterPathSegmentList.Segments) {
+                                foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
+                                    foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                                        if (rInfo.DebugRoomName == currentRoomName) {
+                                            rInfo.CustomRoomName = text;
+                                            count++;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = text;
+                            count++;
+                        }
+                        
+                        Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{text}' (Count: {count})");
                         Mod.SavePathToFile();
                         Mod.SaveChapterStats();//Recalc stats
                     } catch (Exception ex) {
@@ -341,6 +331,16 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasCurrentRoom
             });
+            subMenu.AddDescription(menu, menuItem, "Empty text (e.g. just spaces) in the clipboard means removing the custom room name!");
+            subMenu.Add(menuItem = new TextMenu.OnOff("Apply Custom Names For All Segments", CustomRoomNameAllSegments) {
+                OnValueChange = (value) => {
+                    CustomRoomNameAllSegments = value;
+                },
+                Disabled = !hasCurrentRoom
+            });
+            subMenu.AddDescription(menu, menuItem, "Turn this ON to apply a custom room name to all segments that have this room,");
+            subMenu.AddDescription(menu, menuItem, "OFF for just the current segment.");
+
 
             subMenu.Add(new TextMenu.SubHeader("=== Import / Export ==="));
             subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
