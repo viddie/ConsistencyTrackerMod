@@ -107,26 +107,31 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
                 bool currentVisible = Mod.ModSettings.IngameOverlayTextEnabled;
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
+                Mod.SaveSettings();
 
                 Mod.Log($"ButtonToggleTextOverlayEnabled: Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
             }
             if (Mod.ModSettings.ButtonToggleTextOverlayText1.Pressed) {
                 Mod.ModSettings.IngameOverlayText1Enabled = !Mod.ModSettings.IngameOverlayText1Enabled;
+                Mod.SaveSettings();
                 SetTextVisible(1, Mod.ModSettings.IngameOverlayText1Enabled);
                 Mod.Log($"ButtonToggleTextOverlayText1: Toggled text overlay text 1 to {Mod.ModSettings.IngameOverlayText1Enabled}");
             }
             if (Mod.ModSettings.ButtonToggleTextOverlayText2.Pressed) {
                 Mod.ModSettings.IngameOverlayText2Enabled = !Mod.ModSettings.IngameOverlayText2Enabled;
+                Mod.SaveSettings();
                 SetTextVisible(2, Mod.ModSettings.IngameOverlayText2Enabled);
                 Mod.Log($"ButtonToggleTextOverlayText2: Toggled text overlay text 2 to {Mod.ModSettings.IngameOverlayText2Enabled}");
             }
             if (Mod.ModSettings.ButtonToggleTextOverlayText3.Pressed) {
                 Mod.ModSettings.IngameOverlayText3Enabled = !Mod.ModSettings.IngameOverlayText3Enabled;
+                Mod.SaveSettings();
                 SetTextVisible(3, Mod.ModSettings.IngameOverlayText3Enabled);
                 Mod.Log($"ButtonToggleTextOverlayText3: Toggled text overlay text 3 to {Mod.ModSettings.IngameOverlayText3Enabled}");
             }
             if (Mod.ModSettings.ButtonToggleTextOverlayText4.Pressed) {
                 Mod.ModSettings.IngameOverlayText4Enabled = !Mod.ModSettings.IngameOverlayText4Enabled;
+                Mod.SaveSettings();
                 SetTextVisible(4, Mod.ModSettings.IngameOverlayText4Enabled);
                 Mod.Log($"ButtonToggleTextOverlayText4: Toggled text overlay text 4 to {Mod.ModSettings.IngameOverlayText4Enabled}");
             }

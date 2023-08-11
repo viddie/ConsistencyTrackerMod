@@ -458,6 +458,14 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPath,
                 HighlightColor = Color.Red,
             });
+            
+            subMenu.Add(new DoubleConfirmButton("Reset Golden Berry Collection") {
+                OnDoubleConfirmation = () => {
+                    Mod.WipeChapterGoldenBerryCollects();
+                },
+                Disabled = !hasPath,
+                HighlightColor = Color.Red,
+            });
 
             subMenu.Add(new TextMenu.SubHeader("=== Vanilla Paths ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton($"Reset All Vanilla Paths") {
@@ -577,6 +585,9 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int LiveDataChapterBarYellowPercent { get; set; } = 50;
 
+        [SettingIgnore]
+        public LowDeathBehavior LiveDataStatLowDeathBehavior { get; set; } = LowDeathBehavior.AlwaysCheckpoints;
+
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live-Data Settings", false);
             TextMenu.Item menuItem;
@@ -621,6 +632,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
                 OnValueChange = (value) => {
                     LiveDataSelectedAttemptCount = value;
+                    Mod.SaveChapterStats();
                 }
             });
             subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts in each room will be counted.");
@@ -629,6 +641,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
                 OnValueChange = (value) => {
                     LiveDataDecimalPlaces = value;
+                    Mod.SaveChapterStats();
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Floating point numbers will be rounded to this decimal.");
@@ -660,6 +673,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Default: 50%");
+
+
+            subMenu.Add(new TextMenu.SubHeader($"=== Stats Settings ==="));
+            subMenu.Add(new TextMenu.SubHeader($"These settings only apply to certain stats", false));
+            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>("Low Death Display Behavior", LiveDataStatLowDeathBehavior) {
+                OnValueChange = (value) => {
+                    LiveDataStatLowDeathBehavior = value;
+                    Mod.SaveChapterStats();
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, $"For the low death stat '{ListCheckpointDeathsStat.ListCheckpointDeaths}'");
+            subMenu.AddDescription(menu, menuItem, $"'Adaptive' will switch from checkpoints to rooms when there is 12 or fewer rooms in the chapter.");
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== File Output ==="));

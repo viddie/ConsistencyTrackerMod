@@ -1336,8 +1336,24 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             SaveChapterStats();
         }
+        public void WipeChapterGoldenBerryCollects() {
+            if (CurrentChapterStats == null) {
+                Log($"Aborting wiping chapter golden berry collections as '{nameof(CurrentChapterStats)}' is null");
+                return;
+            }
 
-        
+            Log($"Wiping golden berry collection data for chapter '{CurrentChapterDebugName}'");
+
+            foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
+                CurrentChapterStats.GoldenCollectedCount = 0;
+                CurrentChapterStats.GoldenCollectedCountSession = 0;
+            }
+
+            SaveChapterStats();
+        }
+
+
+
 
         public void WipeRoomData() {
             if (CurrentChapterStats == null) {

@@ -145,6 +145,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 $"\\nSession avg | Last 10 avg | Best 10 avg:" +
                 $"\\n({AverageLastRunsStat.ChapterAverageRunDistanceSession} | {{chapter:averageRunDistanceSession#10}} | {AverageLastRunsStat.ChapterHighestAverageOver10Runs}) " +
                 $"/ {LiveProgressStat.ChapterRoomCount}"),
+                
+                new StatFormat("full-viddie-alt-style", $"Current: {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) " +
+                $"| Streak: {StreakStat.RoomCurrentStreak} ({StreakStat.RoomCurrentStreakBest}) " +
+                $"\\nGolden Success Rate: {ChokeRateStat.RoomGoldenSuccessRate} [{ChokeRateStat.RoomGoldenSuccesses}/{ChokeRateStat.RoomGoldenEntries}] ({ChokeRateStat.RoomGoldenSuccessRateSession})" +
+                $"\\nEntry Chance: {ChokeRateStat.RoomGoldenEntryChance} ({ChokeRateStat.RoomGoldenEntryChanceSession})" +
+                $"\\nRun: #{CurrentRunPbStat.RunCurrentPbStatus} (#{CurrentRunPbStat.RunCurrentPbStatusSession})"),
 
                 new StatFormat("full-parrot-style", $"Current: {BasicInfoStat.RoomName} | Room: ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
                 $"\\nCurrent run: #{CurrentRunPbStat.RunCurrentPbStatus} (Top {CurrentRunPbStat.RunTopXPercent})" +
