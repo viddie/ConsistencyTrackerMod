@@ -74,41 +74,41 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool VerboseLogging { get; set; } = false;
         public void CreateTrackingSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Tracking Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("TRACKING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Only Track Deaths With Golden Berry", TrackingOnlyWithGoldenBerry) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("TRACKING_SETTINGS_GENERAL_TITLE")));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY"), TrackingOnlyWithGoldenBerry) {
                 OnValueChange = v => {
                     TrackingOnlyWithGoldenBerry = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Various stats (e.g. Success Rate, Streak, ...) are always tracked, even without the golden");
-            subMenu.AddDescription(menu, menuItem, "Turn this on to ONLY track these stats when doing golden runs");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_2"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Always Track Golden Deaths", TrackingAlwaysGoldenDeaths) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS"), TrackingAlwaysGoldenDeaths) {
                 OnValueChange = v => {
                     TrackingAlwaysGoldenDeaths = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When you paused death tracking, this will make golden deaths still count");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS_HINT"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Loading Savestate", TrackingSaveStateCountsForGoldenDeath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE"), TrackingSaveStateCountsForGoldenDeath) {
                 OnValueChange = v => {
                     TrackingSaveStateCountsForGoldenDeath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When auto-load of savestates is enabled, CCT doesn't get notified of golden deaths");
-            subMenu.AddDescription(menu, menuItem, "Turn this on to enable counting golden deaths when loading a savestate");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_2"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Restarting Chapter", TrackingRestartChapterCountsForGoldenDeath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER"), TrackingRestartChapterCountsForGoldenDeath) {
                 OnValueChange = v => {
                     TrackingRestartChapterCountsForGoldenDeath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Similarly to above, restarting chapter normally doesn't cause a golden death event");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Stats ==="));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("TRACKING_SETTINGS_STATS_TITLE")));
             subMenu.Add(menuItem = new TextMenu.OnOff("Track Negative Streaks", TrackNegativeStreaks) {
                 OnValueChange = v => {
                     TrackNegativeStreaks = v;
