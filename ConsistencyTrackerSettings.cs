@@ -134,17 +134,17 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool CustomRoomNameAllSegments { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_TITLE"), false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
             TextMenu.Item menuItem;
 
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
             
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_GENERAL_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
             int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
             List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
@@ -157,15 +157,15 @@ namespace Celeste.Mod.ConsistencyTracker
                     SegmentList.Add(new KeyValuePair<int, string>(i, segment.Name));
                 }
             }
-            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), SegmentList, Mod.SelectedPathSegmentIndex) {
+            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), SegmentList, Mod.SelectedPathSegmentIndex) {
                 OnValueChange = (newValue) => {
                     Mod.SetCurrentChapterPathSegment(newValue);
                 },
                 Disabled = !hasPathList
             };
             subMenu.Add(sliderCurrentSegment);
-            subMenu.AddDescription(menu, sliderCurrentSegment, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT_HINT"));
-            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_GENERAL_ADD_SEGMENT")) {
+            subMenu.AddDescription(menu, sliderCurrentSegment, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_ADD_SEGMENT")) {
                 OnPressed = () => {
                     PathSegment segment = Mod.AddCurrentChapterPathSegment();
                     if (segment != null) {
@@ -176,7 +176,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPathList
             });
             
-            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) { 
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing segment name from clipboard...");
@@ -193,18 +193,18 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_TITLE")));
-            ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_START")) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")));
+            ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
                 Disabled = Mod.DoRecordPath,
             };
             string recorderStateTitle = Mod.DoRecordPath ? $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.PathRec.GetRecorderStatus()}" : Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF");
-            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding:false);
-            DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_SAVE")) {
+            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding:false);
+            DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE")) {
                 HighlightColor = Color.Yellow,
                 Disabled = !Mod.DoRecordPath,
             };
-            DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_ABORT")) {
+            DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT")) {
                 HighlightColor = Color.Red,
                 Disabled = !Mod.DoRecordPath,
             };
@@ -218,7 +218,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = false;
                 abortPathRecordingButton.Disabled = false;
 
-                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
             };
             savePathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Saving path...");
@@ -228,7 +228,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
-                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };
             abortPathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Aborting path recording...");
@@ -239,47 +239,47 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
-                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_TITLE_HINT_1"), false));
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2"), false));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_1"), false));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2"), false));
 
             subMenu.Add(startPathRecordingButton);
             subMenu.Add(savePathRecordingButton);
-            subMenu.AddDescription(menu, savePathRecordingButton, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_SAVE_HINT"));
+            subMenu.AddDescription(menu, savePathRecordingButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE_HINT"));
             subMenu.Add(abortPathRecordingButton);
-            subMenu.AddDescription(menu, abortPathRecordingButton, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_RECORDING_ABORT_HINT"));
+            subMenu.AddDescription(menu, abortPathRecordingButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT_HINT"));
             subMenu.Add(recorderStateHeader);
 
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE")));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_BROWSER")) {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_BROWSER")) {
                 Disabled = true,
             });
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_REMOVE_CURRENT_ROOM")) {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_REMOVE_CURRENT_ROOM")) {
                 OnPressed = Mod.RemoveRoomFromChapterPath,
                 Disabled = !hasCurrentRoom
             });
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_GROUP")) {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_GROUP")) {
                 OnPressed = Mod.GroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_UNGROUP")) {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_UNGROUP")) {
                 OnPressed = Mod.UngroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
             
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
             List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
-                    new KeyValuePair<bool, string>(false, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY")),
-                    new KeyValuePair<bool, string>(true, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION")),
+                    new KeyValuePair<bool, string>(false, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY")),
+                    new KeyValuePair<bool, string>(true, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION")),
             };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TITLE"), RoomType, currentRoomIsTransition ?? false) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TITLE"), RoomType, currentRoomIsTransition ?? false) {
                 OnValueChange = (newValue) => {
                     if (Mod.CurrentChapterPath == null) return;
                     if (Mod.CurrentChapterPath.CurrentRoom == null) return;
@@ -293,7 +293,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             
-            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) { 
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText().Trim();
                     Mod.Log($"Importing custom room name from clipboard...");
@@ -331,26 +331,26 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasCurrentRoom
             });
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD_HINT"));
-            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_CUSTOM_NAME"), CustomRoomNameAllSegments) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME"), CustomRoomNameAllSegments) {
                 OnValueChange = (value) => {
                     CustomRoomNameAllSegments = value;
                 },
                 Disabled = !hasCurrentRoom
             });
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_1"));
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_IO_TITLE")));
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) { 
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE")));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) { 
                 OnPressed = () => {
                     if (Mod.CurrentChapterPath == null) return;
                     TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
                 },
                 Disabled = !hasPath
             });
-            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD")) { 
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD")) { 
                 OnDoubleConfirmation = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing path from clipboard...");
@@ -365,10 +365,10 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 HighlightColor = Color.Yellow,
             });
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD_HINT"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_DANGER_ZONE_TITLE")));
-            DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_DANGER_ZONE_DELETE")) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_TITLE")));
+            DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE")) {
                 Disabled = !hasPathList || segmentCount <= 1,
                 HighlightColor = Color.Red,
             };
@@ -385,8 +385,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 deleteButton.Disabled = Mod.CurrentChapterPathSegmentList.Segments.Count <= 1;
             };
             subMenu.Add(deleteButton);
-            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_1"));
-            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_RECORD_PATH_SETTINGS_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2"));
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_1"));
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2"));
 
             menu.Add(subMenu);
         }
@@ -396,44 +396,44 @@ namespace Celeste.Mod.ConsistencyTracker
         [JsonIgnore]
         public bool WipeChapter { get; set; } = false;
         public void CreateWipeChapterEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_TITLE"), false);
             TextMenu.Item menuItem;
 
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
-            subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_HINT")));
 
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== ROOM ==="));
-            subMenu.Add(new TextMenu.Button("Remove Last Attempt") {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_TITLE")));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT")) {
                 OnPressed = () => {
                     Mod.RemoveLastAttempt();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new TextMenu.Button("Remove Last Death Streak") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_DEATH_STREAK")) {
                 OnPressed = () => {
                     Mod.RemoveLastDeathStreak();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new TextMenu.Button("Remove All Attempts") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_ALL_ATTEMPTS")) {
                 OnPressed = () => {
                     Mod.WipeRoomData();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new DoubleConfirmButton("Remove Golden Berry Deaths") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
                 },
@@ -442,8 +442,8 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== CHAPTER ==="));
-            subMenu.Add(new DoubleConfirmButton("Reset All Attempts") {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE")));
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_ATTEMPTS")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterData();
                 },
@@ -451,7 +451,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new DoubleConfirmButton("Reset All Golden Berry Deaths") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_GOLDEN_BERRY_DEATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryDeaths();
                 },
@@ -459,7 +459,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
             
-            subMenu.Add(new DoubleConfirmButton("Reset Golden Berry Collection") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_GOLDEN_BERRY_COLLECTION")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryCollects();
                 },
@@ -467,27 +467,27 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Vanilla Paths ==="));
-            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset All Vanilla Paths") {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")));
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.CheckPrepackagedPaths(reset:true);
                 },
                 HighlightColor = Color.Red,
             });
-            subMenu.AddDescription(menu, menuItem, "Resets the vanilla paths (1A-8C, Farewell) to the most up-to-date version");
-            subMenu.AddDescription(menu, menuItem, "The newest version includes Full-Clear path segments, if you want to do FCs!");
-            subMenu.AddDescription(menu, menuItem, "If you are in a map, you will have to restart the map to see the changes!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Live-Data ==="));
-            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset '{StatManager.FormatFileName}' file") { 
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE")));
+            subMenu.Add(menuItem = new DoubleConfirmButton($"{Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET")} '{StatManager.FormatFileName}' {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE")}") { 
                 OnDoubleConfirmation = () => {
                     Mod.StatsManager.ResetFormats();
                 },
                 HighlightColor = Color.Red,
             });
-            subMenu.AddDescription(menu, menuItem, "Resets the live-data format file back to the default values");
-            subMenu.AddDescription(menu, menuItem, "This will delete all custom formats!");
-            subMenu.AddDescription(menu, menuItem, "This will also generate explanations and examples for all new stats, if CCT is updated!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_3"));
 
 
             menu.Add(subMenu);
@@ -502,48 +502,48 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int SummarySelectedAttemptCount { get; set; } = 20;
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Summary", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_SUMMARY_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== In-Game Summary ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Enabled", IngameSummaryEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_TITLE")));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_ENABLED"), IngameSummaryEnabled) {
                 OnValueChange = v => {
                     IngameSummaryEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Bind a button to open the in-game summary!");
-            subMenu.AddDescription(menu, menuItem, "Default for navigating the summary: <Grab> go through pages, <Up>/<Down> navigate on a page");
-            subMenu.AddDescription(menu, menuItem, "You can replace the default navigation bindings by binding your own buttons!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Export (outdated) ==="));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_TITLE")));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS"), AttemptCounts, SummarySelectedAttemptCount) {
                 OnValueChange = (value) => {
                     SummarySelectedAttemptCount = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating the consistency stats, only the last X attempts will be counted");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS_HINT"));
 
 
-            subMenu.Add(menuItem = new TextMenu.Button("Export Tracker Summary") {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY")) {
                 OnPressed = () => {
                     Mod.CreateChapterSummary(SummarySelectedAttemptCount);
                 },
                 Disabled = Mod.CurrentChapterPath == null,
             });
-            subMenu.AddDescription(menu, menuItem, "This feature is outdated, I might update this eventually");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY_HINT"));
 
             menu.Add(subMenu);
         }
