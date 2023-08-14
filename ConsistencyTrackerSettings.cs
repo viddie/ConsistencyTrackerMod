@@ -589,39 +589,39 @@ namespace Celeste.Mod.ConsistencyTracker
         public LowDeathBehavior LiveDataStatLowDeathBehavior { get; set; } = LowDeathBehavior.AlwaysCheckpoints;
 
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live-Data Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_TITLE"), false);
             TextMenu.Item menuItem;
             
-            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE")));
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "DT-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Determination-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, "Debug Room Name"),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP")),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP")),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_DEBUG_ROOM_NAME")),
             };
             if (LiveDataRoomNameDisplayType == RoomNameDisplayType.CustomRoomName) {
                 LiveDataRoomNameDisplayType = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
             }
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT"), PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                 OnValueChange = (value) => {
                     LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Whether you want checkpoint names to be full or abbreviated in the room name.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_HINT"));
 
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<CustomNameBehavior>("Custom Room Name Behavior", LiveDataCustomNameBehavior) { 
+            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), LiveDataCustomNameBehavior) { 
                 OnValueChange = (value) => {
                     LiveDataCustomNameBehavior = value;
                     Mod.SaveChapterStats();
                 }
             });
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH"), LiveDataHideFormatsWithoutPath) {
                 OnValueChange = v => {
                     LiveDataHideFormatsWithoutPath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If a format depends on path information and no path is set, the format will be blanked out.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH_HINT"));
 
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
@@ -629,86 +629,86 @@ namespace Celeste.Mod.ConsistencyTracker
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS"), AttemptCounts, LiveDataSelectedAttemptCount) {
                 OnValueChange = (value) => {
                     LiveDataSelectedAttemptCount = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts in each room will be counted.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS_HINT"));
 
             List<int> DigitCounts = new List<int>() { 1, 2, 3, 4, 5 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES"), DigitCounts, LiveDataDecimalPlaces) {
                 OnValueChange = (value) => {
                     LiveDataDecimalPlaces = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Floating point numbers will be rounded to this decimal.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES_HINT"));
             
-            subMenu.Add(menuItem = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS"), LiveDataIgnoreUnplayedRooms) {
                 OnValueChange = v => {
                     LiveDataIgnoreUnplayedRooms = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS_HINT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"Success Rate Colors")); 
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS"))); 
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarLightGreenPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 95%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), LiveDataChapterBarGreenPercent) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE_DEFAULT"));
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarGreenPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarGreenPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 80%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), LiveDataChapterBarYellowPercent) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE_DEFAULT"));
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarYellowPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarYellowPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 50%");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE_DEFAULT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Stats Settings ==="));
-            subMenu.Add(new TextMenu.SubHeader($"These settings only apply to certain stats", false));
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>("Low Death Display Behavior", LiveDataStatLowDeathBehavior) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_HINT"), false));
+            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR"), LiveDataStatLowDeathBehavior) {
                 OnValueChange = (value) => {
                     LiveDataStatLowDeathBehavior = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, $"For the low death stat '{ListCheckpointDeathsStat.ListCheckpointDeaths}'");
-            subMenu.AddDescription(menu, menuItem, $"'Adaptive' will switch from checkpoints to rooms when there is 12 or fewer rooms in the chapter.");
+            subMenu.AddDescription(menu, menuItem, $"{Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_1")} '{ListCheckpointDeathsStat.ListCheckpointDeaths}'");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== File Output ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_TITLE")));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE"), LiveDataFileOutputEnabled) {
                 OnValueChange = (value) => {
                     LiveDataFileOutputEnabled = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Disabling this might improve performance. Ingame Overlay is unaffected by this.");
-            subMenu.AddDescription(menu, menuItem, "DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_2"));
 
             List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)ListFormat.Plain, "Plain"),
-                    new KeyValuePair<int, string>((int)ListFormat.Json, "JSON"),
+                    new KeyValuePair<int, string>((int)ListFormat.Plain, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_PLAIN")),
+                    new KeyValuePair<int, string>((int)ListFormat.Json, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_JSON")),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("List Output Format", ListTypes, (int)LiveDataListOutputFormat) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT"), ListTypes, (int)LiveDataListOutputFormat) {
                 OnValueChange = (value) => {
                     LiveDataListOutputFormat = (ListFormat)value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Output format for lists. Plain is easily readable, JSON is for programming purposes.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Format Editing ==="));
-            subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE")));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_EDITOR_IN_BROWSER")) {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
                     string path = System.IO.Path.GetFullPath(relPath);
@@ -716,14 +716,14 @@ namespace Celeste.Mod.ConsistencyTracker
                     Process.Start("explorer", path);
                 },
             });
-            subMenu.Add(menuItem = new TextMenu.Button("Open Format Text File").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE")).Pressed(() => {
                 string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
                 string path = System.IO.Path.GetFullPath(relPath);
                 Mod.LogVerbose($"Opening format file at '{path}'");
                 Process.Start("explorer", path);
             }));
-            subMenu.AddDescription(menu, menuItem, $"After manually editing, make sure to reload the format file with the button below!");
-            subMenu.Add(menuItem = new TextMenu.Button("Reload Format File") {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE_HINT"));
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_RELOAD_FORMAT_FILE")) {
                 OnPressed = () => {
                     Mod.StatsManager.LoadFormats();
                     Mod.SaveChapterStats();
