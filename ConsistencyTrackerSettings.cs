@@ -77,7 +77,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY"), TrackingOnlyWithGoldenBerry) {
                 OnValueChange = v => {
                     TrackingOnlyWithGoldenBerry = v;
@@ -108,7 +108,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_TRACK_NEGATIVE_STREAKS"), TrackNegativeStreaks) {
                 OnValueChange = v => {
                     TrackNegativeStreaks = v;
@@ -116,7 +116,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_VERBOSE_LOGGING"), VerboseLogging) {
                 OnValueChange = v => {
                     VerboseLogging = v;
@@ -144,7 +144,7 @@ namespace Celeste.Mod.ConsistencyTracker
             }
 
             
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
             int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
             List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
@@ -193,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")} ==="));
             ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
                 Disabled = Mod.DoRecordPath,
@@ -254,7 +254,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE")} ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             
@@ -342,7 +342,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE")} ==="));
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) { 
                 OnPressed = () => {
                     if (Mod.CurrentChapterPath == null) return;
@@ -367,7 +367,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_TITLE")} ==="));
             DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE")) {
                 Disabled = !hasPathList || segmentCount <= 1,
                 HighlightColor = Color.Red,
@@ -411,7 +411,7 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_TITLE")} ==="));
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT")) {
                 OnPressed = () => {
                     Mod.RemoveLastAttempt();
@@ -442,7 +442,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE")} ==="));
             subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_ATTEMPTS")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterData();
@@ -467,7 +467,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")} ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.CheckPrepackagedPaths(reset:true);
@@ -478,7 +478,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE")} ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton($"{Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET")} '{StatManager.FormatFileName}' {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE")}") { 
                 OnDoubleConfirmation = () => {
                     Mod.StatsManager.ResetFormats();
@@ -512,7 +512,7 @@ namespace Celeste.Mod.ConsistencyTracker
             }
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_ENABLED"), IngameSummaryEnabled) {
                 OnValueChange = v => {
                     IngameSummaryEnabled = v;
@@ -522,7 +522,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_TITLE")} ==="));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
@@ -592,7 +592,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_TITLE"), false);
             TextMenu.Item menuItem;
             
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE")} ==="));
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP")),
                     new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP")),
@@ -675,7 +675,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE_DEFAULT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE")} ==="));
             subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_HINT"), false));
             subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR"), LiveDataStatLowDeathBehavior) {
                 OnValueChange = (value) => {
@@ -687,7 +687,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE"), LiveDataFileOutputEnabled) {
                 OnValueChange = (value) => {
                     LiveDataFileOutputEnabled = value;
@@ -707,7 +707,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE")));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE")} ==="));
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_EDITOR_IN_BROWSER")) {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
@@ -777,32 +777,32 @@ namespace Celeste.Mod.ConsistencyTracker
         public int ExternalOverlayChapterBorderWidthMultiplier { get; set; } = 2;
 
         public void CreateExternalOverlayEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("External Overlay Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_OPEN_OVERLAY_IN_BROWSER")).Pressed(() => {
                 string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "CCTOverlay.html"));
                 Process.Start("explorer", path);
             }));
 
 
-            subMenu.Add(new TextMenu.SubHeader("REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS"));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_REFRESH_HINT")));
             //General Settings
-            subMenu.Add(new TextMenu.SubHeader("=== General Settings ==="));
-            subMenu.Add(menuItem = new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME"), (i) => i == 1 ? $"1 {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECOND")}" : $"{i} {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECONDS")}", 1, 59, ExternalOverlayRefreshTimeSeconds) {
                 OnValueChange = (value) => {
                     ExternalOverlayRefreshTimeSeconds = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "The delay between two updates of the overlay.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_HINT"));
             List<int> attemptsList = new List<int>() { 5, 10, 20, 100 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS"), attemptsList, ExternalOverlayAttemptsCount) {
                 OnValueChange = (value) => {
                     ExternalOverlayAttemptsCount = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts will be used for calculation");
-            subMenu.Add(new TextMenu.Slider("Text Outline Size", (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS_HINT"));
+            subMenu.Add(new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_OUTLINE_SIZE"), (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
                 OnValueChange = (value) => {
                     ExternalOverlayTextOutlineSize = value;
                 }
@@ -817,65 +817,65 @@ namespace Celeste.Mod.ConsistencyTracker
                     "Impact",
                     "Comic Sans MS",
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT"), fontList, ExternalOverlayFontFamily) {
                 OnValueChange = v => {
                     ExternalOverlayFontFamily = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If a font doesn't show up on the overlay, you might need to install it first (just google font name lol)");
-            subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT_HINT"));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_COLORBLIND_MODE"), ExternalOverlayColorblindMode) {
                 OnValueChange = v => {
                     ExternalOverlayColorblindMode = v;
                 }
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Component Settings ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TITLE")} ==="));
 
             //Text Segment Display
-            subMenu.Add(new TextMenu.SubHeader("The text stats segment at the top left / top middle / top right"));
-            subMenu.Add(new TextMenu.OnOff("Text Stats Display Enabled (All)", ExternalOverlayTextDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_ALL"), ExternalOverlayTextDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayEnabled = v;
                 }
             });
             List<string> availablePresets = new List<string>() {
-                    "Default",
-                    "Low Death",
-                    "Golden Attempts",
-                    "Custom Style 1",
-                    "Custom Style 2",
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_1"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_2"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_3"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_4"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_5"),
                 };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Stats Preset", availablePresets, ExternalOverlayTextDisplayPreset) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET"), availablePresets, ExternalOverlayTextDisplayPreset) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayPreset = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Left Enabled", ExternalOverlayTextDisplayLeftEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_LEFT"), ExternalOverlayTextDisplayLeftEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayLeftEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Middle Enabled", ExternalOverlayTextDisplayMiddleEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_MIDDLE"), ExternalOverlayTextDisplayMiddleEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayMiddleEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Right Enabled", ExternalOverlayTextDisplayRightEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_RIGHT"), ExternalOverlayTextDisplayRightEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayRightEnabled = v;
                 }
             });
 
             //Chapter Bar
-            subMenu.Add(new TextMenu.SubHeader("The bars representing the rooms and checkpoints in a map"));
-            subMenu.Add(new TextMenu.OnOff("Chapter Bar Enabled", ExternalOverlayChapterBarEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_ENABLE"), ExternalOverlayChapterBarEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayChapterBarEnabled = v;
                 }
             });
 
             //subMenu.Add(new TextMenu.SubHeader($"The width of the black bars between rooms on the chapter display"));
-            subMenu.Add(new TextMenuExt.IntSlider("Chapter Bar Border Width", 1, 10, ExternalOverlayChapterBorderWidthMultiplier) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_BORDER_WIDTH"), 1, 10, ExternalOverlayChapterBorderWidthMultiplier) {
                 OnValueChange = (value) => {
                     ExternalOverlayChapterBorderWidthMultiplier = value;
                 }
@@ -886,8 +886,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             //Room Attempts Display
-            subMenu.Add(new TextMenu.SubHeader("The red/green dots that show the last X attempts in a room"));
-            subMenu.Add(new TextMenu.OnOff("Room Attempts Display Enabled", ExternalOverlayRoomAttemptsDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_ENABLE"), ExternalOverlayRoomAttemptsDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayRoomAttemptsDisplayEnabled = v;
                 }
@@ -895,23 +895,23 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             //Golden Share Display
-            subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-            subMenu.Add(new TextMenu.OnOff("Golden Share Display Enabled", ExternalOverlayGoldenShareDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_ENABLE"), ExternalOverlayGoldenShareDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenShareDisplayEnabled = v;
                 }
             });
-            subMenu.Add(menuItem = new TextMenu.OnOff("Golden Share Show Session Deaths", ExternalOverlayGoldenShareDisplayShowSession) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS"), ExternalOverlayGoldenShareDisplayShowSession) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenShareDisplayShowSession = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shown in parenthesis after the total checkpoint death count");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS_HINT"));
 
 
             //Golden PB Display
-            subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-            subMenu.Add(new TextMenu.OnOff("Golden PB Display Enabled", ExternalOverlayGoldenPBDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_ENABLE"), ExternalOverlayGoldenPBDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenPBDisplayEnabled = v;
                 }
