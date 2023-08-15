@@ -1065,34 +1065,34 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayTextDebugPositionEnabled { get; set; } = false;
 
         public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Overlay Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
-            subMenu.Add(new TextMenu.SubHeader("=== Debug Map ==="));
-            subMenu.Add(new TextMenu.OnOff("Show Room Names", ShowCCTRoomNamesOnDebugMap) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_ROOM_NAMES"), ShowCCTRoomNamesOnDebugMap) {
                 OnValueChange = v => {
                     ShowCCTRoomNamesOnDebugMap = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Show Success Rate Borders", ShowSuccessRateBordersOnDebugMap) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_SUCCESS_RATE_BORDERS"), ShowSuccessRateBordersOnDebugMap) {
                 OnValueChange = v => {
                     ShowSuccessRateBordersOnDebugMap = v;
                 }
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Text Overlay ==="));
-            subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ENABLE"), IngameOverlayTextEnabled) {
                 OnValueChange = v => {
                     IngameOverlayTextEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Only Show Overlay In Menu", IngameOverlayOnlyShowInPauseMenu) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ONLY_SHOW_IN_MENU"), IngameOverlayOnlyShowInPauseMenu) {
                 OnValueChange = v => {
                     IngameOverlayOnlyShowInPauseMenu = v;
                 }
@@ -1103,25 +1103,25 @@ namespace Celeste.Mod.ConsistencyTracker
             //Get all formats
             List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
             List<string> availableFormatsGolden = new List<string>(availableFormats);
-            string noneFormat = "<same>";
+            string noneFormat = Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_NO_FORMAT");
             availableFormatsGolden.Insert(0, noneFormat);
-            string descAvailableFormats = $"The available formats can be changed by editing 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'";
-            string descAvailableFormatsGolden = $"Room transition with golden required to activate. '{noneFormat}' will use same format as above.";
-            string descHideWithGolden = $"Turn this on to hide this text while in a golden run";
+            string descAvailableFormats = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_EDIT_HINT")} 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'";
+            string descAvailableFormatsGolden = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_1")} '{noneFormat}' {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_2")}";
+            string descHideWithGolden = Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_0");
 
 
             bool hasStats = Mod.CurrentChapterStats != null;
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
 
             // ========== Text 1 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 1 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_ENABLE"), IngameOverlayText1Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText1Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(1, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText1Position) {
+            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText1Position) {
                 OnValueChange = v => {
                     IngameOverlayText1Position = v;
                     Mod.IngameOverlay.SetTextPosition(1, v);
@@ -1129,28 +1129,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText1Format = GetFormatOrDefault(IngameOverlayText1Format, availableFormats);
             IngameOverlayText1FormatGolden = GetFormatOrDefault(IngameOverlayText1FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText1Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText1Format) {
                 OnValueChange = v => {
                     IngameOverlayText1Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format With Golden", availableFormatsGolden, IngameOverlayText1FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText1FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText1FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText1HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText1HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText1HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(1, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText1Size = value;
                     Mod.IngameOverlay.SetTextSize(1, value);
@@ -1162,13 +1162,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(1, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText1OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText1OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(1, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText1OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText1OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(1, value);
@@ -1177,14 +1177,14 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 2 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 2 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 2 Enabled", IngameOverlayText2Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_ENABLE"), IngameOverlayText2Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText2Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(2, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText2Position) {
+            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText2Position) {
                 OnValueChange = v => {
                     IngameOverlayText2Position = v;
                     Mod.IngameOverlay.SetTextPosition(2, v);
@@ -1192,28 +1192,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText2Format = GetFormatOrDefault(IngameOverlayText2Format, availableFormats);
             IngameOverlayText2FormatGolden = GetFormatOrDefault(IngameOverlayText2FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText2Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText2Format) {
                 OnValueChange = v => {
                     IngameOverlayText2Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText2FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText2FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText2FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText2HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText2HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText2HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(2, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText2Size = value;
                     Mod.IngameOverlay.SetTextSize(2, value);
@@ -1225,13 +1225,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(2, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText2OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText2OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(2, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText2OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText2OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(2, value);
@@ -1239,14 +1239,14 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             // ========== Text 3 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 3 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 3 Enabled", IngameOverlayText3Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_ENABLE"), IngameOverlayText3Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText3Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(3, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText3Position) {
+            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText3Position) {
                 OnValueChange = v => {
                     IngameOverlayText3Position = v;
                     Mod.IngameOverlay.SetTextPosition(3, v);
@@ -1254,28 +1254,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText3Format = GetFormatOrDefault(IngameOverlayText3Format, availableFormats);
             IngameOverlayText3FormatGolden = GetFormatOrDefault(IngameOverlayText3FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText3Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText3Format) {
                 OnValueChange = v => {
                     IngameOverlayText3Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText3FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText3FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText3FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText3HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText3HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText3HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(3, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText3Size = value;
                     Mod.IngameOverlay.SetTextSize(3, value);
@@ -1287,13 +1287,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(3, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText3OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText3OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(3, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText3OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText3OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(3, value);
@@ -1302,14 +1302,14 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 4 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 4 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 4 Enabled", IngameOverlayText4Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_ENABLE"), IngameOverlayText4Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText4Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(4, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText4Position) {
+            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText4Position) {
                 OnValueChange = v => {
                     IngameOverlayText4Position = v;
                     Mod.IngameOverlay.SetTextPosition(4, v);
@@ -1317,28 +1317,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText4Format = GetFormatOrDefault(IngameOverlayText4Format, availableFormats);
             IngameOverlayText4FormatGolden = GetFormatOrDefault(IngameOverlayText4FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText4Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText4Format) {
                 OnValueChange = v => {
                     IngameOverlayText4Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText4FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText4FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText4FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText4HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText4HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText4HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(4, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText4Size = value;
                     Mod.IngameOverlay.SetTextSize(4, value);
@@ -1350,13 +1350,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(4, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText4OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText4OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(4, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText4OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText4OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(4, value);
@@ -1464,11 +1464,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool LogFlagFacing { get; set; } = false;
 
         public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Inspector Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader($"=== General ==="));
-            subMenu.Add(new TextMenu.Button("Open Inspector In Browser") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_OPEN_IN_BROWSER")) {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
                     string path = System.IO.Path.GetFullPath(relPath);
@@ -1476,79 +1476,79 @@ namespace Celeste.Mod.ConsistencyTracker
                     Process.Start("explorer", path);
                 },
             });
-            subMenu.Add(menuItem = new TextMenu.OnOff("Recording Physics Enabled", LogPhysicsEnabled) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_ENABLE"), LogPhysicsEnabled) {
                 OnValueChange = v => {
                     LogPhysicsEnabled = v;
                     Mod.Log($"Logging physics {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Records various physics properties, to be displayed in the physics inspector");
-            subMenu.AddDescription(menu, menuItem, "Enabling this settings starts the recording, disabling it stops the recording");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Death", LogSegmentOnDeath) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH"), LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;
                     Mod.Log($"Recording segmenting on death {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player dies.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Load State", LogSegmentOnLoadState) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE"), LogSegmentOnLoadState) {
                 OnValueChange = v => {
                     LogSegmentOnLoadState = v;
                     Mod.Log($"Recording segmenting on loading state {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player loads a savestate.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Copy TAS File To Clipboard", LogPhysicsInputsToTasFile) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD"), LogPhysicsInputsToTasFile) {
                 OnValueChange = v => {
                     LogPhysicsInputsToTasFile = v;
                     Mod.Log($"Recordings inputs to tas file {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped");
-            subMenu.AddDescription(menu, menuItem, "Multiple buttons for one input don't work properly!");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogFlipY) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_2"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y"), LogFlipY) {
                 OnValueChange = v => {
                     LogFlipY = v;
                     Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
-            subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
-            subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_3"));
 
             
-            subMenu.Add(new TextMenu.SubHeader($"=== Optional Flags ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Count Flag", LogFlagDashes) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT"), LogFlagDashes) {
                 OnValueChange = v => {
                     LogFlagDashes = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagDashes)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player has on any frame");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Max Dash Count Flag", LogFlagMaxDashes) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT"), LogFlagMaxDashes) {
                 OnValueChange = v => {
                     LogFlagMaxDashes = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagMaxDashes)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player can have at max usually. Only works when above is enabled.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Direction Flag", LogFlagDashDir) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION"), LogFlagDashDir) {
                 OnValueChange = v => {
                     LogFlagDashDir = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagDashDir)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows the last dash's direction on any frame");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Player Facing Flag", LogFlagFacing) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING"), LogFlagFacing) {
                 OnValueChange = v => {
                     LogFlagFacing = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagFacing)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows the direction the player is facing on any frame");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING_HINT"));
 
             menu.Add(subMenu);
         }
@@ -1568,11 +1568,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Pace Ping Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
@@ -1585,17 +1585,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
 
-            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Pace Pings Enabled", PacePingEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE"), PacePingEnabled) {
                 OnValueChange = v => {
                     PacePingEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If you own a Discord server, you can use this feature to automatically notify");
-            subMenu.AddDescription(menu, menuItem, "users in your server when you are on a good run! You will need to setup a");
-            subMenu.AddDescription(menu, menuItem, "Discord WebHook (Google how to) and paste the URL in the settings below.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
 
-            subMenu.Add(new TextMenu.Button("Import Default Ping Message from Clipboard") { 
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing default ping message from clipboard...");
@@ -1607,7 +1607,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_WEBHOOK_IMPORT")).Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
@@ -1616,26 +1616,26 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
-            subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_URL_HINT"));
 
-            subMenu.Add(menuItem = new TextMenu.Button("Reload state file") {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE")) {
                 OnPressed = Mod.PacePingManager.ReloadStateFile,
             });
-            subMenu.AddDescription(menu, menuItem, "If you manually edit the state.json file, use this button to reload it in CCT");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader($"=== PB Ping ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_TITLE")} ==="));
             List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
-                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, "No Ping"),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, "Ping On PB Entry"),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, "Ping On PB Passed"),
+                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
             };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>("Ping On PB?", pbPingTypes, PacePingPbPingType) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENABLE"), pbPingTypes, PacePingPbPingType) {
                 OnValueChange = (newValue) => {
                     PacePingPbPingType = newValue;
                 }
             });
 
-            subMenu.Add(new TextMenu.Button("Import PB Ping Message from Clipboard") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing pb ping message from clipboard...");
@@ -1649,8 +1649,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
-            subMenu.Add(new TextMenu.SubHeader($"=== Current Room{roomAddition} ==="));
-            TextMenu.Button importMessageButton = new TextMenu.Button("Import Ping Message from Clipboard") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TITLE")}{roomAddition} ==="));
+            TextMenu.Button importMessageButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing custom ping message from clipboard...");
@@ -1662,17 +1662,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = paceTiming == null,
             };
-            TextMenu.Button testButton = new TextMenu.Button("Test Pace/PB Ping For This Room") {
+            TextMenu.Button testButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING")) {
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
             };
-            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff($"Enable Embeds In Ping", paceTiming == null ? true : paceTiming.EmbedsEnabled) {
+            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_ENABLE_EMBEDS"), paceTiming == null ? true : paceTiming.EmbedsEnabled) {
                 OnValueChange = (isEnabled) => {
                     Mod.PacePingManager.SavePaceTimingEmbedsEnabled(isEnabled);
                 },
                 Disabled = paceTiming == null
             };
-            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff($"Pace Ping This Room", paceTiming != null) {
+            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
                 OnValueChange = (isEnabled) => {
                     bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
                     importMessageButton.Disabled = !isNowEnabled;
@@ -1683,22 +1683,22 @@ namespace Celeste.Mod.ConsistencyTracker
             };
 
             subMenu.Add(togglePacePingButton);
-            subMenu.AddDescription(menu, togglePacePingButton, "Sends a message to Discord when entering this room with the golden berry");
+            subMenu.AddDescription(menu, togglePacePingButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT"));
             subMenu.Add(importMessageButton);
             subMenu.Add(toggleEmbedsEnabledButton);
             subMenu.Add(testButton);
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== All Deaths ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Message On Every Golden Death", PacePingAllDeathsEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH"), PacePingAllDeathsEnabled) {
                 OnValueChange = v => {
                     PacePingAllDeathsEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Will send a message to Discord when you die in any room with the golden berry");
-            subMenu.AddDescription(menu, menuItem, "You'd probably not want to ping a role for this");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_2"));
 
-            subMenu.Add(new TextMenu.Button("Import All Deaths Message from Clipboard") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing all deaths message from clipboard...");
@@ -1710,7 +1710,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT")).Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
@@ -1719,8 +1719,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
-            subMenu.AddDescription(menu, menuItem, "This WebHook can be different from the pace ping WebHook.");
-            subMenu.AddDescription(menu, menuItem, "ALSO DON'T SHOW THIS URL ON STREAM");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2"));
 
             menu.Add(subMenu);
         }
