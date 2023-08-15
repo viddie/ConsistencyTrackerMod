@@ -298,33 +298,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     string text = TextInput.GetClipboardText().Trim();
                     Mod.Log($"Importing custom room name from clipboard...");
                     try {
-                        if (Mod.CurrentChapterPath == null) return;
-                        if (Mod.CurrentChapterPath.CurrentRoom == null) return;
-
-                        if (string.IsNullOrEmpty(text)) text = null;
-
-                        string currentRoomName = Mod.CurrentChapterPath.CurrentRoom.DebugRoomName;
-
-                        int count = 0;
-                        if (CustomRoomNameAllSegments) { //Find all other rooms with same name in other segments 
-                            foreach (PathSegment segment in Mod.CurrentChapterPathSegmentList.Segments) {
-                                foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
-                                    foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                                        if (rInfo.DebugRoomName == currentRoomName) {
-                                            rInfo.CustomRoomName = text;
-                                            count++;
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            Mod.CurrentChapterPath.CurrentRoom.CustomRoomName = text;
-                            count++;
-                        }
-                        
-                        Mod.Log($"Set custom room name of room '{Mod.CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{text}' (Count: {count})");
-                        Mod.SavePathToFile();
-                        Mod.SaveChapterStats();//Recalc stats
+                        Mod.SetCustomRoomName(text);
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import custom room name from clipboard: {ex}");
                     }
@@ -2066,12 +2040,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonToggleTextOverlayText4 { get; set; }
 
         public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
-
         public ButtonBinding ButtonAddRoomSuccess { get; set; }
-
         public ButtonBinding ButtonRemoveRoomLastAttempt { get; set; }
-
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
+        
+        public ButtonBinding ButtonImportCustomRoomNameFromClipboard { get; set; }
 
         public ButtonBinding ButtonToggleRecordPhysics { get; set; }
 

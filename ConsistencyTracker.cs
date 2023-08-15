@@ -1714,6 +1714,39 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
+        public void SetCustomRoomName(string name, RoomInfo room = null) {
+            if (CurrentChapterPath == null || name == null) return;
+            
+            if (room == null) {
+                room = CurrentChapterPath.CurrentRoom;
+            }
+            if (room == null) return;
+            
+            name = name.Trim();
+            if (string.IsNullOrEmpty(name)) name = null;
+            
+            string currentRoomName = room.DebugRoomName;
+            int count = 0;
+            if (ModSettings.CustomRoomNameAllSegments) { //Find all other rooms with same name in other segments 
+                foreach (PathSegment segment in CurrentChapterPathSegmentList.Segments) {
+                    foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
+                        foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                            if (rInfo.DebugRoomName == currentRoomName) {
+                                rInfo.CustomRoomName = name;
+                                count++;
+                            }
+                        }
+                    }
+                }
+            } else {
+                CurrentChapterPath.CurrentRoom.CustomRoomName = name;
+                count++;
+            }
+
+            Log($"Set custom room name of room '{CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{name}' (Count: {count})");
+            SavePathToFile();
+            SaveChapterStats();//Recalc stats
+        }
 
         #endregion
 

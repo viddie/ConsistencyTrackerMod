@@ -163,6 +163,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 PhysicsLogger.Settings.IsRecording = !PhysicsLogger.Settings.IsRecording;
                 Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
             }
+            if (Mod.ModSettings.ButtonImportCustomRoomNameFromClipboard.Pressed) {
+                string text = TextInput.GetClipboardText().Trim();
+                Mod.Log($"Importing custom room name from clipboard...");
+                try {
+                    Mod.SetCustomRoomName(text);
+                } catch (Exception ex) {
+                    Mod.Log($"Couldn't import custom room name from clipboard: {ex}");
+                }
+            }
         }
 
         public void InitStatTextOptions() {
