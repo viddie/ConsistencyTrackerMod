@@ -1758,7 +1758,7 @@ namespace Celeste.Mod.ConsistencyTracker
         //public bool PacePingEnabled { get; set; } = false;
 
         public void CreateFAQEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("FAQ", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_FAQ_TITLE"), false);
 
             List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() {
                 new FAQEntry.FAQSectionModel(){
