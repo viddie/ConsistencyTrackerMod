@@ -1,7 +1,8 @@
 # NOTES:
 # The # Symbol at the start of a line counts as a Comment. To include in dialog, use a \#
 # The . Symbol will cause a pause unless escaped with \. (ex: Mr. Oshiro has a pause, Mr\. Oshiro does not)
-# Newlines automatically create a Page Break, unless there is an {n} command on the previous line
+# Newlines automatically create a Page Break, unless there is an {n}
+ command on the previous line
 # Commands: Anything inside of curly braces {...} is a command and should not be translated.
 
 # Inline Text Commands:
@@ -10,13 +11,16 @@
 # {>> x}changes speed at which characters are displayed{>>}
 # {# 000000}this text is black{#} (uses HEX color values)
 # {+MENU_BEGIN} inserts the dialog from the MENU_BEGIN value (in English, "CLIMB")
-# {n} creates a newline, without a page break
+# {n}
+ creates a newline, without a page break
 # {0.5} creates a 0.5 second pause
 # {big}this text is large{/big}
 
 # Gameplay Control Commands (should never change)
 # {trigger x} this triggers an in-game event
 # {anchor} controls the visual position of the textbox in-game
+
+MODOPTION_CCT_NAME= Consistency Tracker
 
 MODOPTION_CCT_TRACKING_SETTINGS_ON= On
 MODOPTION_CCT_TRACKING_SETTINGS_OFF= Off
@@ -337,3 +341,255 @@ MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_IMPORT= Import All Deaths Messag
 MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT= Import WebHook URL from Clipboard
 MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1= This WebHook can be different from the pace ping WebHook.
 MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2= ALSO DON'T SHOW THIS URL ON STREAM
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_TITLE= Path Management
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_Q= What is a Path?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_A=
+    A path is a configuration of Checkpoints and Rooms, in the order that you would beat them in during a run of whatever challenge you want to do. All vanilla maps come with pre-installed paths. 1A-8A and Farewell also have a separate pre-installed Path for full clear runs!{n}
+    Every Checkpoint has a name and an abbreviation{n}
+    Every Room can have a custom room name, and if not, it will get a name from the Checkpoint it is in + the room number in the Checkpoint. Additionally, Rooms can be marked as 'transition' rooms, making them not show up in many stat calculations
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_Q= What is a Path Segment?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_A=
+    A later addition to the Path system added Path Segments.{n}
+    Each map can have multiple Path Segments. A Path Segment is a Path with a given name, for example 'Normal', 'Full Clear', 'Silver 1' or whatever else you can think of.{n}
+    Every Path Segment has it's own separate stats!{n}
+    Using this you can track multiple different Paths for a single map (e.g. if you do segments of bigger maps, such as 9D), and switch between them easily in the 'Path Recording' menu.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_Q= How do I record a Path?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_A=
+    1. Go into the first room of the Path Segment you want to record.{n}
+    2. Go to the menu 'Path Recording' and hit the button 'Start Path Recording'{n}
+    3. Play through the map as normal (you can do this with invincibility and stuff if you want){n}
+    4. In the last room of the segment, hit the button 'Save Path'. Alternatively, complete the map and the path will be saved automatically.{n}{n}
+    You have now recorded a Path and can start tracking!
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_Q= How do I rename a Checkpoint in CCT?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_A=
+    Sadly this cannot be done in the game currently.{n}
+    You can however manually edit the file, see the FAQ entry below.{n}
+    In the future, I hope to add an actual Path editing tool.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_Q= How can I manually edit a Path file?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_A=
+    The easiest way to manually edit a path is:{n}
+    1. Go into the map you want to edit the path for{n}
+    2. Export the Path to your clipboard with 'Path Recording -> Export Path To Clipboard'{n}
+    3. Paste the Path into a text editor of your choice{n}
+    4. Edit the Path to your liking. You can rename checkpoints, rooms, and change the order of rooms and checkpoints. You can add custom room names and set rooms as transition rooms. But beware: The path needs to follow the JSON file format{n}
+    5. Copy the edited Path back to your clipboard (CTRL + A to select all text, CTRL + C to copy){n}
+    6. Import the Path from your clipboard with 'Path Recording' -> 'Import Path from Clipboard'{n}{n}
+    If done correctly, the changes should be visible immediately. If there was any error with the file format, the import will be stopped and your original path will NOT be overwritten.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_Q= I accidentally screwed up a vanilla Path file...
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_A=
+    You can always reset all vanilla Path files back to the original by going to '!!Data Wipe!! -> Reset All Vanilla Paths'
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_Q= I don't see the 'Full Clear' segments for 1A-8A/Farewell...
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_A=
+    The 'Full Clear' segments were added in a recent update. If you had CCT installed before the update, the vanilla path files aren't automatically updated.{n}
+    To get all default segments added, hit the button '!!Data Wipe!! -> Reset All Vanilla Paths'. This will reset all vanilla paths to the up-to-date original.
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_TITLE= Stats Management
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_Q= What stats are there?
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_A=
+    There are 3 types of stats being tracked:{n}{n}
+    1. Dying to a room with the golden{n}
+    2. Dying in / Completing a room (independently of the golden){n}
+    3. Collecting the golden{n}{n}
+    Many stats are calculated off of the golden deaths, such as:{n}
+    - Best Runs{n}
+    - Current Run \#{n}
+    - Current Run Top x%{n}
+    - Room Choke Rate{n}
+    - Room Golden Success Rate{n}
+    - ...{n}{n}
+    But there are also a bunch of stats that are calculated off of normal room completions/deaths, such as:{n}
+    - Room/Checkpoint/Chapter Success Rate{n}
+    - Room Streak / Max Streak{n}
+    - Golden Chance from Start / Golden Chance to End for any room{n}
+    - ...{n}{n}
+    For the normal room completions/deaths stats, you can configure how many of the last attempts should be counted for the calculation (default: 20){n}{n}{n}
+    To get a list of all possible calculated stats take a look at the Live-Data Editor!
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_Q= Where are the stats saved?
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_A=
+    All stats are saved separate from the path. This means that you can change the path at will, and the stats stay the same.{n}{n}
+    The raw stats file is saved in the location:{n}
+    <CelesteFolder>\ConsistencyTracker\stats\<MapName>.json{n}
+    Where the <MapName> is the SID of the map (usually the campaign's or mapper's name) + the side name (Normal, BSide, CSide)
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_Q= I accidentally collected a golden berry while practicing...
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_A=
+    There is currently no ingame option to remove accidental collects of goldens, but here is how you can remove it by editing the stats file:{n}{n}
+    1. Don't be in the map you want to edit the stats for{n}
+    2. Find the stats file in '<CelesteFolder>\ConsistencyTracker\stats\<MapName>.json'{n}
+    3. Find the line that says "goldenCollectedCount"{n}
+    4. Set the value back down to 0{n}
+    5. Save the file{n}{n}
+    Once you enter the map now the golden will be gone from CCT's best runs.{n}{n}
+    It will still show up in the Ingame Summary's session history, but fixing this is much harder to do (impossible?) so I won't go into detail here.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_TITLE= Live-Data
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_Q= What is Live-Data?
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_A=
+    In the beginning of CCT, only raw stats were output to text files. External applications had to calculate any meaningful stat on their own to make use of the data.{n}{n}
+    Live-Data added mod-side calculation of stats, and a way of letting the user decide how they are formatted. As of writing this FAQ there are about 80 different stats and pieces of information from the current game state that can be output through Live-Data.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_Q= What is a Live-Data format?
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_A=
+    A 'format' instructs Live-Data how to output information. Each format has a name and an arbitrary text containing certain placeholders.{n}
+    Placeholders look like this: {category:name}. Live-Data will insert the desired stat in place of the placeholder.{n}{n}
+    Example: The format{n}
+    'Current: {room:name} | Room: ({room:roomNumberInChapter}/{chapter:roomCount})'{n}
+    could produce the output{n}
+    'Current: DT-7 | Room: (59/93)'{n}
+    when playing Farewell.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_Q= I don't see format 'xy' in my list of formats, where is it?
+MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_A=
+    "When new default formats are added in an update, they will not be added to your list of formats automatically, since that could potentially overwrite changes you made manually. To get the most up-to-date default formats, you can reset the 'format.txt' file back to default using the button:{n}
+    Mod Options -> !!Data Wipe!! -> Reset 'format.txt' file{n}
+    but beware that this will reset any custom formats you have created, so back those up first!
+
+MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_Q= How can I make my own format?
+MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_A=
+    There are 2 ways to make your own format:{n}{n}
+    Format Editor{n}
+    1. Start the Format Editor through 'Mod Options -> Live-Data Settings -> Start Format Editor In Browser'{n}
+    2. In the Format Editor, click the button 'New Format' in the bottom left corner{n}
+    3. Give your format a name.{n}
+    4. Type whatever you want in to the format text section. You can see all available placeholders in the panel on the right side. Hover over a placeholder to view an explanation of what it is for and click on a placeholder to insert it into the format text. If you are in a map, you will be able to see a preview of how the format looks in the box at the bottom.{n}
+    5. Hit the button 'Create new Format' at the bottom to save your format{n}{n}
+    Manual File Editing{n}
+    1. Open the 'format.txt' file through 'Mod Options -> Live-Data Settings -> Open Format Text File' in your text editor{n}
+    2. Add a new line for your custom format at the bottom of the file{n}
+    3. Write your format in the pattern: 'name;format'. To see all available placeholder with live previews I would still recommend the Format Editor Tool.{n}
+    4. Save the file{n}
+    5. Reload the format file through 'Mod Options -> Live-Data Settings -> Reload Format File'{n}{n}
+    The newly added format should now be selectable in the In-Game overlay!
+
+MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_Q= I would like to see a certain stat added...
+MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_A=
+    If you have an idea for a new stat, feel free to message me on Discord (viddie#4751) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!
+
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_TITLE= In-Game Overlay
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_Q= Why does it say <path> everywhere in the In-Game Overlay?
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_A=
+    CCT doesn't know how you want to go through the map from start to finish. To tell CCT how you want to do that, you need a path. By default, all vanilla maps come with a path pre-installed.{n}
+    If you want to track modded maps, you need to record a path yourself. See the Path Recording section in the FAQ for more details.
+
+MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_Q= The In-Game Overlay is annoying in maps where I don't want to track anything.
+MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_A=
+    There is an setting to automatically hide the overlay in maps where you don't have a path recorded:{n}
+    'Live-Data Settings' -> 'Hide Formats When No Path'
+
+MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_Q= How can I customize the available formats for the In-Game Overlay?
+MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_A=
+    The available formats are taken from the Live-Data feature. Any changes to it will be available in the In-Game Overlay.{n}
+    Check out the Live-Data section in the FAQ for more details.
+
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_TITLE= In-Game Summary
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_Q= What is the In-Game Summary?
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_A=
+    The In-Game Summary is a way to display a bunch of data tracked by CCT within the game. It currently displays:{n}{n}
+    - Session History: You can look through all of your previous sessions and see how you improved!{n}
+    - Overall Stats: How your stats look overall in a map and how it developed over the sessions.{n}
+    - Charts: Choke Rate / Room Entries chart for your overall stats and each session.{n}
+    - Graphs: A funky looking graphs of all your golden deaths throughout the map.{n}{n}
+    All of the displayed data is hand programmed, including the charts/graphs/tables. As such, issues are almost guaranteed.{n}
+    There will likely be fixes/changes to this overlay in the future. If you have any suggestions, feel free to message me!
+
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_Q= How do I use the In-Game Summary?
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_A=
+    In the Mod Options of CCT you can bind a button to open the In-Game Summary. Whenever you are in a map, you can press that button to bring up the Summary overlay.{n}{n}
+    Navigating the In-Game Summary by default uses these buttons:{n}
+    - <Grab> to switch through the tabs{n}
+    - <Up>/<Down> to navigate within a tab{n}{n}
+    These button bindings can be changed in Mod Options.
+
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_TITLE= External Tools
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_Q= Tool XYZ shows 'Unable to fetch (...), is CCT running?' when CCT is running!
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_A=
+    This happens when an external tool is unable to reach the CCT API.{n}
+    The most likely cause for this is, that you have the 'Debug Mode' in the Everest settings set to 'Off'. Setting it to either 'Everest' or 'Always' should make the API reachable for the external tools.{n}{n}
+    Hint: You can test if the API is reachable by going to 'http://localhost:32270/' in your browser. If the page doesn't load, the API is not available.
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_TITLE= Physics Inspector
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_Q= What is the Physics Inspector?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_A=
+    The Physics Inspector is a tool to record yourself playing a map and then looking at the recorded data in your browser, frame by frame.{n}
+    It records:{n}
+    - Player data such as: Position, Speed/Velocity, Acceleration, Inputs, Stamina, Liftboost, etc.{n}
+    - Map data such as: Room boundaries, Solid tiles, Solid/Trigger entities{n}
+    - The map data is static tho. It is only recorded once on each room entry and does not change, so movement of entities isn't visible!{n}{n}
+    If you ever wondered "How did I just die???", this tool can help you figure that out.
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_Q= How do I use it?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_A=
+    To make a recording, enable the setting 'Mod Options -> Physics Inspector Settings -> Recording Physics Enabled'.{n}{n}
+    - Whenever you die or load a savestate, a recording is saved.{n}
+    - You can view a recording by going to 'Mod Options -> Physics Inspector Settings -> Open Inspector In Browser'{n}
+    (I could also recommend bookmarking that page. Reload the tab to get the newest recordings!){n}
+    - Now you can pan/zoom around the map and hover over frames to see the exact physics data{n}
+    - The frames are color coded: White (No special state), Red (Dashing), Green (Holding the Jump button), Yellow (Feather), Black (Dead){n}{n}
+    Only the 10 most recent recordings are stored and available to inspect. You can save a recent recording to make it permanently available to inspect, by hitting the 'Save' button in the top left corner and giving the recording a name
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_Q= Why is this in CCT and not it's own mod?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_A=
+    Physics Inspector requires many parts of the infrastructure that is already available in CCT. In the future it would be good to make this it's own mod, but, for the time being, it is easier to develop it as part of CCT.
+
+MODOPTION_CCT_FAQ_PACE_PING_TITLE= Pace Ping
+MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_Q= What is a Pace Ping?
+MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_A=
+    A Pace Ping is a notification of a good run to a group of people interested in that. In the context of CCT it means sending a Discord message to ping people, when you are far into a golden run.
+
+MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_Q= Who is this feature for?
+MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_A=
+    I developed this feature for streamers that want to notify their (lurking) viewers when they are on a good run, but anyone that wants to notify some group of people can use this of course.{n}
+    The only requirement for sending a Pace Ping is that you have a Discord WebHook URL, for which you most likely need to own a Discord server.
+
+MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_Q= How do I setup Pace Pings for my Discord server?
+MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_A=
+    If you own a Discord server that you want to receive Pace Pings on, follow these steps:{n}{n}
+    1. Go to your Discord server settings and select the 'Integrations' tab{n}
+    2. Click on 'Create WebHook'{n}
+    3. Select the channel you want to receive the Pace Pings on{n}
+    4. Copy the WebHook URL{n}
+    5. Import the WebHook URL into CCT through 'Mod Options -> Pace Ping Settings -> Import WebHook URL from Clipboard'{n}{n}
+    You can then configure the default Pace Ping message, enable pinging when on PB pace or pick certain rooms in the map that should generate a Pace Ping when you enter them with the Golden Berry.
+
+MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_Q= Can I have multiple different pings at different points in a map?
+MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_A=
+    Yes!{n}{n}
+    You can enable Pace Ping on room entry for any room you want. Each room can have a different message (with different roles pinged) and settings.
+
+MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q= How do I ping roles in a Pace Ping message?
+MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A=
+    To add roles in a ping message, you need to find the ID of the role you want to ping. To do this:{n}
+    1. Go to your Discord server{n}
+    2. Go into any chat{n}
+    3. Type '\@<role name>'{n}
+    4. Hit enter (will ping said role){n}{n}
+    The resulting message that you send should look like this: '<@&123456789012345678>'{n}
+    This string is the roles ID. You can use this in the ping message and it will generate a ping to that role.
+
+MODOPTION_CCT_FAQ_PACE_PING_EMOTE_Q= How do I use emotes in a Pace Ping message?
+MODOPTION_CCT_FAQ_PACE_PING_EMOTE_A=
+    Same concept as pinging roles in a Pace Ping message, except you need to get the ID of the emote you want to use, in the same way that you would get the ID of a role!
+
+MODOPTION_CCT_FAQ_OTHER_TITLE= Other
+MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_Q= My issue isn't listed...
+MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_A=
+    If your issue is not covered by this FAQ, feel free to message me on Discord (viddie#4751), or create an issue on GitHub (link can be found on the GameBanana page of CCT){n}{n}
+    In order to help me understand the situation, please provide the following details in your message:{n}
+    - What version of CCT are you using?{n}
+    - What happened exactly? (Including what lead up to the situation you are in, e.g. what map you were playing, etc.){n}
+    - What should have happened? (If the issue isn't self explanatory){n}
+    - Any additional information you think might be helpful (e.g. screenshots, videos)
+
+MODOPTION_CCT_FAQ_OTHER_LOVE_Q= I love this mod :D
+MODOPTION_CCT_FAQ_OTHER_LOVE_A=
+    Thanks! It took a long time to develop (roughly 300 hours at the time of writing this FAQ), but the amount of people using and liking this mod means a lot to me <3
+
+MODOPTION_CCT_FAQ_OTHER_HATE_Q= I hate this mod >:(
