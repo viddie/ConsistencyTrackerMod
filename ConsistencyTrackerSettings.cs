@@ -609,7 +609,13 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_HINT"));
 
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), LiveDataCustomNameBehavior) { 
+            List<KeyValuePair<CustomNameBehavior, string>> CustomNameBehaviors = new List<KeyValuePair<CustomNameBehavior, string>>() {
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Append, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_APPEND")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Ignore, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_IGNORE")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Override, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_OVERRIDE")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Prepend, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_PREPEND")),
+            };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), CustomNameBehaviors, LiveDataCustomNameBehavior) { 
                 OnValueChange = (value) => {
                     LiveDataCustomNameBehavior = value;
                     Mod.SaveChapterStats();
@@ -677,7 +683,13 @@ namespace Celeste.Mod.ConsistencyTracker
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE")} ==="));
             subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_HINT"), false));
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR"), LiveDataStatLowDeathBehavior) {
+
+            List<KeyValuePair<LowDeathBehavior, string>> LowDeathBehaviors = new List<KeyValuePair<LowDeathBehavior, string>>() {
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.AlwaysCheckpoints, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_CHECKPOINTS")),
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.AlwaysRooms, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_ROOMS")),
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.Adaptive, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ADAPTIVE")),
+            };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<LowDeathBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR"), LowDeathBehaviors, LiveDataStatLowDeathBehavior) {
                 OnValueChange = (value) => {
                     LiveDataStatLowDeathBehavior = value;
                     Mod.SaveChapterStats();
@@ -1113,6 +1125,18 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasStats = Mod.CurrentChapterStats != null;
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
 
+            List<KeyValuePair<StatTextPosition, string>> StatTextPositions = new List<KeyValuePair<StatTextPosition, string>>() {
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_RIGHT")),
+            };
+
             // ========== Text 1 ==========
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_TITLE")} ==="));
             subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_ENABLE"), IngameOverlayText1Enabled) {
@@ -1121,7 +1145,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(1, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText1Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText1Position) {
                 OnValueChange = v => {
                     IngameOverlayText1Position = v;
                     Mod.IngameOverlay.SetTextPosition(1, v);
@@ -1184,7 +1208,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(2, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText2Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText2Position) {
                 OnValueChange = v => {
                     IngameOverlayText2Position = v;
                     Mod.IngameOverlay.SetTextPosition(2, v);
@@ -1246,7 +1270,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(3, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText3Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText3Position) {
                 OnValueChange = v => {
                     IngameOverlayText3Position = v;
                     Mod.IngameOverlay.SetTextPosition(3, v);
@@ -1309,7 +1333,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(4, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), IngameOverlayText4Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText4Position) {
                 OnValueChange = v => {
                     IngameOverlayText4Position = v;
                     Mod.IngameOverlay.SetTextPosition(4, v);
