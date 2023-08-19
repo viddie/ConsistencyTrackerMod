@@ -412,7 +412,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             PBPingedThisRun = false;
 
             string message = State.AfterPingDeathMessage;
-            message = Mod.StatsManager.FormatVariableFormat(message);
+            try {
+                message = Mod.StatsManager.FormatVariableFormat(message);
+            } catch (Exception) { }
 
             SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                 Username = State.WebhookUsername,
@@ -421,8 +423,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public void SendAllDeathsMessage(PathInfo path, ChapterStats stats) {
-            string message = State.AllDeathsMessage;
-            message = Mod.StatsManager.FormatVariableFormat(message);
+            string message = State.AllDeathsMessage; 
+            try {
+                message = Mod.StatsManager.FormatVariableFormat(message);
+            } catch (Exception) { }
 
             SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                 Username = State.WebhookUsername,
