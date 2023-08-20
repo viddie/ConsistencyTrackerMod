@@ -22,6 +22,7 @@ using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker
 {
+    [SettingName("MODOPTION_CCT_NAME")]
     public class ConsistencyTrackerSettings : EverestModuleSettings {
 
         [SettingIgnore]
@@ -43,14 +44,16 @@ namespace Celeste.Mod.ConsistencyTracker
         //[SettingIgnore]
         //private bool _Enabled { get; set; } = true;
 
-        public bool PauseDeathTracking {
-            get => _PauseDeathTracking;
-            set {
-                _PauseDeathTracking = value;
-                Mod.SaveChapterStats();
-            }
+        [SettingIgnore]
+        public bool PauseDeathTracking { get; set; } = false;
+        public void CreatePauseDeathTrackingEntry(TextMenu menu, bool inGame) {
+            menu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PAUSE_DEATH_TRACKING"), PauseDeathTracking) {
+                OnValueChange = v => {
+                    PauseDeathTracking = v;
+                    Mod.SaveChapterStats();
+                }
+            });
         }
-        private bool _PauseDeathTracking { get; set; } = false;
 
         [SettingIgnore]
         public string DataRootFolderLocation { get; set; } = null;
