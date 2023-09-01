@@ -404,10 +404,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         #region Format file IO
         
         public void SaveFormatFile(bool resetDefaultFormats = false) {
-            string prelude = $"{Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_1")}{FormatSeparator}{Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_2")}{FormatSeparator}" +
-                $"{Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_3")} {SuccessRateStat.RoomSuccessRate} {Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_4")} " +
-                $"{SuccessRateStat.CheckpointSuccessRate} {Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_5")} {SuccessRateStat.ChapterSuccessRate}\n" +
-                $"{Dialog.Clean("CCT_STAT_MANAGER_PRELUDE_6")}";
+            string prelude = $"# Lines starting with a # are ignored\n" +
+                $"# \n" +
+                $"# Each line in this file corresponds to one output file following this scheme:\n" +
+                $"# <filename>{FormatSeparator}<format>\n" +
+                $"# where the format can be any text or placeholders mixed together\n" +
+                $"# \n" +
+                $"# Example:\n" +
+                $"# successRate{FormatSeparator}Room SR: {SuccessRateStat.RoomSuccessRate} | CP: {SuccessRateStat.CheckpointSuccessRate} | Total: {SuccessRateStat.ChapterSuccessRate}\n" +
+                $"# would generate a 'successRate.txt' file containing the text \"Room SR: <data> | CP: <data> | Total: <data>\"\n" +
+                $"# \n" +
+                $"# To add new-lines to a format use '\\n'\n" +
+                $"# \n" +
+                $"# \n" +
+                $"# List of all available placeholders:\n";
 
             //Add all stat explanations here
             foreach (Stat stat in AllStats) {
@@ -420,7 +430,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             }
 
 
-            string afterExplanationHeader = Dialog.Clean("CCT_STAT_MANAGER_AFTER_EXPLANATION_HEADER");
+            string afterExplanationHeader = $"# \n" +
+                $"# Predefined Formats\n" +
+                $"# ";
 
             string content;
             if (resetDefaultFormats) {
@@ -429,7 +441,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 content = FormatsToString(GetAvailableDefaultFormatList());
             }
 
-            string afterCustomFormatHeader = Dialog.Clean("CCT_STAT_MANAGER_AFTER_CUSTOM_FORMAT_HEADER");
+            string afterCustomFormatHeader = $"# \n" +
+                $"# Custom Formats\n" +
+                $"# ";
 
             string customFormats = FormatsToString(GetCustomFormatList());
 
