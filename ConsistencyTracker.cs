@@ -172,7 +172,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             HookStuff();
 
-            StatsManager = new StatManager();
             PacePingManager = new PacePingManager();
 
             //Interop
@@ -193,6 +192,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void HookStuff() {
+            //Create stats manager
+            Everest.Events.MainMenu.OnCreateButtons += CreateStatsManager;
             //Track where the player is
             On.Celeste.Level.Begin += Level_Begin;
             Everest.Events.Level.OnExit += Level_OnExit;
@@ -235,6 +236,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void UnHookStuff() {
+            Everest.Events.MainMenu.OnCreateButtons -= CreateStatsManager;
             On.Celeste.Level.Begin -= Level_Begin;
             Everest.Events.Level.OnExit -= Level_OnExit;
             Everest.Events.Level.OnComplete -= Level_OnComplete;
@@ -283,6 +285,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Hooks
+        private void CreateStatsManager(OuiMainMenu menu, System.Collections.Generic.List<MenuButton> buttons) {
+            StatsManager = new StatManager();
+        }
 
         private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
             orig(self, player, fol);

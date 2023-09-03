@@ -20,6 +20,10 @@
 # {trigger x} this triggers an in-game event
 # {anchor} controls the visual position of the textbox in-game
 
+# +-------------------+
+# |    Mod Options    |
+# +-------------------+
+
 MODOPTION_CCT_NAME= Consistency Tracker
 
 MODOPTION_CCT_PAUSE_DEATH_TRACKING= Pause Death Tracking
@@ -614,3 +618,127 @@ MODOPTION_CCT_FAQ_OTHER_LOVE_A=
     Thanks! It took a long time to develop (roughly 300 hours at the time of writing this FAQ), but the amount of people using and liking this mod means a lot to me <3
 
 MODOPTION_CCT_FAQ_OTHER_HATE_Q= I hate this mod >:(
+
+# +--------------------+
+# |    Stats Format    |
+# +--------------------+
+
+CCT_STAT_MANAGER_PRELUDE_1=
+\# Lines starting with a # are ignored{n}
+\# {n}
+\# Each line in this file corresponds to one output file following this scheme:{n}
+\# <filename>
+
+CCT_STAT_MANAGER_PRELUDE_2=
+<format>{n}
+\# where the format can be any text or placeholders mixed together{n}
+\# {n}
+\# Example:{n}
+\# successRate
+
+CCT_STAT_MANAGER_PRELUDE_3=
+Room SR:
+CCT_STAT_MANAGER_PRELUDE_4=
+| CP:
+CCT_STAT_MANAGER_PRELUDE_5=
+| Total:
+CCT_STAT_MANAGER_PRELUDE_6=
+\# would generate a 'successRate.txt' file containing the text "Room SR: <data> | CP: <data> | Total: <data>"{n}
+\# {n}
+\# To add new-lines to a format use '\n'{n}
+\# {n}
+\# {n}
+\# List of all available placeholders:{n}
+
+CCT_STAT_MANAGER_AFTER_EXPLANATION_HEADER=
+\# {n}
+\# Predefined Formats{n}
+\#
+
+CCT_STAT_MANAGER_AFTER_CUSTOM_FORMAT_HEADER=
+\# {n}
+\# Custom Formats{n}
+\#
+
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE= Average run distance over all runs ever
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION= Average run distance over all runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_HIGHEST_AVERAGE_OVER_10_RUNS= The highest average distance over any 10 consecutive runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION_X= Average run distance over the last X runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_1= The room number of last run nr. X (e.g.
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_2= would give you the room number of the most recent golden run, \#2 of the 2nd most recent, ...)
+
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE= basic-avg-distance
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE= Avg. run distance:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_SESSION= basic-avg-distance-session
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_SESSION= Avg. run distance (Session):
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_LAST_10= basic-avg-distance-last-10
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_LAST_10= Avg. over last 10 runs:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_BEST_10= basic-avg-distance-best-10
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_BEST_10= Best 10-run-average:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_LAST_5_RUNS= basic-last-5-runs
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_LAST_5_RUNS= Last 5 runs:
+
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CAMPAIGN_NAME= Name of the campaign
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_NAME= Name of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SIDE_NAME= Name of the side of the chapter (A/B/C-Side)
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV= DEV
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEBUG_NAME= Debug name of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SID= SID of chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID= Dialog sanitized SID of chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS= Golden Deaths in the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS_SESSION= Golden Deaths in the chapter in the current session
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_CHANCE= Golden Chance of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_ROOM_COUNT= Count of rooms in the chapter
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_NAME= Name of the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ABBREVIATION= Abbreviation of the current checkpoint's name
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS= Golden Deaths in the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS_SESSION= Golden Deaths in the current checkpoint in the current session
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_CHANCE= Golden Chance of the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ROOM_COUNT= Count of rooms in the current checkpoint
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NAME= Name of the room. Display format can be changed via Mod Options -> Consistency Tracker -> Live Data -> Room Name Format
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_DEBUG_NAME= Debug name of the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS= Golden Deaths in the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS_SESSION= Golden Deaths in the current room in the current session
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHAPTER= Number of the room within the entire chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_PERCENT= Percent completion of the chapter given the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHECKPOINT= Number of the room within the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHECKPOINT_PROGRESS_PERCENT= Percent completion of the current checkpoint given the current room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_BAR_X= A text-based progress bar of the chapter given the current room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NAME= Name of the savestate room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_ROOM_COUNT= Count of rooms in the checkpoint where the savestate is placed
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHAPTER= Number of the savestate room in the entire chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHECKPOINT= Number of the savestate room within the checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHAPTER_PROGRESS_PERCENT= Percent completion of the chapter given the savestate room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_PROGRESS_PERCENT= Percent completion of the savestate checkpoint given the savestate room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_PLAYER_HOLDING_GOLDEN= Whether the player is holding a golden berry
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_TRACKING_PAUSED= Whether death tracking is currently paused
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_RECORDING_PATH= Whether the path is currently being recorded
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_MOD_VERSION= Current version of the mod
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_OVERLAY_VERSION= Most recent version of the overlay
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_PATH_SEGMENT_NAME= Name of the current path segment
+
+CCT_STAT_BASIC_INFO_FORMAT_TITLE_BASIC_INFO= basic-info
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_1= --- Chapter ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_2= Side:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_3= Campaign Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_4= Path available:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5= Golden Deaths:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_6= Golden Chance:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_7= --- Checkpoint ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_8= --- Room ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_9= --- Mod State ---{n}Tracking Paused:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_10= Recording Path:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_11= Player Holding Golden:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_12= Chapter completed:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_13= Golden done:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_14= Mod Version:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_15= Overlay Version:

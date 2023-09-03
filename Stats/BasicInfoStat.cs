@@ -140,62 +140,77 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(BasicPathlessInfo.CampaignName, "Name of the campaign"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.CampaignName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CAMPAIGN_NAME")),
 
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, "Name of the chapter"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, "Name of the side of the chapter (A/B/C-Side)"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterDebugName, "[DEV] Debug name of the chapter"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSID, "[DEV] SID of chapter"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, "[DEV] Dialog sanitized SID of chapter"),
-                new KeyValuePair<string, string>(ChapterGoldenDeaths, "Golden Deaths in the chapter"),
-                new KeyValuePair<string, string>(ChapterGoldenDeathsSession, "Golden Deaths in the chapter in the current session"),
-                new KeyValuePair<string, string>(ChapterGoldenChance, "Golden Chance of the chapter"),
-                new KeyValuePair<string, string>(LiveProgressStat.ChapterRoomCount, "Count of rooms in the chapter"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_NAME")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SIDE_NAME")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterDebugName, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEBUG_NAME")}"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SID")}"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID")}"),
+                new KeyValuePair<string, string>(ChapterGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS")),
+                new KeyValuePair<string, string>(ChapterGoldenDeathsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS_SESSION")),
+                new KeyValuePair<string, string>(ChapterGoldenChance, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_CHANCE")),
+                new KeyValuePair<string, string>(LiveProgressStat.ChapterRoomCount, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_ROOM_COUNT")),
 
-                new KeyValuePair<string, string>(CheckpointName, "Name of the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointAbbreviation, "Abbreviation of the current checkpoint's name"),
-                new KeyValuePair<string, string>(CheckpointGoldenDeaths, "Golden Deaths in the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointGoldenDeathsSession, "Golden Deaths in the current checkpoint in the current session"),
-                new KeyValuePair<string, string>(CheckpointGoldenChance, "Golden Chance of the current checkpoint"),
-                new KeyValuePair<string, string>(LiveProgressStat.CheckpointRoomCount, "Count of rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_NAME")),
+                new KeyValuePair<string, string>(CheckpointAbbreviation, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ABBREVIATION")),
+                new KeyValuePair<string, string>(CheckpointGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS")),
+                new KeyValuePair<string, string>(CheckpointGoldenDeathsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS_SESSION")),
+                new KeyValuePair<string, string>(CheckpointGoldenChance, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_CHANCE")),
+                new KeyValuePair<string, string>(LiveProgressStat.CheckpointRoomCount, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ROOM_COUNT")),
 
-                new KeyValuePair<string, string>(RoomName, "Name of the room. Display format can be changed via Mod Options -> Consistency Tracker -> Live Data -> Room Name Format"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.RoomDebugName, "Debug name of the current room"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeaths, "Golden Deaths in the current room"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeathsSession, "Golden Deaths in the current room in the current session"),
+                new KeyValuePair<string, string>(RoomName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NAME")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.RoomDebugName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_DEBUG_NAME")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.RoomGoldenDeathsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS_SESSION")),
 
                 //Live Progress stats
-                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInChapter, "Number of the room within the entire chapter"),
-                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressPercent, "Percent completion of the chapter given the current room"),
-                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInCheckpoint, "Number of the room within the current checkpoint"),
-                new KeyValuePair<string, string>(LiveProgressStat.RoomCheckpointProgressPercent, "Percent completion of the current checkpoint given the current room"),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInChapter, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHAPTER")),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressPercent, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_PERCENT")),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomNumberInCheckpoint, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHECKPOINT")),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomCheckpointProgressPercent, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHECKPOINT_PROGRESS_PERCENT")),
 
-                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressBar.GetPlaceholder("X"), "A text-based progress bar of the chapter given the current room"),
+                new KeyValuePair<string, string>(LiveProgressStat.RoomChapterProgressBar.GetPlaceholder("X"), Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_BAR_X")),
 
-                new KeyValuePair<string, string>(SaveStateRoomName, "Name of the savestate room"),
-                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointRoomCount, "Count of rooms in the checkpoint where the savestate is placed"),
-                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInChapter, "Number of the savestate room in the entire chapter"),
-                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInCheckpoint, "Number of the savestate room within the checkpoint"),
-                new KeyValuePair<string, string>(LiveProgressStat.SaveStateChapterProgressPercent, "Percent completion of the chapter given the savestate room"),
-                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointProgressPercent, "Percent completion of the savestate checkpoint given the savestate room"),
+                new KeyValuePair<string, string>(SaveStateRoomName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NAME")),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointRoomCount, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_ROOM_COUNT")),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInChapter, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHAPTER")),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateRoomNumberInCheckpoint, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHECKPOINT")),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateChapterProgressPercent, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHAPTER_PROGRESS_PERCENT")),
+                new KeyValuePair<string, string>(LiveProgressStat.SaveStateCheckpointProgressPercent, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_PROGRESS_PERCENT")),
                 
                 //Mod State
-                new KeyValuePair<string, string>(BasicPathlessInfo.PlayerHoldingGolden, "Whether the player is holding a golden berry"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ModTrackingPaused, "Whether death tracking is currently paused"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ModRecordingPath, "Whether the path is currently being recorded"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ModModVersion, "Current version of the mod"),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ModOverlayVersion, "Most recent version of the overlay"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.PlayerHoldingGolden, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_PLAYER_HOLDING_GOLDEN")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ModTrackingPaused, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_TRACKING_PAUSED")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ModRecordingPath, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_RECORDING_PATH")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ModModVersion, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_MOD_VERSION")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ModOverlayVersion, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_OVERLAY_VERSION")),
 
                 //Path Segment
-                new KeyValuePair<string, string>(PathSegmentName, "Name of the current path segment"),
+                new KeyValuePair<string, string>(PathSegmentName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_PATH_SEGMENT_NAME")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-info", $"--- Chapter ---\nName: {BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterDebugName})\nSide: {BasicPathlessInfo.ChapterSideName}\nCampaign Name: {BasicPathlessInfo.CampaignName}\nPath available: {BasicPathlessInfo.ChapterHasPath}\nGolden Deaths: {ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\nGolden Chance: {ChapterGoldenChance}\n" +
-                $"\n--- Checkpoint ---\nName: {CheckpointName} ({CheckpointAbbreviation})\nGolden Deaths: {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\nGolden Chance: {CheckpointGoldenChance}\n" +
-                $"\n--- Room ---\nName: {RoomName} ({BasicPathlessInfo.RoomDebugName})\nGolden Deaths: {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})\n" +
-                $"\n--- Mod State ---\nTracking Paused: {BasicPathlessInfo.ModTrackingPaused}\nRecording Path: {BasicPathlessInfo.ModRecordingPath}\nPlayer Holding Golden: {BasicPathlessInfo.PlayerHoldingGolden} | Chapter completed: {BasicPathlessInfo.PlayerChapterCompleted} | Golden done: {BasicPathlessInfo.PlayerGoldenDone}\nMod Version: {BasicPathlessInfo.ModModVersion}\nOverlay Version: {BasicPathlessInfo.ModOverlayVersion}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_TITLE_BASIC_INFO"), 
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_1")} {BasicPathlessInfo.ChapterName} " +
+                    $"({BasicPathlessInfo.ChapterDebugName})\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_2")} " +
+                    $"{BasicPathlessInfo.ChapterSideName}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_3")} " +
+                    $"{BasicPathlessInfo.CampaignName}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_4")} " +
+                    $"{BasicPathlessInfo.ChapterHasPath}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5")} " +
+                    $"{ChapterGoldenDeaths} ({ChapterGoldenDeathsSession})\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_6")} " +
+                    $"{ChapterGoldenChance}\n" +
+                    $"\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_7")} {CheckpointName} ({CheckpointAbbreviation})\n" +
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5")} {CheckpointGoldenDeaths} ({CheckpointGoldenDeathsSession})\n" +
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_6")} {CheckpointGoldenChance}\n" +
+                    $"\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_8")} {RoomName} ({BasicPathlessInfo.RoomDebugName})\n" +
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5")} {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})\n" +
+                    $"\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_9")} {BasicPathlessInfo.ModTrackingPaused}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_10")} " +
+                    $"{BasicPathlessInfo.ModRecordingPath}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_11")} " +
+                    $"{BasicPathlessInfo.PlayerHoldingGolden} | {Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_12")} " +
+                    $"{BasicPathlessInfo.PlayerChapterCompleted} | {Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_13")} {BasicPathlessInfo.PlayerGoldenDone}\n" +
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_14")} {BasicPathlessInfo.ModModVersion}\n" +
+                    $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_15")} {BasicPathlessInfo.ModOverlayVersion}"),
             };
         }
     }

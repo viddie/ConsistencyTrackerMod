@@ -326,20 +326,20 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //success-rate;Room SR: {room:successRate} | CP: {checkpoint:successRate} | Total: {chapter:successRate} 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ChapterAverageRunDistance, "Average run distance over all runs ever"),
-                new KeyValuePair<string, string>(ChapterAverageRunDistanceSession, "Average run distance over all runs of the current session"),
-                new KeyValuePair<string, string>(ChapterHighestAverageOver10Runs, "The highest average distance over any 10 consecutive runs of the current session"),
-                new KeyValuePair<string, string>("{chapter:averageRunDistanceSession#X}", "Average run distance over the last X runs of the current session"),
-                new KeyValuePair<string, string>("{chapter:lastRunDistance#X}", "The room number of last run nr. X (e.g. {chapter:lastRunDistance#1} would give you the room number of the most recent golden run, #2 of the 2nd most recent, ...)"),
+                new KeyValuePair<string, string>(ChapterAverageRunDistance, Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE")),
+                new KeyValuePair<string, string>(ChapterAverageRunDistanceSession, Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION")),
+                new KeyValuePair<string, string>(ChapterHighestAverageOver10Runs, Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_HIGHEST_AVERAGE_OVER_10_RUNS")),
+                new KeyValuePair<string, string>("{chapter:averageRunDistanceSession#X}", Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION_X")),
+                new KeyValuePair<string, string>("{chapter:lastRunDistance#X}", $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_1")} {{chapter:lastRunDistance#1}} {Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_2")}"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-avg-distance", $"Avg. run distance: {ChapterAverageRunDistance}/{LiveProgressStat.ChapterRoomCount}"),
-                new StatFormat("basic-avg-distance-session", $"Avg. run distance (Session): {ChapterAverageRunDistanceSession}/{LiveProgressStat.ChapterRoomCount}"),
-                new StatFormat("basic-avg-distance-last-10", $"Avg. over last 10 runs: {{chapter:averageRunDistanceSession#10}}/{LiveProgressStat.ChapterRoomCount}"),
-                new StatFormat("basic-avg-distance-best-10", $"Best 10-run-average: {ChapterHighestAverageOver10Runs}/{LiveProgressStat.ChapterRoomCount}"),
-                new StatFormat("basic-last-5-runs", $"Last 5 runs: {{chapter:lastRunDistance#1}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#2}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#3}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#4}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#5}}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE"), $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE")} {ChapterAverageRunDistance}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_SESSION"), $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_SESSION")} {ChapterAverageRunDistanceSession}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_LAST_10"), $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_LAST_10")} {{chapter:averageRunDistanceSession#10}}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_BEST_10"), $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_BEST_10")} {ChapterHighestAverageOver10Runs}/{LiveProgressStat.ChapterRoomCount}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_LAST_5_RUNS"), $"{Dialog.Clean("CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_LAST_5_RUNS")} {{chapter:lastRunDistance#1}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#2}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#3}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#4}}/{LiveProgressStat.ChapterRoomCount}, {{chapter:lastRunDistance#5}}/{LiveProgressStat.ChapterRoomCount}"),
                 
             };
         }
