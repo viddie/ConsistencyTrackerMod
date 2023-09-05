@@ -1120,7 +1120,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
-            File.WriteAllText(path, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
+            string backupPath = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
+            File.WriteAllText(backupPath, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
+
+            //Delete actual file
+            if (File.Exists(path)) {
+                File.Delete(path);
+            }
+            //Move backup to actual file
+            File.Move(backupPath, path);
 
             string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
 
