@@ -385,28 +385,28 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RoomChokeRate, "Choke Rate of the current room (how many golden runs died to this room / how many golden runs entered this room)"),
-                new KeyValuePair<string, string>(RoomChokeRateSession, "Choke Rate of the current room in the current session"),
-                new KeyValuePair<string, string>(CheckpointChokeRate, "Choke Rate of the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointChokeRateSession, "Choke Rate of the current checkpoint in the current session"),
-                new KeyValuePair<string, string>(RoomGoldenSuccessRate, "Golden Success Rate of the current room (how many golden runs completed this room / how many golden runs entered this room)"),
-                new KeyValuePair<string, string>(RoomGoldenSuccessRateSession, "Golden Success Rate of the current room in the current session"),
-                new KeyValuePair<string, string>(CheckpointGoldenSuccessRate, "Golden Success Rate of the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointGoldenSuccessRateSession, "Golden Success Rate of the current checkpoint in the current session"),
+                new KeyValuePair<string, string>(RoomChokeRate, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_CHOKE_RATE")),
+                new KeyValuePair<string, string>(RoomChokeRateSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_CHOKE_RATE_SESSION")),
+                new KeyValuePair<string, string>(CheckpointChokeRate, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_CHOKE_RATE")),
+                new KeyValuePair<string, string>(CheckpointChokeRateSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_CHOKE_RATE_SESSION")),
+                new KeyValuePair<string, string>(RoomGoldenSuccessRate, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESS_RATE")),
+                new KeyValuePair<string, string>(RoomGoldenSuccessRateSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESS_RATE_SESSION")),
+                new KeyValuePair<string, string>(CheckpointGoldenSuccessRate, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_GOLDEN_SUCCESS_RATE")),
+                new KeyValuePair<string, string>(CheckpointGoldenSuccessRateSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_GOLDEN_SUCCESS_RATE_SESSION")),
 
-                new KeyValuePair<string, string>(RoomGoldenEntries, "Count of entries into a room with the golden berry"),
-                new KeyValuePair<string, string>(RoomGoldenEntriesSession, "Count of entries into a room with the golden berry in the current session"),
-                new KeyValuePair<string, string>(RoomGoldenSuccesses, "Count of successes of a room with the golden berry"),
-                new KeyValuePair<string, string>(RoomGoldenSuccessesSession, "Count of successes of a room with the golden berry in the current session"),
+                new KeyValuePair<string, string>(RoomGoldenEntries, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRIES")),
+                new KeyValuePair<string, string>(RoomGoldenEntriesSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRIES_SESSION")),
+                new KeyValuePair<string, string>(RoomGoldenSuccesses, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESSES")),
+                new KeyValuePair<string, string>(RoomGoldenSuccessesSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESSES_SESSION")),
 
-                new KeyValuePair<string, string>(RoomGoldenEntryChance, "Chance for a run to get to the current room from the start (calculated off of all golden runs)"),
-                new KeyValuePair<string, string>(RoomGoldenEntryChanceSession, "Chance for a run to get to the current room from the start (calculated off of golden runs in the current session)"),
+                new KeyValuePair<string, string>(RoomGoldenEntryChance, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRY_CHANCE")),
+                new KeyValuePair<string, string>(RoomGoldenEntryChanceSession, Dialog.Clean("CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRY_CHANCE_SESSION")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-choke-rate", $"Choke Rate: {RoomChokeRate} (CP: {CheckpointChokeRate})"),
-                new StatFormat("basic-golden-success-rate", $"Golden Success Rate: {RoomGoldenSuccessRate} ({RoomGoldenSuccesses}/{RoomGoldenEntries})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_CHOKE_RATE_FORMAT_TITLE_BASIC_CHOKE_RATE"), $"{Dialog.Clean("CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_CHOKE_RATE_1")}: {RoomChokeRate} ({Dialog.Clean("CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_CHOKE_RATE_2")}: {CheckpointChokeRate})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_CHOKE_RATE_FORMAT_TITLE_BASIC_GOLDEN_SUCCESS_RATE"), $"{Dialog.Clean("CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_GOLDEN_SUCCESS_RATE")}: {RoomGoldenSuccessRate} ({RoomGoldenSuccesses}/{RoomGoldenEntries})"),
             };
         }
     }

@@ -193,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void HookStuff() {
             //Create stats manager
-            Everest.Events.MainMenu.OnCreateButtons += CreateStatsManager;
+            Everest.Events.MainMenu.OnCreateButtons += MainMenu_OnCreateButtons;
             //Track where the player is
             On.Celeste.Level.Begin += Level_Begin;
             Everest.Events.Level.OnExit += Level_OnExit;
@@ -236,7 +236,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void UnHookStuff() {
-            Everest.Events.MainMenu.OnCreateButtons -= CreateStatsManager;
+            Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
             On.Celeste.Level.Begin -= Level_Begin;
             Everest.Events.Level.OnExit -= Level_OnExit;
             Everest.Events.Level.OnComplete -= Level_OnComplete;
@@ -285,7 +285,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Hooks
-        private void CreateStatsManager(OuiMainMenu menu, System.Collections.Generic.List<MenuButton> buttons) {
+        private void MainMenu_OnCreateButtons(OuiMainMenu menu, System.Collections.Generic.List<MenuButton> buttons) {
             StatsManager = new StatManager();
         }
 

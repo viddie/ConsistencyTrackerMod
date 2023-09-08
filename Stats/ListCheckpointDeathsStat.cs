@@ -161,23 +161,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ListCheckpointDeaths, $"Renamed to {RunLowDeathDisplay}, kept for backwards compatibility"),
-                new KeyValuePair<string, string>(ListCheckpointDeathsIndicator, $"Renamed to {RunLowDeathDisplayIndicator}, kept for backwards compatibility"),
-                new KeyValuePair<string, string>(ListCheckpointGoldenDeaths, "Lists your total golden deathcount per checkpoint in a similar format as above"),
-                new KeyValuePair<string, string>(ListCheckpointGoldenDeathsSession, "Lists your total golden deathcount per checkpoint in the current session in a similar format as above"),
+                new KeyValuePair<string, string>(ListCheckpointDeaths, $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_1")} {RunLowDeathDisplay}{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_2")}"),
+                new KeyValuePair<string, string>(ListCheckpointDeathsIndicator, $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_INDICATOR_1")} {RunLowDeathDisplayIndicator}{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_INDICATOR_2")}"),
+                new KeyValuePair<string, string>(ListCheckpointGoldenDeaths, Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_GOLDEN_DEATHS")),
+                new KeyValuePair<string, string>(ListCheckpointGoldenDeathsSession, Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_GOLDEN_DEATHS_SESSION")),
 
-                new KeyValuePair<string, string>(RunLowDeathDisplay, "Lists low death count for each checkpoint/room in the current run (like '4/0/2/3/0/0')"),
-                new KeyValuePair<string, string>(RunLowDeathDisplayIndicator, "Same as the above, but adds an indicator for the current checkpoint (like '4/0/2/>3</0/0')"),
-                new KeyValuePair<string, string>(RunLowDeathTotal, "Displays the total low death count for the run"),
+                new KeyValuePair<string, string>(RunLowDeathDisplay, Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_DISPLAY")),
+                new KeyValuePair<string, string>(RunLowDeathDisplayIndicator, Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_DISPLAY_INDICATOR")),
+                new KeyValuePair<string, string>(RunLowDeathTotal, Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_TOTAL")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-low-death", $"Low Death: {ListCheckpointDeaths}"),
-                new StatFormat("basic-low-death-indicator", $"Low Death: {ListCheckpointDeathsIndicator}"),
-                new StatFormat("basic-golden-deaths", $"Golden Deaths: {ListCheckpointGoldenDeaths}"),
-                new StatFormat("basic-golden-deaths-session", $"Golden Deaths (Session): {ListCheckpointGoldenDeathsSession}"),
-                new StatFormat("basic-golden-deaths-and-session", $"Golden Deaths (Session): {ListCheckpointGoldenDeathsAndSession}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_LOW_DEATH"), $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_LOW_DEATH")}: {ListCheckpointDeaths}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_LOW_DEATH_INDICATOR"), $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_LOW_DEATH_INDICATOR")}: {ListCheckpointDeathsIndicator}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS"), $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS")}: {ListCheckpointGoldenDeaths}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS_SESSION"), $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS_SESSION")}: {ListCheckpointGoldenDeathsSession}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS_AND_SESSION"), $"{Dialog.Clean("CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS_AND_SESSION")}: {ListCheckpointGoldenDeathsAndSession}"),
             };
         }
     }

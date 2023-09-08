@@ -129,65 +129,65 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return new List<StatFormat>() {
                 //Add important formats here
 
-                new StatFormat("full-success-rate", $"{BasicInfoStat.RoomName}: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
-                $"\\nCP: {SuccessRateStat.CheckpointSuccessRate}" +
-                $"\\nTotal: {SuccessRateStat.ChapterSuccessRate}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_SUCCESS_RATE"), $"{BasicInfoStat.RoomName}: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SUCCESS_RATE_1")}: {SuccessRateStat.CheckpointSuccessRate}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SUCCESS_RATE_2")}: {SuccessRateStat.ChapterSuccessRate}"),
 
-                new StatFormat("full-golden-attempts-info", $"Attempts: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) [{BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})]" +
-                $"\\nPB: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})" +
-                $"\\nSession PB: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_GOLDEN_ATTEMPTS_INFO"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_1")}: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) [{BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession})]" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_2")}: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_3")}: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
 
                 
-                new StatFormat("full-viddie-style", $"Current: {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) " +
-                $"| SR: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
-                $"\\nRoom Choke Rate: {ChokeRateStat.RoomChokeRate} | Streak: {StreakStat.RoomCurrentStreak}" +
-                $"\\nLow Death: {ListCheckpointDeathsStat.ListCheckpointDeathsIndicator}" +
-                $"\\nSession avg | Last 10 avg | Best 10 avg:" +
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_VIDDIE_STYLE"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_1")}: {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) " +
+                $"| {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_2")}: {SuccessRateStat.RoomSuccessRate} ({SuccessRateStat.RoomSuccesses}/{SuccessRateStat.RoomAttempts})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_3")}: {ChokeRateStat.RoomChokeRate} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_4")}: {StreakStat.RoomCurrentStreak}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_5")}: {ListCheckpointDeathsStat.ListCheckpointDeathsIndicator}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_6")}" +
                 $"\\n({AverageLastRunsStat.ChapterAverageRunDistanceSession} | {{chapter:averageRunDistanceSession#10}} | {AverageLastRunsStat.ChapterHighestAverageOver10Runs}) " +
                 $"/ {LiveProgressStat.ChapterRoomCount}"),
                 
-                new StatFormat("full-viddie-alt-style", $"Current: {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) " +
-                $"| Streak: {StreakStat.RoomCurrentStreak} ({StreakStat.RoomCurrentStreakBest}) " +
-                $"\\nGolden Success Rate: {ChokeRateStat.RoomGoldenSuccessRate} [{ChokeRateStat.RoomGoldenSuccesses}/{ChokeRateStat.RoomGoldenEntries}] ({ChokeRateStat.RoomGoldenSuccessRateSession})" +
-                $"\\nEntry Chance: {ChokeRateStat.RoomGoldenEntryChance} ({ChokeRateStat.RoomGoldenEntryChanceSession})" +
-                $"\\nRun: #{CurrentRunPbStat.RunCurrentPbStatus} (#{CurrentRunPbStat.RunCurrentPbStatusSession})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_VIDDIE_ALT_STYLE"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_1")}: {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) " +
+                $"| {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_2")}: {StreakStat.RoomCurrentStreak} ({StreakStat.RoomCurrentStreakBest}) " +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_3")}: {ChokeRateStat.RoomGoldenSuccessRate} [{ChokeRateStat.RoomGoldenSuccesses}/{ChokeRateStat.RoomGoldenEntries}] ({ChokeRateStat.RoomGoldenSuccessRateSession})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_4")}: {ChokeRateStat.RoomGoldenEntryChance} ({ChokeRateStat.RoomGoldenEntryChanceSession})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_5")}: #{CurrentRunPbStat.RunCurrentPbStatus} (#{CurrentRunPbStat.RunCurrentPbStatusSession})"),
 
-                new StatFormat("full-parrot-style", $"Current: {BasicInfoStat.RoomName} | Room: ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
-                $"\\nCurrent run: #{CurrentRunPbStat.RunCurrentPbStatus} (Top {CurrentRunPbStat.RunTopXPercent})" +
-                $"\\nPB: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount}) | Session: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_PARROT_STYLE"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_1")}: {BasicInfoStat.RoomName} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_2")}: ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_3")}: #{CurrentRunPbStat.RunCurrentPbStatus} ({Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_4")} {CurrentRunPbStat.RunTopXPercent})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_5")}: {PersonalBestStat.PBBest} ({PersonalBestStat.PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount}) | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_6")}: {PersonalBestStat.PBBestSession} ({PersonalBestStat.PBBestRoomNumberSession}/{LiveProgressStat.ChapterRoomCount})"),
 
                 
-                new StatFormat("full-golden-run-info", $"Current Run: #{CurrentRunPbStat.RunCurrentPbStatus} (Session: #{CurrentRunPbStat.RunCurrentPbStatusSession})" +
-                $"\\nChoke Rate: {ChokeRateStat.RoomChokeRate} (CP: {ChokeRateStat.CheckpointChokeRate})" +
-                $"\\nCP Golden Chance: {BasicInfoStat.CheckpointGoldenChance}" +
-                $"\\nChapter Golden Chance: {BasicInfoStat.ChapterGoldenChance}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_GOLDEN_RUN_INFO"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_1")}: #{CurrentRunPbStat.RunCurrentPbStatus} ({Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_2")}: #{CurrentRunPbStat.RunCurrentPbStatusSession})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_3")}: {ChokeRateStat.RoomChokeRate} ({Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_4")}: {ChokeRateStat.CheckpointChokeRate})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_5")}: {BasicInfoStat.CheckpointGoldenChance}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_6")}: {BasicInfoStat.ChapterGoldenChance}"),
 
-                new StatFormat("full-savestate-run", $"This run: {BasicInfoStat.SaveStateRoomName} ({LiveProgressStat.SaveStateRoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) -> {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
-                $"\\n'{BasicInfoStat.RoomName}' Streak: {StreakStat.RoomCurrentStreak}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_SAVESTATE_RUN"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SAVESTATE_RUN_1")}: {BasicInfoStat.SaveStateRoomName} ({LiveProgressStat.SaveStateRoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount}) -> {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\n'{BasicInfoStat.RoomName}' {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SAVESTATE_RUN_2")}: {StreakStat.RoomCurrentStreak}"),
 
 
-                new StatFormat("full-room-info", $"{BasicInfoStat.CheckpointName} | {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
-                $"\\nSuccess Rate: {SuccessRateStat.RoomSuccessRate} | Choke Rate: {ChokeRateStat.RoomChokeRate} ({ChokeRateStat.RoomChokeRateSession})" +
-                $"\\nGolden Deaths: {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession}) | Rarity: {RunGoldenChanceStat.RunGoldenChanceFromStart}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_ROOM_INFO"), $"{BasicInfoStat.CheckpointName} | {BasicInfoStat.RoomName} ({LiveProgressStat.RoomNumberInChapter}/{LiveProgressStat.ChapterRoomCount})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_1")}: {SuccessRateStat.RoomSuccessRate} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_2")}: {ChokeRateStat.RoomChokeRate} ({ChokeRateStat.RoomChokeRateSession})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_3")}: {BasicPathlessInfo.RoomGoldenDeaths} ({BasicPathlessInfo.RoomGoldenDeathsSession}) | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_4")}: {RunGoldenChanceStat.RunGoldenChanceFromStart}"),
 
-                new StatFormat("full-checkpoint-info", $"{BasicInfoStat.CheckpointName} ({BasicInfoStat.CheckpointAbbreviation}) | {LiveProgressStat.CheckpointRoomCount} Rooms" +
-                $"\\nSuccess Rate: {SuccessRateStat.CheckpointSuccessRate} | Choke Rate: {ChokeRateStat.CheckpointChokeRate} ({ChokeRateStat.CheckpointChokeRateSession}) | Golden Deaths: {BasicInfoStat.CheckpointGoldenDeaths} ({BasicInfoStat.CheckpointGoldenDeathsSession})" +
-                $"\\nLight greens (95%+ rooms): {SuccessRateColorsStat.CheckpointColorLightGreen} | Greens (80-95% rooms): {SuccessRateColorsStat.CheckpointColorGreen}" +
-                $"\\nYellows (50-80% rooms): {SuccessRateColorsStat.CheckpointColorYellow} | Reds (<50% rooms): {SuccessRateColorsStat.CheckpointColorRed}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_CHECKPOINT_INFO"), $"{BasicInfoStat.CheckpointName} ({BasicInfoStat.CheckpointAbbreviation}) | {LiveProgressStat.CheckpointRoomCount} {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_1")}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_2")}: {SuccessRateStat.CheckpointSuccessRate} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_3")}: {ChokeRateStat.CheckpointChokeRate} ({ChokeRateStat.CheckpointChokeRateSession}) | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_4")}: {BasicInfoStat.CheckpointGoldenDeaths} ({BasicInfoStat.CheckpointGoldenDeathsSession})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_5")}: {SuccessRateColorsStat.CheckpointColorLightGreen} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_6")}: {SuccessRateColorsStat.CheckpointColorGreen}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_7")}: {SuccessRateColorsStat.CheckpointColorYellow} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_8")}: {SuccessRateColorsStat.CheckpointColorRed}"),
                
-                new StatFormat("full-chapter-info", $"{BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterSideName})" +
-                $"\\nGolden Deaths: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) | Golden Chance: {BasicInfoStat.ChapterGoldenChance}" +
-                $"\\nLight greens (95%+ rooms): {SuccessRateColorsStat.ChapterColorLightGreen} | Greens (80-95% rooms): {SuccessRateColorsStat.ChapterColorGreen}" +
-                $"\\nYellows (50-80% rooms): {SuccessRateColorsStat.ChapterColorYellow} | Reds (<50% rooms): {SuccessRateColorsStat.ChapterColorRed}" +
-                $"\\nChapter reds: {SuccessRateColorsStat.ChapterListColorRed}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_CHAPTER_INFO"), $"{BasicPathlessInfo.ChapterName} ({BasicPathlessInfo.ChapterSideName})" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_1")}: {BasicInfoStat.ChapterGoldenDeaths} ({BasicInfoStat.ChapterGoldenDeathsSession}) | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_2")}: {BasicInfoStat.ChapterGoldenChance}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_3")}: {SuccessRateColorsStat.ChapterColorLightGreen} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_4")}: {SuccessRateColorsStat.ChapterColorGreen}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_5")}: {SuccessRateColorsStat.ChapterColorYellow} | {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_6")}: {SuccessRateColorsStat.ChapterColorRed}" +
+                $"\\n{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_7")}: {SuccessRateColorsStat.ChapterListColorRed}"),
 
 
                 
-                new StatFormat("basic-current-map", $"Map: {ChapterName} {ChapterSideName}"),
-                new StatFormat("basic-current-map-no-side", $"Map: {ChapterName}"),
-                new StatFormat("basic-current-map-campaign", $"Map: '{ChapterName}' from '{CampaignName}'"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP")}: {ChapterName} {ChapterSideName}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP_NO_SIDE"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_NO_SIDE")}: {ChapterName}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP_CAMPAIGN"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_CAMPAIGN_1")}: '{ChapterName}' {Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_CAMPAIGN_2")} '{CampaignName}'"),
                 
-                new StatFormat("basic-savestate-run-gd-style", $"This run: {LiveProgressStat.SaveStateChapterProgressPercent} -> {LiveProgressStat.RoomChapterProgressPercent}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_SAVESTATE_RUN_GD_STYLE"), $"{Dialog.Clean("CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_SAVESTATE_RUN_GD_STYLE")}: {LiveProgressStat.SaveStateChapterProgressPercent} -> {LiveProgressStat.RoomChapterProgressPercent}"),
             };
         }
     }

@@ -142,18 +142,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //current-run-pb-session;Current run(Session): #{run:currentPbStatusSession}, better than {run:currentPbStatusPercentSession} of all runs this session
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RunCurrentPbStatus, "Rank of the current run vs. all other runs, e.g. 3rd best run, or PB run"),
-                new KeyValuePair<string, string>(RunCurrentPbStatusPercent, "Percentage of many runs the current tops, e.g. The current run is better than 85% of all runs"),
-                new KeyValuePair<string, string>(RunCurrentPbStatusSession, $"Same as {RunCurrentPbStatus}, but only for the current session"),
-                new KeyValuePair<string, string>(RunCurrentPbStatusPercentSession, $"Same as {RunCurrentPbStatusPercent}, but only for the current session"),
-                new KeyValuePair<string, string>(RunTopXPercent, $"Opposite percentage of {RunCurrentPbStatusPercent}, e.g. The current run is in the top 15% of all runs"),
-                new KeyValuePair<string, string>(RunTopXPercentSession, $"Opposite percentage of {RunCurrentPbStatusPercentSession}"),
+                new KeyValuePair<string, string>(RunCurrentPbStatus, Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS")),
+                new KeyValuePair<string, string>(RunCurrentPbStatusPercent, Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT")),
+                new KeyValuePair<string, string>(RunCurrentPbStatusSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_1")} {RunCurrentPbStatus}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_2")}"),
+                new KeyValuePair<string, string>(RunCurrentPbStatusPercentSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_1")} {RunCurrentPbStatusPercent}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_2")}"),
+                new KeyValuePair<string, string>(RunTopXPercent, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_1")} {RunCurrentPbStatusPercent}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_2")}"),
+                new KeyValuePair<string, string>(RunTopXPercentSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_SESSION")} {RunCurrentPbStatusPercentSession}"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-current-run", $"Current run: #{RunCurrentPbStatus} (Top {RunTopXPercent})"),
-                new StatFormat("basic-current-run-session", $"Current run (Session): #{RunCurrentPbStatusSession} (Top {RunTopXPercentSession})")
+                new StatFormat(Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_TITLE_BASIC_CURRENT_RUN"), $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_1")}: #{RunCurrentPbStatus} ({Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_2")} {RunTopXPercent})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_TITLE_BASIC_CURRENT_RUN_SESSION"), $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_SESSION_1")}: #{RunCurrentPbStatusSession} ({Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_SESSION_2")} {RunTopXPercentSession})")
             };
         }
     }

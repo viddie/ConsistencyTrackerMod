@@ -199,8 +199,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-chapter-progress", $"Room {RoomNumberInChapter}/{ChapterRoomCount} ({RoomChapterProgressPercent})" +
-                    $" | Room in CP: {RoomNumberInCheckpoint}/{CheckpointRoomCount} ({RoomCheckpointProgressPercent})")
+                new StatFormat(Dialog.Clean("CCT_STAT_LIVE_PROGRESS_FORMAT_TITLE_BASIC_CHAPTER_PROGRESS"),
+                    $"{Dialog.Clean("CCT_STAT_LIVE_PROGRESS_FORMAT_CONTENT_BASIC_CHAPTER_PROGRESS_1")} {RoomNumberInChapter}/{ChapterRoomCount} ({RoomChapterProgressPercent})" +
+                    $" | {Dialog.Clean("CCT_STAT_LIVE_PROGRESS_FORMAT_CONTENT_BASIC_CHAPTER_PROGRESS_2")}: {RoomNumberInCheckpoint}/{CheckpointRoomCount} ({RoomCheckpointProgressPercent})")
             };
         }
     }
