@@ -96,14 +96,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //success-rate;Room SR: {room:successRate} | CP: {checkpoint:successRate} | Total: {chapter:successRate}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RoomCurrentStreak, "Current streak of beating the current room deathless"),
-                new KeyValuePair<string, string>(RoomCurrentStreakBest, "Best streak of beating the current room deathless"),
-                new KeyValuePair<string, string>(CheckpointCurrentStreak, "Current streak of beating the current checkpoint deathless"),
+                new KeyValuePair<string, string>(RoomCurrentStreak, Dialog.Clean("CCT_STAT_STREAK_EXPLANATIONS_ROOM_CURRENT_STREAK")),
+                new KeyValuePair<string, string>(RoomCurrentStreakBest, Dialog.Clean("CCT_STAT_STREAK_EXPLANATIONS_ROOM_CURRENT_STREAK_BEST")),
+                new KeyValuePair<string, string>(CheckpointCurrentStreak, Dialog.Clean("CCT_STAT_STREAK_EXPLANATIONS_CHECKPOINT_CURRENT_STREAK")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-current-streak", $"Current Room Streak: {RoomCurrentStreak}, Checkpoint: {CheckpointCurrentStreak}")
+                new StatFormat(Dialog.Clean("CCT_STAT_STREAK_FORMAT_TITLE_BASIC_CURRENT_STREAK"), $"{Dialog.Clean("CCT_STAT_STREAK_FORMAT_CONTENT_BASIC_CURRENT_STREAK_1")}: {RoomCurrentStreak}, {Dialog.Clean("CCT_STAT_STREAK_FORMAT_CONTENT_BASIC_CURRENT_STREAK_2")}: {CheckpointCurrentStreak}")
             };
         }
     }

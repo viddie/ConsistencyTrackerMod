@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Entities;
+﻿﻿using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Menu;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
@@ -22,6 +22,7 @@ using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker
 {
+    [SettingName("MODOPTION_CCT_NAME")]
     public class ConsistencyTrackerSettings : EverestModuleSettings {
 
         [SettingIgnore]
@@ -43,14 +44,16 @@ namespace Celeste.Mod.ConsistencyTracker
         //[SettingIgnore]
         //private bool _Enabled { get; set; } = true;
 
-        public bool PauseDeathTracking {
-            get => _PauseDeathTracking;
-            set {
-                _PauseDeathTracking = value;
-                Mod.SaveChapterStats();
-            }
+        [SettingIgnore]
+        public bool PauseDeathTracking { get; set; } = false;
+        public void CreatePauseDeathTrackingEntry(TextMenu menu, bool inGame) {
+            menu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PAUSE_DEATH_TRACKING"), PauseDeathTracking) {
+                OnValueChange = v => {
+                    PauseDeathTracking = v;
+                    Mod.SaveChapterStats();
+                }
+            });
         }
-        private bool _PauseDeathTracking { get; set; } = false;
 
         [SettingIgnore]
         public string DataRootFolderLocation { get; set; } = null;
@@ -74,55 +77,55 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool VerboseLogging { get; set; } = false;
         public void CreateTrackingSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Tracking Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Only Track Deaths With Golden Berry", TrackingOnlyWithGoldenBerry) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY"), TrackingOnlyWithGoldenBerry) {
                 OnValueChange = v => {
                     TrackingOnlyWithGoldenBerry = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Various stats (e.g. Success Rate, Streak, ...) are always tracked, even without the golden");
-            subMenu.AddDescription(menu, menuItem, "Turn this on to ONLY track these stats when doing golden runs");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_2"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Always Track Golden Deaths", TrackingAlwaysGoldenDeaths) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS"), TrackingAlwaysGoldenDeaths) {
                 OnValueChange = v => {
                     TrackingAlwaysGoldenDeaths = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When you paused death tracking, this will make golden deaths still count");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS_HINT"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Loading Savestate", TrackingSaveStateCountsForGoldenDeath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE"), TrackingSaveStateCountsForGoldenDeath) {
                 OnValueChange = v => {
                     TrackingSaveStateCountsForGoldenDeath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When auto-load of savestates is enabled, CCT doesn't get notified of golden deaths");
-            subMenu.AddDescription(menu, menuItem, "Turn this on to enable counting golden deaths when loading a savestate");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_2"));
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Count Golden Death When Restarting Chapter", TrackingRestartChapterCountsForGoldenDeath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER"), TrackingRestartChapterCountsForGoldenDeath) {
                 OnValueChange = v => {
                     TrackingRestartChapterCountsForGoldenDeath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Similarly to above, restarting chapter normally doesn't cause a golden death event");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Stats ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Track Negative Streaks", TrackNegativeStreaks) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_TRACK_NEGATIVE_STREAKS"), TrackNegativeStreaks) {
                 OnValueChange = v => {
                     TrackNegativeStreaks = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Some people might not like seeing how shit a room is going rn :)");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_STATS_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Other ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Verbose Logging", VerboseLogging) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_VERBOSE_LOGGING"), VerboseLogging) {
                 OnValueChange = v => {
                     VerboseLogging = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Increases file size of logs dramatically. Only used for debugging purposes.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OTHER_HINT"));
 
             menu.Add(subMenu);
         }
@@ -134,17 +137,17 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool CustomRoomNameAllSegments { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Management", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
             TextMenu.Item menuItem;
 
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
             
-            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
             int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
             List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
@@ -157,15 +160,15 @@ namespace Celeste.Mod.ConsistencyTracker
                     SegmentList.Add(new KeyValuePair<int, string>(i, segment.Name));
                 }
             }
-            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>("Current Segment", SegmentList, Mod.SelectedPathSegmentIndex) {
+            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), SegmentList, Mod.SelectedPathSegmentIndex) {
                 OnValueChange = (newValue) => {
                     Mod.SetCurrentChapterPathSegment(newValue);
                 },
                 Disabled = !hasPathList
             };
             subMenu.Add(sliderCurrentSegment);
-            subMenu.AddDescription(menu, sliderCurrentSegment, "Each segment has it's own separate stats!");
-            subMenu.Add(menuItem = new TextMenu.Button("Add Segment") {
+            subMenu.AddDescription(menu, sliderCurrentSegment, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_ADD_SEGMENT")) {
                 OnPressed = () => {
                     PathSegment segment = Mod.AddCurrentChapterPathSegment();
                     if (segment != null) {
@@ -176,7 +179,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPathList
             });
             
-            subMenu.Add(menuItem = new TextMenu.Button("Import Segment Name from Clipboard") { 
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing segment name from clipboard...");
@@ -193,18 +196,18 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             
-            subMenu.Add(new TextMenu.SubHeader("=== Path Recording ==="));
-            ColoredButton startPathRecordingButton = new ColoredButton("Start Path Recording") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")} ==="));
+            ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
                 Disabled = Mod.DoRecordPath,
             };
-            string recorderStateTitle = Mod.DoRecordPath ? $"On\n-----\n{Mod.PathRec.GetRecorderStatus()}" : "Off";
-            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"Path Recorder State: {recorderStateTitle}", topPadding:false);
-            DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton("Save Path") {
+            string recorderStateTitle = Mod.DoRecordPath ? $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.PathRec.GetRecorderStatus()}" : Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF");
+            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding:false);
+            DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE")) {
                 HighlightColor = Color.Yellow,
                 Disabled = !Mod.DoRecordPath,
             };
-            DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton("Abort Recording") {
+            DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT")) {
                 HighlightColor = Color.Red,
                 Disabled = !Mod.DoRecordPath,
             };
@@ -218,7 +221,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = false;
                 abortPathRecordingButton.Disabled = false;
 
-                recorderStateHeader.Title = $"Path Recorder State: On";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
             };
             savePathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Saving path...");
@@ -228,7 +231,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
-                recorderStateHeader.Title = $"Path Recorder State: Off";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };
             abortPathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Aborting path recording...");
@@ -239,47 +242,47 @@ namespace Celeste.Mod.ConsistencyTracker
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
-                recorderStateHeader.Title = $"Path Recorder State: Off";
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };
 
-            subMenu.Add(new TextMenu.SubHeader("Turn this on to start recording a path for the current segment. Save path in the last room", false));
-            subMenu.Add(new TextMenu.SubHeader("of the segment, or complete the map to stop the recording save automatically.", false));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_1"), false));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2"), false));
 
             subMenu.Add(startPathRecordingButton);
             subMenu.Add(savePathRecordingButton);
-            subMenu.AddDescription(menu, savePathRecordingButton, "Save the recorded path to the current segment.");
+            subMenu.AddDescription(menu, savePathRecordingButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE_HINT"));
             subMenu.Add(abortPathRecordingButton);
-            subMenu.AddDescription(menu, abortPathRecordingButton, "Abort the current recording and discard the recorded path.");
+            subMenu.AddDescription(menu, abortPathRecordingButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT_HINT"));
             subMenu.Add(recorderStateHeader);
 
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== Path Editing ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE")} ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             
-            subMenu.Add(new TextMenu.Button("Open Path Edit Tool In Browser (Coming Soon...)") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_BROWSER")) {
                 Disabled = true,
             });
-            subMenu.Add(new TextMenu.Button("Remove Current Room From Path") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_REMOVE_CURRENT_ROOM")) {
                 OnPressed = Mod.RemoveRoomFromChapterPath,
                 Disabled = !hasCurrentRoom
             });
-            subMenu.Add(new TextMenu.Button("Group Current And Previous Rooms") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_GROUP")) {
                 OnPressed = Mod.GroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
-            subMenu.Add(new TextMenu.Button("Ungroup Current From Previous Room") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_UNGROUP")) {
                 OnPressed = Mod.UngroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
             
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
             List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
-                    new KeyValuePair<bool, string>(false, "Gameplay"),
-                    new KeyValuePair<bool, string>(true, "Transition"),
+                    new KeyValuePair<bool, string>(false, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY")),
+                    new KeyValuePair<bool, string>(true, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION")),
             };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>("Current Room Type", RoomType, currentRoomIsTransition ?? false) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TITLE"), RoomType, currentRoomIsTransition ?? false) {
                 OnValueChange = (newValue) => {
                     if (Mod.CurrentChapterPath == null) return;
                     if (Mod.CurrentChapterPath.CurrentRoom == null) return;
@@ -293,7 +296,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
             
-            subMenu.Add(menuItem = new TextMenu.Button("Import Custom Room Name from Clipboard") { 
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText().Trim();
                     Mod.Log($"Importing custom room name from clipboard...");
@@ -305,26 +308,26 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasCurrentRoom
             });
-            subMenu.AddDescription(menu, menuItem, "Empty text (e.g. just spaces) in the clipboard means removing the custom room name!");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Apply Custom Names For All Segments", CustomRoomNameAllSegments) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME"), CustomRoomNameAllSegments) {
                 OnValueChange = (value) => {
                     CustomRoomNameAllSegments = value;
                 },
                 Disabled = !hasCurrentRoom
             });
-            subMenu.AddDescription(menu, menuItem, "Turn this ON to apply a custom room name to all segments that have this room,");
-            subMenu.AddDescription(menu, menuItem, "OFF for just the current segment.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== Import / Export ==="));
-            subMenu.Add(new TextMenu.Button("Export path to Clipboard") { 
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) { 
                 OnPressed = () => {
                     if (Mod.CurrentChapterPath == null) return;
                     TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
                 },
                 Disabled = !hasPath
             });
-            subMenu.Add(menuItem = new DoubleConfirmButton("Import path from Clipboard") { 
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD")) { 
                 OnDoubleConfirmation = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing path from clipboard...");
@@ -339,10 +342,10 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 HighlightColor = Color.Yellow,
             });
-            subMenu.AddDescription(menu, menuItem, "!!! The existing path segment will be overwritten !!!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Danger Zone ==="));
-            DoubleConfirmButton deleteButton = new DoubleConfirmButton("Delete Current Segment") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_TITLE")} ==="));
+            DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE")) {
                 Disabled = !hasPathList || segmentCount <= 1,
                 HighlightColor = Color.Red,
             };
@@ -359,8 +362,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 deleteButton.Disabled = Mod.CurrentChapterPathSegmentList.Segments.Count <= 1;
             };
             subMenu.Add(deleteButton);
-            subMenu.AddDescription(menu, deleteButton, "Also deletes the stats of this segment!");
-            subMenu.AddDescription(menu, deleteButton, "!!! This action cannot be undone !!!");
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_1"));
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2"));
 
             menu.Add(subMenu);
         }
@@ -370,44 +373,44 @@ namespace Celeste.Mod.ConsistencyTracker
         [JsonIgnore]
         public bool WipeChapter { get; set; } = false;
         public void CreateWipeChapterEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("!!Data Wipe!!", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_TITLE"), false);
             TextMenu.Item menuItem;
 
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
-            subMenu.Add(new TextMenu.SubHeader("These actions cannot be reverted!"));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_HINT")));
 
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== ROOM ==="));
-            subMenu.Add(new TextMenu.Button("Remove Last Attempt") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT")) {
                 OnPressed = () => {
                     Mod.RemoveLastAttempt();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new TextMenu.Button("Remove Last Death Streak") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_DEATH_STREAK")) {
                 OnPressed = () => {
                     Mod.RemoveLastDeathStreak();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new TextMenu.Button("Remove All Attempts") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_ALL_ATTEMPTS")) {
                 OnPressed = () => {
                     Mod.WipeRoomData();
                 },
                 Disabled = !hasCurrentRoom
             });
 
-            subMenu.Add(new DoubleConfirmButton("Remove Golden Berry Deaths") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
                 },
@@ -416,8 +419,8 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== CHAPTER ==="));
-            subMenu.Add(new DoubleConfirmButton("Reset All Attempts") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE")} ==="));
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_ATTEMPTS")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterData();
                 },
@@ -425,7 +428,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new DoubleConfirmButton("Reset All Golden Berry Deaths") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_GOLDEN_BERRY_DEATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryDeaths();
                 },
@@ -433,7 +436,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
             
-            subMenu.Add(new DoubleConfirmButton("Reset Golden Berry Collection") {
+            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_GOLDEN_BERRY_COLLECTION")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryCollects();
                 },
@@ -441,27 +444,27 @@ namespace Celeste.Mod.ConsistencyTracker
                 HighlightColor = Color.Red,
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Vanilla Paths ==="));
-            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset All Vanilla Paths") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")} ==="));
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.CheckPrepackagedPaths(reset:true);
                 },
                 HighlightColor = Color.Red,
             });
-            subMenu.AddDescription(menu, menuItem, "Resets the vanilla paths (1A-8C, Farewell) to the most up-to-date version");
-            subMenu.AddDescription(menu, menuItem, "The newest version includes Full-Clear path segments, if you want to do FCs!");
-            subMenu.AddDescription(menu, menuItem, "If you are in a map, you will have to restart the map to see the changes!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Live-Data ==="));
-            subMenu.Add(menuItem = new DoubleConfirmButton($"Reset '{StatManager.FormatFileName}' file") { 
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE")} ==="));
+            subMenu.Add(menuItem = new DoubleConfirmButton($"{Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET")} '{StatManager.FormatFileName}' {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE")}") { 
                 OnDoubleConfirmation = () => {
                     Mod.StatsManager.ResetFormats();
                 },
                 HighlightColor = Color.Red,
             });
-            subMenu.AddDescription(menu, menuItem, "Resets the live-data format file back to the default values");
-            subMenu.AddDescription(menu, menuItem, "This will delete all custom formats!");
-            subMenu.AddDescription(menu, menuItem, "This will also generate explanations and examples for all new stats, if CCT is updated!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_3"));
 
 
             menu.Add(subMenu);
@@ -476,48 +479,48 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int SummarySelectedAttemptCount { get; set; } = 20;
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Summary", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_SUMMARY_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== In-Game Summary ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Enabled", IngameSummaryEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_ENABLED"), IngameSummaryEnabled) {
                 OnValueChange = v => {
                     IngameSummaryEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Bind a button to open the in-game summary!");
-            subMenu.AddDescription(menu, menuItem, "Default for navigating the summary: <Grab> go through pages, <Up>/<Down> navigate on a page");
-            subMenu.AddDescription(menu, menuItem, "You can replace the default navigation bindings by binding your own buttons!");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_3"));
 
-            subMenu.Add(new TextMenu.SubHeader("=== Export (outdated) ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_TITLE")} ==="));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
                     new KeyValuePair<int, string>(10, "10"),
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Summary Over X Attempts", AttemptCounts, SummarySelectedAttemptCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS"), AttemptCounts, SummarySelectedAttemptCount) {
                 OnValueChange = (value) => {
                     SummarySelectedAttemptCount = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating the consistency stats, only the last X attempts will be counted");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS_HINT"));
 
 
-            subMenu.Add(menuItem = new TextMenu.Button("Export Tracker Summary") {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY")) {
                 OnPressed = () => {
                     Mod.CreateChapterSummary(SummarySelectedAttemptCount);
                 },
                 Disabled = Mod.CurrentChapterPath == null,
             });
-            subMenu.AddDescription(menu, menuItem, "This feature is outdated, I might update this eventually");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY_HINT"));
 
             menu.Add(subMenu);
         }
@@ -563,39 +566,45 @@ namespace Celeste.Mod.ConsistencyTracker
         public LowDeathBehavior LiveDataStatLowDeathBehavior { get; set; } = LowDeathBehavior.AlwaysCheckpoints;
 
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Live-Data Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_TITLE"), false);
             TextMenu.Item menuItem;
             
-            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE")} ==="));
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, "DT-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, "Determination-3"),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, "Debug Room Name"),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP")),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP")),
+                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_DEBUG_ROOM_NAME")),
             };
             if (LiveDataRoomNameDisplayType == RoomNameDisplayType.CustomRoomName) {
                 LiveDataRoomNameDisplayType = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
             }
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Room Name Format", PBNameTypes, (int)LiveDataRoomNameDisplayType) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT"), PBNameTypes, (int)LiveDataRoomNameDisplayType) {
                 OnValueChange = (value) => {
                     LiveDataRoomNameDisplayType = (RoomNameDisplayType)value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Whether you want checkpoint names to be full or abbreviated in the room name.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_HINT"));
 
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<CustomNameBehavior>("Custom Room Name Behavior", LiveDataCustomNameBehavior) { 
+            List<KeyValuePair<CustomNameBehavior, string>> CustomNameBehaviors = new List<KeyValuePair<CustomNameBehavior, string>>() {
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Append, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_APPEND")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Ignore, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_IGNORE")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Override, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_OVERRIDE")),
+                new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Prepend, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_PREPEND")),
+            };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), CustomNameBehaviors, LiveDataCustomNameBehavior) { 
                 OnValueChange = (value) => {
                     LiveDataCustomNameBehavior = value;
                     Mod.SaveChapterStats();
                 }
             });
 
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide Formats When No Path", LiveDataHideFormatsWithoutPath) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH"), LiveDataHideFormatsWithoutPath) {
                 OnValueChange = v => {
                     LiveDataHideFormatsWithoutPath = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If a format depends on path information and no path is set, the format will be blanked out.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH_HINT"));
 
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
                     new KeyValuePair<int, string>(5, "5"),
@@ -603,86 +612,92 @@ namespace Celeste.Mod.ConsistencyTracker
                     new KeyValuePair<int, string>(20, "20"),
                     new KeyValuePair<int, string>(100, "100"),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", AttemptCounts, LiveDataSelectedAttemptCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS"), AttemptCounts, LiveDataSelectedAttemptCount) {
                 OnValueChange = (value) => {
                     LiveDataSelectedAttemptCount = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts in each room will be counted.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS_HINT"));
 
             List<int> DigitCounts = new List<int>() { 1, 2, 3, 4, 5 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Max. Decimal Places", DigitCounts, LiveDataDecimalPlaces) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES"), DigitCounts, LiveDataDecimalPlaces) {
                 OnValueChange = (value) => {
                     LiveDataDecimalPlaces = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Floating point numbers will be rounded to this decimal.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES_HINT"));
             
-            subMenu.Add(menuItem = new TextMenu.OnOff("Ignore Unplayed Rooms", LiveDataIgnoreUnplayedRooms) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS"), LiveDataIgnoreUnplayedRooms) {
                 OnValueChange = v => {
                     LiveDataIgnoreUnplayedRooms = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS_HINT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"Success Rate Colors")); 
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Light Green Percentage", PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS"))); 
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarLightGreenPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 95%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Green Percentage", PercentageSlider(), LiveDataChapterBarGreenPercent) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE_DEFAULT"));
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarGreenPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarGreenPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 80%");
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Yellow Percentage", PercentageSlider(), LiveDataChapterBarYellowPercent) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE_DEFAULT"));
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarYellowPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarYellowPercent = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Default: 50%");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE_DEFAULT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Stats Settings ==="));
-            subMenu.Add(new TextMenu.SubHeader($"These settings only apply to certain stats", false));
-            subMenu.Add(menuItem = new TextMenuExt.EnumSlider<LowDeathBehavior>("Low Death Display Behavior", LiveDataStatLowDeathBehavior) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE")} ==="));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_HINT"), false));
+
+            List<KeyValuePair<LowDeathBehavior, string>> LowDeathBehaviors = new List<KeyValuePair<LowDeathBehavior, string>>() {
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.AlwaysCheckpoints, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_CHECKPOINTS")),
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.AlwaysRooms, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_ROOMS")),
+                new KeyValuePair<LowDeathBehavior, string>(LowDeathBehavior.Adaptive, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ADAPTIVE")),
+            };
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<LowDeathBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR"), LowDeathBehaviors, LiveDataStatLowDeathBehavior) {
                 OnValueChange = (value) => {
                     LiveDataStatLowDeathBehavior = value;
                     Mod.SaveChapterStats();
                 }
             });
-            subMenu.AddDescription(menu, menuItem, $"For the low death stat '{ListCheckpointDeathsStat.ListCheckpointDeaths}'");
-            subMenu.AddDescription(menu, menuItem, $"'Adaptive' will switch from checkpoints to rooms when there is 12 or fewer rooms in the chapter.");
+            subMenu.AddDescription(menu, menuItem, $"{Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_1")} '{ListCheckpointDeathsStat.ListCheckpointDeaths}'");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== File Output ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Enable Output To Files", LiveDataFileOutputEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE"), LiveDataFileOutputEnabled) {
                 OnValueChange = (value) => {
                     LiveDataFileOutputEnabled = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Disabling this might improve performance. Ingame Overlay is unaffected by this.");
-            subMenu.AddDescription(menu, menuItem, "DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_2"));
 
             List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)ListFormat.Plain, "Plain"),
-                    new KeyValuePair<int, string>((int)ListFormat.Json, "JSON"),
+                    new KeyValuePair<int, string>((int)ListFormat.Plain, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_PLAIN")),
+                    new KeyValuePair<int, string>((int)ListFormat.Json, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_JSON")),
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("List Output Format", ListTypes, (int)LiveDataListOutputFormat) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT"), ListTypes, (int)LiveDataListOutputFormat) {
                 OnValueChange = (value) => {
                     LiveDataListOutputFormat = (ListFormat)value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Output format for lists. Plain is easily readable, JSON is for programming purposes.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Format Editing ==="));
-            subMenu.Add(new TextMenu.Button("Open Format Editor In Browser") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_EDITOR_IN_BROWSER")) {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
                     string path = System.IO.Path.GetFullPath(relPath);
@@ -690,14 +705,14 @@ namespace Celeste.Mod.ConsistencyTracker
                     Process.Start("explorer", path);
                 },
             });
-            subMenu.Add(menuItem = new TextMenu.Button("Open Format Text File").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE")).Pressed(() => {
                 string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
                 string path = System.IO.Path.GetFullPath(relPath);
                 Mod.LogVerbose($"Opening format file at '{path}'");
                 Process.Start("explorer", path);
             }));
-            subMenu.AddDescription(menu, menuItem, $"After manually editing, make sure to reload the format file with the button below!");
-            subMenu.Add(menuItem = new TextMenu.Button("Reload Format File") {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE_HINT"));
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_RELOAD_FORMAT_FILE")) {
                 OnPressed = () => {
                     Mod.StatsManager.LoadFormats();
                     Mod.SaveChapterStats();
@@ -751,32 +766,32 @@ namespace Celeste.Mod.ConsistencyTracker
         public int ExternalOverlayChapterBorderWidthMultiplier { get; set; } = 2;
 
         public void CreateExternalOverlayEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("External Overlay Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.Button("Open External Overlay In Browser").Pressed(() => {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_OPEN_OVERLAY_IN_BROWSER")).Pressed(() => {
                 string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "CCTOverlay.html"));
                 Process.Start("explorer", path);
             }));
 
 
-            subMenu.Add(new TextMenu.SubHeader("REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS"));
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_REFRESH_HINT")));
             //General Settings
-            subMenu.Add(new TextMenu.SubHeader("=== General Settings ==="));
-            subMenu.Add(menuItem = new TextMenu.Slider("Stats Refresh Time", (i) => i == 1 ? $"1 second" : $"{i} seconds", 1, 59, ExternalOverlayRefreshTimeSeconds) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME"), (i) => i == 1 ? $"1 {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECOND")}" : $"{i} {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECONDS")}", 1, 59, ExternalOverlayRefreshTimeSeconds) {
                 OnValueChange = (value) => {
                     ExternalOverlayRefreshTimeSeconds = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "The delay between two updates of the overlay.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_HINT"));
             List<int> attemptsList = new List<int>() { 5, 10, 20, 100 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Consider Last X Attempts", attemptsList, ExternalOverlayAttemptsCount) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS"), attemptsList, ExternalOverlayAttemptsCount) {
                 OnValueChange = (value) => {
                     ExternalOverlayAttemptsCount = value;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When calculating room consistency stats, only the last X attempts will be used for calculation");
-            subMenu.Add(new TextMenu.Slider("Text Outline Size", (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS_HINT"));
+            subMenu.Add(new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_OUTLINE_SIZE"), (i) => $"{i}px", 0, 60, ExternalOverlayTextOutlineSize) {
                 OnValueChange = (value) => {
                     ExternalOverlayTextOutlineSize = value;
                 }
@@ -791,65 +806,65 @@ namespace Celeste.Mod.ConsistencyTracker
                     "Impact",
                     "Comic Sans MS",
                 };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Text Font", fontList, ExternalOverlayFontFamily) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT"), fontList, ExternalOverlayFontFamily) {
                 OnValueChange = v => {
                     ExternalOverlayFontFamily = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If a font doesn't show up on the overlay, you might need to install it first (just google font name lol)");
-            subMenu.Add(new TextMenu.OnOff("Colorblind Mode", ExternalOverlayColorblindMode) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT_HINT"));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_COLORBLIND_MODE"), ExternalOverlayColorblindMode) {
                 OnValueChange = v => {
                     ExternalOverlayColorblindMode = v;
                 }
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Component Settings ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TITLE")} ==="));
 
             //Text Segment Display
-            subMenu.Add(new TextMenu.SubHeader("The text stats segment at the top left / top middle / top right"));
-            subMenu.Add(new TextMenu.OnOff("Text Stats Display Enabled (All)", ExternalOverlayTextDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_ALL"), ExternalOverlayTextDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayEnabled = v;
                 }
             });
             List<string> availablePresets = new List<string>() {
-                    "Default",
-                    "Low Death",
-                    "Golden Attempts",
-                    "Custom Style 1",
-                    "Custom Style 2",
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_1"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_2"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_3"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_4"),
+                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_5"),
                 };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<string>("Text Stats Preset", availablePresets, ExternalOverlayTextDisplayPreset) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET"), availablePresets, ExternalOverlayTextDisplayPreset) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayPreset = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Left Enabled", ExternalOverlayTextDisplayLeftEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_LEFT"), ExternalOverlayTextDisplayLeftEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayLeftEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Middle Enabled", ExternalOverlayTextDisplayMiddleEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_MIDDLE"), ExternalOverlayTextDisplayMiddleEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayMiddleEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Text Stats Right Enabled", ExternalOverlayTextDisplayRightEnabled) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_RIGHT"), ExternalOverlayTextDisplayRightEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayRightEnabled = v;
                 }
             });
 
             //Chapter Bar
-            subMenu.Add(new TextMenu.SubHeader("The bars representing the rooms and checkpoints in a map"));
-            subMenu.Add(new TextMenu.OnOff("Chapter Bar Enabled", ExternalOverlayChapterBarEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_ENABLE"), ExternalOverlayChapterBarEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayChapterBarEnabled = v;
                 }
             });
 
             //subMenu.Add(new TextMenu.SubHeader($"The width of the black bars between rooms on the chapter display"));
-            subMenu.Add(new TextMenuExt.IntSlider("Chapter Bar Border Width", 1, 10, ExternalOverlayChapterBorderWidthMultiplier) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_BORDER_WIDTH"), 1, 10, ExternalOverlayChapterBorderWidthMultiplier) {
                 OnValueChange = (value) => {
                     ExternalOverlayChapterBorderWidthMultiplier = value;
                 }
@@ -860,8 +875,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             //Room Attempts Display
-            subMenu.Add(new TextMenu.SubHeader("The red/green dots that show the last X attempts in a room"));
-            subMenu.Add(new TextMenu.OnOff("Room Attempts Display Enabled", ExternalOverlayRoomAttemptsDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_ENABLE"), ExternalOverlayRoomAttemptsDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayRoomAttemptsDisplayEnabled = v;
                 }
@@ -869,23 +884,23 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             //Golden Share Display
-            subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-            subMenu.Add(new TextMenu.OnOff("Golden Share Display Enabled", ExternalOverlayGoldenShareDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_ENABLE"), ExternalOverlayGoldenShareDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenShareDisplayEnabled = v;
                 }
             });
-            subMenu.Add(menuItem = new TextMenu.OnOff("Golden Share Show Session Deaths", ExternalOverlayGoldenShareDisplayShowSession) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS"), ExternalOverlayGoldenShareDisplayShowSession) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenShareDisplayShowSession = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shown in parenthesis after the total checkpoint death count");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS_HINT"));
 
 
             //Golden PB Display
-            subMenu.Add(new TextMenu.SubHeader("The count of golden deaths per checkpoint below the chapter bar"));
-            subMenu.Add(new TextMenu.OnOff("Golden PB Display Enabled", ExternalOverlayGoldenPBDisplayEnabled) {
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_HINT")));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_ENABLE"), ExternalOverlayGoldenPBDisplayEnabled) {
                 OnValueChange = v => {
                     ExternalOverlayGoldenPBDisplayEnabled = v;
                 }
@@ -1039,34 +1054,34 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayTextDebugPositionEnabled { get; set; } = false;
 
         public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("In-Game Overlay Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
-            subMenu.Add(new TextMenu.SubHeader("=== Debug Map ==="));
-            subMenu.Add(new TextMenu.OnOff("Show Room Names", ShowCCTRoomNamesOnDebugMap) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_ROOM_NAMES"), ShowCCTRoomNamesOnDebugMap) {
                 OnValueChange = v => {
                     ShowCCTRoomNamesOnDebugMap = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Show Success Rate Borders", ShowSuccessRateBordersOnDebugMap) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_SUCCESS_RATE_BORDERS"), ShowSuccessRateBordersOnDebugMap) {
                 OnValueChange = v => {
                     ShowSuccessRateBordersOnDebugMap = v;
                 }
             });
 
-            subMenu.Add(new TextMenu.SubHeader("=== Text Overlay ==="));
-            subMenu.Add(new TextMenu.OnOff("Text Overlay Enabled", IngameOverlayTextEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ENABLE"), IngameOverlayTextEnabled) {
                 OnValueChange = v => {
                     IngameOverlayTextEnabled = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Only Show Overlay In Menu", IngameOverlayOnlyShowInPauseMenu) {
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ONLY_SHOW_IN_MENU"), IngameOverlayOnlyShowInPauseMenu) {
                 OnValueChange = v => {
                     IngameOverlayOnlyShowInPauseMenu = v;
                 }
@@ -1077,25 +1092,37 @@ namespace Celeste.Mod.ConsistencyTracker
             //Get all formats
             List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
             List<string> availableFormatsGolden = new List<string>(availableFormats);
-            string noneFormat = "<same>";
+            string noneFormat = Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_NO_FORMAT");
             availableFormatsGolden.Insert(0, noneFormat);
-            string descAvailableFormats = $"The available formats can be changed by editing 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'";
-            string descAvailableFormatsGolden = $"Room transition with golden required to activate. '{noneFormat}' will use same format as above.";
-            string descHideWithGolden = $"Turn this on to hide this text while in a golden run";
+            string descAvailableFormats = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_EDIT_HINT")} 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'";
+            string descAvailableFormatsGolden = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_1")} '{noneFormat}' {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_2")}";
+            string descHideWithGolden = Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_0");
 
 
             bool hasStats = Mod.CurrentChapterStats != null;
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
 
+            List<KeyValuePair<StatTextPosition, string>> StatTextPositions = new List<KeyValuePair<StatTextPosition, string>>() {
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_RIGHT")),
+            };
+
             // ========== Text 1 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 1 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_ENABLE"), IngameOverlayText1Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText1Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(1, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText1Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText1Position) {
                 OnValueChange = v => {
                     IngameOverlayText1Position = v;
                     Mod.IngameOverlay.SetTextPosition(1, v);
@@ -1103,28 +1130,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText1Format = GetFormatOrDefault(IngameOverlayText1Format, availableFormats);
             IngameOverlayText1FormatGolden = GetFormatOrDefault(IngameOverlayText1FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText1Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText1Format) {
                 OnValueChange = v => {
                     IngameOverlayText1Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format With Golden", availableFormatsGolden, IngameOverlayText1FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText1FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText1FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 1, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText1HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText1HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText1HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(1, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText1Size = value;
                     Mod.IngameOverlay.SetTextSize(1, value);
@@ -1136,13 +1163,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(1, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText1OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText1OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(1, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText1OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText1OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(1, value);
@@ -1151,14 +1178,14 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 2 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 2 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 2 Enabled", IngameOverlayText2Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_ENABLE"), IngameOverlayText2Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText2Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(2, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText2Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText2Position) {
                 OnValueChange = v => {
                     IngameOverlayText2Position = v;
                     Mod.IngameOverlay.SetTextPosition(2, v);
@@ -1166,28 +1193,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText2Format = GetFormatOrDefault(IngameOverlayText2Format, availableFormats);
             IngameOverlayText2FormatGolden = GetFormatOrDefault(IngameOverlayText2FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText2Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText2Format) {
                 OnValueChange = v => {
                     IngameOverlayText2Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText2FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText2FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText2FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 2, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText2HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText2HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText2HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(2, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText2Size = value;
                     Mod.IngameOverlay.SetTextSize(2, value);
@@ -1199,13 +1226,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(2, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText2OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText2OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(2, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText2OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText2OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(2, value);
@@ -1213,14 +1240,14 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             // ========== Text 3 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 3 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 3 Enabled", IngameOverlayText3Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_ENABLE"), IngameOverlayText3Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText3Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(3, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText3Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText3Position) {
                 OnValueChange = v => {
                     IngameOverlayText3Position = v;
                     Mod.IngameOverlay.SetTextPosition(3, v);
@@ -1228,28 +1255,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText3Format = GetFormatOrDefault(IngameOverlayText3Format, availableFormats);
             IngameOverlayText3FormatGolden = GetFormatOrDefault(IngameOverlayText3FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText3Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText3Format) {
                 OnValueChange = v => {
                     IngameOverlayText3Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText3FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText3FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText3FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 3, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText3HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText3HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText3HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(3, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText3Size = value;
                     Mod.IngameOverlay.SetTextSize(3, value);
@@ -1261,13 +1288,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(3, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText3OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText3OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(3, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText3OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText3OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(3, value);
@@ -1276,14 +1303,14 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             // ========== Text 4 ==========
-            subMenu.Add(new TextMenu.SubHeader("=== Text 4 ==="));
-            subMenu.Add(new TextMenu.OnOff("Text 4 Enabled", IngameOverlayText4Enabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_TITLE")} ==="));
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_ENABLE"), IngameOverlayText4Enabled) {
                 OnValueChange = v => {
                     IngameOverlayText4Enabled = v;
                     Mod.IngameOverlay.SetTextVisible(4, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumSlider<StatTextPosition>("Position", IngameOverlayText4Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText4Position) {
                 OnValueChange = v => {
                     IngameOverlayText4Position = v;
                     Mod.IngameOverlay.SetTextPosition(4, v);
@@ -1291,28 +1318,28 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             IngameOverlayText4Format = GetFormatOrDefault(IngameOverlayText4Format, availableFormats);
             IngameOverlayText4FormatGolden = GetFormatOrDefault(IngameOverlayText4FormatGolden, availableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format", availableFormats, IngameOverlayText4Format) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT"), availableFormats, IngameOverlayText4Format) {
                 OnValueChange = v => {
                     IngameOverlayText4Format = v;
                     TextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormats);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>("Selected Format with Golden", availableFormatsGolden, IngameOverlayText4FormatGolden) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN"), availableFormatsGolden, IngameOverlayText4FormatGolden) {
                 OnValueChange = v => {
                     IngameOverlayText4FormatGolden = v;
                     GoldenTextSelectionHelper(hasStats, holdingGolden, 4, noneFormat, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descAvailableFormatsGolden);
-            subMenu.Add(menuItem = new TextMenu.OnOff("Hide In Golden Run", IngameOverlayText4HideWithGolden) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN"), IngameOverlayText4HideWithGolden) {
                 OnValueChange = v => {
                     IngameOverlayText4HideWithGolden = v;
                     Mod.IngameOverlay.SetTextHideInGolden(4, v);
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Size", PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText4Size = value;
                     Mod.IngameOverlay.SetTextSize(4, value);
@@ -1324,13 +1351,13 @@ namespace Celeste.Mod.ConsistencyTracker
             //        Mod.IngameOverlay.SetTextAlpha(4, value);
             //    }
             //});
-            subMenu.Add(new TextMenuExt.IntSlider("Offset X", 0, 2000, IngameOverlayText4OffsetX) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText4OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetX = value;
                     Mod.IngameOverlay.SetTextOffsetX(4, value);
                 }
             });
-            subMenu.Add(new TextMenuExt.IntSlider("Offset Y", 0, 2000, IngameOverlayText4OffsetY) {
+            subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y"), 0, 2000, IngameOverlayText4OffsetY) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetY = value;
                     Mod.IngameOverlay.SetTextOffsetY(4, value);
@@ -1438,11 +1465,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool LogFlagFacing { get; set; } = false;
 
         public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Physics Inspector Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-            subMenu.Add(new TextMenu.SubHeader($"=== General ==="));
-            subMenu.Add(new TextMenu.Button("Open Inspector In Browser") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_OPEN_IN_BROWSER")) {
                 OnPressed = () => {
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
                     string path = System.IO.Path.GetFullPath(relPath);
@@ -1450,79 +1477,79 @@ namespace Celeste.Mod.ConsistencyTracker
                     Process.Start("explorer", path);
                 },
             });
-            subMenu.Add(menuItem = new TextMenu.OnOff("Recording Physics Enabled", LogPhysicsEnabled) {
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_ENABLE"), LogPhysicsEnabled) {
                 OnValueChange = v => {
                     LogPhysicsEnabled = v;
                     Mod.Log($"Logging physics {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Records various physics properties, to be displayed in the physics inspector");
-            subMenu.AddDescription(menu, menuItem, "Enabling this settings starts the recording, disabling it stops the recording");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_2"));
 
 
-            subMenu.Add(new TextMenu.SubHeader($"=== Settings ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Death", LogSegmentOnDeath) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH"), LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;
                     Mod.Log($"Recording segmenting on death {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player dies.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Segment Recording On Load State", LogSegmentOnLoadState) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE"), LogSegmentOnLoadState) {
                 OnValueChange = v => {
                     LogSegmentOnLoadState = v;
                     Mod.Log($"Recording segmenting on loading state {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "When recording is enabled, segments the recording when the player loads a savestate.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Copy TAS File To Clipboard", LogPhysicsInputsToTasFile) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD"), LogPhysicsInputsToTasFile) {
                 OnValueChange = v => {
                     LogPhysicsInputsToTasFile = v;
                     Mod.Log($"Recordings inputs to tas file {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped");
-            subMenu.AddDescription(menu, menuItem, "Multiple buttons for one input don't work properly!");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Flip Y-Axis In Recording Data", LogFlipY) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_2"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y"), LogFlipY) {
                 OnValueChange = v => {
                     LogFlipY = v;
                     Mod.Log($"Logging physics flip y-axis {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Usually, negative numbers mean up in Celeste.");
-            subMenu.AddDescription(menu, menuItem, "This option flips the Y-Axis so that negative numbers mean down in the data.");
-            subMenu.AddDescription(menu, menuItem, "Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_3"));
 
             
-            subMenu.Add(new TextMenu.SubHeader($"=== Optional Flags ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Count Flag", LogFlagDashes) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT"), LogFlagDashes) {
                 OnValueChange = v => {
                     LogFlagDashes = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagDashes)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player has on any frame");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Max Dash Count Flag", LogFlagMaxDashes) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT"), LogFlagMaxDashes) {
                 OnValueChange = v => {
                     LogFlagMaxDashes = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagMaxDashes)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows how many dashes the player can have at max usually. Only works when above is enabled.");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Dash Direction Flag", LogFlagDashDir) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION"), LogFlagDashDir) {
                 OnValueChange = v => {
                     LogFlagDashDir = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagDashDir)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows the last dash's direction on any frame");
-            subMenu.Add(menuItem = new TextMenu.OnOff("Player Facing Flag", LogFlagFacing) {
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION_HINT"));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING"), LogFlagFacing) {
                 OnValueChange = v => {
                     LogFlagFacing = v;
                     Mod.Log($"Optional flag '{nameof(LogFlagFacing)}' {(v ? "enabled" : "disabled")}");
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Shows the direction the player is facing on any frame");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING_HINT"));
 
             menu.Add(subMenu);
         }
@@ -1542,11 +1569,11 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Pace Ping Settings", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
             
             if (!inGame) {
-                subMenu.Add(new TextMenu.SubHeader("Go into a map for this menu", false));
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
@@ -1559,17 +1586,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
 
-            subMenu.Add(new TextMenu.SubHeader("=== General ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Pace Pings Enabled", PacePingEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE"), PacePingEnabled) {
                 OnValueChange = v => {
                     PacePingEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "If you own a Discord server, you can use this feature to automatically notify");
-            subMenu.AddDescription(menu, menuItem, "users in your server when you are on a good run! You will need to setup a");
-            subMenu.AddDescription(menu, menuItem, "Discord WebHook (Google how to) and paste the URL in the settings below.");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
 
-            subMenu.Add(new TextMenu.Button("Import Default Ping Message from Clipboard") { 
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing default ping message from clipboard...");
@@ -1581,7 +1608,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_WEBHOOK_IMPORT")).Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
@@ -1590,26 +1617,26 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
-            subMenu.AddDescription(menu, menuItem, "DON'T SHOW THE URL ON STREAM");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_URL_HINT"));
 
-            subMenu.Add(menuItem = new TextMenu.Button("Reload state file") {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE")) {
                 OnPressed = Mod.PacePingManager.ReloadStateFile,
             });
-            subMenu.AddDescription(menu, menuItem, "If you manually edit the state.json file, use this button to reload it in CCT");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE_HINT"));
 
-            subMenu.Add(new TextMenu.SubHeader($"=== PB Ping ==="));
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_TITLE")} ==="));
             List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
-                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, "No Ping"),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, "Ping On PB Entry"),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, "Ping On PB Passed"),
+                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
             };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>("Ping On PB?", pbPingTypes, PacePingPbPingType) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENABLE"), pbPingTypes, PacePingPbPingType) {
                 OnValueChange = (newValue) => {
                     PacePingPbPingType = newValue;
                 }
             });
 
-            subMenu.Add(new TextMenu.Button("Import PB Ping Message from Clipboard") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing pb ping message from clipboard...");
@@ -1623,8 +1650,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
-            subMenu.Add(new TextMenu.SubHeader($"=== Current Room{roomAddition} ==="));
-            TextMenu.Button importMessageButton = new TextMenu.Button("Import Ping Message from Clipboard") {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TITLE")}{roomAddition} ==="));
+            TextMenu.Button importMessageButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing custom ping message from clipboard...");
@@ -1636,17 +1663,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = paceTiming == null,
             };
-            TextMenu.Button testButton = new TextMenu.Button("Test Pace/PB Ping For This Room") {
+            TextMenu.Button testButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING")) {
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
             };
-            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff($"Enable Embeds In Ping", paceTiming == null ? true : paceTiming.EmbedsEnabled) {
+            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_ENABLE_EMBEDS"), paceTiming == null ? true : paceTiming.EmbedsEnabled) {
                 OnValueChange = (isEnabled) => {
                     Mod.PacePingManager.SavePaceTimingEmbedsEnabled(isEnabled);
                 },
                 Disabled = paceTiming == null
             };
-            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff($"Pace Ping This Room", paceTiming != null) {
+            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
                 OnValueChange = (isEnabled) => {
                     bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
                     importMessageButton.Disabled = !isNowEnabled;
@@ -1657,22 +1684,22 @@ namespace Celeste.Mod.ConsistencyTracker
             };
 
             subMenu.Add(togglePacePingButton);
-            subMenu.AddDescription(menu, togglePacePingButton, "Sends a message to Discord when entering this room with the golden berry");
+            subMenu.AddDescription(menu, togglePacePingButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT"));
             subMenu.Add(importMessageButton);
             subMenu.Add(toggleEmbedsEnabledButton);
             subMenu.Add(testButton);
 
 
-            subMenu.Add(new TextMenu.SubHeader("=== All Deaths ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff("Message On Every Golden Death", PacePingAllDeathsEnabled) {
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH"), PacePingAllDeathsEnabled) {
                 OnValueChange = v => {
                     PacePingAllDeathsEnabled = v;
                 }
             });
-            subMenu.AddDescription(menu, menuItem, "Will send a message to Discord when you die in any room with the golden berry");
-            subMenu.AddDescription(menu, menuItem, "You'd probably not want to ping a role for this");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_2"));
 
-            subMenu.Add(new TextMenu.Button("Import All Deaths Message from Clipboard") {
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing all deaths message from clipboard...");
@@ -1684,7 +1711,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            subMenu.Add(menuItem = new TextMenu.Button("Import WebHook URL from Clipboard").Pressed(() => {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT")).Pressed(() => {
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
@@ -1693,8 +1720,8 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
-            subMenu.AddDescription(menu, menuItem, "This WebHook can be different from the pace ping WebHook.");
-            subMenu.AddDescription(menu, menuItem, "ALSO DON'T SHOW THIS URL ON STREAM");
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2"));
 
             menu.Add(subMenu);
         }
@@ -1708,301 +1735,182 @@ namespace Celeste.Mod.ConsistencyTracker
         //public bool PacePingEnabled { get; set; } = false;
 
         public void CreateFAQEntry(TextMenu menu, bool inGame) {
-            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("FAQ", false);
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_FAQ_TITLE"), false);
 
             List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() {
                 new FAQEntry.FAQSectionModel(){
-                    Title = "Path Management",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is a Path?",
-                            Answer = "A path is a configuration of Checkpoints and Rooms, in the order that you would beat them in during a run of whatever challenge you want to do. All vanilla maps come with pre-installed paths. 1A-8A and Farewell also have a separate pre-installed Path for full clear runs!" +
-                            "\nEvery Checkpoint has a name and an abbreviation" +
-                            "\nEvery Room can have a custom room name, and if not, it will get a name from the Checkpoint it is in + the room number in the Checkpoint. Additionally, Rooms can be marked as 'transition' rooms, making them not show up in many stat calculations",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is a Path Segment?",
-                            Answer = "A later addition to the Path system added Path Segments." +
-                            "\nEach map can have multiple Path Segments. A Path Segment is a Path with a given name, for example 'Normal', 'Full Clear', 'Silver 1' or whatever else you can think of." +
-                            " Every Path Segment has it's own separate stats!" +
-                            "\nUsing this you can track multiple different Paths for a single map (e.g. if you do segments of bigger maps, such as 9D), and switch between them easily in the 'Path Recording' menu.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I record a Path?",
-                            Answer = "1. Go into the first room of the Path Segment you want to record." +
-                            "\n2. Go to the menu 'Path Recording' and hit the button 'Start Path Recording'" +
-                            "\n3. Play through the map as normal (you can do this with invincibility and stuff if you want)" +
-                            "\n4. In the last room of the segment, hit the button 'Save Path'. Alternatively, complete the map and the path will be saved automatically." +
-                            "\n\nYou have now recorded a Path and can start tracking!"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I rename a Checkpoint in CCT?",
-                            Answer = "Sadly this cannot be done in the game currently." +
-                            "\nYou can however manually edit the file, see the FAQ entry below." +
-                            "\nIn the future, I hope to add an actual Path editing tool."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How can I manually edit a Path file?",
-                            Answer = "The easiest way to manually edit a path is:" +
-                            "\n1. Go into the map you want to edit the path for" +
-                            "\n2. Export the Path to your clipboard with 'Path Recording -> Export Path To Clipboard'" +
-                            "\n3. Paste the Path into a text editor of your choice" +
-                            "\n4. Edit the Path to your liking. You can rename checkpoints, rooms, and change the order of rooms and checkpoints. You can add custom room names and set rooms as transition rooms. But beware: The path needs to follow the JSON file format" +
-                            "\n5. Copy the edited Path back to your clipboard (CTRL + A to select all text, CTRL + C to copy)" +
-                            "\n6. Import the Path from your clipboard with 'Path Recording' -> 'Import Path from Clipboard'" +
-                            "\n\nIf done correctly, the changes should be visible immediately. If there was any error with the file format, the import will be stopped and your original path will NOT be overwritten."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I accidentally screwed up a vanilla Path file...",
-                            Answer = "You can always reset all vanilla Path files back to the original by going to '!!Data Wipe!! -> Reset All Vanilla Paths'"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I don't see the 'Full Clear' segments for 1A-8A/Farewell...",
-                            Answer = "The 'Full Clear' segments were added in a recent update. If you had CCT installed before the update, the vanilla path files aren't automatically updated." +
-                            "\nTo get all default segments added, hit the button '!!Data Wipe!! -> Reset All Vanilla Paths'. This will reset all vanilla paths to the up-to-date original."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "Stats Management",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What stats are there?",
-                            Answer = "There are 3 types of stats being tracked:" +
-                            "\n\n1. Dying to a room with the golden" +
-                            "\n2. Dying in / Completing a room (independently of the golden)" +
-                            "\n3. Collecting the golden" +
-                            "\n\nMany stats are calculated off of the golden deaths, such as:" +
-                            "\n- Best Runs" +
-                            "\n- Current Run #" +
-                            "\n- Current Run Top x%" +
-                            "\n- Room Choke Rate" +
-                            "\n- Room Golden Success Rate" +
-                            "\n- ..." +
-                            "\n\nBut there are also a bunch of stats that are calculated off of normal room completions/deaths, such as:" +
-                            "\n- Room/Checkpoint/Chapter Success Rate" +
-                            "\n- Room Streak / Max Streak" +
-                            "\n- Golden Chance from Start / Golden Chance to End for any room" +
-                            "\n- ..." +
-                            "\n\nFor the normal room completions/deaths stats, you can configure how many of the last attempts should be counted for the calculation (default: 20)" +
-                            "\n\n\nTo get a list of all possible calculated stats take a look at the Live-Data Editor!",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Where are the stats saved?",
-                            Answer = "All stats are saved separate from the path. This means that you can change the path at will, and the stats stay the same." +
-                            "\n\nThe raw stats file is saved in the location:" +
-                            "\n<CelesteFolder>\\ConsistencyTracker\\stats\\<MapName>.json" +
-                            "\nWhere the <MapName> is the SID of the map (usually the campaign's or mapper's name) + the side name (Normal, BSide, CSide)"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I accidentally collected a golden berry while practicing...",
-                            Answer = "There is currently no ingame option to remove accidental collects of goldens, but here is how you can remove it by editing the stats file:" +
-                            "\n\n1. Don't be in the map you want to edit the stats for" +
-                            "\n2. Find the stats file in '<CelesteFolder>\\ConsistencyTracker\\stats\\<MapName>.json'" +
-                            "\n3. Find the line that says \"goldenCollectedCount\"" +
-                            "\n4. Set the value back down to 0" +
-                            "\n5. Save the file" +
-                            "\n\nOnce you enter the map now the golden will be gone from CCT's best runs." +
-                            "\n\nIt will still show up in the Ingame Summary's session history, but fixing this is much harder to do (impossible?) so I won't go into detail here."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){ 
-                    Title = "Live-Data",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){ 
                         new FAQEntry.FAQEntryModel(){ 
-                            Question = "What is Live-Data?",
-                            Answer = "In the beginning of CCT, only raw stats were output to text files. External applications had to calculate any meaningful stat on their own to make use of the data." +
-                            "\n\nLive-Data added mod-side calculation of stats, and a way of letting the user decide how they are formatted. As of writing this FAQ there are about 80 different stats and pieces of information from the current game state that can be output through Live-Data.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is a Live-Data format?",
-                            Answer = "A 'format' instructs Live-Data how to output information. Each format has a name and an arbitrary text containing certain placeholders." +
-                            "\nPlaceholders look like this: {category:name}. Live-Data will insert the desired stat in place of the placeholder." +
-                            "\n\nExample: The format" +
-                            "\n'Current: {room:name} | Room: ({room:roomNumberInChapter}/{chapter:roomCount})'" +
-                            "\ncould produce the output" +
-                            "\n'Current: DT-7 | Room: (59/93)'" +
-                            "\nwhen playing Farewell.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I don't see format 'xy' in my list of formats, where is it?",
-                            Answer = "When new default formats are added in an update, they will not be added to your list of formats automatically," +
-                            " since that could potentially overwrite changes you made manually." +
-                            " To get the most up-to-date default formats, you can reset the 'format.txt' file back to default using the button:" +
-                            "\nMod Options -> !!Data Wipe!! -> Reset 'format.txt' file" +
-                            "\nbut beware that this will reset any custom formats you have created, so back those up first!",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How can I make my own format?",
-                            Answer = "There are 2 ways to make your own format:" +
-                            "\n\nFormat Editor" +
-                            "\n1. Start the Format Editor through 'Mod Options -> Live-Data Settings -> Start Format Editor In Browser'" +
-                            "\n2. In the Format Editor, click the button 'New Format' in the bottom left corner" +
-                            "\n3. Give your format a name." +
-                            "\n4. Type whatever you want in to the format text section. You can see all available placeholders in the panel on the right side. Hover over a placeholder to view an explanation of what it is for and click on a placeholder to insert it into the format text. If you are in a map, you will be able to see a preview of how the format looks in the box at the bottom." +
-                            "\n5. Hit the button 'Create new Format' at the bottom to save your format" +
-                            "\n\nManual File Editing" +
-                            "\n1. Open the 'format.txt' file through 'Mod Options -> Live-Data Settings -> Open Format Text File' in your text editor" +
-                            "\n2. Add a new line for your custom format at the bottom of the file" +
-                            "\n3. Write your format in the pattern: 'name;format'. To see all available placeholder with live previews I would still recommend the Format Editor Tool." +
-                            "\n4. Save the file" +
-                            "\n5. Reload the format file through 'Mod Options -> Live-Data Settings -> Reload Format File'" +
-                            "\n\nThe newly added format should now be selectable in the In-Game overlay!",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I would like to see a certain stat added...",
-                            Answer = "If you have an idea for a new stat, feel free to message me on Discord (viddie#4751) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "In-Game Overlay",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Why does it say <path> everywhere in the In-Game Overlay?",
-                            Answer = "CCT doesn't know how you want to go through the map from start to finish." +
-                            " To tell CCT how you want to do that, you need a path. By default, all vanilla" +
-                            " maps come with a path pre-installed." +
-                            "\nIf you want to track modded maps, you need to record a path yourself. See the Path Recording section in the FAQ for more details."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "The In-Game Overlay is annoying in maps where I don't want to track anything.",
-                            Answer = "There is an setting to automatically hide the overlay in maps where you don't have a path recorded:" +
-                            "\n'Live-Data Settings' -> 'Hide Formats When No Path'"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How can I customize the available formats for the In-Game Overlay?",
-                            Answer = "The available formats are taken from the Live-Data feature. Any changes to it will be available in the In-Game Overlay." +
-                            "\nCheck out the Live-Data section in the FAQ for more details."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_A"),
                         },
                     },
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "In-Game Summary",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is the In-Game Summary?",
-                            Answer = "The In-Game Summary is a way to display a bunch of data tracked by CCT within the game. It currently displays:" +
-                            "\n\n- Session History: You can look through all of your previous sessions and see how you improved!" +
-                            "\n- Overall Stats: How your stats look overall in a map and how it developed over the sessions." +
-                            "\n- Charts: Choke Rate / Room Entries chart for your overall stats and each session." +
-                            "\n- Graphs: A funky looking graphs of all your golden deaths throughout the map." +
-                            "\n\nAll of the displayed data is hand programmed, including the charts/graphs/tables. As such, issues are almost guaranteed." +
-                            "\nThere will likely be fixes/changes to this overlay in the future. If you have any suggestions, feel free to message me!"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I use the In-Game Summary?",
-                            Answer = "In the Mod Options of CCT you can bind a button to open the In-Game Summary. Whenever you are in a map, you can press that button to bring up the Summary overlay." +
-                            "\n\nNavigating the In-Game Summary by default uses these buttons:" +
-                            "\n- <Grab> to switch through the tabs" +
-                            "\n- <Up>/<Down> to navigate within a tab" +
-                            "\n\nThese button bindings can be changed in Mod Options."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_A"),
                         },
                     },
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "External Tools",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Tool XYZ shows 'Unable to fetch (...), is CCT running?' when CCT is running!",
-                            Answer = "This happens when an external tool is unable to reach the CCT API." +
-                            "\nThe most likely cause for this is, that you have the 'Debug Mode' in the Everest settings set to 'Off'. Setting it to either 'Everest' or 'Always' should make the API reachable for the external tools." +
-                            "\n\nHint: You can test if the API is reachable by going to 'http://localhost:32270/' in your browser. If the page doesn't load, the API is not available.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "Physics Inspector",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is the Physics Inspector?",
-                            Answer = "The Physics Inspector is a tool to record yourself playing a map and then looking at the recorded data in your browser, frame by frame." +
-                            "\nIt records:" +
-                            "\n- Player data such as: Position, Speed/Velocity, Acceleration, Inputs, Stamina, Liftboost, etc." +
-                            "\n- Map data such as: Room boundaries, Solid tiles, Solid/Trigger entities" +
-                            "\n- The map data is static tho. It is only recorded once on each room entry and does not change, so movement of entities isn't visible!" +
-                            "\n\nIf you ever wondered \"How did I just die???\", this tool can help you figure that out.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I use it?",
-                            Answer = "To make a recording, enable the setting 'Mod Options -> Physics Inspector Settings -> Recording Physics Enabled'." +
-                            "\n\n- Whenever you die or load a savestate, a recording is saved." +
-                            "\n- You can view a recording by going to 'Mod Options -> Physics Inspector Settings -> Open Inspector In Browser'\n(I could also recommend bookmarking that page. Reload the tab to get the newest recordings!)" +
-                            "\n- Now you can pan/zoom around the map and hover over frames to see the exact physics data" +
-                            "\n- The frames are color coded: White (No special state), Red (Dashing), Green (Holding the Jump button), Yellow (Feather), Black (Dead)" +
-                            "\n\nOnly the 10 most recent recordings are stored and available to inspect." +
-                            " You can save a recent recording to make it permanently available to inspect, by hitting the 'Save' button in the top left corner and giving the recording a name",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Why is this in CCT and not it's own mod?",
-                            Answer = "Physics Inspector requires many parts of the infrastructure that is already available in CCT." +
-                            " In the future it would be good to make this it's own mod, but, for the time being, it is easier to develop it as part of CCT.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "Pace Ping",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "What is a Pace Ping?",
-                            Answer = "A Pace Ping is a notification of a good run to a group of people interested in that." +
-                            " In the context of CCT it means sending a Discord message to ping people, when you are far into a golden run.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Who is this feature for?",
-                            Answer = "I developed this feature for streamers that want to notify their (lurking) viewers when they are on a good run, but anyone that wants to notify some group of people can use this ofcourse." +
-                            "\nThe only requirement for sending a Pace Ping is that you have a Discord WebHook URL, for which you most likely need to own a Discord server."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I setup Pace Pings for my Discord server?",
-                            Answer = "If you own a Discord server that you want to receive Pace Pings on, follow these steps:" +
-                            "\n\n1. Go to your Discord server settings and select the 'Integrations' tab" +
-                            "\n2. Click on 'Create WebHook'" +
-                            "\n3. Select the channel you want to receive the Pace Pings on" +
-                            "\n4. Copy the WebHook URL" +
-                            "\n5. Import the WebHook URL into CCT through 'Mod Options -> Pace Ping Settings -> Import WebHook URL from Clipboard'" +
-                            "\n\nYou can then configure the default Pace Ping message, enable pinging when on PB pace or pick certain rooms in the map that should generate a Pace Ping when you enter them with the Golden Berry."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "Can I have multiple different pings at different points in a map?",
-                            Answer = "Yes!" +
-                            "\n\nYou can enable Pace Ping on room entry for any room you want. Each room can have a different message (with different roles pinged) and settings.",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I ping roles in a Pace Ping message?",
-                            Answer = "To add roles in a ping message, you need to find the ID of the role you want to ping. To do this:" +
-                            "\n1. Go to your Discord server" +
-                            "\n2. Go into any chat" +
-                            "\n3. Type '\\@<role name>'" +
-                            "\n4. Hit enter (will ping said role)" +
-                            "\n\nThe resulting message that you send should look like this: '<@&123456789012345678>'" +
-                            "\nThis string is the roles ID. You can use this in the ping message and it will generate a ping to that role."
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "How do I use emotes in a Pace Ping message?",
-                            Answer = "Same concept as pinging roles in a Pace Ping message, except you need to get the ID of the emote you want to use, in the same way that you would get the ID of a role!"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_EMOTE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_EMOTE_A"),
                         },
                     }
                 },
                 new FAQEntry.FAQSectionModel(){
-                    Title = "Other",
+                    Title = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_TITLE"),
                     Entries = new List<FAQEntry.FAQEntryModel>(){
                         new FAQEntry.FAQEntryModel(){
-                            Question = "My issue isn't listed...",
-                            Answer = "If your issue is not covered by this FAQ, feel free to message me on Discord (viddie#4751), or create an issue on GitHub (link can be found on the GameBanana page of CCT)" +
-                            "\n\nIn order to help me understand the situation, please provide the following details in your message:" +
-                            "\n- What version of CCT are you using?" +
-                            "\n- What happened exactly? (Including what lead up to the situation you are in, e.g. what map you were playing, etc.)" +
-                            "\n- What should have happened? (If the issue isn't self explanatory)" +
-                            "\n- Any additional information you think might be helpful (e.g. screenshots, videos)"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I love this mod :D",
-                            Answer = "Thanks! It took a long time to develop (roughly 300 hours at the time of writing this FAQ), but the amount of people using and liking this mod means a lot to me <3"
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_LOVE_Q"),
+                            Answer = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_LOVE_A"),
                         },
                         new FAQEntry.FAQEntryModel(){
-                            Question = "I hate this mod >:(",
+                            Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_HATE_Q"),
                             Answer = ":("
                         },
                     }

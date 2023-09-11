@@ -1,0 +1,997 @@
+# NOTES:
+# The # Symbol at the start of a line counts as a Comment. To include in dialog, use a \#
+# The . Symbol will cause a pause unless escaped with \. (ex: Mr. Oshiro has a pause, Mr\. Oshiro does not)
+# Newlines automatically create a Page Break, unless there is an {n}
+ command on the previous line
+# Commands: Anything inside of curly braces {...} is a command and should not be translated.
+
+# Inline Text Commands:
+# {~}wavy text{/~}
+# {!}impact text{/!}
+# {>> x}changes speed at which characters are displayed{>>}
+# {# 000000}this text is black{#} (uses HEX color values)
+# {+MENU_BEGIN} inserts the dialog from the MENU_BEGIN value (in English, "CLIMB")
+# {n}
+ creates a newline, without a page break
+# {0.5} creates a 0.5 second pause
+# {big}this text is large{/big}
+
+# Gameplay Control Commands (should never change)
+# {trigger x} this triggers an in-game event
+# {anchor} controls the visual position of the textbox in-game
+
+# +-------------------+
+# |    Mod Options    |
+# +-------------------+
+
+MODOPTION_CCT_NAME= Consistency Tracker
+
+MODOPTION_CCT_PAUSE_DEATH_TRACKING= Pause Death Tracking
+
+MODOPTION_CCT_TRACKING_SETTINGS_ON= On
+MODOPTION_CCT_TRACKING_SETTINGS_OFF= Off
+
+MODOPTION_CCT_TRACKING_SETTINGS_TITLE= Tracking Settings
+
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_TITLE= General
+
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY= Only Track Deaths With Golden Berry
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_1= Various stats (e.g. Success Rate, Streak, ...) are always tracked, even without the golden
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ONLY_TRACK_DEATHS_WITH_GOLDEN_BERRY_HINT_2= Turn this on to ONLY track these stats when doing golden runs
+
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS= Always Track Golden Deaths
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_ALWAYS_TRACK_GOLDEN_DEATHS_HINT= When you paused death tracking, this will make golden deaths still count
+
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE= Count Golden Death When Loading Savestate
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_1= When auto-load of savestates is enabled, CCT doesn't get notified of golden deaths
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_LOADING_SAVESTATE_HINT_2= Turn this on to enable counting golden deaths when loading a savestate
+
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER= Count Golden Death When Restarting Chapter
+MODOPTION_CCT_TRACKING_SETTINGS_GENERAL_COUNT_GOLDEN_DEATH_WHEN_RESTARTING_CHAPTER_HINT= Similarly to above, restarting chapter normally doesn't cause a golden death event
+
+MODOPTION_CCT_TRACKING_SETTINGS_STATS_TITLE= Stats
+MODOPTION_CCT_TRACKING_SETTINGS_STATS_TRACK_NEGATIVE_STREAKS= Track Negative Streaks
+MODOPTION_CCT_TRACKING_SETTINGS_STATS_HINT= Some people might not like seeing how shit a room is going rn :)
+
+MODOPTION_CCT_TRACKING_SETTINGS_OTHER_TITLE= Other
+MODOPTION_CCT_TRACKING_SETTINGS_OTHER_VERBOSE_LOGGING= Verbose Logging
+MODOPTION_CCT_TRACKING_SETTINGS_OTHER_HINT= Increases file size of logs dramatically. Only used for debugging purposes.
+
+MODOPTION_CCT_PATH_MANAGEMENT_TITLE= Path Management
+MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT= Go into a map for this menu
+
+MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE= General
+MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT= Current Segment
+MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT_HINT= Each segment has it's own separate stats!
+
+MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_ADD_SEGMENT= Add Segment
+MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT= Import Segment Name from Clipboard
+
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE= Path Recording
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_1= Turn this on to start recording a path for the current segment. Save path in the last room
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2= of the segment, or complete the map to stop the recording save automatically.
+
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START= Start Path Recording
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE= Save Path
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE_HINT= Save the recorded path to the current segment.
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT= Abort Recording
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT_HINT= Abort the current recording and discard the recorded path.
+
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE= Path Recorder State
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_TITLE= Path recorded so far
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_ROOM= Room
+MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_ROOMS= Rooms
+
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE= Path Editing
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_BROWSER= Open Path Edit Tool In Browser (Coming Soon...)
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_REMOVE_CURRENT_ROOM= Remove Current Room From Path
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_GROUP= Group Current And Previous Rooms
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_UNGROUP= Ungroup Current From Previous Room
+
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TITLE= Current Room Type
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY= Gameplay
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION= Transition
+
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD= Import Custom Room Name from Clipboard
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD_HINT= Empty text (e.g. just spaces) in the clipboard means removing the custom room name!
+
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME= Apply Custom Names For All Segments
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_1= Turn this ON to apply a custom room name to all segments that have this room,
+MODOPTION_CCT_PATH_MANAGEMENT_EDITING_CUSTOM_NAME_HINT_2= OFF for just the current segment.
+
+MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE= Import / Export
+MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD= Export path to Clipboard
+MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD= Import path from Clipboard
+MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD_HINT= !!! The existing path segment will be overwritten !!!
+
+MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_TITLE= Danger Zone
+MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE= Delete Current Segment
+MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_1= Also deletes the stats of this segment!
+MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2= !!! This action cannot be undone !!!
+
+MODOPTION_CCT_DATA_WIPE_TITLE= !!Data Wipe!!
+MODOPTION_CCT_DATA_WIPE_NOT_IN_GAME_HINT= Go into a map for this menu
+MODOPTION_CCT_DATA_WIPE_HINT= These actions cannot be reverted!
+
+MODOPTION_CCT_DATA_WIPE_ROOM_TITLE= ROOM
+MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT= Remove Last Attempt
+MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_DEATH_STREAK= Remove Last Death Streak
+MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_ALL_ATTEMPTS= Remove All Attempts
+MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATHS= Remove Golden Berry Deaths
+
+MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE= CHAPTER
+MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_ATTEMPTS= Reset All Attempts
+MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_ALL_GOLDEN_BERRY_DEATHS= Reset All Golden Berry Deaths
+MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_GOLDEN_BERRY_COLLECTION= Reset Golden Berry Collection
+
+MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE= Vanilla Paths
+MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS= Reset All Vanilla Paths
+MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_1= Resets the vanilla paths (1A-8C, Farewell) to the most up-to-date version
+MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_2= The newest version includes Full-Clear path segments, if you want to do FCs!
+MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_3= If you are in a map, you will have to restart the map to see the changes!
+
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE= Live-Data
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET= Reset
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE= file
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_1= Resets the live-data format file back to the default values
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_2= This will delete all custom formats!
+MODOPTION_CCT_DATA_WIPE_LIVE_DATA_HINT_3= This will also generate explanations and examples for all new stats, if CCT is updated!
+
+MODOPTION_CCT_SUMMARY_TITLE= In-Game Summary
+MODOPTION_CCT_SUMMARY_NOT_IN_GAME_HINT= Go into a map for this menu
+
+MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_TITLE= In-Game Summary
+MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_ENABLED= Enabled
+MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_1= Bind a button to open the in-game summary!
+MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_2= Default for navigating the summary: <Grab> go through pages, <Up>/<Down> navigate on a page
+MODOPTION_CCT_SUMMARY_IN_GAME_SUMMARY_BIND_HINT_3= You can replace the default navigation bindings by binding your own buttons!
+
+MODOPTION_CCT_SUMMARY_EXPORT_TITLE= Export (outdated)
+MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS= Summary Over X Attempts
+MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS_HINT= When calculating the consistency stats, only the last X attempts will be counted
+MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY= Export Tracker Summary
+MODOPTION_CCT_SUMMARY_EXPORT_EXPORT_TRACKER_SUMMARY_HINT= This feature is outdated, I might update this eventually
+
+MODOPTION_CCT_LIVE_DATA_TITLE= Live-Data Settings
+MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE= Settings
+MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT= Room Name Format
+MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP= DT-3
+MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP= Determination-3
+MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_DEBUG_ROOM_NAME= Debug Room Name
+MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_HINT= Whether you want checkpoint names to be full or abbreviated in the room name.
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR= Custom Room Name Behavior
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_APPEND= Append
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_IGNORE= Ignore
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_OVERRIDE= Override
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_PREPEND= Prepend
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH= Hide Formats When No Path
+MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH_HINT= If a format depends on path information and no path is set, the format will be blanked out.
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS= Consider Last X Attempts
+MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS_HINT= When calculating room consistency stats, only the last X attempts in each room will be counted.
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES= Max. Decimal Places
+MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES_HINT= Floating point numbers will be rounded to this decimal.
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS= Ignore Unplayed Rooms
+MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS_HINT= For chance calculation unplayed rooms count as 0% success rate. Toggle this on to ignore unplayed rooms.
+
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS= Success Rate Colors
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE= Light Green Percentage
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE_DEFAULT= Default: 95%
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE= Green Percentage
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_GREEN_PERCENTAGE_DEFAULT= Default: 80%
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE= Yellow Percentage
+MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_YELLOW_PERCENTAGE_DEFAULT= Default: 50%
+
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_TITLE= Stats Settings
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_HINT= These settings only apply to certain stats
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR= Low Death Display Behavior
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_CHECKPOINTS= Always Checkpoints
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ALWAYS_ROOMS= Always Rooms
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_ADAPTIVE= Adaptive
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_1= For the low death stat
+MODOPTION_CCT_LIVE_DATA_STATS_SETTINGS_LOW_DEATH_DISPLAY_BEHAVIOR_HINT_2= 'Adaptive' will switch from checkpoints to rooms when there is 12 or fewer rooms in the chapter.
+
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_TITLE= File Output
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE= Enable Output To Files
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_1= Disabling this might improve performance. Ingame Overlay is unaffected by this.
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_2= DISABLE THIS IF YOU HAVE STUTTERS ON ROOM TRANSITION IN RECORDINGS/STREAMS.
+
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT= List Output Format
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_PLAIN= Plain
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_JSON= JSON
+MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_HINT= Output format for lists. Plain is easily readable, JSON is for programming purposes.
+
+MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE= Format Editing
+MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_EDITOR_IN_BROWSER= Open Format Editor In Browser
+MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE= Open Format Text File
+MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE_HINT= After manually editing, make sure to reload the format file with the button below!
+MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_RELOAD_FORMAT_FILE= Reload Format File
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_TITLE= External Overlay Settings
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_OPEN_OVERLAY_IN_BROWSER= Open External Overlay In Browser
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_REFRESH_HINT= REFRESH THE PAGE / BROWSER SOURCE AFTER CHANGING THESE SETTINGS
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TITLE= General Settings
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME= Stats Refresh Time
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECOND= second
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_SECONDS= seconds
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_REFRESH_TIME_HINT= The delay between two updates of the overlay.
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS= Consider Last X Attempts
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_CONSIDER_LAST_X_ATTEMPTS_HINT= When calculating room consistency stats, only the last X attempts will be used for calculation
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_OUTLINE_SIZE= Text Outline Size
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT= Text Font
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT_HINT= If a font doesn't show up on the overlay, you might need to install it first (just google font name lol)
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_COLORBLIND_MODE= Colorblind Mode
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TITLE= Component Settings
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_HINT= The text stats segment at the top left / top middle / top right
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_ALL= Text Stats Display Enabled (All)
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET= Text Stats Preset
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_1= Default
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_2= Low Death
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_3= Golden Attempts
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_4= Custom Style 1
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_5= Custom Style 2
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_LEFT= Text Stats Left Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_MIDDLE= Text Stats Middle Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_ENABLE_RIGHT= Text Stats Right Enabled
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_ENABLE= Chapter Bar Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_HINT= The bars representing the rooms and checkpoints in a map
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_CHAPTER_BAR_BORDER_WIDTH= Chapter Bar Border Width
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_ENABLE= Room Attempts Display Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_ROOM_ATTEMPTS_HINT= The red/green dots that show the last X attempts in a room
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_ENABLE= Golden Share Display Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_HINT= The count of golden deaths per checkpoint below the chapter bar
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS= Golden Share Show Session Deaths
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_SHARE_SHOW_SESSION_DEATHS_HINT= Shown in parenthesis after the total checkpoint death count
+
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_ENABLE= Golden PB Display Enabled
+MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_GOLDEN_PB_HINT= The count of golden deaths per checkpoint below the chapter bar
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TITLE= In-Game Overlay Settings
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_NOT_IN_GAME_HINT= Go into a map for this menu
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_TITLE= Debug Map
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_ROOM_NAMES= Show Room Names
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_SUCCESS_RATE_BORDERS= Show Success Rate Borders
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TITLE= Text Overlay
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ENABLE= Text Overlay Enabled
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ONLY_SHOW_IN_MENU= Only Show Overlay In Menu
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_NO_FORMAT= <same>
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_EDIT_HINT= The available formats can be changed by editing
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_0= Turn this on to hide this text while in a golden run
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_1= Room transition with golden required to activate. 
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_2= will use same format as above.
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_TITLE= Text 1
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_ENABLE= Text 1 Enabled
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_TITLE= Text 2
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_2_ENABLE= Text 2 Enabled
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_TITLE= Text 3
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_3_ENABLE= Text 3 Enabled
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_TITLE= Text 4
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_4_ENABLE= Text 4 Enabled
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION= Position
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_CENTER= Bottom Center
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_LEFT= Bottom Left
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_RIGHT= Bottom Right
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_CENTER= Middle Center
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_LEFT= Middle Left
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_RIGHT= Middle Right
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_CENTER= Top Center
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_LEFT= Top Left
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_RIGHT= Top Right
+
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT= Selected Format
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SELECTED_FORMAT_GOLDEN= Selected Format With Golden
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_HIDE_IN_GOLDEN= Hide In Golden Run
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE= Size
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X= Offset X
+MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_Y= Offset Y
+
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_TITLE= Physics Inspector Settings
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_TITLE= General
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_OPEN_IN_BROWSER= Open Inspector In Browser
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_ENABLE= Recording Physics Enabled
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_1= Records various physics properties, to be displayed in the physics inspector
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_HINT_2= Enabling this settings starts the recording, disabling it stops the recording
+
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_TITLE= Settings
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH= Segment Recording On Death
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH_HINT= When recording is enabled, segments the recording when the player dies.
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE= Segment Recording On Load State
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE_HINT= When recording is enabled, segments the recording when the player loads a savestate.
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD= Copy TAS File To Clipboard
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_1= Will copy the inputs formatted for TAS Studio to clipboard when recording is stopped
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_2= Multiple buttons for one input don't work properly!
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y= Flip Y-Axis In Recording Data
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_1= Usually, negative numbers mean up in Celeste.
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_2= This option flips the Y-Axis so that negative numbers mean down in the data.
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_3= Might be useful when you want to look at the data in a different program (e.g. Excel, Google Sheet)
+
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_TITLE= Optional Flags
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT= Dash Count Flag
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT_HINT= Shows how many dashes the player has on any frame
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT= Max Dash Count Flag
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_MAX_DASH_COUNT_HINT= Shows how many dashes the player can have at max usually. Only works when above is enabled.
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION= Dash Direction Flag
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_DIRECTION_HINT= Shows the last dash's direction on any frame
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING= Player Facing Flag
+MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_FACING_HINT= Shows the direction the player is facing on any frame
+
+MODOPTION_CCT_PACE_PING_SETTINGS_TITLE= Pace Ping Settings
+MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT= Go into a map for this menu
+
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE= General
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE= Pace Pings Enabled
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1= If you own a Discord server, you can use this feature to automatically notify
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2= users in your server when you are on a good run! You will need to setup a
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3= Discord WebHook (Google how to) and paste the URL in the settings below.
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT= Import Default Ping Message from Clipboard
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_WEBHOOK_IMPORT= Import WebHook URL from Clipboard
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_URL_HINT= DON'T SHOW THE URL ON STREAM
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE= Reload state file
+MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE_HINT= If you manually edit the state.json file, use this button to reload it in CCT
+
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_TITLE= PB Ping
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO= No Ping
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY= Ping On PB Entry
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED= Ping On PB Passed
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENABLE= Ping On PB?
+MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_MSG_IMPORT= Import PB Ping Message from Clipboard
+
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TITLE= Current Room
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_MSG_IMPORT= Import Ping Message from Clipboard
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING= Test Pace/PB Ping For This Room
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_ENABLE_EMBEDS= Enable Embeds In Ping
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM= Pace Ping This Room
+MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT= Sends a message to Discord when entering this room with the golden berry
+
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_TITLE= All Deaths
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH= Message On Every Golden Death
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_1= Will send a message to Discord when you die in any room with the golden berry
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_ON_EVERY_GOLDEN_DEATH_HINT_2= You'd probably not want to ping a role for this
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_MSG_IMPORT= Import All Deaths Message from Clipboard
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT= Import WebHook URL from Clipboard
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1= This WebHook can be different from the pace ping WebHook.
+MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2= ALSO DON'T SHOW THIS URL ON STREAM
+
+MODOPTION_CCT_FAQ_TITLE= FAQ
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_TITLE= Path Management
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_Q= What is a Path?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_A=
+    A path is a configuration of Checkpoints and Rooms, in the order that you would beat them in during a run of whatever challenge you want to do. All vanilla maps come with pre-installed paths. 1A-8A and Farewell also have a separate pre-installed Path for full clear runs!{n}
+    Every Checkpoint has a name and an abbreviation{n}
+    Every Room can have a custom room name, and if not, it will get a name from the Checkpoint it is in + the room number in the Checkpoint. Additionally, Rooms can be marked as 'transition' rooms, making them not show up in many stat calculations
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_Q= What is a Path Segment?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_A=
+    A later addition to the Path system added Path Segments.{n}
+    Each map can have multiple Path Segments. A Path Segment is a Path with a given name, for example 'Normal', 'Full Clear', 'Silver 1' or whatever else you can think of.{n}
+    Every Path Segment has it's own separate stats!{n}
+    Using this you can track multiple different Paths for a single map (e.g. if you do segments of bigger maps, such as 9D), and switch between them easily in the 'Path Recording' menu.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_Q= How do I record a Path?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_A=
+    1. Go into the first room of the Path Segment you want to record.{n}
+    2. Go to the menu 'Path Recording' and hit the button 'Start Path Recording'{n}
+    3. Play through the map as normal (you can do this with invincibility and stuff if you want){n}
+    4. In the last room of the segment, hit the button 'Save Path'. Alternatively, complete the map and the path will be saved automatically.{n}{n}
+    You have now recorded a Path and can start tracking!
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_Q= How do I rename a Checkpoint in CCT?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_A=
+    Sadly this cannot be done in the game currently.{n}
+    You can however manually edit the file, see the FAQ entry below.{n}
+    In the future, I hope to add an actual Path editing tool.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_Q= How can I manually edit a Path file?
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_A=
+    The easiest way to manually edit a path is:{n}
+    1. Go into the map you want to edit the path for{n}
+    2. Export the Path to your clipboard with 'Path Recording -> Export Path To Clipboard'{n}
+    3. Paste the Path into a text editor of your choice{n}
+    4. Edit the Path to your liking. You can rename checkpoints, rooms, and change the order of rooms and checkpoints. You can add custom room names and set rooms as transition rooms. But beware: The path needs to follow the JSON file format{n}
+    5. Copy the edited Path back to your clipboard (CTRL + A to select all text, CTRL + C to copy){n}
+    6. Import the Path from your clipboard with 'Path Recording' -> 'Import Path from Clipboard'{n}{n}
+    If done correctly, the changes should be visible immediately. If there was any error with the file format, the import will be stopped and your original path will NOT be overwritten.
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_Q= I accidentally screwed up a vanilla Path file...
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_A=
+    You can always reset all vanilla Path files back to the original by going to '!!Data Wipe!! -> Reset All Vanilla Paths'
+
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_Q= I don't see the 'Full Clear' segments for 1A-8A/Farewell...
+MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_A=
+    The 'Full Clear' segments were added in a recent update. If you had CCT installed before the update, the vanilla path files aren't automatically updated.{n}
+    To get all default segments added, hit the button '!!Data Wipe!! -> Reset All Vanilla Paths'. This will reset all vanilla paths to the up-to-date original.
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_TITLE= Stats Management
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_Q= What stats are there?
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_A=
+    There are 3 types of stats being tracked:{n}{n}
+    1. Dying to a room with the golden{n}
+    2. Dying in / Completing a room (independently of the golden){n}
+    3. Collecting the golden{n}{n}
+    Many stats are calculated off of the golden deaths, such as:{n}
+    - Best Runs{n}
+    - Current Run \#{n}
+    - Current Run Top x%{n}
+    - Room Choke Rate{n}
+    - Room Golden Success Rate{n}
+    - ...{n}{n}
+    But there are also a bunch of stats that are calculated off of normal room completions/deaths, such as:{n}
+    - Room/Checkpoint/Chapter Success Rate{n}
+    - Room Streak / Max Streak{n}
+    - Golden Chance from Start / Golden Chance to End for any room{n}
+    - ...{n}{n}
+    For the normal room completions/deaths stats, you can configure how many of the last attempts should be counted for the calculation (default: 20){n}{n}{n}
+    To get a list of all possible calculated stats take a look at the Live-Data Editor!
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_Q= Where are the stats saved?
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_A=
+    All stats are saved separate from the path. This means that you can change the path at will, and the stats stay the same.{n}{n}
+    The raw stats file is saved in the location:{n}
+    <CelesteFolder>\ConsistencyTracker\stats\<MapName>.json{n}
+    Where the <MapName> is the SID of the map (usually the campaign's or mapper's name) + the side name (Normal, BSide, CSide)
+
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_Q= I accidentally collected a golden berry while practicing...
+MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_A=
+    There is currently no ingame option to remove accidental collects of goldens, but here is how you can remove it by editing the stats file:{n}{n}
+    1. Don't be in the map you want to edit the stats for{n}
+    2. Find the stats file in '<CelesteFolder>\ConsistencyTracker\stats\<MapName>.json'{n}
+    3. Find the line that says "goldenCollectedCount"{n}
+    4. Set the value back down to 0{n}
+    5. Save the file{n}{n}
+    Once you enter the map now the golden will be gone from CCT's best runs.{n}{n}
+    It will still show up in the Ingame Summary's session history, but fixing this is much harder to do (impossible?) so I won't go into detail here.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_TITLE= Live-Data
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_Q= What is Live-Data?
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_A=
+    In the beginning of CCT, only raw stats were output to text files. External applications had to calculate any meaningful stat on their own to make use of the data.{n}{n}
+    Live-Data added mod-side calculation of stats, and a way of letting the user decide how they are formatted. As of writing this FAQ there are about 80 different stats and pieces of information from the current game state that can be output through Live-Data.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_Q= What is a Live-Data format?
+MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_A=
+    A 'format' instructs Live-Data how to output information. Each format has a name and an arbitrary text containing certain placeholders.{n}
+    Placeholders look like this: {category:name}. Live-Data will insert the desired stat in place of the placeholder.{n}{n}
+    Example: The format{n}
+    'Current: {room:name} | Room: ({room:roomNumberInChapter}/{chapter:roomCount})'{n}
+    could produce the output{n}
+    'Current: DT-7 | Room: (59/93)'{n}
+    when playing Farewell.
+
+MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_Q= I don't see format 'xy' in my list of formats, where is it?
+MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_A=
+    "When new default formats are added in an update, they will not be added to your list of formats automatically, since that could potentially overwrite changes you made manually. To get the most up-to-date default formats, you can reset the 'format.txt' file back to default using the button:{n}
+    Mod Options -> !!Data Wipe!! -> Reset 'format.txt' file{n}
+    but beware that this will reset any custom formats you have created, so back those up first!
+
+MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_Q= How can I make my own format?
+MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_A=
+    There are 2 ways to make your own format:{n}{n}
+    Format Editor{n}
+    1. Start the Format Editor through 'Mod Options -> Live-Data Settings -> Start Format Editor In Browser'{n}
+    2. In the Format Editor, click the button 'New Format' in the bottom left corner{n}
+    3. Give your format a name.{n}
+    4. Type whatever you want in to the format text section. You can see all available placeholders in the panel on the right side. Hover over a placeholder to view an explanation of what it is for and click on a placeholder to insert it into the format text. If you are in a map, you will be able to see a preview of how the format looks in the box at the bottom.{n}
+    5. Hit the button 'Create new Format' at the bottom to save your format{n}{n}
+    Manual File Editing{n}
+    1. Open the 'format.txt' file through 'Mod Options -> Live-Data Settings -> Open Format Text File' in your text editor{n}
+    2. Add a new line for your custom format at the bottom of the file{n}
+    3. Write your format in the pattern: 'name;format'. To see all available placeholder with live previews I would still recommend the Format Editor Tool.{n}
+    4. Save the file{n}
+    5. Reload the format file through 'Mod Options -> Live-Data Settings -> Reload Format File'{n}{n}
+    The newly added format should now be selectable in the In-Game overlay!
+
+MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_Q= I would like to see a certain stat added...
+MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_A=
+    If you have an idea for a new stat, feel free to message me on Discord (viddie#4751) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!
+
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_TITLE= In-Game Overlay
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_Q= Why does it say <path> everywhere in the In-Game Overlay?
+MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_A=
+    CCT doesn't know how you want to go through the map from start to finish. To tell CCT how you want to do that, you need a path. By default, all vanilla maps come with a path pre-installed.{n}
+    If you want to track modded maps, you need to record a path yourself. See the Path Recording section in the FAQ for more details.
+
+MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_Q= The In-Game Overlay is annoying in maps where I don't want to track anything.
+MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_A=
+    There is an setting to automatically hide the overlay in maps where you don't have a path recorded:{n}
+    'Live-Data Settings' -> 'Hide Formats When No Path'
+
+MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_Q= How can I customize the available formats for the In-Game Overlay?
+MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_A=
+    The available formats are taken from the Live-Data feature. Any changes to it will be available in the In-Game Overlay.{n}
+    Check out the Live-Data section in the FAQ for more details.
+
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_TITLE= In-Game Summary
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_Q= What is the In-Game Summary?
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_A=
+    The In-Game Summary is a way to display a bunch of data tracked by CCT within the game. It currently displays:{n}{n}
+    - Session History: You can look through all of your previous sessions and see how you improved!{n}
+    - Overall Stats: How your stats look overall in a map and how it developed over the sessions.{n}
+    - Charts: Choke Rate / Room Entries chart for your overall stats and each session.{n}
+    - Graphs: A funky looking graphs of all your golden deaths throughout the map.{n}{n}
+    All of the displayed data is hand programmed, including the charts/graphs/tables. As such, issues are almost guaranteed.{n}
+    There will likely be fixes/changes to this overlay in the future. If you have any suggestions, feel free to message me!
+
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_Q= How do I use the In-Game Summary?
+MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_A=
+    In the Mod Options of CCT you can bind a button to open the In-Game Summary. Whenever you are in a map, you can press that button to bring up the Summary overlay.{n}{n}
+    Navigating the In-Game Summary by default uses these buttons:{n}
+    - <Grab> to switch through the tabs{n}
+    - <Up>/<Down> to navigate within a tab{n}{n}
+    These button bindings can be changed in Mod Options.
+
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_TITLE= External Tools
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_Q= Tool XYZ shows 'Unable to fetch (...), is CCT running?' when CCT is running!
+MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_A=
+    This happens when an external tool is unable to reach the CCT API.{n}
+    The most likely cause for this is, that you have the 'Debug Mode' in the Everest settings set to 'Off'. Setting it to either 'Everest' or 'Always' should make the API reachable for the external tools.{n}{n}
+    Hint: You can test if the API is reachable by going to 'http://localhost:32270/' in your browser. If the page doesn't load, the API is not available.
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_TITLE= Physics Inspector
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_Q= What is the Physics Inspector?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_A=
+    The Physics Inspector is a tool to record yourself playing a map and then looking at the recorded data in your browser, frame by frame.{n}
+    It records:{n}
+    - Player data such as: Position, Speed/Velocity, Acceleration, Inputs, Stamina, Liftboost, etc.{n}
+    - Map data such as: Room boundaries, Solid tiles, Solid/Trigger entities{n}
+    - The map data is static tho. It is only recorded once on each room entry and does not change, so movement of entities isn't visible!{n}{n}
+    If you ever wondered "How did I just die???", this tool can help you figure that out.
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_Q= How do I use it?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_A=
+    To make a recording, enable the setting 'Mod Options -> Physics Inspector Settings -> Recording Physics Enabled'.{n}{n}
+    - Whenever you die or load a savestate, a recording is saved.{n}
+    - You can view a recording by going to 'Mod Options -> Physics Inspector Settings -> Open Inspector In Browser'{n}
+    (I could also recommend bookmarking that page. Reload the tab to get the newest recordings!){n}
+    - Now you can pan/zoom around the map and hover over frames to see the exact physics data{n}
+    - The frames are color coded: White (No special state), Red (Dashing), Green (Holding the Jump button), Yellow (Feather), Black (Dead){n}{n}
+    Only the 10 most recent recordings are stored and available to inspect. You can save a recent recording to make it permanently available to inspect, by hitting the 'Save' button in the top left corner and giving the recording a name
+
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_Q= Why is this in CCT and not it's own mod?
+MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_A=
+    Physics Inspector requires many parts of the infrastructure that is already available in CCT. In the future it would be good to make this it's own mod, but, for the time being, it is easier to develop it as part of CCT.
+
+MODOPTION_CCT_FAQ_PACE_PING_TITLE= Pace Ping
+MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_Q= What is a Pace Ping?
+MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_A=
+    A Pace Ping is a notification of a good run to a group of people interested in that. In the context of CCT it means sending a Discord message to ping people, when you are far into a golden run.
+
+MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_Q= Who is this feature for?
+MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_A=
+    I developed this feature for streamers that want to notify their (lurking) viewers when they are on a good run, but anyone that wants to notify some group of people can use this of course.{n}
+    The only requirement for sending a Pace Ping is that you have a Discord WebHook URL, for which you most likely need to own a Discord server.
+
+MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_Q= How do I setup Pace Pings for my Discord server?
+MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_A=
+    If you own a Discord server that you want to receive Pace Pings on, follow these steps:{n}{n}
+    1. Go to your Discord server settings and select the 'Integrations' tab{n}
+    2. Click on 'Create WebHook'{n}
+    3. Select the channel you want to receive the Pace Pings on{n}
+    4. Copy the WebHook URL{n}
+    5. Import the WebHook URL into CCT through 'Mod Options -> Pace Ping Settings -> Import WebHook URL from Clipboard'{n}{n}
+    You can then configure the default Pace Ping message, enable pinging when on PB pace or pick certain rooms in the map that should generate a Pace Ping when you enter them with the Golden Berry.
+
+MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_Q= Can I have multiple different pings at different points in a map?
+MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_A=
+    Yes!{n}{n}
+    You can enable Pace Ping on room entry for any room you want. Each room can have a different message (with different roles pinged) and settings.
+
+MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q= How do I ping roles in a Pace Ping message?
+MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A=
+    To add roles in a ping message, you need to find the ID of the role you want to ping. To do this:{n}
+    1. Go to your Discord server{n}
+    2. Go into any chat{n}
+    3. Type '\@<role name>'{n}
+    4. Hit enter (will ping said role){n}{n}
+    The resulting message that you send should look like this: '<@&123456789012345678>'{n}
+    This string is the roles ID. You can use this in the ping message and it will generate a ping to that role.
+
+MODOPTION_CCT_FAQ_PACE_PING_EMOTE_Q= How do I use emotes in a Pace Ping message?
+MODOPTION_CCT_FAQ_PACE_PING_EMOTE_A=
+    Same concept as pinging roles in a Pace Ping message, except you need to get the ID of the emote you want to use, in the same way that you would get the ID of a role!
+
+MODOPTION_CCT_FAQ_OTHER_TITLE= Other
+MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_Q= My issue isn't listed...
+MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_A=
+    If your issue is not covered by this FAQ, feel free to message me on Discord (viddie#4751), or create an issue on GitHub (link can be found on the GameBanana page of CCT){n}{n}
+    In order to help me understand the situation, please provide the following details in your message:{n}
+    - What version of CCT are you using?{n}
+    - What happened exactly? (Including what lead up to the situation you are in, e.g. what map you were playing, etc.){n}
+    - What should have happened? (If the issue isn't self explanatory){n}
+    - Any additional information you think might be helpful (e.g. screenshots, videos)
+
+MODOPTION_CCT_FAQ_OTHER_LOVE_Q= I love this mod :D
+MODOPTION_CCT_FAQ_OTHER_LOVE_A=
+    Thanks! It took a long time to develop (roughly 300 hours at the time of writing this FAQ), but the amount of people using and liking this mod means a lot to me <3
+
+MODOPTION_CCT_FAQ_OTHER_HATE_Q= I hate this mod >:(
+
+# +--------------------+
+# |    Stats Format    |
+# +--------------------+
+
+CCT_STAT_MANAGER_PRELUDE_1=
+\# Lines starting with a # are ignored{n}
+\# {n}
+\# Each line in this file corresponds to one output file following this scheme:{n}
+\# <filename>
+
+CCT_STAT_MANAGER_PRELUDE_2=
+<format>{n}
+\# where the format can be any text or placeholders mixed together{n}
+\# {n}
+\# Example:{n}
+\# successRate
+
+CCT_STAT_MANAGER_PRELUDE_3=
+Room SR:
+CCT_STAT_MANAGER_PRELUDE_4=
+| CP:
+CCT_STAT_MANAGER_PRELUDE_5=
+| Total:
+CCT_STAT_MANAGER_PRELUDE_6=
+\# would generate a 'successRate.txt' file containing the text "Room SR: <data> | CP: <data> | Total: <data>"{n}
+\# {n}
+\# To add new-lines to a format use '\n'{n}
+\# {n}
+\# {n}
+\# List of all available placeholders:{n}
+
+CCT_STAT_MANAGER_AFTER_EXPLANATION_HEADER=
+\# {n}
+\# Predefined Formats{n}
+\#
+
+CCT_STAT_MANAGER_AFTER_CUSTOM_FORMAT_HEADER=
+\# {n}
+\# Custom Formats{n}
+\#
+
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE= Average run distance over all runs ever
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION= Average run distance over all runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_HIGHEST_AVERAGE_OVER_10_RUNS= The highest average distance over any 10 consecutive runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_AVERAGE_RUN_DISTANCE_SESSION_X= Average run distance over the last X runs of the current session
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_1= The room number of last run nr. X (e.g.
+CCT_STAT_AVERAGE_LAST_RUNS_EXPLANATIONS_CHAPTER_LAST_RUN_DISTANCE_X_2= would give you the room number of the most recent golden run, \#2 of the 2nd most recent, ...)
+
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE= basic-avg-distance
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE= Avg. run distance:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_SESSION= basic-avg-distance-session
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_SESSION= Avg. run distance (Session):
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_LAST_10= basic-avg-distance-last-10
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_LAST_10= Avg. over last 10 runs:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_AVG_DISTANCE_BEST_10= basic-avg-distance-best-10
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_AVG_DISTANCE_BEST_10= Best 10-run-average:
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_TITLE_BASIC_LAST_5_RUNS= basic-last-5-runs
+CCT_STAT_AVERAGE_LAST_RUNS_FORMAT_CONTENT_BASIC_LAST_5_RUNS= Last 5 runs:
+
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CAMPAIGN_NAME= Name of the campaign
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_NAME= Name of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SIDE_NAME= Name of the side of the chapter (A/B/C-Side)
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV= DEV
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEBUG_NAME= Debug name of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SID= SID of chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID= Dialog sanitized SID of chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS= Golden Deaths in the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS_SESSION= Golden Deaths in the chapter in the current session
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_CHANCE= Golden Chance of the chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_ROOM_COUNT= Count of rooms in the chapter
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_NAME= Name of the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ABBREVIATION= Abbreviation of the current checkpoint's name
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS= Golden Deaths in the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS_SESSION= Golden Deaths in the current checkpoint in the current session
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_CHANCE= Golden Chance of the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ROOM_COUNT= Count of rooms in the current checkpoint
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NAME= Name of the room. Display format can be changed via Mod Options -> Consistency Tracker -> Live Data -> Room Name Format
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_DEBUG_NAME= Debug name of the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS= Golden Deaths in the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_GOLDEN_DEATHS_SESSION= Golden Deaths in the current room in the current session
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHAPTER= Number of the room within the entire chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_PERCENT= Percent completion of the chapter given the current room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_NUMBER_IN_CHECKPOINT= Number of the room within the current checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHECKPOINT_PROGRESS_PERCENT= Percent completion of the current checkpoint given the current room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_ROOM_CHAPTER_PROGRESS_BAR_X= A text-based progress bar of the chapter given the current room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NAME= Name of the savestate room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_ROOM_COUNT= Count of rooms in the checkpoint where the savestate is placed
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHAPTER= Number of the savestate room in the entire chapter
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_ROOM_NUMBER_IN_CHECKPOINT= Number of the savestate room within the checkpoint
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHAPTER_PROGRESS_PERCENT= Percent completion of the chapter given the savestate room
+CCT_STAT_BASIC_INFO_EXPLANATIONS_SAVE_STATE_CHECKPOINT_PROGRESS_PERCENT= Percent completion of the savestate checkpoint given the savestate room
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_PLAYER_HOLDING_GOLDEN= Whether the player is holding a golden berry
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_TRACKING_PAUSED= Whether death tracking is currently paused
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_RECORDING_PATH= Whether the path is currently being recorded
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_MOD_VERSION= Current version of the mod
+CCT_STAT_BASIC_INFO_EXPLANATIONS_MOD_OVERLAY_VERSION= Most recent version of the overlay
+
+CCT_STAT_BASIC_INFO_EXPLANATIONS_PATH_SEGMENT_NAME= Name of the current path segment
+
+CCT_STAT_BASIC_INFO_FORMAT_TITLE_BASIC_INFO= basic-info
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_1= --- Chapter ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_2= Side:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_3= Campaign Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_4= Path available:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5= Golden Deaths:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_6= Golden Chance:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_7= --- Checkpoint ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_8= --- Room ---{n}Name:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_9= --- Mod State ---{n}Tracking Paused:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_10= Recording Path:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_11= Player Holding Golden:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_12= Chapter completed:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_13= Golden done:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_14= Mod Version:
+CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_15= Overlay Version:
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_SUCCESS_RATE= full-success-rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SUCCESS_RATE_1= CP
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SUCCESS_RATE_2= Total
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_GOLDEN_ATTEMPTS_INFO= full-golden-attempts-info
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_1= Attempts
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_2= PB
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_ATTEMPTS_INFO_3= Session PB
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_VIDDIE_STYLE= full-viddie-style
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_1= Current
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_2= SR
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_3= Room Choke Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_4= Streak
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_5= Low Death
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_STYLE_6= Session avg | Last 10 avg | Best 10 avg:
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_VIDDIE_ALT_STYLE= full-viddie-alt-style
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_1= Current
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_2= Streak
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_3= Golden Success Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_4= Entry Chance
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_VIDDIE_ALT_STYLE_5= Run
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_PARROT_STYLE= full-parrot-style
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_1= Current
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_2= Room
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_3= Current run
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_4= Top
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_5= PB
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_PARROT_STYLE_6= Session
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_GOLDEN_RUN_INFO= full-golden-run-info
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_1= Current Run
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_2= Session
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_3= Choke Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_4= CP
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_5= CP Golden Chance
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_GOLDEN_RUN_INFO_6= Chapter Golden Chance
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_SAVESTATE_RUN= full-savestate-run
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SAVESTATE_RUN_1= This run
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_SAVESTATE_RUN_2= Streak
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_ROOM_INFO= full-room-info
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_1= Success Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_2= Choke Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_3= Golden Deaths
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_ROOM_INFO_4= Rarity
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_CHECKPOINT_INFO= full-checkpoint-info
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_1= Rooms
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_2= Success Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_3= Choke Rate
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_4= Golden Deaths
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_5= Light greens (95%+ rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_6= Greens (80-95% rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_7= Yellows (50-80% rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHECKPOINT_INFO_8= Reds (<50% rooms)
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_FULL_CHAPTER_INFO= full-chapter-info
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_1= Golden Deaths
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_2= Golden Chance
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_3= Light greens (95%+ rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_4= Greens (80-95% rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_5= Yellows (50-80% rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_6= Reds (<50% rooms)
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_FULL_CHAPTER_INFO_7= Chapter reds
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP= basic-current-map
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP= Map
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP_NO_SIDE= basic-current-map-no-side
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_NO_SIDE= Map
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_CURRENT_MAP_CAMPAIGN= basic-current-map-campaign
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_CAMPAIGN_1= Map
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_CURRENT_MAP_CAMPAIGN_2= from
+
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_TITLE_BASIC_SAVESTATE_RUN_GD_STYLE= basic-savestate-run-gd-style
+CCT_STAT_BASIC_PATHLESS_INFO_FORMAT_CONTENT_BASIC_SAVESTATE_RUN_GD_STYLE= This run
+
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_CHOKE_RATE= Choke Rate of the current room (how many golden runs died to this room / how many golden runs entered this room)
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_CHOKE_RATE_SESSION= Choke Rate of the current room in the current session
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_CHOKE_RATE= Choke Rate of the current checkpoint
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_CHOKE_RATE_SESSION= Choke Rate of the current checkpoint in the current session
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESS_RATE= Golden Success Rate of the current room (how many golden runs completed this room / how many golden runs entered this room)
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESS_RATE_SESSION= Golden Success Rate of the current room in the current session
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_GOLDEN_SUCCESS_RATE= Golden Success Rate of the current checkpoint
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_CHECKPOINT_GOLDEN_SUCCESS_RATE_SESSION= Golden Success Rate of the current checkpoint in the current session
+
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRIES= Count of entries into a room with the golden berry
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRIES_SESSION= Count of entries into a room with the golden berry in the current session
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESSES= Count of successes of a room with the golden berry
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_SUCCESSES_SESSION= Count of successes of a room with the golden berry in the current session
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRY_CHANCE= Chance for a run to get to the current room from the start (calculated off of all golden runs)
+CCT_STAT_CHOKE_RATE_EXPLANATIONS_ROOM_GOLDEN_ENTRY_CHANCE_SESSION= Chance for a run to get to the current room from the start (calculated off of golden runs in the current session)
+
+CCT_STAT_CHOKE_RATE_FORMAT_TITLE_BASIC_CHOKE_RATE= basic-choke-rate
+CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_CHOKE_RATE_1= Choke Rate
+CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_CHOKE_RATE_2= CP
+
+CCT_STAT_CHOKE_RATE_FORMAT_TITLE_BASIC_GOLDEN_SUCCESS_RATE= basic-golden-success-rate
+CCT_STAT_CHOKE_RATE_FORMAT_CONTENT_BASIC_GOLDEN_SUCCESS_RATE= Golden Success Rate
+
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS= Rank of the current run vs. all other runs, e.g. 3rd best run, or PB run
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT= Percentage of many runs the current tops, e.g. The current run is better than 85% of all runs
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_1= Same as
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_2= , but only for the current session
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_1= Same as
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_2= , but only for the current session
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_1= Opposite percentage of
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_2= , e.g. The current run is in the top 15% of all runs
+CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_SESSION= Opposite percentage of
+
+CCT_STAT_CURRENT_RUN_PB_FORMAT_TITLE_BASIC_CURRENT_RUN= basic-current-run
+CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_1= Current run
+CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_2= Top
+
+CCT_STAT_CURRENT_RUN_PB_FORMAT_TITLE_BASIC_CURRENT_RUN_SESSION= basic-current-run-session
+CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_SESSION_1= Current run (Session)
+CCT_STAT_CURRENT_RUN_PB_FORMAT_CONTENT_BASIC_CURRENT_RUN_SESSION_2= Top
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_1= Renamed to
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_2= , kept for backwards compatibility
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_INDICATOR_1= Renamed to
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_DEATHS_INDICATOR_2= , kept for backwards compatibility
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_GOLDEN_DEATHS= Lists your total golden deathcount per checkpoint in a similar format as above
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_LIST_CHECKPOINT_GOLDEN_DEATHS_SESSION= Lists your total golden deathcount per checkpoint in the current session in a similar format as above
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_DISPLAY= Lists low death count for each checkpoint/room in the current run (like '4/0/2/3/0/0')
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_DISPLAY_INDICATOR= Same as the above, but adds an indicator for the current checkpoint (like '4/0/2/>3</0/0')
+CCT_STAT_LIST_CHECKPOINT_DEATH_EXPLANATIONS_RUN_LOW_DEATH_TOTAL= Displays the total low death count for the run
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_LOW_DEATH= basic-low-death
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_LOW_DEATH= Low Death
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_LOW_DEATH_INDICATOR= basic-low-death-indicator
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_LOW_DEATH_INDICATOR= Low Death
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS= basic-golden-deaths
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS= Golden Deaths
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS_SESSION= basic-golden-deaths-session
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS_SESSION= Golden Deaths (Session)
+
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_TITLE_BASIC_GOLDEN_DEATHS_AND_SESSION= basic-golden-deaths-and-session
+CCT_STAT_LIST_CHECKPOINT_DEATH_FORMAT_CONTENT_BASIC_GOLDEN_DEATHS_AND_SESSION= Golden Deaths (Session)
+
+CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_ROOM_NAMES= Outputs the current path as list
+CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_SUCCESS_RATES_STAT_LIST_SUCCESS_RATES= Outputs the success rate for all rooms on the current path as list
+CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_CHOKE_RATES_STAT_LIST_CHOKE_RATES= Outputs the choke rates for all rooms on the current path as list
+CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_STREAK_STAT_LIST_ROOM_STREAKS= Outputs the current streaks for all rooms on the current path as list
+
+CCT_STAT_LIST_ROOM_NAMES_FORMAT_TITLE_LIST_ROOM_NAMES= list-room-names
+CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_1= Names
+CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_2= Success Rates
+CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_3= Choke Rates
+
+CCT_STAT_LIVE_PROGRESS_FORMAT_TITLE_BASIC_CHAPTER_PROGRESS= basic-chapter-progress
+CCT_STAT_LIVE_PROGRESS_FORMAT_CONTENT_BASIC_CHAPTER_PROGRESS_1= Room
+CCT_STAT_LIVE_PROGRESS_FORMAT_CONTENT_BASIC_CHAPTER_PROGRESS_2= Room in CP
+
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST= Name of the PB room + the death count if it's greater than 1
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_SESSION_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_SESSION_2= , but only runs in the current session
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_2= , but for the <num>'s best run.
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_3= is equivalent to
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_2= for current session, but for the <num>'s best run.
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_3= is equivalent to
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER= Number of the PB room in the chapter
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_SESSION_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_SESSION_2= , but only runs in the current session
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_2= , but for the <num>'s best run.
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_3= is equivalent to
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_1= Same as
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_2= for current session, but for the <num>'s best run.
+CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_3= is equivalent to
+
+CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS= basic-pbs
+CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS= Best runs
+
+CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS_SESSION= basic-pbs-session
+CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_SESSION= Best runs (Session)
+
+CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS_COMBINED= basic-pbs-combined
+CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_COMBINED_1= Best runs
+CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_COMBINED_2= Best runs (Session)
+
+CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PB_ONLY= basic-pb-only
+CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PB_ONLY= PB
+
+CCT_STAT_RUN_GOLDEN_CHANCE_EXPLANATIONS_RUN_GOLDEN_CHANCE_FROM_START= The chance for a run to reach the current room from the start
+CCT_STAT_RUN_GOLDEN_CHANCE_EXPLANATIONS_RUN_GOLDEN_CHANCE_TO_END= The chance for a run to get to the end from the current room
+
+CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_TITLE_BASIC_RUN_GOLDEN_CHANCE= basic-run-golden-chance
+CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_CONTENT_BASIC_RUN_GOLDEN_CHANCE_1= Start->Room
+CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_CONTENT_BASIC_RUN_GOLDEN_CHANCE_2= Room->End
+
+CCT_STAT_STREAK_EXPLANATIONS_ROOM_CURRENT_STREAK= Current streak of beating the current room deathless
+CCT_STAT_STREAK_EXPLANATIONS_ROOM_CURRENT_STREAK_BEST= Best streak of beating the current room deathless
+CCT_STAT_STREAK_EXPLANATIONS_CHECKPOINT_CURRENT_STREAK= Current streak of beating the current checkpoint deathless
+
+CCT_STAT_STREAK_FORMAT_TITLE_BASIC_CURRENT_STREAK= basic-current-streak
+CCT_STAT_STREAK_FORMAT_CONTENT_BASIC_CURRENT_STREAK_1= Current Room Streak
+CCT_STAT_STREAK_FORMAT_CONTENT_BASIC_CURRENT_STREAK_2= Checkpoint
+
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_RED= Count of red rooms (success rate <50%)
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_YELLOW= Count of yellow rooms (success rate 50%-80%)
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_GREEN= Count of green rooms (success rate 80%-95%)
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_LIGHT_GREEN= Count of light green rooms (success rate 95%-100%)
+
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_RED= Count of red rooms in the current checkpoint
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_YELLOW= Count of yellow rooms in the current checkpoint
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_GREEN= Count of green rooms in the current checkpoint
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_LIGHT_GREEN= Count of light green rooms in the current checkpoint
+
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_LIST_COLOR_RED= Lists all red rooms in the chapter by name
+CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_LIST_COLOR_RED= Lists all red rooms in the current checkpoint by name
+
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_COLOR_TRACKER= color-tracker
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_1= Reds
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_2= Yellows
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_3= Greens
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_4= Light-Greens
+
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_COLOR_TRACKER_CP= color-tracker-cp
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_1= Checkpoint
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_2= Reds
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_3= Yellows
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_4= Greens
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_5= Light-Greens
+
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_RED_ROOMS_LIST= red-rooms-list
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_RED_ROOMS_LIST_1= All red rooms
+CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_RED_ROOMS_LIST_2= In CP
+
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_SUCCESS_RATE= Current room's success rate over last X attempts (count of successful attempts / total attempts)
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_CHECKPOINT_SUCCESS_RATE= Current checkpoint's success rate
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_CHAPTER_SUCCESS_RATE= The chapter's success rate
+
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_SUCCESSES= Count of successful room clears within the last X attempts (X is the attempt count configured in Mod Options)
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_FAILURES= Count of deaths trying to clear the room within the last X attempts
+CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_ATTEMPTS= Count of at max. X last attempts
+
+CCT_STAT_SUCCESS_RATE_FORMAT_TITLE_BASIC_SUCCESS_RATE= basic-success-rate
+CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_1= Success Rate
+CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_2= CP
+CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_3= Total

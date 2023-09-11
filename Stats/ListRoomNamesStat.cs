@@ -57,15 +57,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ListRoomNames, "Outputs the current path as list"),
-                new KeyValuePair<string, string>(ListSuccessRatesStat.ListSuccessRates, "Outputs the success rate for all rooms on the current path as list"),
-                new KeyValuePair<string, string>(ListChokeRatesStat.ListChokeRates, "Outputs the choke rates for all rooms on the current path as list"),
-                new KeyValuePair<string, string>(StreakStat.ListRoomStreaks, "Outputs the current streaks for all rooms on the current path as list"),
+                new KeyValuePair<string, string>(ListRoomNames, Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_ROOM_NAMES")),
+                new KeyValuePair<string, string>(ListSuccessRatesStat.ListSuccessRates, Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_SUCCESS_RATES_STAT_LIST_SUCCESS_RATES")),
+                new KeyValuePair<string, string>(ListChokeRatesStat.ListChokeRates, Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_LIST_CHOKE_RATES_STAT_LIST_CHOKE_RATES")),
+                new KeyValuePair<string, string>(StreakStat.ListRoomStreaks, Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_EXPLANATIONS_STREAK_STAT_LIST_ROOM_STREAKS")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("list-room-names", $"Names: {ListRoomNames}\\nSuccess Rates: {ListSuccessRatesStat.ListSuccessRates}\\nChoke Rates: {ListChokeRatesStat.ListChokeRates}\\n"),
+                new StatFormat(Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_FORMAT_TITLE_LIST_ROOM_NAMES"),
+                    $"{Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_1")}: {ListRoomNames}" +
+                    $"\\n{Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_2")}: {ListSuccessRatesStat.ListSuccessRates}" +
+                    $"\\n{Dialog.Clean("CCT_STAT_LIST_ROOM_NAMES_FORMAT_CONTENT_LIST_ROOM_NAMES_3")}: {ListChokeRatesStat.ListChokeRates}\\n"),
             };
         }
     }

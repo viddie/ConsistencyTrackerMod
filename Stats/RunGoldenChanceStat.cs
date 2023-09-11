@@ -76,13 +76,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //run-golden-chance;Start->Room: {run:goldenChanceFromStart}\nRoom->End: {run:goldenChanceToEnd}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RunGoldenChanceFromStart, "The chance for a run to reach the current room from the start"),
-                new KeyValuePair<string, string>(RunGoldenChanceToEnd, "The chance for a run to get to the end from the current room"),
+                new KeyValuePair<string, string>(RunGoldenChanceFromStart, Dialog.Clean("CCT_STAT_RUN_GOLDEN_CHANCE_EXPLANATIONS_RUN_GOLDEN_CHANCE_FROM_START")),
+                new KeyValuePair<string, string>(RunGoldenChanceToEnd, Dialog.Clean("CCT_STAT_RUN_GOLDEN_CHANCE_EXPLANATIONS_RUN_GOLDEN_CHANCE_TO_END")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-run-golden-chance", $"Start->Room: {RunGoldenChanceFromStart}\\nRoom->End: {RunGoldenChanceToEnd}")
+                new StatFormat(Dialog.Clean("CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_TITLE_BASIC_RUN_GOLDEN_CHANCE"),
+                    $"{Dialog.Clean("CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_CONTENT_BASIC_RUN_GOLDEN_CHANCE_1")}: {RunGoldenChanceFromStart}" +
+                    $"\\n{Dialog.Clean("CCT_STAT_RUN_GOLDEN_CHANCE_FORMAT_CONTENT_BASIC_RUN_GOLDEN_CHANCE_2")}: {RunGoldenChanceToEnd}")
             };
         }
     }

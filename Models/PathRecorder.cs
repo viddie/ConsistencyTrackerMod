@@ -150,18 +150,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// </summary>
         public string GetRecorderStatus() {
             //Format: One line per checkpoint, with the room count after the checkpoint name
-            string toRet = "Path recorded so far:\n";
+            string toRet = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_TITLE")}:\n";
             int checkpointIndex = 0;
             foreach (List<string> checkpoint in Checkpoints) {
                 string cpName = CheckpointNames[checkpointIndex];
                 string cpAbbreviation = CheckpointAbbreviations[checkpointIndex];
 
                 if (checkpointIndex == 0 && Checkpoints.Count == 1) {
-                    cpName = "Room";
+                    cpName = Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_ROOM");
                     cpAbbreviation = "R";
                 }
 
-                toRet += $"{cpName} ({cpAbbreviation}): {checkpoint.Count} Rooms\n";
+                toRet += $"{cpName} ({cpAbbreviation}): {checkpoint.Count} {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATUS_ROOMS")}\n";
 
                 checkpointIndex++;
             }

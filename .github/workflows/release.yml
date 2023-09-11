@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: dotnet build ConsistencyTracker.csproj --configuration Debug -p:version=${{env.CURRENT_TAG}} --no-restore
     - name: Package Mod
-      run: zip -q -r ConsistencyTrackerMod.zip everest.yaml bin/ConsistencyTracker.dll bin/ConsistencyTracker.pdb Assets
+      run: zip -q -r ConsistencyTrackerMod.zip everest.yaml bin/ConsistencyTracker.dll bin/ConsistencyTracker.pdb Assets Dialog
     - name: Create Release
       id: create_release
       uses: actions/create-release@latest

@@ -345,23 +345,23 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(PBBest, "Name of the PB room + the death count if it's greater than 1"),
-                new KeyValuePair<string, string>(PBBestSession, $"Same as {PBBest}, but only runs in the current session"),
-                new KeyValuePair<string, string>("{pb:best#<num>}", $"Same as {PBBest}, but for the <num>'s best run. {{pb:best#1}} is equivalent to {PBBest}"),
-                new KeyValuePair<string, string>("{pb:bestSession#<num>}", $"Same as {PBBest} for current session, but for the <num>'s best run. {{pb:bestSession#1}} is equivalent to {PBBestSession}"),
-                new KeyValuePair<string, string>(PBBestRoomNumber, "Number of the PB room in the chapter"),
-                new KeyValuePair<string, string>(PBBestRoomNumberSession, $"Same as {PBBestRoomNumber}, but only runs in the current session"),
-                new KeyValuePair<string, string>("{pb:bestRoomNumber#<num>}", $"Same as {PBBestRoomNumber}, but for the <num>'s best run. {{pb:bestRoomNumber#1}} is equivalent to {PBBestRoomNumber}"),
-                new KeyValuePair<string, string>("{pb:bestRoomNumberSession#<num>}", $"Same as {PBBestRoomNumber} for current session, but for the <num>'s best run. {{pb:bestRoomNumberSession#1}} is equivalent to {PBBestRoomNumberSession}"),
+                new KeyValuePair<string, string>(PBBest, Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST")),
+                new KeyValuePair<string, string>(PBBestSession, $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_SESSION_1")} {PBBest}{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_SESSION_2")}"),
+                new KeyValuePair<string, string>("{pb:best#<num>}", $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_1")} {PBBest}{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_2")} {{pb:best#1}} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_3")} {PBBest}"),
+                new KeyValuePair<string, string>("{pb:bestSession#<num>}", $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_1")} {PBBest} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_2")} {{pb:bestSession#1}} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_NUM_SESSION_3")} {PBBestSession}"),
+                new KeyValuePair<string, string>(PBBestRoomNumber, Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER")),
+                new KeyValuePair<string, string>(PBBestRoomNumberSession, $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_SESSION_1")} {PBBestRoomNumber}{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_SESSION_2")}"),
+                new KeyValuePair<string, string>("{pb:bestRoomNumber#<num>}", $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_1")} {PBBestRoomNumber}{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_2")} {{pb:bestRoomNumber#1}} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_3")} {PBBestRoomNumber}"),
+                new KeyValuePair<string, string>("{pb:bestRoomNumberSession#<num>}", $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_1")} {PBBestRoomNumber} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_2")} {{pb:bestRoomNumberSession#1}} {Dialog.Clean("CCT_STAT_PERSONAL_BEST_EXPLANATIONS_PB_BEST_ROOM_NUMBER_NUM_SESSION_3")} {PBBestRoomNumberSession}"),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-pbs", $"Best runs: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
-                new StatFormat("basic-pbs-session", $"Best runs (Session): {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
-                new StatFormat("basic-pbs-combined", $"Best runs: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}\\n" 
-                                             + $"Best runs (Session): {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
-                new StatFormat("basic-pb-only", $"PB: {PBBest} ({PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})"),
+                new StatFormat(Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS"), $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS")}: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS_SESSION"), $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_SESSION")}: {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PBS_COMBINED"), $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_COMBINED_1")}: {PBBest} | {{pb:best#2}} | {{pb:best#3}} | {{pb:best#4}} | {{pb:best#5}}\\n" 
+                                             + $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PBS_COMBINED_2")}: {PBBestSession} | {{pb:bestSession#2}} | {{pb:bestSession#3}} | {{pb:bestSession#4}} | {{pb:bestSession#5}}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_TITLE_BASIC_PB_ONLY"), $"{Dialog.Clean("CCT_STAT_PERSONAL_BEST_FORMAT_CONTENT_BASIC_PB_ONLY")}: {PBBest} ({PBBestRoomNumber}/{LiveProgressStat.ChapterRoomCount})"),
             };
         }
     }

@@ -140,25 +140,32 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //color-tracker;Reds: {chapter:color-red}, Yellows: {chapter:color-yellow}, Greens: {chapter:color-green}, Light-Greens: {chapter:color-lightGreen}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(ChapterColorRed, "Count of red rooms (success rate <50%)"),
-                new KeyValuePair<string, string>(ChapterColorYellow, "Count of yellow rooms (success rate 50%-80%)"),
-                new KeyValuePair<string, string>(ChapterColorGreen, "Count of green rooms (success rate 80%-95%)"),
-                new KeyValuePair<string, string>(ChapterColorLightGreen, "Count of light green rooms (success rate 95%-100%)"),
+                new KeyValuePair<string, string>(ChapterColorRed, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_RED")),
+                new KeyValuePair<string, string>(ChapterColorYellow, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_YELLOW")),
+                new KeyValuePair<string, string>(ChapterColorGreen, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_GREEN")),
+                new KeyValuePair<string, string>(ChapterColorLightGreen, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_COLOR_LIGHT_GREEN")),
 
-                new KeyValuePair<string, string>(CheckpointColorRed, "Count of red rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointColorYellow, "Count of yellow rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointColorGreen, "Count of green rooms in the current checkpoint"),
-                new KeyValuePair<string, string>(CheckpointColorLightGreen, "Count of light green rooms in the current checkpoint"),
+                new KeyValuePair<string, string>(CheckpointColorRed, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_RED")),
+                new KeyValuePair<string, string>(CheckpointColorYellow, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_YELLOW")),
+                new KeyValuePair<string, string>(CheckpointColorGreen, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_GREEN")),
+                new KeyValuePair<string, string>(CheckpointColorLightGreen, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_COLOR_LIGHT_GREEN")),
 
-                new KeyValuePair<string, string>(ChapterListColorRed, "Lists all red rooms in the chapter by name"),
-                new KeyValuePair<string, string>(CheckpointListColorRed, "Lists all red rooms in the current checkpoint by name"),
+                new KeyValuePair<string, string>(ChapterListColorRed, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHAPTER_LIST_COLOR_RED")),
+                new KeyValuePair<string, string>(CheckpointListColorRed, Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_EXPLANATIONS_CHECKPOINT_LIST_COLOR_RED")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("color-tracker", $"Reds: {ChapterColorRed}, Yellows: {ChapterColorYellow}, Greens: {ChapterColorGreen}, Light-Greens: {ChapterColorLightGreen}"),
-                new StatFormat("color-tracker-cp", $"Checkpoint: Reds: {CheckpointColorRed}, Yellows: {CheckpointColorYellow}, Greens: {CheckpointColorGreen}, Light-Greens: {CheckpointColorLightGreen}"),
-                new StatFormat("red-rooms-list", $"All red rooms: {ChapterListColorRed}\\nIn CP: {CheckpointListColorRed}")
+                new StatFormat(Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_COLOR_TRACKER"), 
+                    $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_1")}: {ChapterColorRed}, " +
+                    $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_2")}: {ChapterColorYellow}, " +
+                    $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_3")}: {ChapterColorGreen}, " +
+                    $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_4")}: {ChapterColorLightGreen}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_COLOR_TRACKER_CP"),
+                    $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_1")}: {Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_2")}: " +
+                    $"{CheckpointColorRed}, {Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_3")}: {CheckpointColorYellow}" +
+                    $", {Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_4")}: {CheckpointColorGreen}, {Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_COLOR_TRACKER_CP_5")}: {CheckpointColorLightGreen}"),
+                new StatFormat(Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_TITLE_RED_ROOMS_LIST"), $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_RED_ROOMS_LIST_1")}: {ChapterListColorRed}\\n{Dialog.Clean("CCT_STAT_SUCCESS_RATE_COLORS_FORMAT_CONTENT_RED_ROOMS_LIST_2")}: {CheckpointListColorRed}")
             };
         }
     }

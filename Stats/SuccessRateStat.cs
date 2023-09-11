@@ -84,18 +84,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //success-rate;Room SR: {room:successRate} | CP: {checkpoint:successRate} | Total: {chapter:successRate}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
-                new KeyValuePair<string, string>(RoomSuccessRate, "Current room's success rate over last X attempts (count of successful attempts / total attempts)"),
-                new KeyValuePair<string, string>(CheckpointSuccessRate, "Current checkpoint's success rate"),
-                new KeyValuePair<string, string>(ChapterSuccessRate, "The chapter's success rate"),
+                new KeyValuePair<string, string>(RoomSuccessRate, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_SUCCESS_RATE")),
+                new KeyValuePair<string, string>(CheckpointSuccessRate, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_CHECKPOINT_SUCCESS_RATE")),
+                new KeyValuePair<string, string>(ChapterSuccessRate, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_CHAPTER_SUCCESS_RATE")),
 
-                new KeyValuePair<string, string>(RoomSuccesses, "Count of successful room clears within the last X attempts (X is the attempt count configured in Mod Options)"),
-                new KeyValuePair<string, string>(RoomFailures, "Count of deaths trying to clear the room within the last X attempts"),
-                new KeyValuePair<string, string>(RoomAttempts, "Count of at max. X last attempts"),
+                new KeyValuePair<string, string>(RoomSuccesses, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_SUCCESSES")),
+                new KeyValuePair<string, string>(RoomFailures, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_FAILURES")),
+                new KeyValuePair<string, string>(RoomAttempts, Dialog.Clean("CCT_STAT_SUCCESS_RATE_EXPLANATIONS_ROOM_ATTEMPTS")),
             };
         }
         public override List<StatFormat> GetDefaultFormats() {
             return new List<StatFormat>() {
-                new StatFormat("basic-success-rate", $"Success Rate: {RoomSuccessRate} ({RoomSuccesses}/{RoomAttempts}) | CP: {CheckpointSuccessRate} | Total: {ChapterSuccessRate}")
+                new StatFormat(Dialog.Clean("CCT_STAT_SUCCESS_RATE_FORMAT_TITLE_BASIC_SUCCESS_RATE"), $"{Dialog.Clean("CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_1")}: {RoomSuccessRate} ({RoomSuccesses}/{RoomAttempts}) | {Dialog.Clean("CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_2")}: {CheckpointSuccessRate} | {Dialog.Clean("CCT_STAT_SUCCESS_RATE_FORMAT_CONTENT_BASIC_SUCCESS_RATE_3")}: {ChapterSuccessRate}")
             };
         }
     }
