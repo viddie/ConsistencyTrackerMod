@@ -27,7 +27,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.3.12";
+            public static string Mod => "2.3.13";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.1.2";
@@ -843,7 +843,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
                 
-                PacePingManager.CollectedGolden();
+                PacePingManager.CollectedGolden(CurrentChapterPath, CurrentChapterStats);
             } catch (Exception ex) {
                 Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
             }

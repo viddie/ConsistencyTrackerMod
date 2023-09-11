@@ -20,39 +20,41 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const string FolderName = "pace-ping";
         private const string SavedStateFileName = "state.json";
         public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM.json";
-        private bool PingedThisRun { get; set; } = false;
+
+        
         private bool PBPingedThisRun { get; set; } = false;
+        private DiscordWebhookResponse EmbedMessage { get; set; }
 
         public enum PbPingType {
             NoPing,
             PingOnPbEntry,
             PingOnPbPassed,
         }
-        
+
         public class PaceStateSecret {
             [JsonProperty("webhookUrl")]
             public string WebhookUrl { get; set; } = null;
-            
+
             [JsonProperty("webhookUrlAllDeaths")]
             public string WebhookUrlAllDeaths { get; set; } = null;
         }
-        
+
         public class PaceState {
             //Defaults
             [JsonProperty("webhookUsername")]
             public string WebhookUsername { get; set; } = $"Pace-Bot";
-            
+
             [JsonProperty("defaultPingMessage")]
             public string DefaultPingMessage { get; set; } = $"We got a run to '{{room:name}}'!";
 
             [JsonProperty("defaultPingDescription")]
-            public string DefaultPingDescription { get; set; } = $"Of the campaign '{{campaign:name}}'";
+            public string DefaultPingDescription { get; set; } = $"";
 
             [JsonProperty("afterPingDeathMessage")]
             public string AfterPingDeathMessage { get; set; } = $"Death to '{{room:name}}' ({{room:roomNumberInChapter}}/{{chapter:roomCount}})";
-            
+
             [JsonProperty("pingCooldownSeconds")]
-            public int PingCooldownSeconds { get; set; } = 60;
+            public int PingCooldownSeconds { get; set; } = 30;
 
             //On every golden death
             [JsonProperty("allDeathsMessage")]
@@ -65,7 +67,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             //On Win
             [JsonProperty("winMessage")]
             public string WinMessage { get; set; } = $"WIN!!!";
-            
+
 
             //Ping Timings
             [JsonProperty("pacePingTimings")]
@@ -123,7 +125,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private void LoadState() {
             ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FolderName));
             bool doSave = false;
-            
+
             string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
             string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
 
@@ -161,7 +163,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             bool isNowEnabled = false;
             PathInfo path = Mod.CurrentChapterPath;
             if (path == null || path.CurrentRoom == null) return isNowEnabled;
-            
+
             string id = path.ChapterSID;
 
             PaceTiming paceTiming = GetPaceTiming(id, path.CurrentRoom.DebugRoomName);
@@ -191,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             PathInfo path = Mod.CurrentChapterPath;
             if (path == null || path.CurrentRoom == null) return;
 
-            CheckPacePing(path, Mod.CurrentChapterStats, ignoreGolden:true);
+            CheckPacePing(path, Mod.CurrentChapterStats, ignoreGolden: true);
         }
 
         public void ReloadStateFile() {
@@ -254,7 +256,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 Mod.Log($"{nameof(chapterSID)} '{chapterSID}' is was null");
                 return null;
             }
-            
+
             if (!State.PacePingTimings.TryGetValue(chapterSID, out List<PaceTiming> timings)) {
                 if (!dontLog) {
                     Mod.Log($"Didn't find room timings for chapter {chapterSID}");
@@ -267,12 +269,16 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public void CheckPacePing(PathInfo path, ChapterStats stats, bool ignoreGolden = false) {
             if (path == null) return; //No path = no ping
-            
+
             RoomInfo currentRoom = path.CurrentRoom;
             if (currentRoom == null) return; //Not on path = no ping
             if (!Mod.ModSettings.PacePingEnabled) return;
 
             if (!stats.ModState.PlayerIsHoldingGolden && ignoreGolden == false) return; //No golden = no ping
+
+            if (EmbedMessage != null) {
+                SendUpdatePing(path, stats);
+            }
 
             if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && !PBPingedThisRun && CheckPbRunPing(path, stats)) {
                 return; //Pinged from the PB ping, skip checking normal pace ping
@@ -289,9 +295,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             paceTiming.LastPingedAt = DateTime.Now;
             SaveState();
-            
+
             string message = paceTiming.CustomPingMessage ?? State.DefaultPingMessage;
-            SendPing(path, stats, currentRoom, message, paceTiming.EmbedsEnabled);
+            SendPing(path, stats, currentRoom, message);
         }
 
         /// <summary>
@@ -306,157 +312,227 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbEntry && currentRoom == pbRoom) {
-                SendPing(path, stats, currentRoom, State.PbPingMessage, true);
+                SendPing(path, stats, currentRoom, State.PbPingMessage);
                 PBPingedThisRun = true;
                 return true;
             } else if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbPassed && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
-                SendPing(path, stats, currentRoom, State.PbPingMessage, true);
+                SendPing(path, stats, currentRoom, State.PbPingMessage);
                 PBPingedThisRun = true;
                 return true;
             }
 
             return false;
         }
-        
-        public void SendPing(PathInfo path, ChapterStats stats, RoomInfo pingRoom, string message, bool enableEmbeds) {
+
+        public void SendPing(PathInfo path, ChapterStats stats, RoomInfo pingRoom, string message) {
             Mod.Log($"Sending pace ping! (Room: {pingRoom.GetFormattedRoomName(StatManager.RoomNameType)}, message: '{message}')");
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
-
-                string description = State.DefaultPingDescription;
-                description = Mod.StatsManager.FormatVariableFormat(description);
-
-                string campaign = path.CampaignName;
-                string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
-                string sideAddition = path.SideName == "A-Side" ? "" : $" {path.SideName}";
-                string chapterField = $"{chapterName}{sideAddition}";
-
-                Dictionary<RoomInfo, Tuple<int, float, int, float>> roomData = ChokeRateStat.GetRoomData(path, stats);
-                Tuple<int, float, int, float> currentRoomData = roomData[pingRoom];
-                int entries = currentRoomData.Item1;
-                int entriesSession = currentRoomData.Item3;
-
-                int totalDeaths = path.Stats.GoldenBerryDeaths;
-                int totalDeathsSession = path.Stats.GoldenBerryDeathsSession;
-
-                float totalSuccessRate = path.Stats.SuccessRate;
-
-                //string pbs = "{pb:best} | {pb:best#2} | {pb:best#3} | {pb:best#4} | {pb:best#5}";
-                //pbs = Mod.StatsManager.FormatVariableFormat(pbs);
-                //string pbsSession = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
-                //pbsSession = Mod.StatsManager.FormatVariableFormat(pbsSession);
-
-                List<DiscordWebhookRequest.Embed> embeds = null;
-                if (enableEmbeds) {
-                    embeds = new List<DiscordWebhookRequest.Embed>() {
-                        new DiscordWebhookRequest.Embed(){
-                            //Author = new DiscordWebhookRequest.Author() { Name = "Embed Author" },
-                            Title = chapterField,
-                            Description = description,
-                            Color = 15258703,
-                            Fields = new List<DiscordWebhookRequest.Field>(){
-                                new DiscordWebhookRequest.Field() { Inline = true, Name = $"Entries to '{pingRoom.GetFormattedRoomName(StatManager.RoomNameType)}'", Value = $"{entries}" },
-                                new DiscordWebhookRequest.Field() { Inline = true, Name = "Entries This Session", Value = $"{entriesSession}" },
-                                new DiscordWebhookRequest.Field() { Inline = true, Name = "Chapter Success Rate", Value = $"{StatManager.FormatPercentage(totalSuccessRate)}" },
-                                new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths", Value = $"{totalDeaths}" },
-                                new DiscordWebhookRequest.Field() { Inline = true, Name = "Golden Deaths (Session)", Value = $"{totalDeathsSession}" },
-                                //new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs", Value = $"> {pbs}" },
-                                //new DiscordWebhookRequest.Field() { Inline = false, Name = "Best Runs (Session)", Value = $"> {pbsSession}" },
-                            }
-                        },
-                    };
-
-                    if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
-                        string additionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
-                        string additionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
-                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed1Title, Value = additionEmbed1Content });
-                    }
-                    if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
-                        string additionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
-                        string additionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
-                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed2Title, Value = additionEmbed2Content });
-                    }
-                    if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
-                        string additionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
-                        string additionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
-                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed3Title, Value = additionEmbed3Content });
-                    }
-                    if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
-                        string additionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
-                        string additionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
-                        embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed4Title, Value = additionEmbed4Content });
-                    }
+                
+                if (EmbedMessage == null) {
+                    SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                        Username = State.WebhookUsername,
+                        Content = message,
+                        Embeds = GetEmbedsForRoom(path, stats),
+                    }, StateSecret.WebhookUrl, DiscordWebhookAction.SendUpdate);
+                } else {
+                    SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                        Username = State.WebhookUsername,
+                        Content = message,
+                    }, StateSecret.WebhookUrl, DiscordWebhookAction.Separate);
                 }
-
-                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                    Username = State.WebhookUsername,
-                    Content = message,
-                    Embeds = embeds,
-                }, StateSecret.WebhookUrl);
-
-                PingedThisRun = true;
             } catch (Exception ex) {
-                Mod.Log($"An exception occurred while trying to send pace ping: {ex}", isFollowup:true);
+                Mod.Log($"An exception occurred while trying to send pace ping: {ex}", isFollowup: true);
             }
         }
 
+        public void SendUpdatePing(PathInfo path, ChapterStats stats) {
+            if (EmbedMessage == null) return;
+            
+            try {
+                string message = EmbedMessage.Content;
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = message,
+                    Embeds = GetEmbedsForRoom(path, stats),
+                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendUpdate);
+            } catch (Exception ex) {
+                Mod.Log($"An exception occurred while trying to update pace ping embed: {ex}");
+            }
+        }
+
+        public List<DiscordWebhookRequest.Embed> GetEmbedsForRoom(PathInfo path, ChapterStats stats, bool collectedGolden = false, bool died = false) {
+            if (path == null) return null;
+            if (stats == null) return null;
+            if (path.CurrentRoom == null) return null;
+            
+            string description = State.DefaultPingDescription;
+            description = Mod.StatsManager.FormatVariableFormat(description);
+            
+            string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
+            string sideAddition = path.SideName == "A-Side" ? "" : $" {path.SideName}";
+            string chapterField = $"{chapterName}{sideAddition}";
+
+            string currentRunNumber = collectedGolden ? "#WIN" : "#"+Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunCurrentPbStatus);
+            string topPercentString = collectedGolden ? "0%" : Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunTopXPercent);
+            if (died && EmbedMessage != null) {
+                currentRunNumber = EmbedMessage.Embeds[0].Fields[3].Value;
+                topPercentString = EmbedMessage.Embeds[0].Fields[4].Value;
+            }
+
+            int progressLength = 20;
+            string noProgressChar = ":black_large_square:"; //□,-
+            string progressChar = ":white_large_square:"; //■,▇
+            string deathChar = ":skull:";
+            string aliveChar = ":green_square:";
+            string progressString = "";
+            
+            float progress = (float)path.CurrentRoom.RoomNumberInChapter / path.GameplayRoomCount;
+            if (collectedGolden) progress = 1;
+            
+            bool currentIndicator = true;
+            for (int i = 0; i < progressLength; i++) {
+                if (Math.Floor(progress * progressLength) > i) {
+                    progressString += progressChar;
+                } else {
+                    if (currentIndicator) {
+                        currentIndicator = false;
+                        progressString = progressString.Remove(progressString.Length - progressChar.Length);
+                        progressString += died ? deathChar : aliveChar;
+                    }
+                    
+                    progressString += noProgressChar;
+                }
+            }
+            progressString += " :checkered_flag:" + (collectedGolden ? " :trophy:" : "");
+
+            List<DiscordWebhookRequest.Embed> embeds = new List<DiscordWebhookRequest.Embed>() {
+                new DiscordWebhookRequest.Embed(){
+                    Title = chapterField,
+                    Description = string.IsNullOrEmpty(description) ? null : description,
+                    Color = 15258703,
+                    Fields = new List<DiscordWebhookRequest.Field>(){
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Current Room", Value = $"{path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Distance", Value = $"({path.CurrentRoom.RoomNumberInChapter}/{path.GameplayRoomCount})" },
+                        new DiscordWebhookRequest.Field() { Inline = false, Name = "Progress", Value = $"{progressString}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Current Run #", Value = $"{currentRunNumber}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Top %", Value = $"{topPercentString}" },
+                    }
+                },
+            };
+
+            if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
+                string additionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
+                string additionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed1Title, Value = additionEmbed1Content });
+            }
+            if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
+                string additionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
+                string additionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed2Title, Value = additionEmbed2Content });
+            }
+            if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
+                string additionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
+                string additionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed3Title, Value = additionEmbed3Content });
+            }
+            if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
+                string additionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
+                string additionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed4Title, Value = additionEmbed4Content });
+            }
+
+            return embeds;
+        }
+
         public void ResetRun() {
-            PingedThisRun = false;
             PBPingedThisRun = false;
+            EmbedMessage = null;
         }
         public void DiedWithGolden(PathInfo path, ChapterStats stats) {
             if (Mod.ModSettings.PacePingAllDeathsEnabled) SendAllDeathsMessage(path, stats);
-            
-            if (!PingedThisRun) return; //no ping, no follow-up message
-            PingedThisRun = false;
+
+            if (EmbedMessage == null) return; //no ping, no follow-up message
             PBPingedThisRun = false;
 
             string message = State.AfterPingDeathMessage;
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
-            } catch (Exception) { }
 
-            SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                Username = State.WebhookUsername,
-                Content = message,
-            }, StateSecret.WebhookUrl);
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = EmbedMessage.Content + " -> " + message,
+                    Embeds = GetEmbedsForRoom(path, stats, false, true),
+                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
+            } catch (Exception) { }
         }
 
         public void SendAllDeathsMessage(PathInfo path, ChapterStats stats) {
-            string message = State.AllDeathsMessage; 
+            string message = State.AllDeathsMessage;
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
+                
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = message,
+                }, StateSecret.WebhookUrlAllDeaths, DiscordWebhookAction.Separate);
             } catch (Exception) { }
-
-            SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                Username = State.WebhookUsername,
-                Content = message,
-            }, StateSecret.WebhookUrlAllDeaths);
         }
 
-        public void CollectedGolden() {
+        public void CollectedGolden(PathInfo path, ChapterStats stats) {
             try { //Just in case. We DONT want a crash when winning
-                if (!PingedThisRun) return; //no ping, no follow-up message
-                PingedThisRun = false;
+                if (EmbedMessage == null) return; //no ping, no follow-up message
 
                 string message = State.WinMessage;
                 message = Mod.StatsManager.FormatVariableFormat(message);
 
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                     Username = State.WebhookUsername,
-                    Content = message,
-                }, StateSecret.WebhookUrl);
+                    Content = EmbedMessage.Content + " -> " + message,
+                    Embeds = GetEmbedsForRoom(path, stats, true, false),
+                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
             } catch (Exception ex) {
                 Mod.Log($"An exception occurred while trying to send win message: {ex}", isFollowup: true);
             }
         }
 
-        public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url) {
+        
+        public enum DiscordWebhookAction { 
+            SendUpdate,
+            SendFinal,
+            Separate
+        }
+        public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url, DiscordWebhookAction action) {
             Task.Run(() => {
                 WebClient client = new WebClient();
                 client.Headers.Add("Content-Type", "application/json");
                 string payload = JsonConvert.SerializeObject(request);
-                client.UploadData(url, Encoding.UTF8.GetBytes(payload));
+
+                string response;
+                if (EmbedMessage == null || action == DiscordWebhookAction.Separate) {
+                    response = client.UploadString(url + "?wait=true", payload);
+                } else {
+                    if (request.Embeds == null) {
+                        request.Embeds = EmbedMessage.Embeds;
+                    }
+                    response = client.UploadString(url + "/messages/" + EmbedMessage.Id + "?wait=true", "PATCH", payload);
+                }
+
+                if (response != null) {
+                    Mod.Log($"Discord webhook response: {response}", isFollowup: true);
+                }
+
+                DiscordWebhookResponse webhookResponse = JsonConvert.DeserializeObject<DiscordWebhookResponse>(response);
+                if (webhookResponse == null) {
+                    Mod.Log($"Couldn't parse discord webhook response to DiscordWebhookResponse", isFollowup: true);
+                    return;
+                }
+
+                if (action == DiscordWebhookAction.SendUpdate) {
+                    EmbedMessage = webhookResponse;
+                } else if (action == DiscordWebhookAction.SendFinal) {
+                    EmbedMessage = null;
+                }
             });
         }
     }
