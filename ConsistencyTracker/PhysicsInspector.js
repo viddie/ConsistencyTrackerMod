@@ -79,6 +79,7 @@ const Elements = {
 
     NextFramesButton: "next-frames-button",
     PreviousFramesButton: "previous-frames-button",
+    FinalFramesButton: "final-frames-button",
 
     SelectedRecording: "selected-recording",
     OptgroupRecent: "optgroup-recent",
@@ -455,6 +456,14 @@ function framePageUp(mult=1){
     updateRecordingInfo();
     redrawCanvas();
 }
+
+function frameEnd() {
+    settings.frameMin = roomLayoutRecording.frameCount - 1000;
+    settings.frameMax = roomLayoutRecording.frameCount;
+
+    updateRecordingInfo();
+    redrawCanvas();
+}
 function resetFramePage(){
     settings.frameMin = 0;
     settings.frameMax = 1000;
@@ -468,8 +477,10 @@ function updateFrameButtonStates(){
     }
     if(settings.frameMax >= roomLayoutRecording.frameCount){
         Elements.NextFramesButton.setAttribute("disabled", true);
+        Elements.FinalFramesButton.setAttribute("disabled", true);
     } else {
         Elements.NextFramesButton.removeAttribute("disabled");
+        Elements.FinalFramesButton.removeAttribute("disabled");
     }
 }
 
