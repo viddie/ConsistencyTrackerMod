@@ -364,13 +364,13 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         public List<DiscordWebhookRequest.Embed> GetEmbedsForRoom(PathInfo path, ChapterStats stats, bool collectedGolden = false, bool died = false) {
             if (path == null) return null;
             if (stats == null) return null;
-            if (path.CurrentRoom == null) return null;
+            if (path.CurrentRoom == null && EmbedMessage == null) return null;
             
             string description = State.DefaultPingDescription;
             description = Mod.StatsManager.FormatVariableFormat(description);
             
             string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
-            string sideAddition = path.SideName == "A-Side" ? "" : $" {path.SideName}";
+            string sideAddition = path.SideName == "A-Side" ? "" : $" [{path.SideName}]";
             string chapterField = $"{chapterName}{sideAddition}";
 
             string currentRunNumber = collectedGolden ? "#WIN" : "#"+Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunCurrentPbStatus);
@@ -387,12 +387,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             string aliveChar = ":green_square:";
             string progressString = "";
             
-            float progress = (float)path.CurrentRoom.RoomNumberInChapter / path.GameplayRoomCount;
-            if (collectedGolden) progress = 1;
+            float progress = collectedGolden ? 1 : ((float)path.CurrentRoom.RoomNumberInChapter / path.GameplayRoomCount);
             
             bool currentIndicator = true;
             for (int i = 0; i < progressLength; i++) {
-                if (Math.Floor(progress * progressLength) > i) {
+                if (Math.Floor(progress * progressLength) >= i) {
                     progressString += progressChar;
                 } else {
                     if (currentIndicator) {
@@ -406,14 +405,18 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             progressString += " :checkered_flag:" + (collectedGolden ? " :trophy:" : "");
 
+            int lastRoomNumberCorrection = collectedGolden && path.CurrentRoom != null && path.CurrentRoom.IsNonGameplayRoom ? 1 : 0;
+            string roomName = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[0].Value : path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType);
+            string distance = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[1].Value : $"({path.CurrentRoom.RoomNumberInChapter - lastRoomNumberCorrection}/{path.GameplayRoomCount})";
+
             List<DiscordWebhookRequest.Embed> embeds = new List<DiscordWebhookRequest.Embed>() {
                 new DiscordWebhookRequest.Embed(){
                     Title = chapterField,
                     Description = string.IsNullOrEmpty(description) ? null : description,
                     Color = 15258703,
                     Fields = new List<DiscordWebhookRequest.Field>(){
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Current Room", Value = $"{path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)}" },
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Distance", Value = $"({path.CurrentRoom.RoomNumberInChapter}/{path.GameplayRoomCount})" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Current Room", Value = $"{roomName}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Distance", Value = $"{distance}" },
                         new DiscordWebhookRequest.Field() { Inline = false, Name = "Progress", Value = $"{progressString}" },
                         new DiscordWebhookRequest.Field() { Inline = true, Name = "Current Run #", Value = $"{currentRunNumber}" },
                         new DiscordWebhookRequest.Field() { Inline = true, Name = "Top %", Value = $"{topPercentString}" },
