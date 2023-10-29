@@ -21,9 +21,45 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const string SavedStateFileName = "state.json";
         public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM.json";
 
-        
+        private const int PROGRESS_LENGTH = 20;
+        private const string CHAR_NO_PROGRESS = ":black_large_square:"; //□,-
+        private const string CHAR_PROGRESS = ":white_large_square:"; //■,▇
+        private const string CHAR_DEATH = ":skull:";
+        private const string CHAR_ALIVE = ":green_square:";
+        private const string CHAR_RESET = ":leftwards_arrow_with_hook:";
+        private const string CHAR_GOAL = ":checkered_flag:";
+        private const string CHAR_TROPHY = ":trophy:";
+
+
         private bool PBPingedThisRun { get; set; } = false;
+        private bool UpdatedMessageWithDeath { get; set; } = false;
         private DiscordWebhookResponse EmbedMessage { get; set; }
+        private RoomDetails LastRoomDetails { get; set; }
+
+        private class RoomDetails {
+            public string ChapterField { get; set; }
+            public string Description { get; set; }
+
+            public string RoomName { get; set; }
+            public int RoomNumberInChapter { get; set; }
+            public int ChapterRoomCount { get; set; }
+
+            public string CurrentRunNumber { get; set; }
+            public string TopPercentString { get; set; }
+
+            public float Progress { get; set; }
+            public string Distance { get; set; }
+
+            public string AdditionEmbed1Title { get; set; }
+            public string AdditionEmbed1Content { get; set; }
+
+            public string AdditionEmbed2Title { get; set; }
+            public string AdditionEmbed2Content { get; set; }
+            public string AdditionEmbed3Title { get; set; }
+            public string AdditionEmbed3Content { get; set; }
+            public string AdditionEmbed4Title { get; set; }
+            public string AdditionEmbed4Content { get; set; }
+        }
 
         public enum PbPingType {
             NoPing,
@@ -361,111 +397,152 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
         }
 
-        public List<DiscordWebhookRequest.Embed> GetEmbedsForRoom(PathInfo path, ChapterStats stats, bool collectedGolden = false, bool died = false) {
+
+        
+        public List<DiscordWebhookRequest.Embed> GetEmbedsForRoom(PathInfo path, ChapterStats stats, bool collectedGolden = false, bool died = false, bool reset = false) {
             if (path == null) return null;
             if (stats == null) return null;
-            if (path.CurrentRoom == null && EmbedMessage == null) return null;
-            
-            string description = State.DefaultPingDescription;
-            description = Mod.StatsManager.FormatVariableFormat(description);
-            
-            string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
-            string sideAddition = path.SideName == "A-Side" ? "" : $" [{path.SideName}]";
-            string chapterField = $"{chapterName}{sideAddition}";
+            if (path.CurrentRoom == null && LastRoomDetails == null) return null;
 
-            string currentRunNumber = collectedGolden ? "#WIN" : "#"+Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunCurrentPbStatus);
-            string topPercentString = collectedGolden ? "0%" : Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunTopXPercent);
-            if (died && EmbedMessage != null) {
-                currentRunNumber = EmbedMessage.Embeds[0].Fields[3].Value;
-                topPercentString = EmbedMessage.Embeds[0].Fields[4].Value;
+            RoomDetails details = new RoomDetails();
+
+            if ((died || reset || path.CurrentRoom == null) && LastRoomDetails != null) { //Take old details 
+                details = LastRoomDetails;
+
+                if (died && !reset) {
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
+                        details.AdditionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
+                        details.AdditionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
+                        details.AdditionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
+                        details.AdditionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
+                        details.AdditionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
+                        details.AdditionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
+                    }
+                    if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
+                        details.AdditionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
+                        details.AdditionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
+                    }
+                }
+            } else {
+                string description = State.DefaultPingDescription;
+                details.Description = Mod.StatsManager.FormatVariableFormat(description);
+
+                string chapterName = path.ChapterName.Replace(":monikadsidespack_cassette_finale: ", "");
+                string sideAddition = path.SideName == "A-Side" ? "" : $" [{path.SideName}]";
+                details.ChapterField = $"{chapterName}{sideAddition}";
+
+                details.CurrentRunNumber = collectedGolden ? "#WIN" : "#" + Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunCurrentPbStatus);
+                details.TopPercentString = collectedGolden ? "0%" : Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunTopXPercent);
+                
+                details.RoomName = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[0].Value : path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType);
+                int lastRoomNumberCorrection = collectedGolden && path.CurrentRoom != null && path.CurrentRoom.IsNonGameplayRoom ? 1 : 0;
+                details.Distance = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[1].Value : $"({path.CurrentRoom.RoomNumberInChapter - lastRoomNumberCorrection}/{path.GameplayRoomCount})";
+
+                details.Progress = collectedGolden ? 1 : ((float)path.CurrentRoom.RoomNumberInChapter / path.GameplayRoomCount);
+                if (details.Progress == 1 && !collectedGolden) {
+                    details.Progress = 0.9999f;
+                }
+                
+                if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
+                    details.AdditionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
+                    details.AdditionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
+                }
+                if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
+                    details.AdditionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
+                    details.AdditionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
+                }
+                if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
+                    details.AdditionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
+                    details.AdditionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
+                }
+                if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
+                    details.AdditionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
+                    details.AdditionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
+                }
+
+                LastRoomDetails = details;
             }
 
             int progressLength = 20;
-            string noProgressChar = ":black_large_square:"; //□,-
-            string progressChar = ":white_large_square:"; //■,▇
-            string deathChar = ":skull:";
-            string aliveChar = ":green_square:";
             string progressString = "";
-            
-            float progress = collectedGolden ? 1 : ((float)path.CurrentRoom.RoomNumberInChapter / path.GameplayRoomCount);
+            float progress = collectedGolden ? 1 : details.Progress;
             
             bool currentIndicator = true;
             for (int i = 0; i < progressLength; i++) {
                 if (Math.Floor(progress * progressLength) >= i) {
-                    progressString += progressChar;
+                    progressString += CHAR_PROGRESS;
                 } else {
                     if (currentIndicator) {
                         currentIndicator = false;
-                        progressString = progressString.Remove(progressString.Length - progressChar.Length);
-                        progressString += died ? deathChar : aliveChar;
+                        progressString = progressString.Remove(progressString.Length - CHAR_PROGRESS.Length);
+                        progressString += died ? (reset ? CHAR_RESET : CHAR_DEATH) : CHAR_ALIVE;
                     }
                     
-                    progressString += noProgressChar;
+                    progressString += CHAR_NO_PROGRESS;
                 }
             }
-            progressString += " :checkered_flag:" + (collectedGolden ? " :trophy:" : "");
-
-            int lastRoomNumberCorrection = collectedGolden && path.CurrentRoom != null && path.CurrentRoom.IsNonGameplayRoom ? 1 : 0;
-            string roomName = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[0].Value : path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType);
-            string distance = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[1].Value : $"({path.CurrentRoom.RoomNumberInChapter - lastRoomNumberCorrection}/{path.GameplayRoomCount})";
-
+            progressString += $" {CHAR_GOAL}" + (collectedGolden ? $" {CHAR_TROPHY}" : "");
+            
             List<DiscordWebhookRequest.Embed> embeds = new List<DiscordWebhookRequest.Embed>() {
                 new DiscordWebhookRequest.Embed(){
-                    Title = chapterField,
-                    Description = string.IsNullOrEmpty(description) ? null : description,
+                    Title = details.ChapterField,
+                    Description = string.IsNullOrEmpty(details.Description) ? null : details.Description,
                     Color = 15258703,
                     Fields = new List<DiscordWebhookRequest.Field>(){
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Current Room", Value = $"{roomName}" },
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Distance", Value = $"{distance}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Current Room", Value = $"{details.RoomName}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = $"Distance", Value = $"{details.Distance}" },
                         new DiscordWebhookRequest.Field() { Inline = false, Name = "Progress", Value = $"{progressString}" },
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Current Run #", Value = $"{currentRunNumber}" },
-                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Top %", Value = $"{topPercentString}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Current Run #", Value = $"{details.CurrentRunNumber}" },
+                        new DiscordWebhookRequest.Field() { Inline = true, Name = "Top %", Value = $"{details.TopPercentString}" },
                     }
                 },
             };
 
             if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
-                string additionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
-                string additionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
-                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed1Title, Value = additionEmbed1Content });
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = details.AdditionEmbed1Title, Value = details.AdditionEmbed1Content });
             }
             if (!string.IsNullOrEmpty(State.AdditionEmbed2Title) && !string.IsNullOrEmpty(State.AdditionEmbed2Content)) {
-                string additionEmbed2Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Title);
-                string additionEmbed2Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed2Content);
-                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed2Title, Value = additionEmbed2Content });
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = details.AdditionEmbed2Title, Value = details.AdditionEmbed2Content });
             }
             if (!string.IsNullOrEmpty(State.AdditionEmbed3Title) && !string.IsNullOrEmpty(State.AdditionEmbed3Content)) {
-                string additionEmbed3Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Title);
-                string additionEmbed3Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed3Content);
-                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed3Title, Value = additionEmbed3Content });
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = details.AdditionEmbed3Title, Value = details.AdditionEmbed3Content });
             }
             if (!string.IsNullOrEmpty(State.AdditionEmbed4Title) && !string.IsNullOrEmpty(State.AdditionEmbed4Content)) {
-                string additionEmbed4Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Title);
-                string additionEmbed4Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed4Content);
-                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = additionEmbed4Title, Value = additionEmbed4Content });
+                embeds[0].Fields.Add(new DiscordWebhookRequest.Field() { Inline = false, Name = details.AdditionEmbed4Title, Value = details.AdditionEmbed4Content });
             }
 
             return embeds;
         }
 
-        public void ResetRun() {
+        public void ResetRun(PathInfo path, ChapterStats stats) {
+            Mod.Log($"Resetting Pace Ping run EmbedMessage == null -> {(EmbedMessage == null ? "true" : "false")}");
+            if (EmbedMessage != null && UpdatedMessageWithDeath == false) {
+                DiedWithGolden(path, stats, reset:true);
+            }
+            
             PBPingedThisRun = false;
+            UpdatedMessageWithDeath = false;
             EmbedMessage = null;
         }
-        public void DiedWithGolden(PathInfo path, ChapterStats stats) {
+        public void DiedWithGolden(PathInfo path, ChapterStats stats, bool reset = false) {
             if (Mod.ModSettings.PacePingAllDeathsEnabled) SendAllDeathsMessage(path, stats);
 
             if (EmbedMessage == null) return; //no ping, no follow-up message
             PBPingedThisRun = false;
+            UpdatedMessageWithDeath = true;
 
-            string message = State.AfterPingDeathMessage;
+            string message = reset ? "Reset the run" : State.AfterPingDeathMessage;
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
 
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                     Username = State.WebhookUsername,
                     Content = EmbedMessage.Content + " -> " + message,
-                    Embeds = GetEmbedsForRoom(path, stats, false, true),
+                    Embeds = GetEmbedsForRoom(path, stats, false, true, reset),
                 }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
             } catch (Exception) { }
         }
@@ -506,19 +583,20 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Separate
         }
         public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url, DiscordWebhookAction action) {
+            DiscordWebhookResponse localMessage = EmbedMessage;
             Task.Run(() => {
                 WebClient client = new WebClient();
                 client.Headers.Add("Content-Type", "application/json");
                 string payload = JsonConvert.SerializeObject(request);
 
                 string response;
-                if (EmbedMessage == null || action == DiscordWebhookAction.Separate) {
+                if (localMessage == null || action == DiscordWebhookAction.Separate) {
                     response = client.UploadString(url + "?wait=true", payload);
                 } else {
                     if (request.Embeds == null) {
-                        request.Embeds = EmbedMessage.Embeds;
+                        request.Embeds = localMessage.Embeds;
                     }
-                    response = client.UploadString(url + "/messages/" + EmbedMessage.Id + "?wait=true", "PATCH", payload);
+                    response = client.UploadString(url + "/messages/" + localMessage.Id + "?wait=true", "PATCH", payload);
                 }
 
                 if (response != null) {

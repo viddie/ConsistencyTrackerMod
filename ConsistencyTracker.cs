@@ -636,7 +636,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             PhysicsLog.IsInMap = true;
-            PacePingManager.ResetRun();
+            PacePingManager.ResetRun(CurrentChapterPath, CurrentChapterStats);
         }
 
         public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo, ChapterStats stats = null) {
