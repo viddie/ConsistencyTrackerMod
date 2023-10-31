@@ -72,3 +72,9 @@ This means this older image that was floating around on analog dash directions i
 CelesetTAS_Angle = (-Vector.Angle() + 90) mod 360
 ``````
 
+## Desmos Link
+
+Everything combined in one Desmos link: https://www.desmos.com/calculator/braexyrjzz
+
+<img src=".\combined-directions.png" alt="image-20231031154635621" style="zoom:50%;" />
+
