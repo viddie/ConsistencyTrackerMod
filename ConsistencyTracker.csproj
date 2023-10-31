@@ -54,6 +54,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="PhysicsLog\AnalogInfo\" />
+  </ItemGroup>
+
   <Choose>
     <When Condition="'$(CelesteType)' == 'FNA'">
       <ItemGroup>

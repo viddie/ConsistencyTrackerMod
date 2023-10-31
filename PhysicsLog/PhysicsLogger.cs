@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Monocle;
 using Newtonsoft.Json;
 using System;
@@ -23,6 +24,30 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         public enum RecordingType { 
             Recent,
             Saved,
+        }
+
+        public class Direction { //Flag for dash direction, UP/DOWN/LEFT/RIGHT have bits, diagonals are combinations of those
+            public const int UP = 1;
+            public const int DOWN = 2;
+            public const int LEFT = 4;
+            public const int RIGHT = 8;
+
+            public const int UP_LEFT = UP | LEFT;
+            public const int UP_RIGHT = UP | RIGHT;
+            public const int DOWN_LEFT = DOWN | LEFT;
+            public const int DOWN_RIGHT = DOWN | RIGHT;
+
+            public static string ToString(int dir) {
+                if (dir == UP) return "UP";
+                if (dir == DOWN) return "DOWN";
+                if (dir == LEFT) return "LEFT";
+                if (dir == RIGHT) return "RIGHT";
+                if (dir == UP_LEFT) return "UP_LEFT";
+                if (dir == UP_RIGHT) return "UP_RIGHT";
+                if (dir == DOWN_LEFT) return "DOWN_LEFT";
+                if (dir == DOWN_RIGHT) return "DOWN_RIGHT";
+                return "NONE";
+            }
         }
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
@@ -185,6 +210,65 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             UpdateJumpState();
             toWrite += $",{GetInputsFormatted()}";
 
+            //Vector2 aimValue = Input.Aim.Value;
+            //float aimThresh = Input.Aim.Threshold;
+            //Vector2 minputThumbLeft = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left;
+            //float minputThumbLeftAngle = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left.Angle();
+            //Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
+            //Mod.Log($"{aimValue.X},{aimValue.Y},{aimThresh},{aimValue.Length()},{aimValue.LengthSquared()},{minputThumbLeft.X},{minputThumbLeft.Y},{Math.Round(minputThumbLeftAngle * 180 / Math.PI)},{Input.MoveX.Value},{Input.MoveY.Value},{correctDashPrecision.X},{correctDashPrecision.Y}", isFollowup:true);
+
+            int dashDirection = 0;
+            int moveDirection = 0;
+
+            /*
+             Dash Directions
+            | Direction  | Angle Start* | Angle End* |
+            | ---------- | ------------ | ---------- |
+            | UP         | 342.5        | 17.5       |
+            | UP+RIGHT   | 17.5         | 72.5       |
+            | RIGHT      | 72.5         | 112.5      |
+            | DOWN+RIGHT | 112.5        | 157.5      |
+            | DOWN       | 157.5        | 202.5      |
+            | DOWN+LEFT  | 202.5        | 247.5      |
+            | LEFT       | 247.5        | 287.5      |
+            | UP+LEFT    | 287.5        | 342.5      |
+             */
+            Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
+            float dashVectorAngle = (float)(correctDashPrecision.Angle() * 180 / Math.PI);
+            float dashAngle = VectorAngleToTAS(dashVectorAngle);
+            if (dashAngle >= 342.5 || dashAngle < 17.5) {
+                dashDirection = Direction.UP;
+            } else if (dashAngle >= 17.5 && dashAngle < 72.5) {
+                dashDirection = Direction.UP_RIGHT;
+            } else if (dashAngle >= 72.5 && dashAngle < 112.5) {
+                dashDirection = Direction.RIGHT;
+            } else if (dashAngle >= 112.5 && dashAngle < 157.5) {
+                dashDirection = Direction.DOWN_RIGHT;
+            } else if (dashAngle >= 157.5 && dashAngle < 202.5) {
+                dashDirection = Direction.DOWN;
+            } else if (dashAngle >= 202.5 && dashAngle < 247.5) {
+                dashDirection = Direction.DOWN_LEFT;
+            } else if (dashAngle >= 247.5 && dashAngle < 287.5) {
+                dashDirection = Direction.LEFT;
+            } else if (dashAngle >= 287.5 && dashAngle < 342.5) {
+                dashDirection = Direction.UP_LEFT;
+            }
+
+            Vector2 aimValue = Input.Aim.Value;
+            if (aimValue.X > 0.3f) {
+                moveDirection = Direction.RIGHT;
+            } else if (aimValue.X < -0.3f) {
+                moveDirection = Direction.LEFT;
+            }
+            if (aimValue.Y > 0.7f) {
+                moveDirection |= Direction.DOWN;
+            } else if (aimValue.Y < -0.7f) {
+                moveDirection |= Direction.UP;
+            }
+
+            Mod.Log($"correctDashPrecision.Angle(): {correctDashPrecision.Angle()}, dashAngle: {dashAngle} | Move Direction: {Direction.ToString(moveDirection)}, Dash Direction: {Direction.ToString(dashDirection)}", isFollowup: true);
+
+
             if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
                 if (tasInputs != TasInputs) {
@@ -197,6 +281,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
             RecordingsManager.LogWriter.WriteLine(toWrite);
+        }
+        private Vector2 CorrectDashPrecision(Vector2 dir) {
+            if (dir.X != 0f && Math.Abs(dir.X) < 0.001f) {
+                dir.X = 0f;
+                dir.Y = Math.Sign(dir.Y);
+            } else if (dir.Y != 0f && Math.Abs(dir.Y) < 0.001f) {
+                dir.Y = 0f;
+                dir.X = Math.Sign(dir.X);
+            }
+
+            return dir;
+        }
+        private float VectorAngleToTAS(float angle) {
+            return mod(-angle + 90, 360);
+        }
+        private float mod(float x, int m) {
+            return (x % m + m) % m;
         }
 
         public void StartRecording() {
