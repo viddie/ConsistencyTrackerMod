@@ -2348,7 +2348,7 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     let squareSize = analogCircle.radius * analogCircle.scale * 0.05;
     let square = new Konva.Rect({
       x: analogCircle.x - squareSize / 2 + aim.x * analogCircle.radius * analogCircle.scale,
-      y: analogCircle.y - squareSize / 2 + aim.y * analogCircle.radius * analogCircle.scale,
+      y: analogCircle.y - squareSize / 2 + -aim.y * analogCircle.radius * analogCircle.scale,
       width: squareSize,
       height: squareSize,
       fill: "red",
@@ -2356,7 +2356,7 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     konvaGroupTooltipInfo.add(square);
 
     //Draw a text below the circle saying Angle: <angle>\nAmp.: <amplitude>
-    let angle = Math.atan2(-aim.y, aim.x) * (180 / Math.PI); //CAV angle
+    let angle = Math.atan2(aim.y, aim.x) * (180 / Math.PI); //CAV angle
     angle = VectorAngleToTAS(angle); //TAS angle
     let amplitude = Math.sqrt(aim.x * aim.x + aim.y * aim.y);
     let angleText = new Konva.Text({
@@ -2583,7 +2583,7 @@ function formatTooltipText(frame, previousFrame, nextFrame) {
           x: frame.idleFrames[i].analogAimX,
           y: frame.idleFrames[i].analogAimY,
         };
-        let angle = Math.atan2(-aim.y, aim.x) * (180 / Math.PI); //CAV angle
+        let angle = Math.atan2(aim.y, aim.x) * (180 / Math.PI); //CAV angle
         angle = VectorAngleToTAS(angle); //TAS angle
         let amplitude = Math.sqrt(aim.x * aim.x + aim.y * aim.y);
         analogAddition =
