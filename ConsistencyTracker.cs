@@ -11,6 +11,7 @@ using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
+using MonoMod.Cil;
 using MonoMod.ModInterop;
 using Newtonsoft.Json;
 using System;
@@ -233,6 +234,22 @@ namespace Celeste.Mod.ConsistencyTracker {
             //On.Monocle.Engine.Update += Engine_Update;
 
             On.Celeste.Editor.MapEditor.Render += MapEditor_Render;
+            
+            On.Celeste.Input.GetAimVector += Input_GetAimVector;
+            IL.Celeste.Player.Update += Player_Update;
+        }
+
+        private void Player_Update(MonoMod.Cil.ILContext il) {
+            //ILCursor cursor = new ILCursor(il);
+            //Find moveX = Input.MoveX.Value;
+            //Somehow inject a different value here
+
+            //Uhhhh doesnt work for Input.MoveY since its never loaded into a local varaiable in Player
+            //This will not work like this...
+        }
+
+        private Vector2 Input_GetAimVector(On.Celeste.Input.orig_GetAimVector orig, Facings defaultFacing) {
+            return orig(defaultFacing);
         }
 
         private void UnHookStuff() {
