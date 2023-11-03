@@ -170,6 +170,7 @@ let settings = {
     inputs: true,
     flags: true,
     subpixelDisplay: true,
+    analogDisplay: false,
   },
 };
 //#endregion
@@ -210,6 +211,7 @@ let tooltipsInfoElements = {
   liftboost: "Liftboost",
   retainedSpeed: "Retained Speed",
   subpixelDisplay: "Subpixel Display",
+  analogDisplay: "Analog Display",
 };
 
 let settingsInited = false;
@@ -827,6 +829,7 @@ function filterPhysicsLogFrames() {
 
 function parsePhysicsLogFrame(line) {
   let values = line.split(",");
+  let valuesLength = values.length;
   let frame = {
     frameNumber: parseInt(values[0]),
     frameNumberRTA: parseInt(values[1]),
@@ -842,6 +845,8 @@ function parsePhysicsLogFrame(line) {
     stamina: parseFloat(values[11]),
     flags: values[12],
     inputs: values[13],
+    analogAimX: valuesLength > 15 ? parseFloat(values[14]) : -1,
+    analogAimY: valuesLength > 15 ? parseFloat(values[15]) : -1,
     idleFrames: [],
   };
   return frame;
@@ -2128,18 +2133,6 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     let squareMarginBottom = 0.5;
     let squareMultiplier = 3;
 
-    //Place a left-aligned text saying "Subpixels:"
-    // let subpixelText = new Konva.Text({
-    //     x: 0,
-    //     y: subpixelOffsetY,
-    //     text: "Subpixels:",
-    //     fontSize: tooltipFontSize,
-    //     fontFamily: 'Courier New',
-    //     fill: 'black',
-    //     align: 'left',
-    // });
-    // konvaGroupTooltipInfo.add(subpixelText);
-
     //Place a centered text with subpixelPos.up info
     let subpixelUpText = new Konva.Text({
       x: 0,
@@ -2225,6 +2218,167 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     subpixelDisplayHeight = 1 + tooltipFontSize * 5 + squareMarginBottom;
   }
 
+  let analogDisplayHeight = 0;
+  if (settings.tooltipInfo.analogDisplay) {
+    let aim = {
+      x: frame.analogAimX,
+      y: frame.analogAimY,
+    };
+
+    let analogOffsetY = tooltipText.height() + subpixelDisplayHeight + 1;
+    let containerWidth = tooltipText.width();
+
+    let analogCircle = {
+      radius: 1,
+      radiusDeadzone: 0.25,
+      scale: 8, //15
+    };
+    analogCircle.x = containerWidth / 2;
+    analogCircle.y = analogOffsetY + analogCircle.radius * analogCircle.scale;
+
+    //Draw a centered circle
+    let circle = new Konva.Circle({
+      x: analogCircle.x,
+      y: analogCircle.y,
+      radius: analogCircle.radius * analogCircle.scale,
+      stroke: "black",
+      strokeWidth: 0.125,
+    });
+    konvaGroupTooltipInfo.add(circle);
+
+    //Draw a circle for the deadzone
+    let circleDeadzone = new Konva.Circle({
+      x: analogCircle.x,
+      y: analogCircle.y,
+      radius: analogCircle.radius * analogCircle.scale * analogCircle.radiusDeadzone,
+      stroke: "red",
+      strokeWidth: 0.125,
+      opacity: 0.5,
+    });
+    konvaGroupTooltipInfo.add(circleDeadzone);
+
+    //Draw one line for each axis
+    let lineX = new Konva.Line({
+      points: [
+        analogCircle.x - analogCircle.radius * analogCircle.scale,
+        analogCircle.y,
+        analogCircle.x + analogCircle.radius * analogCircle.scale,
+        analogCircle.y,
+      ],
+      stroke: "black",
+      strokeWidth: 0.125,
+      opacity: 0.5,
+    });
+    konvaGroupTooltipInfo.add(lineX);
+
+    let lineY = new Konva.Line({
+      points: [
+        analogCircle.x,
+        analogCircle.y - analogCircle.radius * analogCircle.scale,
+        analogCircle.x,
+        analogCircle.y + analogCircle.radius * analogCircle.scale,
+      ],
+      stroke: "black",
+      strokeWidth: 0.125,
+      opacity: 0.5,
+    });
+    konvaGroupTooltipInfo.add(lineY);
+
+    //Draw one line from the circles origin for each direction border point
+    let directionBorders = [
+      { x: -0.953695, y: -0.300715 },
+      { x: -0.300715, y: -0.953695 },
+      { x: 0.300715, y: -0.953695 },
+      { x: 0.953695, y: -0.300715 },
+
+      { x: 0.9239, y: 0.382683 },
+      { x: 0.382683, y: 0.9239 },
+      { x: -0.382683, y: 0.9239 },
+      { x: -0.9239, y: 0.382683 },
+    ];
+    directionBorders.forEach((border) => {
+      let line = new Konva.Line({
+        points: [
+          analogCircle.x,
+          analogCircle.y,
+          analogCircle.x + border.x * analogCircle.radius * analogCircle.scale,
+          analogCircle.y + border.y * analogCircle.radius * analogCircle.scale,
+        ],
+        stroke: "green",
+        strokeWidth: 0.125,
+        opacity: 0.25,
+      });
+      konvaGroupTooltipInfo.add(line);
+    });
+
+    //Draw one line for all of the rectangular deadzones edges to the circles perimeter
+    let deadzoneLines = [
+      { x1: -0.7141, y1: 0.7, x2: 0.7141, y2: 0.7 },
+      { x1: -0.7141, y1: -0.7, x2: 0.7141, y2: -0.7 },
+      { x1: -0.3, y1: 0.953695, x2: -0.3, y2: -0.953695 },
+      { x1: 0.3, y1: 0.953695, x2: 0.3, y2: -0.953695 },
+    ];
+    deadzoneLines.forEach((line) => {
+      let lineObj = new Konva.Line({
+        points: [
+          analogCircle.x + line.x1 * analogCircle.radius * analogCircle.scale,
+          analogCircle.y + line.y1 * analogCircle.radius * analogCircle.scale,
+          analogCircle.x + line.x2 * analogCircle.radius * analogCircle.scale,
+          analogCircle.y + line.y2 * analogCircle.radius * analogCircle.scale,
+        ],
+        stroke: "orange",
+        strokeWidth: 0.125,
+        opacity: 0.25,
+      });
+      konvaGroupTooltipInfo.add(lineObj);
+    });
+
+    //Draw a filled rectangle for a different deadzone: 0.3 in X, 0.7 in Y
+    let rectDeadzone = new Konva.Rect({
+      x: analogCircle.x - analogCircle.radius * analogCircle.scale * 0.3,
+      y: analogCircle.y - analogCircle.radius * analogCircle.scale * 0.7,
+      width: analogCircle.radius * analogCircle.scale * 0.6,
+      height: analogCircle.radius * analogCircle.scale * 1.4,
+      fill: "red",
+      opacity: 0.25,
+    });
+    konvaGroupTooltipInfo.add(rectDeadzone);
+
+    //Draw a red square on the circle, based on the aim
+    let squareSize = analogCircle.radius * analogCircle.scale * 0.05;
+    let square = new Konva.Rect({
+      x: analogCircle.x - squareSize / 2 + aim.x * analogCircle.radius * analogCircle.scale,
+      y: analogCircle.y - squareSize / 2 + aim.y * analogCircle.radius * analogCircle.scale,
+      width: squareSize,
+      height: squareSize,
+      fill: "red",
+    });
+    konvaGroupTooltipInfo.add(square);
+
+    //Draw a text below the circle saying Angle: <angle>\nAmp.: <amplitude>
+    let angle = Math.atan2(-aim.y, aim.x) * (180 / Math.PI); //CAV angle
+    angle = VectorAngleToTAS(angle); //TAS angle
+    let amplitude = Math.sqrt(aim.x * aim.x + aim.y * aim.y);
+    let angleText = new Konva.Text({
+      x: 0,
+      y: analogOffsetY + analogCircle.radius * analogCircle.scale * 2 + 1,
+      width: containerWidth,
+      text:
+        "Angle: " +
+        angle.toFixed(settings.decimals) +
+        "°\nAmplitude: " +
+        amplitude.toFixed(settings.decimals),
+      fontSize: tooltipFontSize,
+      fontFamily: "Courier New",
+      fill: "black",
+      align: "center",
+    });
+    konvaGroupTooltipInfo.add(angleText);
+
+    analogDisplayHeight = analogCircle.radius * 2 * analogCircle.scale + 1;
+    analogDisplayHeight += angleText.height() + 1;
+  }
+
   //Create a tooltip rectangle with additional info about the frame
   let tooltipRect = new Konva.Rect({
     x: 0,
@@ -2234,7 +2388,7 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     strokeWidth: 0.125,
   });
   tooltipRect.width(tooltipText.width() + tooltipMargin * 2);
-  tooltipRect.height(tooltipText.height() + subpixelDisplayHeight + tooltipMargin * 2);
+  tooltipRect.height(tooltipText.height() + subpixelDisplayHeight + analogDisplayHeight + tooltipMargin * 2);
 
   konvaGroupTooltip.add(tooltipRect);
   konvaGroupTooltip.add(konvaGroupTooltipInfo);
@@ -2423,7 +2577,19 @@ function formatTooltipText(frame, previousFrame, nextFrame) {
       let idleFrameNumber = frame.idleFrames[i].frameNumber;
       //space padded to 9 characters, right aligned
       let idleFrameNumberStr = idleFrameNumber.toString().padStart(8, " ");
-      lines.push(idleFrameNumberStr + " | " + frame.idleFrames[i].inputs);
+      let analogAddition = "";
+      if (settings.tooltipInfo.analogDisplay) {
+        let aim = {
+          x: frame.idleFrames[i].analogAimX,
+          y: frame.idleFrames[i].analogAimY,
+        };
+        let angle = Math.atan2(-aim.y, aim.x) * (180 / Math.PI); //CAV angle
+        angle = VectorAngleToTAS(angle); //TAS angle
+        let amplitude = Math.sqrt(aim.x * aim.x + aim.y * aim.y);
+        analogAddition =
+          " (" + angle.toFixed(settings.decimals) + "°," + amplitude.toFixed(settings.decimals) + ")";
+      }
+      lines.push(idleFrameNumberStr + " | " + frame.idleFrames[i].inputs + analogAddition);
     }
   }
 
@@ -2602,6 +2768,13 @@ function zeroPad(num, size) {
   while (s.length < size) s = "0" + s;
   return s;
 }
+
+function VectorAngleToTAS(angle) {
+  return modulo(-angle + 90, 360);
+}
+function modulo(x, m) {
+  return ((x % m) + m) % m;
+}
 //#endregion
 
 //#region API Calls
@@ -2629,6 +2802,8 @@ function getPhysicsLogAsStrings() {
     line = appendToLine(line, frame, "stamina");
     line = appendToLine(line, frame, "flags");
     line = appendToLine(line, frame, "inputs");
+    line = appendToLine(line, frame, "analogAimX");
+    line = appendToLine(line, frame, "analogAimY");
     return line;
   }
 

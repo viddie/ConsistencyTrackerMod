@@ -210,6 +210,15 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             UpdateJumpState();
             toWrite += $",{GetInputsFormatted()}";
 
+            if (MInput.GamePads.Length > 0 && Input.Aim.GamepadIndex >= 0) {
+                Vector2 aim = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left;
+                //toWrite += $",{Input.Aim.Value.X},{Input.Aim.Value.Y}";
+                toWrite += $",{aim.X},{aim.Y}";
+            } else {
+                toWrite += $",-1,-1";
+            }
+            
+
             //Vector2 aimValue = Input.Aim.Value;
             //float aimThresh = Input.Aim.Threshold;
             //Vector2 minputThumbLeft = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left;
@@ -217,56 +226,43 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             //Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
             //Mod.Log($"{aimValue.X},{aimValue.Y},{aimThresh},{aimValue.Length()},{aimValue.LengthSquared()},{minputThumbLeft.X},{minputThumbLeft.Y},{Math.Round(minputThumbLeftAngle * 180 / Math.PI)},{Input.MoveX.Value},{Input.MoveY.Value},{correctDashPrecision.X},{correctDashPrecision.Y}", isFollowup:true);
 
-            int dashDirection = 0;
-            int moveDirection = 0;
+            //int dashDirection = 0;
+            //int moveDirection = 0;
 
-            /*
-             Dash Directions
-            | Direction  | Angle Start* | Angle End* |
-            | ---------- | ------------ | ---------- |
-            | UP         | 342.5        | 17.5       |
-            | UP+RIGHT   | 17.5         | 72.5       |
-            | RIGHT      | 72.5         | 112.5      |
-            | DOWN+RIGHT | 112.5        | 157.5      |
-            | DOWN       | 157.5        | 202.5      |
-            | DOWN+LEFT  | 202.5        | 247.5      |
-            | LEFT       | 247.5        | 287.5      |
-            | UP+LEFT    | 287.5        | 342.5      |
-             */
-            Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
-            float dashVectorAngle = (float)(correctDashPrecision.Angle() * 180 / Math.PI);
-            float dashAngle = VectorAngleToTAS(dashVectorAngle);
-            if (dashAngle >= 342.5 || dashAngle < 17.5) {
-                dashDirection = Direction.UP;
-            } else if (dashAngle >= 17.5 && dashAngle < 72.5) {
-                dashDirection = Direction.UP_RIGHT;
-            } else if (dashAngle >= 72.5 && dashAngle < 112.5) {
-                dashDirection = Direction.RIGHT;
-            } else if (dashAngle >= 112.5 && dashAngle < 157.5) {
-                dashDirection = Direction.DOWN_RIGHT;
-            } else if (dashAngle >= 157.5 && dashAngle < 202.5) {
-                dashDirection = Direction.DOWN;
-            } else if (dashAngle >= 202.5 && dashAngle < 247.5) {
-                dashDirection = Direction.DOWN_LEFT;
-            } else if (dashAngle >= 247.5 && dashAngle < 287.5) {
-                dashDirection = Direction.LEFT;
-            } else if (dashAngle >= 287.5 && dashAngle < 342.5) {
-                dashDirection = Direction.UP_LEFT;
-            }
+            //Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
+            //float dashVectorAngle = (float)(correctDashPrecision.Angle() * 180 / Math.PI);
+            //float dashAngle = VectorAngleToTAS(dashVectorAngle);
+            //if (dashAngle >= 342.5 || dashAngle < 17.5) {
+            //    dashDirection = Direction.UP;
+            //} else if (dashAngle >= 17.5 && dashAngle < 72.5) {
+            //    dashDirection = Direction.UP_RIGHT;
+            //} else if (dashAngle >= 72.5 && dashAngle < 112.5) {
+            //    dashDirection = Direction.RIGHT;
+            //} else if (dashAngle >= 112.5 && dashAngle < 157.5) {
+            //    dashDirection = Direction.DOWN_RIGHT;
+            //} else if (dashAngle >= 157.5 && dashAngle < 202.5) {
+            //    dashDirection = Direction.DOWN;
+            //} else if (dashAngle >= 202.5 && dashAngle < 247.5) {
+            //    dashDirection = Direction.DOWN_LEFT;
+            //} else if (dashAngle >= 247.5 && dashAngle < 287.5) {
+            //    dashDirection = Direction.LEFT;
+            //} else if (dashAngle >= 287.5 && dashAngle < 342.5) {
+            //    dashDirection = Direction.UP_LEFT;
+            //}
 
-            Vector2 aimValue = Input.Aim.Value;
-            if (aimValue.X > 0.3f) {
-                moveDirection = Direction.RIGHT;
-            } else if (aimValue.X < -0.3f) {
-                moveDirection = Direction.LEFT;
-            }
-            if (aimValue.Y > 0.7f) {
-                moveDirection |= Direction.DOWN;
-            } else if (aimValue.Y < -0.7f) {
-                moveDirection |= Direction.UP;
-            }
-
-            Mod.Log($"correctDashPrecision.Angle(): {correctDashPrecision.Angle()}, dashAngle: {dashAngle} | Move Direction: {Direction.ToString(moveDirection)}, Dash Direction: {Direction.ToString(dashDirection)}", isFollowup: true);
+            //Vector2 aimValue = Input.Aim.Value;
+            //if (aimValue.X > 0.3f) {
+            //    moveDirection = Direction.RIGHT;
+            //} else if (aimValue.X < -0.3f) {
+            //    moveDirection = Direction.LEFT;
+            //}
+            //if (aimValue.Y > 0.7f) {
+            //    moveDirection |= Direction.DOWN;
+            //} else if (aimValue.Y < -0.7f) {
+            //    moveDirection |= Direction.UP;
+            //}
+            
+            //Mod.Log($"correctDashPrecision.Angle(): {correctDashPrecision.Angle()}, dashAngle: {dashAngle} | Move Direction: {Direction.ToString(moveDirection)}, Dash Direction: {Direction.ToString(dashDirection)}", isFollowup: true);
 
 
             if (Settings.InputsToTasFile) {
@@ -340,7 +336,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
 
         public string GetPhysicsLogHeader() {
-            return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs";
+            return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs,Analog X,Analog Y";
         }
 
         private Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
