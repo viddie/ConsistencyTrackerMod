@@ -1,157 +1,161 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Physics Inspector Tool</title>
-        <script src="common.js"></script>
-        <script src="PhysicsInspector.js"></script>
-        <script src="https://unpkg.com/konva@8/konva.min.js"></script>
-        <link rel="stylesheet" href="LiveDataEditTool.css">
-        <link rel="stylesheet" href="PhysicsInspector.css">
-    </head>
-    <body class="flex-center">
-        <div id="main-view" class="flex-center">
-            <div class="flex-center-column">
-                <h1>Physics Inspector Tool</h1>
-                <p></p>
-                <h2 id="loading-text">Loading data...</h2>
-            </div>
+
+<head>
+  <title>Physics Inspector Tool</title>
+  <script src="common.js"></script>
+  <script src="PhysicsInspector.js"></script>
+  <script src="https://unpkg.com/konva@8/konva.min.js"></script>
+  <link rel="stylesheet" href="LiveDataEditTool.css">
+  <link rel="stylesheet" href="PhysicsInspector.css">
+</head>
+
+<body class="flex-center">
+  <div id="main-view" class="flex-center">
+    <div class="flex-center-column">
+      <h1>Physics Inspector Tool (v1.2.1)</h1>
+      <p></p>
+      <h2 id="loading-text">Loading data...</h2>
+    </div>
+  </div>
+
+  <div id="inspector-view" class="flex-center">
+    <div id="canvas-container">
+
+    </div>
+    <div id="sidebar-menu">
+      <div id="sidebar-toggle-button" class="flex-center-column" onclick="toggleSidebarMenuSetting()">
+        <!-- Draw an SVG image of a burger menu -->
+        <svg width="30" height="30" viewBox="0 0 100 100">
+          <path d="M 10,20 L 90,20" stroke="white" stroke-width="10" />
+          <path d="M 10,50 L 90,50" stroke="white" stroke-width="10" />
+          <path d="M 10,80 L 90,80" stroke="white" stroke-width="10" />
+        </svg>
+      </div>
+      <h5>Frame Navigation</h5>
+      <div class="flex-center">
+        <button id="previous-frames-button" onclick="framePageUp(-1)" style="transform:scaleX(-1)"
+          class="slim-button">➔</button>
+        <div style="width:10px"></div>
+        <button id="next-frames-button" onclick="framePageUp(1)" class="slim-button">➔</button>
+        <div style="width:10px"></div>
+        <button id="final-frames-button" onclick="frameEnd()" class="slim-button">(E)</button>
+      </div>
+      <hr>
+      <h5>Recordings</h5>
+      <select id="selected-recording" onchange="ChangeRecording(this.value)" style="width:100%">
+        <optgroup id="optgroup-recent" label="Recent&nbsp;">
+          <option>City 1 Branch A</option>
+          <option>City 1 Branch B</option>
+          <option>City 1 Branch C</option>
+        </optgroup>
+        <optgroup id="optgroup-saved" label="Saved&nbsp;">
+          <option>City 2 Branch A</option>
+          <option>City 2 Branch B</option>
+        </optgroup>
+      </select>
+      <div id="recording-actions" class="flex-center">
+        <button id="save-recording-button" onclick="openSaveRecordingDialog()" class="slim-button">Save</button>
+        <div style="width:5px"></div>
+        <button id="rename-recording-button" onclick="openRenameRecordingDialog()" class="slim-button">Rename</button>
+        <div style="width:5px"></div>
+        <button id="delete-recording-button" onclick="openDeleteRecordingDialog()" class="slim-button">Delete</button>
+      </div>
+      <div id="recording-io" class="flex-center">
+        <button id="export-recording-button" onclick="openExportRecordingDialog()" class="slim-button">Export</button>
+        <div style="width:5px"></div>
+        <button id="import-recording-button" onclick="openImportRecordingDialog()" class="slim-button">Import</button>
+      </div>
+
+      <hr>
+
+      <p id="recording-details">
+        Recording: 1<br>
+        Map: map<br>
+        Time recorded: 2021-01-01 00:00:00
+      </p>
+
+      <hr>
+
+      <h5>Options</h5>
+      <div id="options-container">
+
+      </div>
+
+      <div class="flex-center">
+        <label for="point-labels">Point Labels:</label>
+        <select id="point-labels" onchange="changedPointLabel(this.value)"></select>
+      </div>
+
+      <hr>
+
+      <h5>Layer Visibility</h5>
+      <div id="layers-container">
+
+      </div>
+
+      <hr>
+
+      <h5>Tooltip Info</h5>
+      <div id="tooltips-container">
+
+      </div>
+
+      <hr>
+
+      <button id="other-tools-button" onclick="openOtherToolsDialog()" class="unimportant small">Other Tools</button>
+
+      <div style="display:none">
+
+        <!-- Dialogs -->
+        <div id="import-modal" class="modal">
+          <h5>Data</h5>
+          <input type="text" id="import-input" class="dialog-item" />
+          <h5>Name</h5>
+          <input type="text" id="import-name" class="dialog-item" />
+        </div>
+        <div id="export-modal" class="modal">
+          <h5>Export recording to clipboard</h5>
+          <input type="text" id="export-input" class="dialog-item" value="eyyy lmao" />
+        </div>
+        <div id="other-tools-modal" class="modal">
+          <button onclick="openEntitiesCountDialog()">Entity Counts</button>
+          <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
+          <button onclick="console.log('bleh')" disabled>More coming soon...</button>
+          <p>Version: 1.1.2</p>
+        </div>
+        <div id="entities-count-modal" class="modal">
+          <h5 id="total-entities"></h5>
+          <table>
+            <tr>
+              <th>Entity</th>
+              <th>Count</th>
+            </tr>
+            <tr>
+              <td>Player</td>
+              <td>1</td>
+            </tr>
+          </table>
+        </div>
+        <div id="other-entities-modal" class="modal">
+          <table>
+            <tr>
+              <th>Entity</th>
+              <th>Count</th>
+            </tr>
+            <tr>
+              <td>Player</td>
+              <td>1</td>
+            </tr>
+          </table>
         </div>
 
-        <div id="inspector-view" class="flex-center">
-            <div id="canvas-container">
+      </div>
+    </div>
+  </div>
+</body>
+<!-- Dialog lib -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.css">
+<script src="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.js"></script>
 
-            </div>
-            <div id="sidebar-menu">
-                <div id="sidebar-toggle-button" class="flex-center-column" onclick="toggleSidebarMenuSetting()">
-                    <!-- Draw an SVG image of a burger menu -->
-                    <svg width="30" height="30" viewBox="0 0 100 100">
-                        <path d="M 10,20 L 90,20" stroke="white" stroke-width="10" />
-                        <path d="M 10,50 L 90,50" stroke="white" stroke-width="10" />
-                        <path d="M 10,80 L 90,80" stroke="white" stroke-width="10" />
-                    </svg>
-                </div>
-                <h5>Frame Navigation</h5>
-                <div class="flex-center">
-                    <button id="previous-frames-button" onclick="framePageUp(-1)" style="transform:scaleX(-1)" class="slim-button">➔</button>
-                    <div style="width:10px"></div>
-                    <button id="next-frames-button" onclick="framePageUp(1)" class="slim-button">➔</button>
-                    <div style="width:10px"></div>
-                    <button id="final-frames-button" onclick="frameEnd()" class="slim-button">(E)</button>
-                </div>
-                <hr>
-                <h5>Recordings</h5>
-                <select id="selected-recording" onchange="ChangeRecording(this.value)" style="width:100%">
-                    <optgroup id="optgroup-recent" label="Recent&nbsp;">
-                        <option>City 1 Branch A</option>
-                        <option>City 1 Branch B</option>
-                        <option>City 1 Branch C</option>
-                    </optgroup>
-                    <optgroup id="optgroup-saved" label="Saved&nbsp;">
-                        <option>City 2 Branch A</option>
-                        <option>City 2 Branch B</option>
-                    </optgroup>
-                </select>
-                <div id="recording-actions" class="flex-center">
-                    <button id="save-recording-button" onclick="openSaveRecordingDialog()" class="slim-button">Save</button>
-                    <div style="width:5px"></div>
-                    <button id="rename-recording-button" onclick="openRenameRecordingDialog()" class="slim-button">Rename</button>
-                    <div style="width:5px"></div>
-                    <button id="delete-recording-button" onclick="openDeleteRecordingDialog()" class="slim-button">Delete</button>
-                </div>
-                <div id="recording-io" class="flex-center">
-                    <button id="export-recording-button" onclick="openExportRecordingDialog()" class="slim-button">Export</button>
-                    <div style="width:5px"></div>
-                    <button id="import-recording-button" onclick="openImportRecordingDialog()" class="slim-button">Import</button>
-                </div>
-
-                <hr>
-
-                <p id="recording-details">
-                    Recording: 1<br>
-                    Map: map<br>
-                    Time recorded: 2021-01-01 00:00:00
-                </p>
-
-                <hr>
-
-                <h5>Options</h5>
-                <div id="options-container">
-                    
-                </div>
-
-                <div class="flex-center">
-                    <label for="point-labels">Point Labels:</label>
-                    <select id="point-labels" onchange="changedPointLabel(this.value)"></select>
-                </div>
-
-                <hr>
-
-                <h5>Layer Visibility</h5>
-                <div id="layers-container">
-
-                </div>
-
-                <hr>
-
-                <h5>Tooltip Info</h5>
-                <div id="tooltips-container">
-
-                </div>
-
-                <hr>
-
-                <button id="other-tools-button" onclick="openOtherToolsDialog()" class="unimportant small">Other Tools</button>
-
-                <div style="display:none">
-                    
-                    <!-- Dialogs -->
-                    <div id="import-modal" class="modal">
-                        <h5>Data</h5>
-                        <input type="text" id="import-input" class="dialog-item" />
-                        <h5>Name</h5>
-                        <input type="text" id="import-name" class="dialog-item" />
-                    </div>
-                    <div id="export-modal" class="modal">
-                        <h5>Export recording to clipboard</h5>
-                        <input type="text" id="export-input" class="dialog-item" value="eyyy lmao" />
-                    </div>
-                    <div id="other-tools-modal" class="modal">
-                        <button onclick="openEntitiesCountDialog()">Entity Counts</button>
-                        <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
-                        <button onclick="console.log('bleh')" disabled>More coming soon...</button>
-                        <p>Version: 1.1.2</p>
-                    </div>
-                    <div id="entities-count-modal" class="modal">
-                        <h5 id="total-entities"></h5>
-                        <table>
-                            <tr>
-                                <th>Entity</th>
-                                <th>Count</th>
-                            </tr>
-                            <tr>
-                                <td>Player</td>
-                                <td>1</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div id="other-entities-modal" class="modal">
-                        <table>
-                            <tr>
-                                <th>Entity</th>
-                                <th>Count</th>
-                            </tr>
-                            <tr>
-                                <td>Player</td>
-                                <td>1</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </body>
-    <!-- Dialog lib -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.css">
-    <script src="https://cdn.jsdelivr.net/gh/xxjapp/xdialog@3/xdialog.min.js"></script>
 </html>

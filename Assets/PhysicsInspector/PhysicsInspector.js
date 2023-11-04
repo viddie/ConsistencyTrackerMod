@@ -185,8 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
 //#region Settings
 let settingsElements = {
   showRoomNames: "Show Room Names",
-  showSpinnerRectangle: "Show Spinner Rectangle",
-  showOnlyRelevantRooms: "Show Only Relevant Rooms",
   rasterizeMovement: "Rasterize Movement",
 };
 let layerVisibilityElements = {
