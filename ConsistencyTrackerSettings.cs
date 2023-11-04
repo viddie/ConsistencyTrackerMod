@@ -1667,18 +1667,11 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
                 Disabled = paceTiming == null,
             };
-            TextMenu.OnOff toggleEmbedsEnabledButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_ENABLE_EMBEDS"), paceTiming == null ? true : paceTiming.EmbedsEnabled) {
-                OnValueChange = (isEnabled) => {
-                    Mod.PacePingManager.SavePaceTimingEmbedsEnabled(isEnabled);
-                },
-                Disabled = paceTiming == null
-            };
             TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
                 OnValueChange = (isEnabled) => {
                     bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
                     importMessageButton.Disabled = !isNowEnabled;
                     testButton.Disabled = !isNowEnabled;
-                    toggleEmbedsEnabledButton.Disabled = !isNowEnabled;
                 },
                 Disabled = !hasCurrentRoom
             };
@@ -1686,7 +1679,6 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(togglePacePingButton);
             subMenu.AddDescription(menu, togglePacePingButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT"));
             subMenu.Add(importMessageButton);
-            subMenu.Add(toggleEmbedsEnabledButton);
             subMenu.Add(testButton);
 
 

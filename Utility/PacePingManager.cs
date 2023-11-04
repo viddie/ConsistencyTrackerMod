@@ -140,9 +140,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             [JsonProperty("customPingMessage")]
             public string CustomPingMessage { get; set; }
 
-            [JsonProperty("enableEmbeds")]
-            public bool EmbedsEnabled { get; set; } = true;
-
             [JsonProperty("lastPingedAt")]
             public DateTime LastPingedAt { get; set; }
         }
@@ -268,18 +265,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (paceTiming == null) return;
 
             paceTiming.CustomPingMessage = message;
-            SaveState();
-        }
-        public void SavePaceTimingEmbedsEnabled(bool enabled) {
-            PathInfo path = Mod.CurrentChapterPath;
-            if (path == null || path.CurrentRoom == null) return;
-
-            string id = path.ChapterSID;
-
-            PaceTiming paceTiming = GetPaceTiming(id, path.CurrentRoom.DebugRoomName);
-            if (paceTiming == null) return;
-
-            paceTiming.EmbedsEnabled = enabled;
             SaveState();
         }
         #endregion
