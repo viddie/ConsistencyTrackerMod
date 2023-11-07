@@ -550,6 +550,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         //}
         
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
+            if (levelDataNext == null) return;
+            
             if (levelDataNext.HasCheckpoint) {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
