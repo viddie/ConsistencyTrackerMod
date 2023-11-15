@@ -64,6 +64,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             CheckpointName, CheckpointAbbreviation, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
             /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
             //CampaignName
+            SaveStateRoomName,
             PathSegmentName,
         };
 
