@@ -70,6 +70,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             int totalGoldenRuns = chapterPath.Stats.GoldenBerryDeaths + chapterStats.GoldenCollectedCount;
             int totalGoldenRunsSession = chapterPath.Stats.GoldenBerryDeathsSession + chapterStats.GoldenCollectedCountSession;
+            if (chapterStats.GoldenCollectedThisRun) {
+                totalGoldenRuns--;
+                totalGoldenRunsSession--;
+            }
 
             int goldenDeathsUntilRoom = 0;
             int goldenDeathsUntilRoomSession = 0;

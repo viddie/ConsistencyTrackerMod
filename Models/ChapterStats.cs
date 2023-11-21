@@ -38,6 +38,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public int GoldenCollectedCountSession { get; set; } = 0;
         [JsonProperty("goldenType")]
         public GoldenType GoldenBerryType { get; set; } = GoldenType.Golden;
+        [JsonIgnore]
+        public bool GoldenCollectedThisRun { get; set; } = false;
 
         [JsonProperty("sessionStarted")]
         public DateTime SessionStarted { get; set; }
@@ -109,6 +111,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public void CollectedGolden(GoldenType type) {
             GoldenCollectedCount++;
             GoldenCollectedCountSession++;
+            GoldenCollectedThisRun = true;
             LastGoldenRuns.Add(null);
             GoldenBerryType = type;
         }
@@ -153,6 +156,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             LastGoldenRuns = new List<string>(); //Create new list since old one is used in old session data
             GoldenCollectedCountSession = 0;
+            GoldenCollectedThisRun = false;
             SessionStarted = DateTime.Now;
         }
 
@@ -264,6 +268,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 RoomStats room = Rooms[name];
                 room.DeathsInCurrentRun = 0;
             }
+            GoldenCollectedThisRun = false;
         }
 
         public string ToChapterStatsString() {
