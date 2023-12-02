@@ -807,8 +807,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SaveChapterStats();
             }
 
-            //engineDelayTimer = 0;
-            //engineDelayHadSetTimer = false;
+            
             PacePingManager.CheckPacePing(CurrentChapterPath, CurrentChapterStats);
         }
 
