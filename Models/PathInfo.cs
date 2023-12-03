@@ -16,12 +16,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("chapterName")]
         public string ChapterName { get; set; }
+        public string ChapterDisplayName => ChapterName + SideNameDecoration;
 
         [JsonProperty("chapterSID")]
         public string ChapterSID { get; set; }
 
         [JsonProperty("sideName")]
         public string SideName { get; set; }
+        [JsonProperty("sideNameDecoration")]
+        public string SideNameDecoration => SideName == null ? "" : SideName == "A-Side" ? "" : " [" + SideName + "]";
 
         [JsonProperty("checkpoints")]
         public List<CheckpointInfo> Checkpoints { get; set; } = new List<CheckpointInfo>();
