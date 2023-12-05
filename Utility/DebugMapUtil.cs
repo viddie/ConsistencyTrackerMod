@@ -81,9 +81,19 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                             string rDebugName = PathRec.Checkpoints[cpIndex][rIndex];
                             if (template.Name != rDebugName) continue;
 
+                            bool isTransition = PathRec.IsTransitionRoom(template.Name);
                             string displayName = $"{PathRec.CheckpointAbbreviations[cpIndex]}-{rIndex + 1}";
-                            DrawTextOnRoom(template, camera, displayName, 6);
-                            OutlineRoom(template, camera, Color.Teal);
+                            Color color = Color.Teal;
+                            float scaleDivider = 6f;
+                            
+                            if (isTransition) {
+                                displayName += $"\nTransition";
+                                color = Color.Orange;
+                                scaleDivider += 2;
+                            }
+                            
+                            DrawTextOnRoom(template, camera, displayName, scaleDivider);
+                            OutlineRoom(template, camera, color);
                         }
                     }
                 }
@@ -186,16 +196,30 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (template != null) {
                 Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");
-                PathRec.AddRoom(template.Name);
-                if (template.Checkpoints.Count > 0) {
-                    string cpDialogName = $"{Mod.CurrentChapterStats.ChapterSIDDialogSanitized}_{template.Name}";
-                    Mod.Log($"cpDialogName: {cpDialogName}");
-                    string cpName = Dialog.Get(cpDialogName);
-                    Mod.Log($"Dialog.Get says: {cpName}");
-                    if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
-                    PathRec.AddCheckpoint(template.Checkpoints.First(), cpName);
+                if (PathRec.ContainsRoom(template.Name)) {
+                    if (PathRec.IsTransitionRoom(template.Name)) {
+                        bool removed = PathRec.RemoveRoom(template.Name);
+                        if (!removed) {
+                            PathRec.SetTransitionRoom(template.Name, false);
+                        }
+                    } else {
+                        PathRec.SetTransitionRoom(template.Name, true);
+                    }
+                } else {
+                    PathRec.AddRoom(template.Name);
+                    if (template.Checkpoints.Count > 0) {
+                        string cpDialogName = $"{Mod.CurrentChapterStats.ChapterSIDDialogSanitized}_{template.Name}";
+                        Mod.Log($"cpDialogName: {cpDialogName}");
+                        string cpName = Dialog.Get(cpDialogName);
+                        Mod.Log($"Dialog.Get says: {cpName}");
+                        if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
+
+                        PathRec.AddCheckpoint(template.Checkpoints.First(), cpName);
+                    }
                 }
+                
+                
             } else {
                 Mod.Log($"Clicked on empty space at ({point.X}, {point.Y})");
             }

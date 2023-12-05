@@ -17,6 +17,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public List<string> CheckpointNames = new List<string>() {};
         public List<string> CheckpointAbbreviations = new List<string>() {};
         public List<string> ObsoleteNames = new List<string>();
+        public Dictionary<string, bool> TransitionFlags = new Dictionary<string, bool>();
 
         public HashSet<Vector2> CheckpointsVisited { get; set; } = new HashSet<Vector2>();
 
@@ -98,6 +99,38 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CheckpointAbbreviations.Add(abbrToAdd);
         }
 
+        public bool ContainsRoom(string roomName) {
+            return VisitedRooms.Contains(roomName);
+        }
+        public bool RemoveRoom(string roomName) {
+            //Remove a room from the path, but ONLY if its in the currently active checkpoint
+            if (Checkpoints.Last().Contains(roomName) && Checkpoints.Last().Count > 1) {
+                Checkpoints.Last().Remove(roomName);
+                VisitedRooms.Remove(roomName);
+                if (TransitionFlags.ContainsKey(roomName))
+                    TransitionFlags.Remove(roomName);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public void SetTransitionRoom(string roomName, bool isTransition) {
+            if (TransitionFlags.ContainsKey(roomName)) {
+                TransitionFlags[roomName] = isTransition;
+            } else {
+                TransitionFlags.Add(roomName, isTransition);
+            }
+        }
+        public bool IsTransitionRoom(string roomName) {
+            if (TransitionFlags.ContainsKey(roomName)) {
+                return TransitionFlags[roomName];
+            } else {
+                return false;
+            }
+        }
+
         public PathInfo ToPathInfo() {
             PathInfo toRet = new PathInfo();
 
@@ -119,7 +152,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 };
 
                 foreach (string roomName in checkpoint) {
-                    cpInfo.Rooms.Add(new RoomInfo() { DebugRoomName = roomName });
+                    bool isTransition = IsTransitionRoom(roomName);
+                    cpInfo.Rooms.Add(new RoomInfo() { DebugRoomName = roomName, IsNonGameplayRoom = isTransition });
                 }
 
                 toRet.Checkpoints.Add(cpInfo);
