@@ -15,6 +15,44 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
+        public PathRecorder PathRec;
+        public bool IsRecording { get; set; }
+
+        public DebugMapUtil() {}
+
+        #region Hooks
+        public void Hook() {
+            On.Celeste.Editor.MapEditor.Render += MapEditor_Render;
+            On.Celeste.Editor.MapEditor.SelectionCheck += MapEditor_SelectionCheck;
+        }
+        public void UnHook() {
+            On.Celeste.Editor.MapEditor.Render -= MapEditor_Render;
+            On.Celeste.Editor.MapEditor.SelectionCheck -= MapEditor_SelectionCheck;
+        }
+        #endregion
+
+        #region Path Recording 
+        public void StartRecording() {
+            PathRec = new PathRecorder();
+            IsRecording = true;
+        }
+
+        public void StopRecording() {
+            PathInfo path = PathRec.ToPathInfo();
+            Mod.CurrentChapterPath = path;
+            Mod.SavePathToFile();
+
+            IsRecording = false;
+            PathRec = null;
+        }
+
+        public void AbortRecording() {
+            IsRecording = false;
+            PathRec = null;
+        }
+        #endregion
+
+        #region Events
         public void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
             orig(self);
 
@@ -143,6 +181,22 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 Draw.SpriteBatch.End();
             }
         }
+
+        public bool MapEditor_SelectionCheck(On.Celeste.Editor.MapEditor.orig_SelectionCheck orig, MapEditor self, Vector2 point) {
+            List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
+            LevelTemplate template = FindLevelTemplateByPoint(levels, point);
+
+            if (template != null) {
+                Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");
+            } else {
+                Mod.Log($"Clicked on empty space at ({point.X}, {point.Y})");
+            }
+
+            return orig(self, point);
+        }
+        #endregion
+
+        #region Util
         public static Vector2 ScreenToDebugMap(Vector2 point, Camera camera) {
             point -= new Vector2(960f, 540f);
             point /= camera.Zoom;
@@ -168,18 +222,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             point += new Vector2(960f, 540f);
             return point;
         }
-
-        public bool MapEditor_SelectionCheck(On.Celeste.Editor.MapEditor.orig_SelectionCheck orig, MapEditor self, Vector2 point) {
-            List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
-            LevelTemplate template = FindLevelTemplateByPoint(levels, point);
-
-            if (template != null) {
-                Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");
-            } else {
-                Mod.Log($"Clicked on empty space at ({point.X}, {point.Y})");
-            }
-
-            return orig(self, point);
-        }
+        #endregion
     }
 }

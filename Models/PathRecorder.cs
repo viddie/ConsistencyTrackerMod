@@ -33,10 +33,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             Checkpoints.Last().Add(name);
         }
 
-        public void AddCheckpoint(Checkpoint cp, string name) {
+        public void AddCheckpoint(Vector2 cpPosition, string name) {
             if (Checkpoints.Count != 0) {
-                if (cp != null && CheckpointsVisited.Contains(cp.Position)) return;
-                CheckpointsVisited.Add(cp.Position);
+                if (cpPosition != null && CheckpointsVisited.Contains(cpPosition)) return;
+                CheckpointsVisited.Add(cpPosition);
 
                 string lastRoom = Checkpoints.Last().Last();
                 Checkpoints.Last().Remove(lastRoom);

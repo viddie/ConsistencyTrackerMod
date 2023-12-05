@@ -86,7 +86,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public PathRecorder PathRec;
         private string DisabledInRoomName;
         public bool AbortPathRecording = false;
-
+        
         #endregion
 
         #region State Variables
@@ -235,9 +235,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
             //On.Monocle.Engine.Update += Engine_Update;
 
-            //Debug Map events
-            On.Celeste.Editor.MapEditor.Render += DebugMapUtil.MapEditor_Render;
-            On.Celeste.Editor.MapEditor.SelectionCheck += DebugMapUtil.MapEditor_SelectionCheck;
+            DebugMapUtil.Hook();
         }
 
 
@@ -276,10 +274,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
-
-            //Debug Map events
-            On.Celeste.Editor.MapEditor.Render -= DebugMapUtil.MapEditor_Render;
-            On.Celeste.Editor.MapEditor.SelectionCheck -= DebugMapUtil.MapEditor_SelectionCheck;
+            
+            DebugMapUtil.UnHook();
         }
 
         public override void Initialize()
@@ -1728,8 +1724,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void InsertCheckpointIntoPath(Checkpoint cp, string roomName) {
+            Vector2 pos = cp == null ? Vector2.Zero : cp.Position;
             if (roomName == null) {
-                PathRec.AddCheckpoint(cp, PathRecorder.DefaultCheckpointName);
+                PathRec.AddCheckpoint(pos, PathRecorder.DefaultCheckpointName);
                 return;
             }
 
@@ -1741,7 +1738,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
             if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
-            PathRec.AddCheckpoint(cp, cpName);
+            PathRec.AddCheckpoint(pos, cpName);
         }
         #endregion
     }
