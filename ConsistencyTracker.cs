@@ -1125,7 +1125,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.GoldenDone = PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
 
             CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
-            CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath;
+            CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath || DebugMapUtil.IsRecording;
             CurrentChapterStats.ModState.OverlayVersion = VersionsCurrent.Overlay;
             CurrentChapterStats.ModState.ModVersion = VersionsNewest.Mod;
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;

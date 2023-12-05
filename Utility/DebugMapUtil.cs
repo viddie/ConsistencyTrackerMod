@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Celeste.Editor;
 using Monocle;
 using System.Web.UI;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public class DebugMapUtil {
@@ -35,14 +37,22 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         #region Path Recording 
         public void StartRecording() {
             PathRec = new PathRecorder();
+            PathRec.AddCheckpoint(Vector2.Zero, PathRecorder.DefaultCheckpointName);
             IsRecording = true;
         }
 
         public void StopRecording() {
             PathInfo path = PathRec.ToPathInfo();
-            Mod.CurrentChapterPath = path;
+            
+            ChapterMetaInfo chapterInfo = null;
+            if (Engine.Scene is Level level && level.Session != null) {
+                chapterInfo = new ChapterMetaInfo(level.Session);
+            }
+            Mod.SetCurrentChapterPath(path, chapterInfo);
+            Mod.Log($"Recorded path:\n{JsonConvert.SerializeObject(Mod.CurrentChapterPath)}", isFollowup: true);
             Mod.SavePathToFile();
-
+            Mod.SaveChapterStats();//Output stats with updated path
+            
             IsRecording = false;
             PathRec = null;
         }
@@ -168,6 +178,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
             LevelTemplate template = FindLevelTemplateByPoint(levels, point);
+
+            //TODO
+            //Clicking again on a room marks it as transition room
+            //Clicking on a transition room removes it from the path
+            //=> a bit awkward, since you can only ever add to the currently active checkpoint, so maybe not allow removing for older checkpoints
 
             if (template != null) {
                 Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");

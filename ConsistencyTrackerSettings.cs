@@ -199,25 +199,49 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")} ==="));
             ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
-                Disabled = Mod.DoRecordPath,
+                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
+            }; 
+            ColoredButton altStartPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START")) {
+                HighlightColor = Color.Yellow,
+                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
             };
-            string recorderStateTitle = Mod.DoRecordPath ? $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.PathRec.GetRecorderStatus()}" : Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF");
+
+            string recorderStateTitle = Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF");
+            if (Mod.DoRecordPath) {
+                recorderStateTitle = $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.PathRec.GetRecorderStatus()}";
+            } else if (Mod.DebugMapUtil.IsRecording) {
+                recorderStateTitle = $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.DebugMapUtil.PathRec.GetRecorderStatus()}";
+            }
+
             TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding:false);
             DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE")) {
                 HighlightColor = Color.Yellow,
-                Disabled = !Mod.DoRecordPath,
+                Disabled = !Mod.DoRecordPath && !Mod.DebugMapUtil.IsRecording,
             };
             DoubleConfirmButton abortPathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT")) {
                 HighlightColor = Color.Red,
-                Disabled = !Mod.DoRecordPath,
+                Disabled = !Mod.DoRecordPath && !Mod.DebugMapUtil.IsRecording,
             };
 
             startPathRecordingButton.OnPressed = () => {
                 Mod.Log($"Started path recorder...");
                 Mod.DoRecordPath = true;
                 Mod.SaveChapterStats();
-                
+
                 startPathRecordingButton.Disabled = true;
+                altStartPathRecordingButton.Disabled = true;
+                savePathRecordingButton.Disabled = false;
+                abortPathRecordingButton.Disabled = false;
+
+                recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
+            };
+            altStartPathRecordingButton.OnPressed = () => {
+                Mod.Log($"Started Debug Map path recorder...");
+                Mod.DebugMapUtil.StartRecording();
+                Mod.SaveChapterStats();
+
+                startPathRecordingButton.Disabled = true;
+                altStartPathRecordingButton.Disabled = true;
                 savePathRecordingButton.Disabled = false;
                 abortPathRecordingButton.Disabled = false;
 
@@ -225,9 +249,14 @@ namespace Celeste.Mod.ConsistencyTracker
             };
             savePathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Saving path...");
-                Mod.DoRecordPath = false;
+                if (Mod.DoRecordPath) {
+                    Mod.DoRecordPath = false;
+                } else {
+                    Mod.DebugMapUtil.StopRecording();
+                }
 
                 startPathRecordingButton.Disabled = false;
+                altStartPathRecordingButton.Disabled = false;
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
@@ -235,10 +264,15 @@ namespace Celeste.Mod.ConsistencyTracker
             };
             abortPathRecordingButton.OnDoubleConfirmation = () => {
                 Mod.Log($"Aborting path recording...");
-                Mod.AbortPathRecording = true;
-                Mod.DoRecordPath = false;
+                if (Mod.DoRecordPath) {
+                    Mod.AbortPathRecording = true;
+                    Mod.DoRecordPath = false;
+                } else {
+                    Mod.DebugMapUtil.AbortRecording();
+                }
 
                 startPathRecordingButton.Disabled = false;
+                altStartPathRecordingButton.Disabled = false;
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
 
@@ -249,6 +283,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2"), false));
 
             subMenu.Add(startPathRecordingButton);
+            subMenu.Add(altStartPathRecordingButton);
             subMenu.Add(savePathRecordingButton);
             subMenu.AddDescription(menu, savePathRecordingButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE_HINT"));
             subMenu.Add(abortPathRecordingButton);
