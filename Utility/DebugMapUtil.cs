@@ -9,14 +9,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Celeste.Editor;
 using Monocle;
+using System.Web.UI;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public class DebugMapUtil {
 
         public static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
-        public PathRecorder PathRec;
-        public bool IsRecording { get; set; }
+        public PathRecorder PathRec = new PathRecorder();
+        public bool IsRecording { get; set; } = false;
 
         public DebugMapUtil() {}
 
@@ -56,22 +57,36 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         public void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
             orig(self);
 
-            if (Mod.CurrentChapterPath == null) return;
-
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
             Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");
             ConsistencyTrackerSettings settings = Mod.ModSettings;
             PathInfo currentPath = Mod.CurrentChapterPath;
 
+            if (IsRecording) {
+                StartSpriteBatch();
+
+                foreach (LevelTemplate template in levels) {
+                    for (int cpIndex = 0; cpIndex < PathRec.Checkpoints.Count; cpIndex++) {
+                        for (int rIndex = 0; rIndex < PathRec.Checkpoints[cpIndex].Count; rIndex++) {
+                            string rDebugName = PathRec.Checkpoints[cpIndex][rIndex];
+                            if (template.Name != rDebugName) continue;
+
+                            string displayName = $"{PathRec.CheckpointAbbreviations[cpIndex]}-{rIndex + 1}";
+                            DrawTextOnRoom(template, camera, displayName, 6);
+                            OutlineRoom(template, camera, Color.Teal);
+                        }
+                    }
+                }
+
+                EndSpriteBatch();
+                return;
+            }
+
+            
+            if (currentPath == null) return;
+
             if (settings.ShowCCTRoomNamesOnDebugMap) {
-                Draw.SpriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.AlphaBlend,
-                        SamplerState.LinearClamp,
-                        DepthStencilState.None,
-                        RasterizerState.CullNone,
-                        null,
-                        Engine.ScreenMatrix);
+                StartSpriteBatch();
 
                 foreach (LevelTemplate template in levels) {
                     string name = template.Name;
@@ -105,33 +120,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                         scaleDivider += 2;
                     }
 
-                    int x = template.X;
-                    int y = template.Y;
-
-                    Vector2 pos = DebugMapToScreen(new Vector2(x + template.Width / 2, y), camera);
-
-                    ActiveFont.DrawOutline(
-                        formattedName,
-                        pos,
-                        new Vector2(0.5f, 0),
-                        Vector2.One * camera.Zoom / scaleDivider,
-                        Color.White * 0.9f,
-                        2f * camera.Zoom / 6,
-                        Color.Black * 0.7f);
+                    DrawTextOnRoom(template, camera, formattedName, scaleDivider);
                 }
 
-                Draw.SpriteBatch.End();
+                EndSpriteBatch();
             }
 
             if (settings.ShowSuccessRateBordersOnDebugMap) { //Insert Mod Option setting here
-                Draw.SpriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.AlphaBlend,
-                        SamplerState.LinearClamp,
-                        DepthStencilState.None,
-                        RasterizerState.CullNone,
-                        null,
-                        Engine.ScreenMatrix);
+                StartSpriteBatch();
 
                 foreach (LevelTemplate template in levels) {
                     string name = template.Name;
@@ -158,36 +154,33 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                         color = new Color(231, 45, 45);
                     }
 
-                    int x = template.X;
-                    int y = template.Y;
-
-                    int width = template.Width;
-                    int height = template.Height;
-
-                    Vector2 pos = DebugMapToScreen(new Vector2(x, y), camera);
-
-                    //Draw.Rect(pos, width * camera.Zoom, height * camera.Zoom, new Color(color.R, color.G, color.B, 0));
-                    Vector2 topRight = pos + new Vector2(width * camera.Zoom, 0);
-                    Vector2 bottomLeft = pos + new Vector2(0, height * camera.Zoom);
-                    Vector2 bottomRight = pos + new Vector2(width * camera.Zoom, height * camera.Zoom);
-
-                    float thickness = 1.5f * camera.Zoom;
-                    Draw.Line(pos, topRight, color, thickness);
-                    Draw.Line(pos, bottomLeft, color, thickness);
-                    Draw.Line(topRight, bottomRight, color, thickness);
-                    Draw.Line(bottomLeft, bottomRight, color, thickness);
+                    OutlineRoom(template, camera, color);
                 }
 
-                Draw.SpriteBatch.End();
+                EndSpriteBatch();
             }
         }
 
         public bool MapEditor_SelectionCheck(On.Celeste.Editor.MapEditor.orig_SelectionCheck orig, MapEditor self, Vector2 point) {
+            if (!IsRecording) {
+                return orig(self, point);
+            }
+
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
             LevelTemplate template = FindLevelTemplateByPoint(levels, point);
 
             if (template != null) {
                 Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");
+                PathRec.AddRoom(template.Name);
+                if (template.Checkpoints.Count > 0) {
+                    string cpDialogName = $"{Mod.CurrentChapterStats.ChapterSIDDialogSanitized}_{template.Name}";
+                    Mod.Log($"cpDialogName: {cpDialogName}");
+                    string cpName = Dialog.Get(cpDialogName);
+                    Mod.Log($"Dialog.Get says: {cpName}");
+                    if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
+
+                    PathRec.AddCheckpoint(template.Checkpoints.First(), cpName);
+                }
             } else {
                 Mod.Log($"Clicked on empty space at ({point.X}, {point.Y})");
             }
@@ -221,6 +214,50 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             point *= camera.Zoom;
             point += new Vector2(960f, 540f);
             return point;
+        }
+
+        #endregion
+
+        #region Draw Functions
+        public static void StartSpriteBatch() {
+            Draw.SpriteBatch.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.LinearClamp,
+                DepthStencilState.None,
+                RasterizerState.CullNone,
+                null,
+                Engine.ScreenMatrix);
+        }
+        public static void EndSpriteBatch() {
+            Draw.SpriteBatch.End();
+        }
+        
+        public void DrawTextOnRoom(LevelTemplate template, Camera camera, string text, float scaleDivider = 6) {
+            Vector2 pos = DebugMapToScreen(new Vector2(template.X + template.Width / 2, template.Y), camera);
+            ActiveFont.DrawOutline(
+                text,
+                pos,
+                new Vector2(0.5f, 0),
+                Vector2.One * camera.Zoom / scaleDivider,
+                Color.White * 0.9f,
+                2f * camera.Zoom / 6,
+                Color.Black * 0.7f);
+        }
+
+        public void OutlineRoom(LevelTemplate template, Camera camera, Color color) {
+            Vector2 pos = DebugMapToScreen(new Vector2(template.X, template.Y), camera);
+
+            //Draw.Rect(pos, width * camera.Zoom, height * camera.Zoom, new Color(color.R, color.G, color.B, 0));
+            Vector2 topRight = pos + new Vector2(template.Width * camera.Zoom, 0);
+            Vector2 bottomLeft = pos + new Vector2(0, template.Height * camera.Zoom);
+            Vector2 bottomRight = pos + new Vector2(template.Width * camera.Zoom, template.Height * camera.Zoom);
+            
+            float thickness = 1.5f * camera.Zoom;
+            Draw.Line(pos, topRight, color, thickness);
+            Draw.Line(pos, bottomLeft, color, thickness);
+            Draw.Line(topRight, bottomRight, color, thickness);
+            Draw.Line(bottomLeft, bottomRight, color, thickness);
         }
         #endregion
     }
