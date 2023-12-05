@@ -140,6 +140,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
         public PacePingManager PacePingManager;
+        public DebugMapUtil DebugMapUtil;
 
 
         public ConsistencyTrackerModule() {
@@ -169,6 +170,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Mod Settings -> \n{JsonConvert.SerializeObject(ModSettings, Formatting.Indented)}");
             Log($"~~~==============================~~~");
 
+            DebugMapUtil = new DebugMapUtil();
             PhysicsLog = new PhysicsLogger();
 
             HookStuff();
@@ -233,8 +235,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
             //On.Monocle.Engine.Update += Engine_Update;
 
-            On.Celeste.Editor.MapEditor.Render += MapEditor_Render;
+            //Debug Map events
+            On.Celeste.Editor.MapEditor.Render += DebugMapUtil.MapEditor_Render;
+            On.Celeste.Editor.MapEditor.SelectionCheck += DebugMapUtil.MapEditor_SelectionCheck;
         }
+
 
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
@@ -271,6 +276,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
+
+            //Debug Map events
+            On.Celeste.Editor.MapEditor.Render -= DebugMapUtil.MapEditor_Render;
+            On.Celeste.Editor.MapEditor.SelectionCheck -= DebugMapUtil.MapEditor_SelectionCheck;
         }
 
         public override void Initialize()
@@ -1421,142 +1430,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Path Management
-
-        private void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
-            orig(self);
-
-            if (CurrentChapterPath == null) return;
-            
-            List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
-            Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");
-
-            if (ModSettings.ShowCCTRoomNamesOnDebugMap) {
-                Draw.SpriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.AlphaBlend,
-                        SamplerState.LinearClamp,
-                        DepthStencilState.None,
-                        RasterizerState.CullNone,
-                        null,
-                        Engine.ScreenMatrix);
-
-                foreach (LevelTemplate template in levels) {
-                    string name = template.Name;
-                    RoomInfo rInfo = CurrentChapterPath.GetRoom(name);
-                    if (rInfo == null) {
-                        string resolvedName = ResolveGroupedRoomName(name);
-                        rInfo = CurrentChapterPath.GetRoom(resolvedName);
-
-                        if (rInfo == null) {
-                            continue;
-                        }
-                    }
-
-                    string formattedName;
-                    int scaleDivider = 6;
-
-                    if (ModSettings.LiveDataCustomNameBehavior == CustomNameBehavior.Override || ModSettings.LiveDataCustomNameBehavior == CustomNameBehavior.Ignore) {
-                        formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType);
-                    } else { 
-                        formattedName = rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Override);
-                        if (!string.IsNullOrEmpty(rInfo.CustomRoomName)) {
-                            formattedName += $"\n{rInfo.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Ignore)}";
-                            scaleDivider += 2;
-                        }
-                    }
-
-
-                    PacePingManager.PaceTiming paceTiming = PacePingManager.GetPaceTiming(CurrentChapterPath.ChapterSID, rInfo.DebugRoomName, dontLog:true);
-                    if (paceTiming != null) { 
-                        formattedName = $"{formattedName}\n>Ping<";
-                        scaleDivider += 2;
-                    }
-
-                    int x = template.X;
-                    int y = template.Y;
-
-                    Vector2 pos = new Vector2(x + template.Width / 2, y);
-                    pos -= camera.Position;
-                    pos = new Vector2((float)Math.Ceiling(pos.X), (float)Math.Ceiling(pos.Y));
-                    pos *= camera.Zoom;
-                    pos += new Vector2(960f, 540f);
-
-                    ActiveFont.DrawOutline(
-                        formattedName,
-                        pos,
-                        new Vector2(0.5f, 0),
-                        Vector2.One * camera.Zoom / scaleDivider,
-                        Color.White * 0.9f,
-                        2f * camera.Zoom / 6,
-                        Color.Black * 0.7f);
-                }
-
-                Draw.SpriteBatch.End();
-            }
-
-            if (ModSettings.ShowSuccessRateBordersOnDebugMap) { //Insert Mod Option setting here
-                Draw.SpriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.AlphaBlend,
-                        SamplerState.LinearClamp,
-                        DepthStencilState.None,
-                        RasterizerState.CullNone,
-                        null,
-                        Engine.ScreenMatrix);
-
-                foreach (LevelTemplate template in levels) {
-                    string name = template.Name;
-                    RoomInfo rInfo = CurrentChapterPath.GetRoom(name);
-                    if (rInfo == null) {
-                        string resolvedName = ResolveGroupedRoomName(name);
-                        rInfo = CurrentChapterPath.GetRoom(resolvedName);
-
-                        if (rInfo == null) {
-                            continue;
-                        }
-                    }
-
-                    RoomStats rStats = CurrentChapterStats.GetRoom(rInfo);
-                    Color color = Color.Gray;
-                    float successRate = rStats.AverageSuccessOverSelectedN() * 100;
-                    if (successRate > ModSettings.LiveDataChapterBarLightGreenPercent) {
-                        color = new Color(0, 230, 0);
-                    } else if (successRate > ModSettings.LiveDataChapterBarGreenPercent) {
-                        color = Color.Green;
-                    } else if (successRate > ModSettings.LiveDataChapterBarYellowPercent) {
-                        color = new Color(194, 194, 41);
-                    } else if (!float.IsNaN(successRate)) {
-                        color = new Color(231, 45, 45);
-                    }
-
-                    int x = template.X;
-                    int y = template.Y;
-
-                    int width = template.Width;
-                    int height = template.Height;
-
-                    Vector2 pos = new Vector2(x, y);
-                    pos -= camera.Position;
-                    pos = new Vector2((float)Math.Ceiling(pos.X), (float)Math.Ceiling(pos.Y));
-                    pos *= camera.Zoom;
-                    pos += new Vector2(960f, 540f);
-
-                    //Draw.Rect(pos, width * camera.Zoom, height * camera.Zoom, new Color(color.R, color.G, color.B, 0));
-                    Vector2 topRight = pos + new Vector2(width * camera.Zoom, 0);
-                    Vector2 bottomLeft = pos + new Vector2(0, height * camera.Zoom);
-                    Vector2 bottomRight = pos + new Vector2(width * camera.Zoom, height * camera.Zoom);
-
-                    float thickness = 1.5f * camera.Zoom;
-                    Draw.Line(pos, topRight, color, thickness);
-                    Draw.Line(pos, bottomLeft, color, thickness);
-                    Draw.Line(topRight, bottomRight, color, thickness);
-                    Draw.Line(bottomLeft, bottomRight, color, thickness);
-                }
-
-                Draw.SpriteBatch.End();
-            }
-        }
-
+        
         public void SaveRecordedRoomPath() {
             Log($"Saving recorded path...");
             if (PathRec.TotalRecordedRooms <= 1) {
