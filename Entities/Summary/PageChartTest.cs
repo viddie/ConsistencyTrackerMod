@@ -16,9 +16,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         private LineChart ChokeRateChart { get; set; }
 
         public PageChartTest(string name) : base(name) {
-            ChapterStats stats = Stats.LastPassChapterStats;
             StatCount = 2;
-
             ChokeRateChart = new LineChart(new ChartSettings() {
                 ChartWidth = 1140,
                 ChartHeight = 595,

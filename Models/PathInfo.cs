@@ -16,6 +16,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("chapterName")]
         public string ChapterName { get; set; }
+        [JsonProperty("chapterDisplayName")]
         public string ChapterDisplayName => ChapterName + SideNameDecoration;
 
         [JsonProperty("chapterSID")]

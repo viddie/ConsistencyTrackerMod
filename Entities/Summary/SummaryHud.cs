@@ -57,6 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Tabs.Add(new PageOverall("Overall"));
             Tabs.Add(new PageChartTest("Charts"));
             Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
+            Tabs.Add(new PageTimeSpent("Time Spent"));
 
             ApplyModSettings();
 
@@ -89,6 +90,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 if (Visible) {
                     foreach (SummaryHudPage tab in Tabs) {
                         tab.Update();
+                    }
+
+                    if (Mod.CurrentChapterPath == null) {
+                        SelectedTab = 4;
                     }
                 }
             }
