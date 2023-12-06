@@ -231,6 +231,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 int roomNumberInCP = 1;
 
+                if (cpInfo.GameplayRoomCount == 0) {
+                    roomNumberInCP = 0;
+                    roomNumber--;
+                }
+
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     rInfo.RoomNumberInChapter = roomNumber;
                     rInfo.RoomNumberInCP = roomNumberInCP;
@@ -239,7 +244,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                         roomNumberInCP++;
                     }
                 }
-                
+
+                if (cpInfo.GameplayRoomCount == 0) {
+                    roomNumber++;
+                }
+
                 cpNumber++;
             }
         }
