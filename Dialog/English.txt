@@ -497,7 +497,7 @@ MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_A=
 
 MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_Q= I would like to see a certain stat added...
 MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_A=
-    If you have an idea for a new stat, feel free to message me on Discord (viddie#4751) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!
+    If you have an idea for a new stat, feel free to message me on Discord (Discord username: viddie) or open an issue on GitHub (link on the GameBanana page of CCT). Please include an explanation of how to calculate the stat!
 
 MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_TITLE= In-Game Overlay
 MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_Q= Why does it say <path> everywhere in the In-Game Overlay?
@@ -607,7 +607,7 @@ MODOPTION_CCT_FAQ_PACE_PING_EMOTE_A=
 MODOPTION_CCT_FAQ_OTHER_TITLE= Other
 MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_Q= My issue isn't listed...
 MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_A=
-    If your issue is not covered by this FAQ, feel free to message me on Discord (viddie#4751), or create an issue on GitHub (link can be found on the GameBanana page of CCT){n}{n}
+    If your issue is not covered by this FAQ, feel free to message me on Discord (Discord username: viddie), or create an issue on GitHub (link can be found on the GameBanana page of CCT){n}{n}
     In order to help me understand the situation, please provide the following details in your message:{n}
     - What version of CCT are you using?{n}
     - What happened exactly? (Including what lead up to the situation you are in, e.g. what map you were playing, etc.){n}
