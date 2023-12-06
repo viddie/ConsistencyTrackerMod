@@ -3,12 +3,14 @@ using Celeste.Mod.ConsistencyTracker.Models;
 using Monocle;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class ConsoleCommands {
@@ -20,13 +22,13 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         [Command("cct-name", "get or set the custom room name of any room. use \"_\" for spaces in names. set the name to \"-\" to remove the name.")]
         public static void CctName(string roomName, string newName = null) {
             if (Mod.CurrentChapterPath == null) {
-                Engine.Commands.Log("No path for current map found. Please record a path first!");
+                ConsolePrint("No path for current map found. Please record a path first!");
                 return;
             }
             if (string.IsNullOrEmpty(roomName)) {
                 RoomInfo exampleRoom = Mod.CurrentChapterPath.CurrentRoom ?? Mod.CurrentChapterPath.Checkpoints[0].Rooms[Mod.CurrentChapterPath.Checkpoints[0].Rooms.Count - 1];
                 string exampleName = exampleRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Ignore);
-                Engine.Commands.Log($"Please provide a room name. Example: cct-name "+exampleName);
+                ConsolePrint($"Please provide a room name. Example: cct-name "+exampleName);
                 return;
             }
 
@@ -45,7 +47,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             if (foundRoom == null) {
-                Engine.Commands.Log($"Didn't find room with name '{roomName}' in this chapter");
+                ConsolePrint($"Didn't find room with name '{roomName}' in this chapter");
                 return;
             }
             CheckpointInfo foundCheckpoint = foundRoom.Checkpoint;
@@ -55,18 +57,18 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (string.IsNullOrEmpty(newName)) {
                 if (customName == null) {
-                    Engine.Commands.Log($"{cpString} - Room '{foundRoomName}' doesn't have a custom room name");
+                    ConsolePrint($"{cpString} - Room '{foundRoomName}' doesn't have a custom room name");
                 } else {
-                    Engine.Commands.Log($"{cpString} - Room '{foundRoomName}' has custom name '{customName}'");
+                    ConsolePrint($"{cpString} - Room '{foundRoomName}' has custom name '{customName}'");
                 }
             } else {
                 newName = EscapeStringParameter(newName);
                 if (newName == "-") {
                     foundRoom.CustomRoomName = null;
-                    Engine.Commands.Log($"{cpString} - Room '{foundRoomName}' custom name removed");
+                    ConsolePrint($"{cpString} - Room '{foundRoomName}' custom name removed");
                 } else {
                     foundRoom.CustomRoomName = newName;
-                    Engine.Commands.Log($"{cpString} - Room '{foundRoomName}' custom name set to '{newName}'");
+                    ConsolePrint($"{cpString} - Room '{foundRoomName}' custom name set to '{newName}'");
                 }
                 Mod.SavePathToFile();
                 Mod.SaveChapterStats();
@@ -76,7 +78,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         [Command("cct-list-names", "lists all room names of the current chapter.")]
         public static void CctListNames() {
             if (Mod.CurrentChapterPath == null) {
-                Engine.Commands.Log("No path for current map found. Please record a path first!");
+                ConsolePrint("No path for current map found. Please record a path first!");
                 return;
             }
 
@@ -93,13 +95,73 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             string joined = string.Join("\n", checkpointLines);
-            Engine.Commands.Log($"All rooms in '{path.ChapterDisplayName}' [{path.RoomCount} Rooms]:\n{joined}");
+            ConsolePrint($"All rooms in '{path.ChapterDisplayName}' [{path.RoomCount} Rooms]:\n{joined}");
+        }
+
+        [Command("cct-export-room-time", "lists and exports the time spent in all rooms of current chapter.")]
+        public static void CctExportRoomTime(bool usePath = true, bool includeTransitionRooms = false, string separator = "\t") {
+            PathInfo path = Mod.CurrentChapterPath;
+            ChapterStats stats = Mod.CurrentChapterStats;
+
+            if (stats == null) {
+                ConsolePrint("No stats available. Please enter a map first.");
+                return;
+            }
+
+            List<Tuple<string, string>> data = new List<Tuple<string, string>>();
+            if (path == null || !usePath) {
+                foreach (var pair in stats.Rooms.OrderBy(p => p.Key)) {
+                    RoomStats rStats = pair.Value;
+                    long timeSpent = rStats.TimeSpentInRoom;
+                    data.Add(Tuple.Create(rStats.DebugRoomName, TicksToString(timeSpent)));
+                }
+            } else {
+                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                    foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                        if (!includeTransitionRooms && rInfo.IsNonGameplayRoom) continue;
+                        string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
+                        long timeSpent = stats.GetRoom(rInfo).TimeSpentInRoom;
+                        data.Add(Tuple.Create(roomName, TicksToString(timeSpent)));
+                    }
+                }
+            }
+
+            string clipboardString = string.Join("\n", data.Select(t => $"{t.Item1}{separator}{t.Item2}"));
+            TextInput.SetClipboardText(clipboardString);
+
+            //string outputString = string.Join("\n", data.Select(t => $"- {t.Item1}: {t.Item2}"));
+
+            int rowCount = 30;
+            List<string> outputLines = new List<string>();
+            for (int columnStart = 0; columnStart < data.Count; columnStart += rowCount) { 
+                int minNameLength = 0;
+                int minTimeLength = 0;
+                int columnIndexEnd = Math.Min(columnStart + rowCount, data.Count - 1);
+                for (int i = columnStart; i <= columnIndexEnd; i++) {
+                    if (data[i].Item1.Length > minNameLength) minNameLength = data[i].Item1.Length;
+                    if (data[i].Item2.Length > minTimeLength) minTimeLength = data[i].Item2.Length;
+                }
+
+                for (int i = columnStart; i <= columnIndexEnd; i++) {
+                    string entry = FormatTimeItem(data[i].Item1.PadLeft(minNameLength), data[i].Item2.PadRight(minTimeLength));
+                    if (outputLines.Count <= i - columnStart) outputLines.Add(entry);
+                    else outputLines[i - columnStart] += "    "+entry;
+                }
+            }
+
+            string output = string.Join("\n", outputLines);
+            ConsolePrint($"Time spent in all rooms:\n{output}");
+        }
+        private static string FormatTimeItem(string roomName, string timeString) {
+            return $"{roomName}: {timeString}";
         }
 
         #endregion
 
         #region Utility
-
+        public static void ConsolePrint(string message) {
+            Engine.Commands.Log(message);
+        }
         public static string EscapeStringParameter(string parameter) {
             if (string.IsNullOrEmpty(parameter)) return parameter;
             parameter = parameter.Replace("\\_", "{us875813}");
@@ -107,7 +169,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             parameter = parameter.Replace("{us875813}", "_");
             return parameter;
         }
-
+        public static string TicksToString(long ticks) {
+            TimeSpan timeSpan = TimeSpan.FromTicks(ticks);
+            string text = ((!(timeSpan.TotalHours >= 1.0)) ? timeSpan.ToString("mm\\:ss") : ((int)timeSpan.TotalHours + ":" + timeSpan.ToString("mm\\:ss")));
+            return text;
+        }
         #endregion
     }
 }

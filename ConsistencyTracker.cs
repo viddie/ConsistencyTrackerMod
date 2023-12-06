@@ -224,7 +224,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Changing lava/ice in Core
             On.Celeste.CoreModeToggle.OnChangeMode += CoreModeToggle_OnChangeMode; //works
-
             //Picking up a Cassette tape
             On.Celeste.Cassette.OnPlayer += Cassette_OnPlayer; //works
 
@@ -233,11 +232,23 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
 
             On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
-            //On.Monocle.Engine.Update += Engine_Update;
+            On.Monocle.Engine.Update += Engine_Update;
 
             DebugMapUtil.Hook();
         }
 
+        
+        private void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
+            orig(self, gameTime);
+
+            if (!(Engine.Scene is Level)) return;
+            if (CurrentChapterStats == null) return;
+            if (CurrentChapterStats.CurrentRoom == null) return;
+            if (Engine.FreezeTimer > 0) return;
+
+            Log($"DeltaTime: {Engine.DeltaTime}");
+            CurrentChapterStats.CurrentRoom.TimeSpentInRoom += (long) (Engine.DeltaTime * 1000 * 10000);
+        }
 
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
