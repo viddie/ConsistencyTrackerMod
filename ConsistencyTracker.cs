@@ -28,7 +28,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.4.2";
+            public static string Mod => "2.5.0";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.2.1";
@@ -238,17 +238,6 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         
-        private void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
-            orig(self, gameTime);
-
-            if (!(Engine.Scene is Level)) return;
-            if (CurrentChapterStats == null) return;
-            if (CurrentChapterStats.CurrentRoom == null) return;
-            if (Engine.FreezeTimer > 0) return;
-
-            Log($"DeltaTime: {Engine.DeltaTime}");
-            CurrentChapterStats.CurrentRoom.TimeSpentInRoom += (long) (Engine.DeltaTime * 1000 * 10000);
-        }
 
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
@@ -285,7 +274,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
-            
+            On.Monocle.Engine.Update -= Engine_Update;
+
             DebugMapUtil.UnHook();
         }
 
@@ -528,42 +518,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChangeChapter(level.Session);
             orig(level);
         }
-
-        //**** USE THIS WHEN MORE NON-FUNCTIONING ROOM TRANSITIONS ARE FOUND ****//
-        //private bool engineDelayHadSetTimer = false;
-        //private int engineDelayTimer = 0;
-        //private int engineDelayTime = 3;
-        //public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
-        //    orig(self, gameTime);
-
-
-        //    if (!(Engine.Scene is Level)) return;
-        //    Level level = Engine.Scene as Level;
-        //    Player player = level.Tracker.GetEntity<Player>();
-        //    string roomNameNoSani = level.Session.LevelData.Name;
-
-        //    if (level.Session.LevelData.HasCheckpoint) {
-        //        LastRoomWithCheckpoint = roomNameNoSani;
-        //    }
-
-        //    string roomName = SanitizeRoomName(roomNameNoSani);
-
-        //    if (CurrentRoomName != null && roomName != CurrentRoomName && ModSettings.CountTeleportsForRoomTransitions) {
-        //        if (!engineDelayHadSetTimer) {
-        //            engineDelayHadSetTimer = true;
-        //            engineDelayTimer = engineDelayTime;
-        //        }
-
-        //        if (engineDelayTimer > 0) {
-        //            engineDelayTimer--;
-        //            return;
-        //        }
-        //        Log($"Engine.Update found a special room transition!");
-
-        //        bool holdingGolden = PlayerIsHoldingGoldenBerry(player);
-        //        SetNewRoom(roomName, true, holdingGolden);
-        //    }
-        //}
         
         private void Level_OnTransitionTo(Level level, LevelData levelDataNext, Vector2 direction) {
             if (levelDataNext == null) return;
@@ -597,6 +551,17 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.CurrentRoom.DeathsInCurrentRun++;
 
             SaveChapterStats();
+        }
+
+        private void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
+            orig(self, gameTime);
+
+            if (!(Engine.Scene is Level)) return;
+            if (CurrentChapterStats == null) return;
+            if (CurrentChapterStats.CurrentRoom == null) return;
+            if (Engine.FreezeTimer > 0) return;
+
+            CurrentChapterStats.CurrentRoom.TimeSpentInRoom += (long)(Engine.DeltaTime * 1000 * 10000);
         }
 
         #endregion
