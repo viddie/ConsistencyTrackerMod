@@ -72,7 +72,7 @@ MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_1= Turn this on to start reco
 MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE_HINT_2= of the segment, or complete the map to stop the recording save automatically.
 
 MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START= Start Path Recording
-MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START= (EXPERIMENTAL) Start Path Recording via Debug Map
+MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START= Start Path Recording via Debug Map
 MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE= Save Path
 MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE_HINT= Save the recorded path to the current segment.
 MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_ABORT= Abort Recording
@@ -388,6 +388,12 @@ MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_A=
     2. Go to the menu 'Path Recording' and hit the button 'Start Path Recording'{n}
     3. Play through the map as normal (you can do this with invincibility and stuff if you want){n}
     4. In the last room of the segment, hit the button 'Save Path'. Alternatively, complete the map and the path will be saved automatically.{n}{n}
+    A later update also added path recording via Debug Map:{n}
+    1. Go to the menu 'Path Recording' and hit the button 'Start Path Recording via Debug Map'{n}
+    2. Go into the Debug Map with F6{n}
+    3. Click on all rooms in the order they appear in during the run{n}
+    4. (Optionally) Click on a room again to mark it as transition room! Click on a transition again to remove it from the path{n}
+    5. Hit the button 'Save Path'{n}{n}
     You have now recorded a Path and can start tracking!
 
 MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_Q= How do I rename a Checkpoint in CCT?
