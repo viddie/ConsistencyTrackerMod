@@ -27,10 +27,13 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         public void Hook() {
             On.Celeste.Editor.MapEditor.Render += MapEditor_Render;
             On.Celeste.Editor.MapEditor.SelectionCheck += MapEditor_SelectionCheck;
+            On.Celeste.Editor.MapEditor.ctor += MapEditor_ctor;
         }
+        
         public void UnHook() {
             On.Celeste.Editor.MapEditor.Render -= MapEditor_Render;
             On.Celeste.Editor.MapEditor.SelectionCheck -= MapEditor_SelectionCheck;
+            On.Celeste.Editor.MapEditor.ctor -= MapEditor_ctor;
         }
         #endregion
 
@@ -64,7 +67,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         #endregion
 
         #region Events
-        public void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
+        private void MapEditor_Render(On.Celeste.Editor.MapEditor.orig_Render orig, MapEditor self) {
             orig(self);
 
             List<LevelTemplate> levels = Util.GetPrivateProperty<List<LevelTemplate>>(self, "levels");
@@ -180,8 +183,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 EndSpriteBatch();
             }
         }
-
-        public bool MapEditor_SelectionCheck(On.Celeste.Editor.MapEditor.orig_SelectionCheck orig, MapEditor self, Vector2 point) {
+        
+        private bool MapEditor_SelectionCheck(On.Celeste.Editor.MapEditor.orig_SelectionCheck orig, MapEditor self, Vector2 point) {
             if (!IsRecording) {
                 return orig(self, point);
             }
@@ -225,6 +228,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             return orig(self, point);
+        }
+
+        private void MapEditor_ctor(On.Celeste.Editor.MapEditor.orig_ctor orig, MapEditor self, AreaKey area, bool reloadMapData) {
+            orig(self, area, reloadMapData);
+            Mod.Log($"Opened Debug Map, saving stats...");
+            Mod.SaveChapterStats();
         }
         #endregion
 

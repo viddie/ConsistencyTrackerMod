@@ -498,6 +498,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PhysicsLog.StopRecording();
                 PhysicsLog.IsInMap = false;
             }
+
+            SaveChapterStats();
         }
 
         private void Level_OnComplete(Level level) {

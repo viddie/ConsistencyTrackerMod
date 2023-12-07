@@ -200,10 +200,32 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     return;
                 }
 
+                bool completed = false;
+                bool fullClear = false;
+                long totalTime = -1;
+                long totalDeaths = -1;
+                try {
+                    AreaKey area;
+                    if (SaveData.Instance.CurrentSession == null) area = SaveData.Instance.LastArea;
+                    else area = SaveData.Instance.CurrentSession.Area;
+                    
+                    AreaStats areaStats = SaveData.Instance.Areas_Safe[area.ID];
+                    AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
+                    totalTime = modeStats.TimePlayed;
+                    totalDeaths = modeStats.Deaths;
+                    completed = modeStats.Completed;
+                    fullClear = modeStats.FullClear;
+                } catch (Exception) {}
 
                 if (requestedJson) {
                     ChapterStatsResponse response = new ChapterStatsResponse() {
                         chapterStats = mod.CurrentChapterStats,
+                        gameData = new ChapterStatsResponse.GameData() { 
+                            totalTime = totalTime,
+                            totalDeaths = totalDeaths,
+                            completed = completed,
+                            fullClear = fullClear,
+                        },
                     };
                     responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
@@ -365,11 +387,14 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     return;
                 }
 
+                string extension = GetQueryParameter(c, "extension");
+                if (extension == null) extension = "json";
+
                 map = map.Replace(".", "");
                 map = map.Replace("/", "");
                 map = map.Replace("\\", "");
 
-                string combinedPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.PathsFolder, $"{map}.txt");
+                string combinedPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.PathsFolder, $"{map}.{extension}");
                 if (!File.Exists(combinedPath)) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't read file '{combinedPath}'");
                     return;
@@ -730,7 +755,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
         // +------------------------------------------+
         private static readonly RCEndPoint GetFileContentEndpoint = new RCEndPoint() {
             Path = "/cct/getFileContent",
-            PathHelp = "/cct/getFileContent?folder={folder}&file={file}&subfolder=[subfolder]",
+            PathHelp = "/cct/getFileContent?folder={folder}&file={file}&extension={extension}&subfolder=[subfolder]",
             Name = "Consistency Tracker Get Misc File [GET] [JSON]",
             InfoHTML = "Get any consistency tracker file.",
             Handle = c => {
