@@ -8,6 +8,7 @@ using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Utility;
+using Celeste.Mod.SpeedrunTool.DeathStatistics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -1107,6 +1108,16 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.OverlayVersion = VersionsCurrent.Overlay;
             CurrentChapterStats.ModState.ModVersion = VersionsNewest.Mod;
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
+
+            try {
+                AreaKey area = SaveData.Instance.CurrentSession.Area;
+                AreaStats areaStats = SaveData.Instance.Areas_Safe[area.ID];
+                AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
+                CurrentChapterStats.GameData.TotalTime = modeStats.TimePlayed;
+                CurrentChapterStats.GameData.TotalDeaths = modeStats.Deaths;
+                CurrentChapterStats.GameData.Completed = modeStats.Completed;
+                CurrentChapterStats.GameData.FullClear = modeStats.FullClear;
+            } catch (Exception) { }
 
 
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");

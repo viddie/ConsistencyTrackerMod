@@ -58,7 +58,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("oldSessions")]
         public List<OldSession> OldSessions { get; set; } = new List<OldSession>();
 
+        //[JsonProperty("modState")] //Uhhh i forgot to rename this. should check if this is used anywhere before adding JsonProperty
         public ModState ModState { get; set; } = new ModState();
+
+        [JsonProperty("gameData")]
+        public GameData GameData { get; set; } = new GameData();
 
         /// <summary>Adds the attempt to the specified room.</summary>
         /// <param name="debugRoomName">debug name of the room.</param>
@@ -722,5 +726,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 GoldenBerryDeathsSession = gbDeathsSession,
             };
         }
+    }
+
+    public class GameData {
+        [JsonProperty("completed")]
+        public bool Completed { get; set; }
+        
+        [JsonProperty("fullClear")]
+        public bool FullClear { get; set; }
+
+        [JsonProperty("totalTime")]
+        public long TotalTime { get; set; }
+        
+        [JsonProperty("totalDeaths")]
+        public long TotalDeaths { get; set; }
     }
 }

@@ -199,33 +199,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     WriteErrorResponse(c, RCErrorCode.StatsNotFound, requestedJson);
                     return;
                 }
-
-                bool completed = false;
-                bool fullClear = false;
-                long totalTime = -1;
-                long totalDeaths = -1;
-                try {
-                    AreaKey area;
-                    if (SaveData.Instance.CurrentSession == null) area = SaveData.Instance.LastArea;
-                    else area = SaveData.Instance.CurrentSession.Area;
-                    
-                    AreaStats areaStats = SaveData.Instance.Areas_Safe[area.ID];
-                    AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
-                    totalTime = modeStats.TimePlayed;
-                    totalDeaths = modeStats.Deaths;
-                    completed = modeStats.Completed;
-                    fullClear = modeStats.FullClear;
-                } catch (Exception) {}
-
+                
                 if (requestedJson) {
                     ChapterStatsResponse response = new ChapterStatsResponse() {
-                        chapterStats = mod.CurrentChapterStats,
-                        gameData = new ChapterStatsResponse.GameData() { 
-                            totalTime = totalTime,
-                            totalDeaths = totalDeaths,
-                            completed = completed,
-                            fullClear = fullClear,
-                        },
+                        chapterStats = mod.CurrentChapterStats
                     };
                     responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
