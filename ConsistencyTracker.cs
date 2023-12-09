@@ -567,7 +567,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (CurrentChapterStats.CurrentRoom == null) return;
             if (Engine.FreezeTimer > 0) return;
 
-            CurrentChapterStats.CurrentRoom.TimeSpentInRoom += (long)(Engine.DeltaTime * 1000 * 10000);
+            //Stolen from Level.UpdateTime()
+            Level level = Engine.Scene as Level;
+            if (level.Completed || !level.TimerStarted) {
+                return;
+            }
+
+            long ticks = TimeSpan.FromSeconds(Engine.RawDeltaTime).Ticks;
+            CurrentChapterStats.CurrentRoom.TimeSpentInRoom += ticks;
         }
 
         #endregion
