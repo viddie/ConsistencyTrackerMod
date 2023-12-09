@@ -466,6 +466,44 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
         };
         #endregion
 
+        #region Combined Stats/Path Endpoints
+        // +------------------------------------------+
+        // |         /cct/recentChapterData           |
+        // +------------------------------------------+
+        private static readonly RCEndPoint RecentChapterDataEndPoint = new RCEndPoint() {
+            Path = "/cct/recentChapterData",
+            Name = "Consistency Tracker Recent Chapter Data",
+            InfoHTML = "Fetches the stats/paths of the recently entered maps in the current session.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+
+                ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+                string responseStr = null;
+
+                List<RecentChapterDataResponse.ChapterData> data = new List<RecentChapterDataResponse.ChapterData>();
+                foreach (var item in Mod.LastVisitedChapters) {
+                    int selectedIndex = item.Item2 == null ? 0 : item.Item2.SelectedIndex;
+                    data.Add(new RecentChapterDataResponse.ChapterData() {
+                        path = item.Item2 == null ? null : item.Item2.CurrentPath,
+                        stats = item.Item1.SegmentStats[selectedIndex],
+                    });
+                }
+                
+                RecentChapterDataResponse response = new RecentChapterDataResponse() {
+                    data = data
+                };
+                responseStr = FormatResponseJson(RCErrorCode.OK, response);
+
+                WriteResponse(c, responseStr);
+            }
+        };
+        #endregion
+
         #region Format Endpoints
         // +------------------------------------------+
         // |            /cct/parseFormat              |
@@ -1237,6 +1275,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
             ListAllPathsEndPoint,
             GetPathFileEndPoint,
             SetPathFileEndPoint,
+
+            //Combined
+            RecentChapterDataEndPoint,
             
             //Live-Data
             ParseFormatEndPoint,

@@ -95,6 +95,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Used to cache and prevent unnecessary operations via DebugRC
         public long CurrentUpdateFrame;
 
+        public List<Tuple<ChapterStatsList, PathSegmentList>> LastVisitedChapters = new List<Tuple<ChapterStatsList, PathSegmentList>>();
+        public static readonly int MAX_LAST_VISITED_CHAPTERS = 20;
+
         public PathSegmentList CurrentChapterPathSegmentList { get; set; }
         public PathInfo CurrentChapterPath {
             get => CurrentChapterPathSegmentList?.CurrentPath;
@@ -584,9 +587,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterDebugName = chapterInfo.ChapterDebugName;
 
-            //string test2 = Dialog.Get($"luma_farewellbb_FarewellBB_b_intro");
-            //Log($"Dialog Test 2: {test2}");
-
             PreviousRoomName = null;
             CurrentRoomName = session.Level;
 
@@ -617,6 +617,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else {
                 LastRoomWithCheckpoint = null;
             }
+
+            //Track previously entered chapters
+            if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
+                //Remove the previous entry if it exists
+                LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
+            }
+            LastVisitedChapters.Add(Tuple.Create(CurrentChapterStatsList, CurrentChapterPathSegmentList));
+            if (LastVisitedChapters.Count > MAX_LAST_VISITED_CHAPTERS) {
+                LastVisitedChapters.RemoveAt(0);
+            }
+            
 
             if (PhysicsLogger.Settings.IsRecording && PhysicsLog.IsInMap) {
                 PhysicsLog.SegmentLog(true);
