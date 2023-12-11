@@ -373,7 +373,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden) {
+            if (self.Golden && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
                 CollectedGoldenBerry(goldenType);
             }
         }
