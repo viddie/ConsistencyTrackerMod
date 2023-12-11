@@ -234,14 +234,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors?
             //On.Celeste.Door.Open += Door_Open; //Wrong door (those are the resort doors)
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
+            
+            On.Celeste.Level.UpdateTime += Level_UpdateTime;
 
-            On.Monocle.Engine.Update += PhysicsLog.Engine_Update;
-            On.Monocle.Engine.Update += Engine_Update;
-
+            PhysicsLog.Hook();
             DebugMapUtil.Hook();
         }
-
-        
 
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
@@ -277,9 +275,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Open up key doors
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
-            On.Monocle.Engine.Update -= PhysicsLog.Engine_Update;
-            On.Monocle.Engine.Update -= Engine_Update;
+            On.Celeste.Level.UpdateTime -= Level_UpdateTime;
 
+            PhysicsLog.UnHook();
             DebugMapUtil.UnHook();
         }
 
@@ -559,22 +557,22 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
-        private void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
-            orig(self, gameTime);
+        private void Level_UpdateTime(On.Celeste.Level.orig_UpdateTime orig, Level self) {
+            orig(self);
 
-            if (!(Engine.Scene is Level)) return;
             if (CurrentChapterStats == null) return;
             if (CurrentChapterStats.CurrentRoom == null) return;
-            if (Engine.FreezeTimer > 0) return;
 
             //Stolen from Level.UpdateTime()
-            Level level = Engine.Scene as Level;
-            if (level.Completed || !level.TimerStarted) {
+            if (self.InCredits || self.TimerStopped || self.Completed || !self.TimerStarted) {
                 return;
             }
 
             long ticks = TimeSpan.FromSeconds(Engine.RawDeltaTime).Ticks;
             CurrentChapterStats.CurrentRoom.TimeSpentInRoom += ticks;
+            if (PlayerIsHoldingGolden) {
+                CurrentChapterStats.CurrentRoom.TimeSpentInRoomInRuns += ticks;
+            }
         }
 
         #endregion
@@ -1671,17 +1669,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             };
             LogInitialized = true;
         }
-        public void Log(string log, bool isFollowup = false, bool isComingFromOtherLogMethod = false) {
+        public void Log(string log, bool isFollowup = false, int frameBack = 1) {
             if (!LogInitialized) {
                 return;
             }
 
             if (!isFollowup) {
-                int frameBack = 1;
-                if (isComingFromOtherLogMethod) {
-                    frameBack = 2;
-                }
-
                 StackFrame frame = new StackTrace().GetFrame(frameBack);
                 string methodName = frame.GetMethod().Name;
                 string typeName = frame.GetMethod().DeclaringType.Name;
@@ -1694,27 +1687,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        public void LogVerbose(string message, bool isFollowup = false) {
+        public void LogVerbose(string message, bool isFollowup = false, int frameBack = 2) {
             if (ModSettings.VerboseLogging) { 
-                Log(message, isFollowup, true);
+                Log(message, isFollowup, frameBack);
             }
-        }
-
-        private readonly HashSet<string> _LogOnceKeys = new HashSet<string>();
-        public void LogOnce(string key, string message) {
-            if (_LogOnceKeys.Contains(key)) return;
-            _LogOnceKeys.Add(key);
-
-            Log(message, false, true);
-        }
-        public void ResetLogOnce() {
-            _LogOnceKeys.Clear();
-        }
-
-        private int _LogCounter = 0;
-        public void LogCount(string message="Log Counter -> ") {
-            _LogCounter++;
-            Log($"{message} {_LogCounter}", false, true);
         }
 
         public void LogCleanup() {

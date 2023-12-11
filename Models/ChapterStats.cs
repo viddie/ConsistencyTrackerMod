@@ -615,6 +615,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("timeSpentInRoom")]
         public long TimeSpentInRoom { get; set; } = 0;
+        
+        [JsonProperty("timeSpentInRoomInRuns")]
+        public long TimeSpentInRoomInRuns { get; set; } = 0;
 
         [JsonIgnore]
         public int RoomNumber { get; set; }

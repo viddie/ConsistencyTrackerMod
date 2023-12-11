@@ -111,6 +111,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             RecordingsManager = new PhysicsRecordingsManager();
         }
 
+        public void Hook() {
+            On.Monocle.Engine.Update += Engine_Update;
+        }
+        public void UnHook() {
+            On.Monocle.Engine.Update -= Engine_Update;
+        }
+
         public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
             orig(self, gameTime);
 

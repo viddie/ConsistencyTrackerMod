@@ -50,9 +50,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                             $"[ {m.M21}, {m.M22}, {m.M23}, {m.M24} ]\n" +
                             $"[ {m.M31}, {m.M32}, {m.M33}, {m.M34} ]\n" +
                             $"[ {m.M41}, {m.M42}, {m.M43}, {m.M44} ]";
-            ConsistencyTrackerModule.Instance.LogOnce("matrix", $"Engine.ScreenMatrix:" +
-                $"\n{matrix}" +
-                $"\nEngine.ScreenMatrix.Translation: {m.Translation}");
+            //ConsistencyTrackerModule.Instance.LogOnce("matrix", $"Engine.ScreenMatrix:" +
+            //    $"\n{matrix}" +
+            //    $"\nEngine.ScreenMatrix.Translation: {m.Translation}");
 
             DrawVertices(Matrix.Identity, vertices);
         }

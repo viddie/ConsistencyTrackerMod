@@ -76,7 +76,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             TotalGoldenRuns = path.Stats.GoldenBerryDeaths + stats.GoldenCollectedCount;
-            Mod.ResetLogOnce();
         }
 
         public override void Render() {
