@@ -615,7 +615,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("timeSpentInRoom")]
         public long TimeSpentInRoom { get; set; } = 0;
-        
+
+        [JsonProperty("timeSpentInRoomFirstPlaythrough")]
+        public long TimeSpentInRoomFirstPlaythrough { get; set; } = 0;
+
         [JsonProperty("timeSpentInRoomInRuns")]
         public long TimeSpentInRoomInRuns { get; set; } = 0;
 
@@ -685,6 +688,18 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return;
             }
             PreviousAttempts.RemoveAt(PreviousAttempts.Count-1);
+        }
+
+        public long GetTimeForCategory(TimeCategory category) {
+            if (category == TimeCategory.FirstPlaythrough) {
+                return TimeSpentInRoomFirstPlaythrough;
+            } else if (category == TimeCategory.Practice) {
+                return TimeSpentInRoom - TimeSpentInRoomFirstPlaythrough - TimeSpentInRoomInRuns;
+            } else if (category == TimeCategory.Runs) {
+                return TimeSpentInRoomInRuns;
+            } else {
+                return TimeSpentInRoom;
+            }
         }
 
         public override string ToString() {

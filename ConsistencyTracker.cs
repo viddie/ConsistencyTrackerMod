@@ -572,6 +572,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.CurrentRoom.TimeSpentInRoom += ticks;
             if (PlayerIsHoldingGolden) {
                 CurrentChapterStats.CurrentRoom.TimeSpentInRoomInRuns += ticks;
+            } else {
+                //Track first playthrough (FILE DEPENDENT)
+                AreaModeStats stats = GetCurrentAreaModeStats();
+                if (stats != null && !stats.Completed) {
+                    CurrentChapterStats.CurrentRoom.TimeSpentInRoomFirstPlaythrough += ticks;
+                }
             }
         }
 
@@ -1125,16 +1131,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ModState.ModVersion = VersionsNewest.Mod;
             CurrentChapterStats.ModState.ChapterHasPath = CurrentChapterPath != null;
 
-            try {
-                AreaKey area = SaveData.Instance.CurrentSession.Area;
-                AreaStats areaStats = SaveData.Instance.Areas_Safe[area.ID];
-                AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
+            AreaModeStats modeStats = GetCurrentAreaModeStats();
+            if (modeStats != null) {
                 CurrentChapterStats.GameData.TotalTime = modeStats.TimePlayed;
                 CurrentChapterStats.GameData.TotalDeaths = modeStats.Deaths;
                 CurrentChapterStats.GameData.Completed = modeStats.Completed;
                 CurrentChapterStats.GameData.FullClear = modeStats.FullClear;
-            } catch (Exception) { }
-
+            }
 
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
             string backupPath = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
@@ -1722,6 +1725,25 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
             PathRec.AddCheckpoint(pos, cpName);
+        }
+
+        public AreaModeStats GetCurrentAreaModeStats() {
+            string details = "saveData";
+            try {
+                SaveData saveData = SaveData.Instance;
+                Session session = saveData.CurrentSession;
+                details += "->session";
+                AreaKey area = session.Area;
+                details += "->area";
+                AreaStats areaStats = saveData.Areas_Safe[area.ID];
+                details += $"->areaStats(areas count:{saveData.Areas_Safe.Count}, area ID:{area.ID})";
+                AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
+                details += "->modeStats";
+                return modeStats;
+            } catch (Exception) {}
+            
+            LogUtils.LogEveryN($"Failed to get area stats: {details}", 60);
+            return null;
         }
         #endregion
     }

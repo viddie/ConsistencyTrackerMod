@@ -5,6 +5,7 @@ using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
+using Monocle;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,11 @@ using static Celeste.Mod.ConsistencyTracker.Entities.Summary.PageOverall;
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageTimeSpent : SummaryHudPage {
 
-        private static readonly int TableRowCount = 20;
-        
+        private static readonly int TableRowCount = 24;
+
         private LineChart TimeSpentChart { get; set; }
         private Table TimeSpentTable { get; set; }
+        private Table TimeSpentAggregateTable { get; set; }
 
         public PageTimeSpent(string name) : base(name) {
             TimeSpentChart = new LineChart(new ChartSettings() {
@@ -34,6 +36,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             });
 
             TimeSpentTable = new Table() {
+                Settings = new TableSettings() {
+                    FontMultAll = 0.5f,
+                }
+            };
+            TimeSpentAggregateTable = new Table() {
                 Settings = new TableSettings() {
                     FontMultAll = 0.5f,
                 }
@@ -55,33 +62,71 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 return;
             }
 
-            List<Tuple<string, long>> data = new List<Tuple<string, long>>();
+            List<Tuple<string, long, long, long>> data = new List<Tuple<string, long, long, long>>();
+            long totalTime = 0;
+            long totalTimeInRuns = 0;
+            long totalTimeCasual = 0;
             if (path == null) {
                 foreach (var pair in stats.Rooms.OrderBy(p => p.Key)) {
                     RoomStats rStats = pair.Value;
                     long timeSpent = rStats.TimeSpentInRoom;
-                    data.Add(Tuple.Create(rStats.DebugRoomName, timeSpent));
+                    long timeSpentRuns = rStats.TimeSpentInRoomInRuns;
+                    long timeSpentCasual = rStats.TimeSpentInRoomFirstPlaythrough;
+                    data.Add(Tuple.Create(rStats.DebugRoomName, timeSpent, timeSpentRuns, timeSpentCasual));
+
+                    totalTime += timeSpent;
+                    totalTimeInRuns += timeSpentRuns;
+                    totalTimeCasual += timeSpentCasual;
                 }
             } else {
                 foreach (CheckpointInfo cpInfo in path.Checkpoints) {
                     foreach (RoomInfo rInfo in cpInfo.Rooms) {
                         if (!includeTransitionRooms && rInfo.IsNonGameplayRoom) continue;
                         string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
-                        long timeSpent = stats.GetRoom(rInfo).TimeSpentInRoom;
-                        data.Add(Tuple.Create(roomName, timeSpent));
+                        RoomStats rStats = stats.GetRoom(rInfo);
+                        long timeSpent = rStats.TimeSpentInRoom;
+                        long timeSpentRuns = rStats.TimeSpentInRoomInRuns;
+                        long timeSpentCasual = rStats.TimeSpentInRoomFirstPlaythrough;
+                        data.Add(Tuple.Create(roomName, timeSpent, timeSpentRuns, timeSpentCasual));
+
+                        totalTime += timeSpent;
+                        totalTimeInRuns += timeSpentRuns;
+                        totalTimeCasual += timeSpentCasual;
                     }
                 }
             }
 
-            StatCount = 1 + (int)(Math.Floor((float)data.Count / TableRowCount) + 1);
+
+            List<Tuple<string, long, long, long>> aggregatedData = new List<Tuple<string, long, long, long>>();
+            aggregatedData.Add(Tuple.Create("Total", totalTime, totalTimeInRuns, totalTimeCasual));
+            //Sum up all room times for each checkpoint
+            if (path != null) {
+                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                    long timeSpent = 0;
+                    long timeSpentRuns = 0;
+                    long timeSpentCasual = 0;
+                    foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                        if (!includeTransitionRooms && rInfo.IsNonGameplayRoom) continue;
+                        string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
+                        RoomStats rStats = stats.GetRoom(rInfo);
+                        timeSpent += rStats.TimeSpentInRoom;
+                        timeSpentRuns += rStats.TimeSpentInRoomInRuns;
+                        timeSpentCasual += rStats.TimeSpentInRoomFirstPlaythrough;
+                    }
+                    aggregatedData.Add(Tuple.Create($"{cpInfo.Name} ({cpInfo.Abbreviation})", timeSpent, timeSpentRuns, timeSpentCasual));
+                }
+            }
+
+
+            StatCount = 1 + (int)(Math.Ceiling((float)data.Count / TableRowCount));
             if (SelectedStat == 0) {
-                UpdateChart(data);
+                UpdateChart(data, aggregatedData);
             } else {
-                UpdateTable(data, SelectedStat - 1);
+                UpdateTable(data, aggregatedData, SelectedStat - 1);
             }
         }
 
-        public void UpdateChart(List<Tuple<string, long>> data) {
+        public void UpdateChart(List<Tuple<string, long, long, long>> data, List<Tuple<string, long, long, long>> aggregatedData) {
             List<LineDataPoint> dataChokeRates = new List<LineDataPoint>();
 
             foreach (var item in data) {
@@ -118,36 +163,69 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             TimeSpentChart.SetSeries(series);
         }
 
-        public void UpdateTable(List<Tuple<string, long>> data, int page) {
+        public void UpdateTable(List<Tuple<string, long, long, long>> data, List<Tuple<string, long, long, long>> aggregatedData, int page) {
             DataColumn roomColumn = new DataColumn("Room", typeof(string));
-            DataColumn timeSpentColumn = new DataColumn("Time Spent", typeof(long));
+            DataColumn timeSpentCasualColumn = new DataColumn("First Playthrough", typeof(long));
+            DataColumn timeSpentPracticeColumn = new DataColumn("Practice", typeof(long));
+            DataColumn timeSpentRunsColumn = new DataColumn("Runs", typeof(long));
+            DataColumn timeSpentTotalColumn = new DataColumn("Total", typeof(long));
+            
+            DataColumn totalLabelColumn = new DataColumn("Room", typeof(string));
+            DataColumn totalTimeSpentCasualColumn = new DataColumn("First Playthrough", typeof(long));
+            DataColumn totalTimeSpentPracticeColumn = new DataColumn("Practice", typeof(long));
+            DataColumn totalTimeSpentRunsColumn = new DataColumn("Runs", typeof(long));
+            DataColumn totalTimeSpentTotalColumn = new DataColumn("Total", typeof(long));
 
-            DataTable testData = new DataTable() {
-                Columns = { roomColumn, timeSpentColumn }
+            DataTable timeDataTable = new DataTable() {
+                Columns = { roomColumn, timeSpentCasualColumn, timeSpentPracticeColumn, timeSpentRunsColumn, timeSpentTotalColumn }
+            };
+            DataTable aggregateDataTable = new DataTable() {
+                Columns = { totalLabelColumn, totalTimeSpentCasualColumn, totalTimeSpentPracticeColumn, totalTimeSpentRunsColumn, totalTimeSpentTotalColumn }
             };
 
             int startIndex = page * TableRowCount;
             int index = 0;
             foreach (var item in data) {
                 if (index >= startIndex && index < startIndex + TableRowCount) {
-                    testData.Rows.Add(item.Item1, item.Item2);
+                    timeDataTable.Rows.Add(item.Item1, item.Item4, item.Item2 - item.Item3 - item.Item4, item.Item3, item.Item2);
                 }
                 index++;
             }
 
-            TimeSpentTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
-                [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 120 },
-                [timeSpentColumn] = new ColumnSettings() {
-                    Alignment = ColumnSettings.TextAlign.Right,
-                    ValueFormatter = (obj) => {
-                        long val = (long)obj;
-                        return ConsoleCommands.TicksToString(val);
-                    }
+            foreach (var item in aggregatedData) {
+                aggregateDataTable.Rows.Add(item.Item1, item.Item4, item.Item2 - item.Item3 - item.Item4, item.Item3, item.Item2);
+            }
+
+            ColumnSettings colSettings = new ColumnSettings() {
+                Alignment = ColumnSettings.TextAlign.Right,
+                ValueFormatter = (obj) => {
+                    long val = (long)obj;
+                    return ConsoleCommands.TicksToString(val);
                 }
             };
-            TimeSpentTable.Data = testData;
-            TimeSpentTable.Settings.Title = $"Time Spent ({page + 1}/{StatCount - 1})";
+
+            TimeSpentTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
+                [roomColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 120 },
+                [timeSpentCasualColumn] = colSettings,
+                [timeSpentPracticeColumn] = colSettings,
+                [timeSpentRunsColumn] = colSettings,
+                [timeSpentTotalColumn] = colSettings,
+            };
+            TimeSpentTable.Data = timeDataTable;
+            TimeSpentTable.Settings.Title = $"Time Per Room ({page + 1}/{StatCount - 1})";
             TimeSpentTable.Update();
+
+
+            TimeSpentAggregateTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
+                [totalLabelColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 120 },
+                [totalTimeSpentCasualColumn] = colSettings,
+                [totalTimeSpentPracticeColumn] = colSettings,
+                [totalTimeSpentRunsColumn] = colSettings,
+                [totalTimeSpentTotalColumn] = colSettings,
+            };
+            TimeSpentAggregateTable.Data = aggregateDataTable;
+            TimeSpentAggregateTable.Settings.Title = $"Total Stats";
+            TimeSpentAggregateTable.Update();
         }
 
 
@@ -164,6 +242,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Move(ref pointer, 0, 0);
                 TimeSpentTable.Position = pointer;
                 TimeSpentTable.Render();
+
+
+                //===== Separator =====
+                Vector2 separator = MoveCopy(pointer, PageWidth / 2, 0);
+                Draw.Line(separator, MoveCopy(separator, 0, PageHeight), Color.Gray, 2);
+
+                pointer = MoveCopy(separator, 20, 0);
+                TimeSpentAggregateTable.Position = pointer;
+                TimeSpentAggregateTable.Render();
             }
         }
     }

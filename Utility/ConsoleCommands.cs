@@ -98,8 +98,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             ConsolePrint($"All rooms in '{path.ChapterDisplayName}' [{path.RoomCount} Rooms]:\n{joined}");
         }
 
-        [Command("cct-export-room-time", "lists and exports the time spent in all rooms of current chapter.")]
-        public static void CctExportRoomTime(bool usePath = true, bool includeTransitionRooms = false, string separator = "\t") {
+        [Command("cct-export-room-time", "lists and exports the time spent in all rooms of current chapter. selectedTime -> 0: total time, 1: first playthrough, 2: practice, 3: golden runs")]
+        public static void CctExportRoomTime(int selectedTime = 0, bool usePath = true, bool includeTransitionRooms = false, string separator = "\t") {
             PathInfo path = Mod.CurrentChapterPath;
             ChapterStats stats = Mod.CurrentChapterStats;
 
@@ -108,11 +108,13 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return;
             }
 
+            TimeCategory timeCategory = GetSelectedTimeCategory(selectedTime);
+
             List<Tuple<string, string>> data = new List<Tuple<string, string>>();
             if (path == null || !usePath) {
                 foreach (var pair in stats.Rooms.OrderBy(p => p.Key)) {
                     RoomStats rStats = pair.Value;
-                    long timeSpent = rStats.TimeSpentInRoom;
+                    long timeSpent = rStats.GetTimeForCategory(timeCategory);
                     data.Add(Tuple.Create(rStats.DebugRoomName, TicksToString(timeSpent)));
                 }
             } else {
@@ -120,7 +122,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     foreach (RoomInfo rInfo in cpInfo.Rooms) {
                         if (!includeTransitionRooms && rInfo.IsNonGameplayRoom) continue;
                         string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
-                        long timeSpent = stats.GetRoom(rInfo).TimeSpentInRoom;
+                        RoomStats rStats = stats.GetRoom(rInfo);
+                        long timeSpent = rStats.GetTimeForCategory(timeCategory);
                         data.Add(Tuple.Create(roomName, TicksToString(timeSpent)));
                     }
                 }
@@ -131,7 +134,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             //string outputString = string.Join("\n", data.Select(t => $"- {t.Item1}: {t.Item2}"));
 
-            int rowCount = 30;
+            int rowCount = 29;
             List<string> outputLines = new List<string>();
             for (int columnStart = 0; columnStart < data.Count; columnStart += rowCount) { 
                 int minNameLength = 0;
@@ -149,8 +152,20 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 }
             }
 
+            string selectedTimeStr = timeCategory == TimeCategory.Total ? "Total" : timeCategory == TimeCategory.FirstPlaythrough ? "First Playthrough" : timeCategory == TimeCategory.Practice ? "Practice" : "Runs";
             string output = string.Join("\n", outputLines);
-            ConsolePrint($"Time spent in all rooms:\n{output}");
+            ConsolePrint($"Time spent in all rooms ({selectedTimeStr}):\n{output}");
+        }
+        private static TimeCategory GetSelectedTimeCategory(int selectedTime) {
+            if (selectedTime == 1) {
+                return TimeCategory.FirstPlaythrough;
+            } else if (selectedTime == 2) {
+                return TimeCategory.Practice;
+            } else if (selectedTime == 3) {
+                return TimeCategory.Runs;
+            } else {
+                return TimeCategory.Total;
+            }
         }
         private static string FormatTimeItem(string roomName, string timeString) {
             return $"{roomName}: {timeString}";
