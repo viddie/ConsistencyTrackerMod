@@ -1499,6 +1499,9 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool LogFlagFacing { get; set; } = false;
 
+        [SettingIgnore]
+        public int LogMaxRecentRecordings { get; set; } = 10;
+
         public void CreatePhysicsLoggerSettingsEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
@@ -1523,6 +1526,12 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_MAX_RECENT_RECORDINGS"), i => i.ToString(), 1, 1000, LogMaxRecentRecordings) {
+                OnValueChange = v => {
+                    LogMaxRecentRecordings = v;
+                    Mod.Log($"Max recent recordings set to {v}");
+                }
+            });
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH"), LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;

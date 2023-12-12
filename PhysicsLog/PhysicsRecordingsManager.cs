@@ -13,7 +13,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
-        private int MaxLogFiles => 10;
+        private int MaxLogFiles => Mod.ModSettings.LogMaxRecentRecordings;
 
         private static readonly string FolderName = "physics-recordings";
         private static readonly string SavedRecordingsSubFolderName = "saved-recordings";
