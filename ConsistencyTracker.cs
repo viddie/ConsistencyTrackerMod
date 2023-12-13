@@ -96,7 +96,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public long CurrentUpdateFrame;
 
         public List<Tuple<ChapterStatsList, PathSegmentList>> LastVisitedChapters = new List<Tuple<ChapterStatsList, PathSegmentList>>();
-        public static readonly int MAX_LAST_VISITED_CHAPTERS = 20;
+        public static readonly int MAX_LAST_VISITED_CHAPTERS = 10;
 
         public PathSegmentList CurrentChapterPathSegmentList { get; set; }
         public PathInfo CurrentChapterPath {
@@ -136,7 +136,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             } 
         }
         private bool _PlayerIsHoldingGolden = false;
+        
+        #endregion
 
+        #region Mod Options State Variables
+        //For combining multiple mod options settings into one logical state
+        public bool SettingsTrackGoldens => (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths);
         #endregion
 
         public StatManager StatsManager;
@@ -332,10 +337,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (TouchedBerries.Contains(self.ID)) return; //to not spam the log
             TouchedBerries.Add(self.ID);
 
-            LogVerbose($"Strawberry on player");
+            LogVerbose($"Strawberry on player | self.Type: {self.GetType().Name}, self.Golden: {self.Golden}");
             SetRoomCompleted(resetOnDeath: true);
 
             GoldenType goldenType = GoldenType.Golden;
+            bool isSpeedBerry = false;
             switch (self.GetType().Name) {
                 case "Strawberry":
                     goldenType = GoldenType.Golden;
@@ -346,9 +352,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                 case "PlatinumBerry":
                     goldenType = GoldenType.Platinum;
                     break;
+                case "SpeedBerry":
+                    isSpeedBerry = true;
+                    break;
             }
 
-            if (self.Golden) {
+            if (self.Golden && !isSpeedBerry) {
                 PlayerIsHoldingGolden = true;
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 SaveChapterStats();
@@ -373,7 +382,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
+            if (self.Golden && SettingsTrackGoldens) {
                 CollectedGoldenBerry(goldenType);
             }
         }
@@ -473,15 +482,16 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DidRestart = true;
                 if (PlayerIsHoldingGolden 
                     && ModSettings.TrackingRestartChapterCountsForGoldenDeath
-                    && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
+                    && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
                 }
 
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
+                Log($"GoldenBerryRestart -> PlayerIsHoldingGolden: {PlayerIsHoldingGolden}");
 
-                if (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths) { //Only count golden berry deaths when enabled
+                if (SettingsTrackGoldens && PlayerIsHoldingGolden) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     if (ModSettings.TrackingOnlyWithGoldenBerry) {
                         CurrentChapterStats.AddAttempt(false);
@@ -541,7 +551,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Player_OnDie(Player player) {
             TouchedBerries.Clear();
-            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
+            
+            //PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
 
             Log($"Player died. (holdingGolden: {PlayerIsHoldingGolden})");
             if (_CurrentRoomCompletedResetOnDeath) {
@@ -829,9 +840,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             
             return player.Leader.Followers.Any((f) => {
-                //Log($"Follower class: '{f.Entity.GetType().Name}'");
+                //Log($"Follower class: '{f.Entity.GetType().Name}'", isFollowup:true);
                 if (f.Entity.GetType().Name == "PlatinumBerry") {
                     return true;
+                } else if (f.Entity.GetType().Name == "SpeedBerry") {
+                    return false;
                 }
                 
                 if (!(f.Entity is Strawberry)) {
@@ -891,7 +904,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Register the death if setting is enabled
             if (ModSettings.TrackingSaveStateCountsForGoldenDeath && CurrentChapterStats != null) {
-                if (PlayerIsHoldingGolden && (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths)) {
+                if (PlayerIsHoldingGolden && SettingsTrackGoldens) {
                     CurrentChapterStats.AddGoldenBerryDeath();
                     PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
                 }
