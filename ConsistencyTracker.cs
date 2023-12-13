@@ -949,6 +949,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if (PlayerIsHoldingGolden && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     Events.Events.InvokeGoldenDeath();
+
+                    Player player = level.Tracker.GetEntity<Player>();
+                    if (player != null) {
+                        PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
+                    }
                 }
             }
 
