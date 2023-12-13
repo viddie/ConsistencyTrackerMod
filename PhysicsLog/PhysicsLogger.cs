@@ -111,11 +111,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             RecordingsManager = new PhysicsRecordingsManager();
         }
 
+        #region Events
         public void Hook() {
             On.Monocle.Engine.Update += Engine_Update;
+            Everest.Events.Level.OnExit += Level_OnExit;
+            Events.Events.OnResetSession += Events_OnResetSession;
         }
         public void UnHook() {
             On.Monocle.Engine.Update -= Engine_Update;
+            Everest.Events.Level.OnExit -= Level_OnExit;
+            Events.Events.OnResetSession -= Events_OnResetSession;
         }
 
         public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
@@ -126,6 +131,18 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 LogPhysicsUpdate(player, level);
             }
         }
+        private void Events_OnResetSession() {
+            if (Settings.IsRecording && IsInMap) {
+                SegmentLog(true);
+            }
+            IsInMap = true;
+        }
+        private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
+            if (!Settings.IsRecording) return;
+            StopRecording();
+            IsInMap = false;
+        }
+        #endregion
 
         public bool IsInMap { get; set; }
         
@@ -137,7 +154,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             doSegmentRecording = true;
             skipFrameOnSegment = skipFrame;
         }
-        
+
         public void LogPhysicsUpdate(Player player, Level level) {
             if (player == null) {
                 if (LastPlayer == null) return;

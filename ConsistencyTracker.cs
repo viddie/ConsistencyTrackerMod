@@ -2,6 +2,7 @@
 using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary;
 using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Events;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
@@ -9,6 +10,7 @@ using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Celeste.Mod.SpeedrunTool.DeathStatistics;
+using Celeste.Mod.SpeedrunTool.SaveLoad;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -20,6 +22,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using static Celeste.Mod.ConsistencyTracker.ConsistencyTrackerModule;
+using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -136,7 +140,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             } 
         }
         private bool _PlayerIsHoldingGolden = false;
-        
+
+        public bool HasTriggeredPbEvent { get; set; } = false;
+        public bool HasTriggeredAfterPbEvent { get; set; } = false;
+
         #endregion
 
         #region Mod Options State Variables
@@ -181,11 +188,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             DebugMapUtil = new DebugMapUtil();
             PhysicsLog = new PhysicsLogger();
-
+            PacePingManager = new PacePingManager();
             HookStuff();
 
-            PacePingManager = new PacePingManager();
-
+            
             //Interop
             DebugRcPage.Load();
             typeof(ConsistencyTrackerAPI).ModInterop();
@@ -242,8 +248,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             
             On.Celeste.Level.UpdateTime += Level_UpdateTime;
 
+            //Self hooks
+            HookCustom();
+            
+            //Other objects
             PhysicsLog.Hook();
             DebugMapUtil.Hook();
+            PacePingManager.Hook();
         }
 
         private void UnHookStuff() {
@@ -282,8 +293,13 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             On.Celeste.Level.UpdateTime -= Level_UpdateTime;
 
+            //Self hooks
+            UnHookCustom();
+
+            //Other objects
             PhysicsLog.UnHook();
             DebugMapUtil.UnHook();
+            PacePingManager.UnHook();
         }
 
         public override void Initialize()
@@ -361,6 +377,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PlayerIsHoldingGolden = true;
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 SaveChapterStats();
+                
+                Events.Events.InvokeGoldenPickup(goldenType);
             }
         }
 
@@ -383,7 +401,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (self.Golden && SettingsTrackGoldens) {
-                CollectedGoldenBerry(goldenType);
+                Log($"Golden collected! GG :catpog:");
+                CurrentChapterStats.CollectedGolden(goldenType);
+                SaveChapterStats();
+                
+                Events.Events.InvokeGoldenCollect(goldenType);
             }
         }
 
@@ -484,7 +506,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     && ModSettings.TrackingRestartChapterCountsForGoldenDeath
                     && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
+                    Events.Events.InvokeGoldenDeath();
                 }
 
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
@@ -493,10 +515,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 if (SettingsTrackGoldens && PlayerIsHoldingGolden) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    if (ModSettings.TrackingOnlyWithGoldenBerry) {
-                        CurrentChapterStats.AddAttempt(false);
-                    }
-                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
+                    Events.Events.InvokeGoldenDeath();
                 }
             }
 
@@ -505,12 +524,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DoRecordPath = false;
                 ModSettings.RecordPath = false;
             }
-
-            if (PhysicsLogger.Settings.IsRecording) {
-                PhysicsLog.StopRecording();
-                PhysicsLog.IsInMap = false;
-            }
-
+            
             SaveChapterStats();
         }
 
@@ -594,6 +608,47 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #endregion
 
+        #region Custom Hooks
+        private void HookCustom() {
+            Events.Events.OnResetSession += Events_OnResetSession;
+            Events.Events.OnGoldenPickup += Events_OnGoldenPickup;
+            Events.Events.OnGoldenDeath += Events_OnGoldenDeath;
+            Events.Events.OnGoldenCollect += Events_OnGoldenCollect;
+        }
+
+        private void UnHookCustom() {
+            Events.Events.OnResetSession -= Events_OnResetSession;
+            Events.Events.OnGoldenPickup -= Events_OnGoldenPickup;
+            Events.Events.OnGoldenDeath -= Events_OnGoldenDeath;
+            Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
+        }
+
+        private void Events_OnResetSession() {
+            //Track previously entered chapters
+            if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
+                LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
+            }
+            LastVisitedChapters.Add(Tuple.Create(CurrentChapterStatsList, CurrentChapterPathSegmentList));
+            if (LastVisitedChapters.Count > MAX_LAST_VISITED_CHAPTERS) {
+                LastVisitedChapters.RemoveAt(0);
+            }
+
+            //Reset pb event flags
+            HasTriggeredPbEvent = false;
+            HasTriggeredAfterPbEvent = false;
+        }
+
+        private void Events_OnGoldenPickup(GoldenType type) {
+
+        }
+        private void Events_OnGoldenDeath() {
+            
+        }
+        private void Events_OnGoldenCollect(GoldenType type) {
+            
+        }
+        #endregion
+
         #region State Management
 
         private string SanitizeRoomName(string name) {
@@ -624,7 +679,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false, false);
 
-            //Reset session
             bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
             ChaptersThisSession.Add(CurrentChapterDebugName);
             if (!hasEnteredThisSession) {
@@ -640,23 +694,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = null;
             }
 
-            //Track previously entered chapters
-            if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
-                //Remove the previous entry if it exists
-                LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
-            }
-            LastVisitedChapters.Add(Tuple.Create(CurrentChapterStatsList, CurrentChapterPathSegmentList));
-            if (LastVisitedChapters.Count > MAX_LAST_VISITED_CHAPTERS) {
-                LastVisitedChapters.RemoveAt(0);
-            }
-            
-
-            if (PhysicsLogger.Settings.IsRecording && PhysicsLog.IsInMap) {
-                PhysicsLog.SegmentLog(true);
-            }
-
-            PhysicsLog.IsInMap = true;
-            PacePingManager.ResetRun(CurrentChapterPath, CurrentChapterStats);
+            Events.Events.InvokeResetSession();
         }
 
         public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo, ChapterStats stats = null) {
@@ -794,6 +832,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentRoomName = newRoomName;
                 CurrentChapterStats?.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
+                Events.Events.InvokeChangedRoom();
                 return;
             }
 
@@ -824,8 +863,23 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SaveChapterStats();
             }
 
-            
-            PacePingManager.CheckPacePing(CurrentChapterPath, CurrentChapterStats);
+
+            //PB state tracking
+            if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null) {
+                RoomInfo currentRoom = CurrentChapterPath.CurrentRoom;
+                RoomInfo pbRoom = PersonalBestStat.GetFurthestDeathRoom(CurrentChapterPath, CurrentChapterStats);
+                if (pbRoom != null) { //Don't call events if there is no PB
+                    if (!HasTriggeredPbEvent && currentRoom == pbRoom) {
+                        HasTriggeredPbEvent = true;
+                        Events.Events.InvokeEnteredPbRoomWithGolden();
+                    } else if (!HasTriggeredAfterPbEvent && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
+                        HasTriggeredAfterPbEvent = true;
+                        Events.Events.InvokeExitedPbRoomWithGolden();
+                    }
+                }
+            }
+
+            Events.Events.InvokeChangedRoom();
         }
 
         private void SetRoomCompleted(bool resetOnDeath=false) {
@@ -862,19 +916,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return true;
             });
         }
-
-        public void CollectedGoldenBerry(GoldenType goldenType) {
-            try { //we DONT want to crash when winning
-                Log($"Golden collected! GG catpog");
-                CurrentChapterStats.CollectedGolden(goldenType);
-                SaveChapterStats();
-                
-                PacePingManager.CollectedGolden(CurrentChapterPath, CurrentChapterStats);
-            } catch (Exception ex) {
-                Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
-            }
-        }
-
+        
         #region Speedrun Tool Save States
         public void SpeedrunToolSaveState(Dictionary<Type, Dictionary<string, object>> savedvalues, Level level) {
             Type type = GetType();
@@ -905,8 +947,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Register the death if setting is enabled
             if (ModSettings.TrackingSaveStateCountsForGoldenDeath && CurrentChapterStats != null) {
                 if (PlayerIsHoldingGolden && SettingsTrackGoldens) {
-                    CurrentChapterStats.AddGoldenBerryDeath();
-                    PacePingManager.DiedWithGolden(CurrentChapterPath, CurrentChapterStats);
+                    CurrentChapterStats?.AddGoldenBerryDeath();
+                    Events.Events.InvokeGoldenDeath();
                 }
             }
 
@@ -1113,6 +1155,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void SaveChapterStats() {
+            Events.Events.InvokeBeforeSavingStats();
+            
             if (CurrentChapterStatsList == null) {
                 Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStatsList)}' is null");
                 return;
@@ -1169,6 +1213,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             File.WriteAllText(modStatePath, content);
 
             StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
+            
+            Events.Events.InvokeAfterSavingStats();
         }
 
         public void CreateChapterSummary(int attemptCount) {

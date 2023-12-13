@@ -14,15 +14,23 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         /// </summary>
         /// <param name="roomName">The room to add a golden death to</param>
         /// <returns>True if success, False if there was some issue</returns>
-        public static bool AddGoldenDeath(string roomName) {
+        public static bool AddGoldenDeath(string roomName, bool invokeEvent = true) {
             ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
             if (mod.CurrentChapterStats == null) return false; //Just started the game and not entered a map yet
             
             RoomStats rStats = mod.CurrentChapterStats.GetRoom(roomName);
-            if (rStats == null) return false;
+            RoomStats currentRoom = mod.CurrentChapterStats.CurrentRoom;
+            if (rStats == null && currentRoom == null) return false;
+            
+            if (invokeEvent && currentRoom != null) {
+                //Let the event handle all the data changing. WORKS ONLY FOR THE CURRENT ROOM!!
+                Events.Events.InvokeGoldenDeath();
+            } else {
+                //Don't invoke events. Instead manually change the stats
+                mod.CurrentChapterStats.AddGoldenBerryDeath(roomName);
+                mod.SaveChapterStats();
+            }
 
-            mod.CurrentChapterStats.AddGoldenBerryDeath(roomName);
-            mod.SaveChapterStats();
             mod.Log($"Added golden death to '{roomName}'");
 
             return true;

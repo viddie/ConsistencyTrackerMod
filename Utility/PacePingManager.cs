@@ -36,6 +36,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private DiscordWebhookResponse EmbedMessage { get; set; }
         private RoomDetails LastRoomDetails { get; set; }
 
+        #region Data Structures
         private class RoomDetails {
             public string ChapterField { get; set; }
             public string Description { get; set; }
@@ -143,6 +144,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             [JsonProperty("lastPingedAt")]
             public DateTime LastPingedAt { get; set; }
         }
+        #endregion
 
 
 
@@ -153,6 +155,61 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             LoadState();
         }
 
+        #region Events
+        public void Hook() {
+            Events.Events.OnChangedRoom += Events_OnChangedRoom;
+            Events.Events.OnEnteredPbRoomWithGolden += Events_OnEnteredPbRoomWithGolden;
+            Events.Events.OnExitedPbRoomWithGolden += Events_OnExitedPbRoomWithGolden;
+            Events.Events.OnResetSession += Events_OnResetSession;
+            Events.Events.OnGoldenDeath += Events_OnGoldenDeath;
+            Events.Events.OnGoldenCollect += Events_OnGoldenCollect;
+        }
+        
+        public void UnHook() {
+            Events.Events.OnChangedRoom -= Events_OnChangedRoom;
+            Events.Events.OnEnteredPbRoomWithGolden -= Events_OnEnteredPbRoomWithGolden;
+            Events.Events.OnExitedPbRoomWithGolden -= Events_OnExitedPbRoomWithGolden;
+            Events.Events.OnResetSession -= Events_OnResetSession;
+            Events.Events.OnGoldenDeath -= Events_OnGoldenDeath;
+            Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
+        }
+
+
+        private void Events_OnChangedRoom() {
+            CheckPacePing(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+        }
+        private void Events_OnEnteredPbRoomWithGolden() {
+            Mod.Log($"Triggered PB Entered event");
+            if (PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbEntry) {
+                return;
+            }
+
+            SendPing(Mod.CurrentChapterPath, Mod.CurrentChapterStats, Mod.CurrentChapterPath.CurrentRoom, State.PbPingMessage);
+            PBPingedThisRun = true;
+        }
+        private void Events_OnExitedPbRoomWithGolden() {
+            Mod.Log($"Triggered PB Exited event");
+            if (PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbPassed) {
+                return;
+            }
+
+            SendPing(Mod.CurrentChapterPath, Mod.CurrentChapterStats, Mod.CurrentChapterPath.CurrentRoom, State.PbPingMessage);
+            PBPingedThisRun = true;
+        }
+        private void Events_OnResetSession() {
+            ResetRun(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+        }
+        private void Events_OnGoldenDeath() {
+            DiedWithGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+        }
+        private void Events_OnGoldenCollect(Enums.GoldenType type) {
+            try { //we DONT want to crash when winning
+                CollectedGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+            } catch (Exception ex) {
+                Mod.Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
+            }
+        }
+        #endregion
 
         #region State IO
         private void LoadState() {
@@ -269,25 +326,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         #endregion
 
-        public PaceTiming GetPaceTiming(string chapterSID, string debugRoomName, bool dontLog = false) {
-            if (State.PacePingTimings == null) {
-                State.PacePingTimings = new Dictionary<string, List<PaceTiming>>();
-            }
-            if (chapterSID == null) {
-                Mod.Log($"{nameof(chapterSID)} '{chapterSID}' is was null");
-                return null;
-            }
-
-            if (!State.PacePingTimings.TryGetValue(chapterSID, out List<PaceTiming> timings)) {
-                if (!dontLog) {
-                    Mod.Log($"Didn't find room timings for chapter {chapterSID}");
-                }
-                return null;
-            }
-
-            return timings.FirstOrDefault(timing => timing.DebugRoomName == debugRoomName);
-        }
-
+        #region State
         public void CheckPacePing(PathInfo path, ChapterStats stats, bool ignoreGolden = false) {
             if (path == null) return; //No path = no ping
 
@@ -301,7 +340,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 SendUpdatePing(path, stats);
             }
 
-            if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && !PBPingedThisRun && CheckPbRunPing(path, stats)) {
+            if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && !PBPingedThisRun) {
                 return; //Pinged from the PB ping, skip checking normal pace ping
             }
 
@@ -321,35 +360,60 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             SendPing(path, stats, currentRoom, message);
         }
 
-        /// <summary>
-        /// Checks if the player is running a PB attempt and pings if they are
-        /// </summary>
-        /// <returns>true if pinged, false otherwise</returns>
-        public bool CheckPbRunPing(PathInfo path, ChapterStats stats) {
-            RoomInfo currentRoom = path.CurrentRoom;
-            RoomInfo pbRoom = PersonalBestStat.GetFurthestDeathRoom(path, stats);
-            if (pbRoom == null) {
-                return false; //First ever golden run = no ping
+        public void ResetRun(PathInfo path, ChapterStats stats) {
+            Mod.Log($"Resetting Pace Ping run EmbedMessage == null -> {(EmbedMessage == null ? "true" : "false")}");
+            if (EmbedMessage != null && UpdatedMessageWithDeath == false) {
+                DiedWithGolden(path, stats, reset: true);
             }
 
-            if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbEntry && currentRoom == pbRoom) {
-                SendPing(path, stats, currentRoom, State.PbPingMessage);
-                PBPingedThisRun = true;
-                return true;
-            } else if (Mod.ModSettings.PacePingPbPingType == PbPingType.PingOnPbPassed && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
-                SendPing(path, stats, currentRoom, State.PbPingMessage);
-                PBPingedThisRun = true;
-                return true;
-            }
-
-            return false;
+            PBPingedThisRun = false;
+            UpdatedMessageWithDeath = false;
+            EmbedMessage = null;
         }
 
+        public void DiedWithGolden(PathInfo path, ChapterStats stats, bool reset = false) {
+            if (Mod.ModSettings.PacePingAllDeathsEnabled) SendAllDeathsMessage(path, stats);
+
+            if (EmbedMessage == null) return; //no ping, no follow-up message
+            PBPingedThisRun = false;
+            UpdatedMessageWithDeath = true;
+
+            string message = reset ? "Reset the run" : State.AfterPingDeathMessage;
+            try {
+                message = Mod.StatsManager.FormatVariableFormat(message);
+
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = EmbedMessage.Content + " -> " + message,
+                    Embeds = GetEmbedsForRoom(path, stats, false, true, reset),
+                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
+            } catch (Exception) { }
+        }
+
+        public void CollectedGolden(PathInfo path, ChapterStats stats) {
+            try { //Just in case. We DONT want a crash when winning
+                if (EmbedMessage == null) return; //no ping, no follow-up message
+
+                string message = State.WinMessage;
+                message = Mod.StatsManager.FormatVariableFormat(message);
+
+                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
+                    Username = State.WebhookUsername,
+                    Content = EmbedMessage.Content + " -> " + message,
+                    Embeds = GetEmbedsForRoom(path, stats, true, false),
+                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
+            } catch (Exception ex) {
+                Mod.Log($"An exception occurred while trying to send win message: {ex}", isFollowup: true);
+            }
+        }
+        #endregion
+
+        #region Message Sending
         public void SendPing(PathInfo path, ChapterStats stats, RoomInfo pingRoom, string message) {
             Mod.Log($"Sending pace ping! (Room: {pingRoom.GetFormattedRoomName(StatManager.RoomNameType)}, message: '{message}')");
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
-                
+
                 if (EmbedMessage == null) {
                     SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                         Username = State.WebhookUsername,
@@ -369,7 +433,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public void SendUpdatePing(PathInfo path, ChapterStats stats) {
             if (EmbedMessage == null) return;
-            
+
             try {
                 string message = EmbedMessage.Content;
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
@@ -382,8 +446,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
         }
 
-
-        
         public List<DiscordWebhookRequest.Embed> GetEmbedsForRoom(PathInfo path, ChapterStats stats, bool collectedGolden = false, bool died = false, bool reset = false) {
             if (path == null) return null;
             if (stats == null) return null;
@@ -422,7 +484,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
                 details.CurrentRunNumber = collectedGolden ? "#WIN" : "#" + Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunCurrentPbStatus);
                 details.TopPercentString = collectedGolden ? "0%" : Mod.StatsManager.FormatVariableFormat(CurrentRunPbStat.RunTopXPercent);
-                
+
                 details.RoomName = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[0].Value : path.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType);
                 int lastRoomNumberCorrection = collectedGolden && path.CurrentRoom != null && path.CurrentRoom.IsNonGameplayRoom ? 1 : 0;
                 details.Distance = path.CurrentRoom == null ? EmbedMessage.Embeds[0].Fields[1].Value : $"({path.CurrentRoom.RoomNumberInChapter - lastRoomNumberCorrection}/{path.GameplayRoomCount})";
@@ -431,7 +493,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 if (details.Progress == 1 && !collectedGolden) {
                     details.Progress = 0.9999f;
                 }
-                
+
                 if (!string.IsNullOrEmpty(State.AdditionEmbed1Title) && !string.IsNullOrEmpty(State.AdditionEmbed1Content)) {
                     details.AdditionEmbed1Title = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Title);
                     details.AdditionEmbed1Content = Mod.StatsManager.FormatVariableFormat(State.AdditionEmbed1Content);
@@ -452,10 +514,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 LastRoomDetails = details;
             }
 
-            int progressLength = 20;
+            int progressLength = PROGRESS_LENGTH;
             string progressString = "";
             float progress = collectedGolden ? 1 : details.Progress;
-            
+
             bool currentIndicator = true;
             for (int i = 0; i < progressLength; i++) {
                 if (Math.Floor(progress * progressLength) >= i) {
@@ -466,12 +528,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                         progressString = progressString.Remove(progressString.Length - CHAR_PROGRESS.Length);
                         progressString += died ? (reset ? CHAR_RESET : CHAR_DEATH) : CHAR_ALIVE;
                     }
-                    
+
                     progressString += CHAR_NO_PROGRESS;
                 }
             }
             progressString += $" {CHAR_GOAL}" + (collectedGolden ? $" {CHAR_TROPHY}" : "");
-            
+
             List<DiscordWebhookRequest.Embed> embeds = new List<DiscordWebhookRequest.Embed>() {
                 new DiscordWebhookRequest.Embed(){
                     Title = details.ChapterField,
@@ -503,40 +565,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return embeds;
         }
 
-        public void ResetRun(PathInfo path, ChapterStats stats) {
-            Mod.Log($"Resetting Pace Ping run EmbedMessage == null -> {(EmbedMessage == null ? "true" : "false")}");
-            if (EmbedMessage != null && UpdatedMessageWithDeath == false) {
-                DiedWithGolden(path, stats, reset:true);
-            }
-            
-            PBPingedThisRun = false;
-            UpdatedMessageWithDeath = false;
-            EmbedMessage = null;
-        }
-        public void DiedWithGolden(PathInfo path, ChapterStats stats, bool reset = false) {
-            if (Mod.ModSettings.PacePingAllDeathsEnabled) SendAllDeathsMessage(path, stats);
-
-            if (EmbedMessage == null) return; //no ping, no follow-up message
-            PBPingedThisRun = false;
-            UpdatedMessageWithDeath = true;
-
-            string message = reset ? "Reset the run" : State.AfterPingDeathMessage;
-            try {
-                message = Mod.StatsManager.FormatVariableFormat(message);
-
-                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                    Username = State.WebhookUsername,
-                    Content = EmbedMessage.Content + " -> " + message,
-                    Embeds = GetEmbedsForRoom(path, stats, false, true, reset),
-                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
-            } catch (Exception) { }
-        }
-
         public void SendAllDeathsMessage(PathInfo path, ChapterStats stats) {
             string message = State.AllDeathsMessage;
             try {
                 message = Mod.StatsManager.FormatVariableFormat(message);
-                
+
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                     Username = State.WebhookUsername,
                     Content = message,
@@ -544,25 +577,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             } catch (Exception) { }
         }
 
-        public void CollectedGolden(PathInfo path, ChapterStats stats) {
-            try { //Just in case. We DONT want a crash when winning
-                if (EmbedMessage == null) return; //no ping, no follow-up message
-
-                string message = State.WinMessage;
-                message = Mod.StatsManager.FormatVariableFormat(message);
-
-                SendDiscordWebhookMessage(new DiscordWebhookRequest() {
-                    Username = State.WebhookUsername,
-                    Content = EmbedMessage.Content + " -> " + message,
-                    Embeds = GetEmbedsForRoom(path, stats, true, false),
-                }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
-            } catch (Exception ex) {
-                Mod.Log($"An exception occurred while trying to send win message: {ex}", isFollowup: true);
-            }
-        }
-
-        
-        public enum DiscordWebhookAction { 
+        public enum DiscordWebhookAction {
             SendUpdate,
             SendFinal,
             Separate
@@ -601,5 +616,27 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 }
             });
         }
+        #endregion
+
+        #region Misc
+        public PaceTiming GetPaceTiming(string chapterSID, string debugRoomName, bool dontLog = false) {
+            if (State.PacePingTimings == null) {
+                State.PacePingTimings = new Dictionary<string, List<PaceTiming>>();
+            }
+            if (chapterSID == null) {
+                Mod.Log($"{nameof(chapterSID)} '{chapterSID}' is was null");
+                return null;
+            }
+
+            if (!State.PacePingTimings.TryGetValue(chapterSID, out List<PaceTiming> timings)) {
+                if (!dontLog) {
+                    Mod.Log($"Didn't find room timings for chapter {chapterSID}");
+                }
+                return null;
+            }
+
+            return timings.FirstOrDefault(timing => timing.DebugRoomName == debugRoomName);
+        }
+        #endregion
     }
 }
