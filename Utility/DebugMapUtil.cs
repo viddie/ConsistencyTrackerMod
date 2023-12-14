@@ -167,11 +167,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     RoomStats rStats = Mod.CurrentChapterStats.GetRoom(rInfo);
                     Color color = Color.Gray;
                     float successRate = rStats.AverageSuccessOverSelectedN() * 100;
-                    if (successRate > settings.LiveDataChapterBarLightGreenPercent) {
+                    if (successRate >= settings.LiveDataChapterBarLightGreenPercent) {
                         color = new Color(0, 230, 0);
-                    } else if (successRate > settings.LiveDataChapterBarGreenPercent) {
+                    } else if (successRate >= settings.LiveDataChapterBarGreenPercent) {
                         color = Color.Green;
-                    } else if (successRate > settings.LiveDataChapterBarYellowPercent) {
+                    } else if (successRate >= settings.LiveDataChapterBarYellowPercent) {
                         color = new Color(194, 194, 41);
                     } else if (!float.IsNaN(successRate)) {
                         color = new Color(231, 45, 45);
