@@ -13,6 +13,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         /// Adds a golden death to the specified room
         /// </summary>
         /// <param name="roomName">The room to add a golden death to</param>
+        /// <param name="invokeEvent">Whether to invoke the usual CCT event for a golden death. If true, will ignore roomName parameter and add the golden death to the current room.</param>
         /// <returns>True if success, False if there was some issue</returns>
         public static bool AddGoldenDeath(string roomName, bool invokeEvent = true) {
             ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
