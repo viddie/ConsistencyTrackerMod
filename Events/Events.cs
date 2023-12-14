@@ -35,10 +35,13 @@ namespace Celeste.Mod.ConsistencyTracker.Events {
         public static void InvokeChangedRoom() {
             OnChangedRoom?.Invoke();
         }
-        public delegate void ResetSession();
+        public delegate void ResetSession(bool sameSession);
+        /// <summary>
+        /// Same session means that the player used the debug map to teleport to a different room. It keeps the session alive, while resetting many other things.
+        /// </summary>
         public static event ResetSession OnResetSession;
-        public static void InvokeResetSession() {
-            OnResetSession?.Invoke();
+        public static void InvokeResetSession(bool sameSession) {
+            OnResetSession?.Invoke(sameSession);
         }
         public delegate void BeforeSavingStats();
         public static event BeforeSavingStats OnBeforeSavingStats;

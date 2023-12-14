@@ -131,7 +131,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 LogPhysicsUpdate(player, level);
             }
         }
-        private void Events_OnResetSession() {
+        private void Events_OnResetSession(bool sameSession) {
             if (Settings.IsRecording && IsInMap) {
                 SegmentLog(true);
             }

@@ -125,6 +125,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public string PreviousRoomName;
         public string CurrentRoomName;
         public string SpeedrunToolSaveStateRoomName;
+        public Session LastSession = null;
 
         private string LastRoomWithCheckpoint = null;
 
@@ -148,7 +149,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Mod Options State Variables
         //For combining multiple mod options settings into one logical state
-        public bool SettingsTrackGoldens => (!ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths);
+        public bool SettingsTrackGoldens => !ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths;
+        public bool SettingsTrackAttempts => !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden);
         #endregion
 
         public StatManager StatsManager;
@@ -332,14 +334,14 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Key_OnPlayer(On.Celeste.Key.orig_OnPlayer orig, Key self, Player player) {
-            LogVerbose($"Picked up a key");
             orig(self, player);
+            LogVerbose($"Picked up a key");
             SetRoomCompleted(resetOnDeath: false);
         }
 
         private void Cassette_OnPlayer(On.Celeste.Cassette.orig_OnPlayer orig, Cassette self, Player player) {
-            LogVerbose($"Collected a cassette tape");
             orig(self, player);
+            LogVerbose($"Collected a cassette tape");
             SetRoomCompleted(resetOnDeath: false);
         }
 
@@ -530,7 +532,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnComplete(Level level) {
             Log($"Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
-            if(!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
+            if(SettingsTrackAttempts)
                 CurrentChapterStats?.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
             SaveChapterStats();
@@ -566,14 +568,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Player_OnDie(Player player) {
             TouchedBerries.Clear();
             
-            //PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
-
             Log($"Player died. (holdingGolden: {PlayerIsHoldingGolden})");
             if (_CurrentRoomCompletedResetOnDeath) {
                 _CurrentRoomCompleted = false;
             }
 
-            if (!ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden))
+            if (SettingsTrackAttempts)
                 CurrentChapterStats?.AddAttempt(false);
 
             if(CurrentChapterStats != null)
@@ -623,7 +623,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
         }
 
-        private void Events_OnResetSession() {
+        private void Events_OnResetSession(bool sameSession) {
             //Track previously entered chapters
             if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
                 LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
@@ -657,7 +657,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void ChangeChapter(Session session) {
-            Log($"Called chapter change");
+            bool isLastSession = LastSession == session;
+            Log($"Called chapter change | isLastSession: {isLastSession}");
+            LastSession = session;
             ChapterMetaInfo chapterInfo = new ChapterMetaInfo(session);
 
             Log($"Level->{session.Level}, chapterInfo->'{chapterInfo}'");
@@ -679,12 +681,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false, false);
 
-            bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
-            ChaptersThisSession.Add(CurrentChapterDebugName);
-            if (!hasEnteredThisSession) {
-                CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
+            if (!isLastSession) {
+                bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
+                ChaptersThisSession.Add(CurrentChapterDebugName);
+                if (!hasEnteredThisSession) {
+                    CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
+                }
+                CurrentChapterStats.ResetCurrentRun();
             }
-            CurrentChapterStats.ResetCurrentRun();
+            
             //Another stats calculation, accounting for reset session
             SaveChapterStats();
 
@@ -694,7 +699,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = null;
             }
 
-            Events.Events.InvokeResetSession();
+            Events.Events.InvokeResetSession(isLastSession);
         }
 
         public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo, ChapterStats stats = null) {

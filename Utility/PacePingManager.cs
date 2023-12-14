@@ -196,7 +196,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             SendPing(Mod.CurrentChapterPath, Mod.CurrentChapterStats, Mod.CurrentChapterPath.CurrentRoom, State.PbPingMessage);
             PBPingedThisRun = true;
         }
-        private void Events_OnResetSession() {
+        private void Events_OnResetSession(bool sameSession) {
             ResetRun(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
         }
         private void Events_OnGoldenDeath() {
