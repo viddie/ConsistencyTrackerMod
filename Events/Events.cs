@@ -30,10 +30,10 @@ namespace Celeste.Mod.ConsistencyTracker.Events {
         }
 
 
-        public delegate void ChangedRoom();
+        public delegate void ChangedRoom(string roomName, bool isPreviousRoom);
         public static event ChangedRoom OnChangedRoom;
-        public static void InvokeChangedRoom() {
-            OnChangedRoom?.Invoke();
+        public static void InvokeChangedRoom(string roomName, bool isPreviousRoom) {
+            OnChangedRoom?.Invoke(roomName, isPreviousRoom);
         }
         public delegate void ResetSession(bool sameSession);
         /// <summary>

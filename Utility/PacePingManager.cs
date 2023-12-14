@@ -175,7 +175,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
 
-        private void Events_OnChangedRoom() {
+        private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
             CheckPacePing(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
         }
         private void Events_OnEnteredPbRoomWithGolden() {

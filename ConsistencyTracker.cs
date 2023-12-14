@@ -614,6 +614,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Events.Events.OnGoldenPickup += Events_OnGoldenPickup;
             Events.Events.OnGoldenDeath += Events_OnGoldenDeath;
             Events.Events.OnGoldenCollect += Events_OnGoldenCollect;
+            Events.Events.OnChangedRoom += Events_OnChangedRoom;
         }
 
         private void UnHookCustom() {
@@ -621,6 +622,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Events.Events.OnGoldenPickup -= Events_OnGoldenPickup;
             Events.Events.OnGoldenDeath -= Events_OnGoldenDeath;
             Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
+            Events.Events.OnChangedRoom -= Events_OnChangedRoom;
         }
 
         private void Events_OnResetSession(bool sameSession) {
@@ -645,7 +647,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             
         }
         private void Events_OnGoldenCollect(GoldenType type) {
-            
+
+        }
+        private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
+            if (DoRecordPath) {
+                PathRec.AddRoom(roomName);
+            }
         }
         #endregion
 
@@ -837,7 +844,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentRoomName = newRoomName;
                 CurrentChapterStats?.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
-                Events.Events.InvokeChangedRoom();
+                Events.Events.InvokeChangedRoom(newRoomName, true);
                 return;
             }
 
@@ -849,16 +856,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-
             Log($"Entered new room '{newRoomName}' | Holding golden: '{holdingGolden}'");
 
             PreviousRoomName = CurrentRoomName;
             CurrentRoomName = newRoomName;
             _CurrentRoomCompleted = false;
-
-            if (DoRecordPath) {
-                PathRec.AddRoom(newRoomName);
-            }
 
             if (CurrentChapterStats != null) {
                 if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden.Value)) {
@@ -867,7 +869,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.SetCurrentRoom(newRoomName);
                 SaveChapterStats();
             }
-
 
             //PB state tracking
             if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null) {
@@ -883,8 +884,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                     }
                 }
             }
-
-            Events.Events.InvokeChangedRoom();
+            
+            Events.Events.InvokeChangedRoom(newRoomName, false);
         }
 
         private void SetRoomCompleted(bool resetOnDeath=false) {
