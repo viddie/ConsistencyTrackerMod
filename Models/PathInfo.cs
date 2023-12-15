@@ -70,6 +70,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             return null;
         }
+        
+        public IEnumerable<RoomInfo> WalkPath(bool includeTransitionRooms = false) {
+            foreach (CheckpointInfo cpInfo in Checkpoints) {
+                List<RoomInfo> toWalk = includeTransitionRooms ? cpInfo.Rooms : cpInfo.GameplayRooms;
+                foreach (RoomInfo rInfo in toWalk) {
+                    yield return rInfo;
+                }
+            }
+        }
 
         /// <summary>
         /// Returns the actual RoomInfo objects to a given list of room debug names.

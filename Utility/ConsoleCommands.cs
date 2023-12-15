@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.Stats;
 using Monocle;
 using Newtonsoft.Json.Linq;
 using System;
@@ -156,6 +157,41 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             string output = string.Join("\n", outputLines);
             ConsolePrint($"Time spent in all rooms ({selectedTimeStr}):\n{output}");
         }
+
+        [Command("cct-test", "A test command used in development of CCT. Effect can change at random and is not known. Use at your own risk.")]
+        public static void CctTest(float correctionFactor = 1f) {
+            PathInfo path = Mod.CurrentChapterPath;
+            ChapterStats stats = Mod.CurrentChapterStats;
+
+            if (stats == null || path == null) {
+                ConsolePrint("No stats available. Please enter a map with a path first.");
+                return;
+            }
+            
+            ConsolePrint($"Predicted time to clear each room in a golden run:");
+
+            Dictionary<RoomInfo, Tuple<int, int, int, int>> roomData = ChokeRateStat.GetRoomDataInts(path, stats);
+            List<RoomInfo> rooms = path.WalkPath().ToList();
+
+            long totalPredictedRunLength = 0;
+
+            for (int i = 0; i < rooms.Count; i++) {
+                RoomStats rStats = stats.GetRoom(rooms[i]);
+                long timeSpent = rStats.TimeSpentInRoomInRuns;
+                int totalAttempts = roomData[rooms[i]].Item1;
+                int totalSuccesses = roomData[rooms[i]].Item2;
+
+                long predictedTimeToClearRoomInRun = (long)((double)timeSpent / totalAttempts / ((double)totalSuccesses / totalAttempts) * correctionFactor);
+                totalPredictedRunLength += predictedTimeToClearRoomInRun;
+                ConsolePrint($"{rooms[i].GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}: {TicksToString(predictedTimeToClearRoomInRun)}");
+            }
+
+            ConsolePrint($"\nTotal predicted run length: {TicksToString(totalPredictedRunLength)}");
+        }
+
+        #endregion
+
+        #region Utility
         private static TimeCategory GetSelectedTimeCategory(int selectedTime) {
             if (selectedTime == 1) {
                 return TimeCategory.FirstPlaythrough;
@@ -171,9 +207,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return $"{roomName}: {timeString}";
         }
 
-        #endregion
-
-        #region Utility
         public static void ConsolePrint(string message) {
             Engine.Commands.Log(message);
         }

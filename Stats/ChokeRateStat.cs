@@ -307,10 +307,54 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     else crRoomSession = (float)goldenDeathsInRoom[1] / (goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1]);
 
                     //Format
-                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0], 
+                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0],
                                                             1 - crRoom,
-                                                            goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1], 
+                                                            goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1],
                                                             1 - crRoomSession));
+                }
+            }
+
+            return roomData;
+        }
+
+        /// <summary>
+        /// Gets the following data for every room: Golden Entries, Golden Passes, Golden Entries Session, Golden Passes Session
+        /// </summary>
+        public static Dictionary<RoomInfo, Tuple<int, int, int, int>> GetRoomDataInts(PathInfo chapterPath, ChapterStats chapterStats) {
+            Dictionary<RoomInfo, Tuple<int, int, int, int>> roomData = new Dictionary<RoomInfo, Tuple<int, int, int, int>>();
+
+            foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+
+                    bool pastRoom = false;
+                    int[] goldenDeathsInRoom = new int[] { 0, 0 };
+                    int[] goldenDeathsAfterRoom = new int[] { 0, 0 };
+
+                    foreach (CheckpointInfo cpInfoTemp in chapterPath.Checkpoints) {
+                        foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
+                            RoomStats rStats = chapterStats.GetRoom(rInfoTemp);
+
+                            if (pastRoom) {
+                                goldenDeathsAfterRoom[0] += rStats.GoldenBerryDeaths;
+                                goldenDeathsAfterRoom[1] += rStats.GoldenBerryDeathsSession;
+                            }
+
+                            if (rInfo == rInfoTemp) {
+                                pastRoom = true;
+                                goldenDeathsInRoom[0] = rStats.GoldenBerryDeaths;
+                                goldenDeathsInRoom[1] = rStats.GoldenBerryDeathsSession;
+                            }
+                        }
+                    }
+
+                    goldenDeathsAfterRoom[0] += chapterStats.GoldenCollectedCount;
+                    goldenDeathsAfterRoom[1] += chapterStats.GoldenCollectedCountSession;
+
+                    //Format
+                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0],
+                                                            goldenDeathsAfterRoom[0],
+                                                            goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1],
+                                                            goldenDeathsAfterRoom[1]));
                 }
             }
 
