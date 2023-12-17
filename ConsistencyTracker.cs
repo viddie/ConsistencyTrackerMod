@@ -1129,6 +1129,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             try {
                 toRet = JsonConvert.DeserializeObject<ChapterStatsList>(content);
+                if (toRet == null) {
+                    throw new Exception();
+                }
                 return toRet;
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats list, trying older stats formats...", true);
@@ -1138,6 +1141,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             //[Try 1] New file format: JSON
             try {
                 chapterStats = JsonConvert.DeserializeObject<ChapterStats>(content);
+                if (chapterStats == null) {
+                    throw new Exception();
+                }
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
             }
@@ -1146,6 +1152,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 //[Try 2] Old file format: selfmade text format
                 try {
                     chapterStats = ChapterStats.ParseString(content);
+                    if (chapterStats == null) {
+                        throw new Exception();
+                    }
                     Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!", true);
                 } catch (Exception) {
                     Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}", true);
