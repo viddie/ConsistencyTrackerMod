@@ -12,28 +12,72 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         /// <summary>
         /// Adds a golden death to the specified room
         /// </summary>
-        /// <param name="roomName">The room to add a golden death to</param>
-        /// <param name="invokeEvent">Whether to invoke the usual CCT event for a golden death. If true, will ignore roomName parameter and add the golden death to the current room.</param>
+        /// <param name="roomName">The room to add a golden death to. null adds to the current room</param>
         /// <returns>True if success, False if there was some issue</returns>
-        public static bool AddGoldenDeath(string roomName, bool invokeEvent = true) {
+        public static bool AddGoldenDeath(string roomName) {
             ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
             if (mod.CurrentChapterStats == null) return false; //Just started the game and not entered a map yet
             
-            RoomStats rStats = mod.CurrentChapterStats.GetRoom(roomName);
-            RoomStats currentRoom = mod.CurrentChapterStats.CurrentRoom;
-            if (rStats == null && currentRoom == null) return false;
-            
-            if (invokeEvent && currentRoom != null) {
-                //Let the event handle all the data changing. WORKS ONLY FOR THE CURRENT ROOM!!
-                Events.Events.InvokeGoldenDeath();
+            mod.Log($"Invoked API.AddGoldenDeath");
+
+            RoomStats selectedRoom;
+            if (!string.IsNullOrEmpty(roomName)) {
+                selectedRoom = mod.CurrentChapterStats.GetRoom(roomName);
+
+                if (selectedRoom == null) {
+                    mod.Log($"Didn't find room with debug name: '{roomName}'");
+                    return false;
+                }
             } else {
-                //Don't invoke events. Instead manually change the stats
-                mod.CurrentChapterStats.AddGoldenBerryDeath(roomName);
-                mod.SaveChapterStats();
+                selectedRoom = mod.CurrentChapterStats.CurrentRoom;
+
+                if (selectedRoom == null) {
+                    mod.Log($"No roomName given and player does not have a 'CurrentRoom'");
+                    return false;
+                }
             }
 
-            mod.Log($"Added golden death to '{roomName}'");
+            mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
+            Events.Events.InvokeGoldenDeath();
+            mod.SaveChapterStats(); //Call events to notify pace ping, physics logger, external listeners...
 
+            mod.Log($"Added golden death to '{roomName}'");
+            return true;
+        }
+
+        /// <summary>
+        /// Adds a golden death to the specified room without triggering CCT Event 'OnGoldenDeath'
+        /// </summary>
+        /// <param name="roomName">The room to add a golden death to. null adds to the current room</param>
+        /// <returns>True if success, False if there was some issue</returns>
+        public static bool AddGoldenDeathNoEvent(string roomName) {
+            ConsistencyTrackerModule mod = ConsistencyTrackerModule.Instance;
+            if (mod.CurrentChapterStats == null) return false; //Just started the game and not entered a map yet
+
+            mod.Log($"Invoked API.AddGoldenDeathNoEvent");
+
+            RoomStats selectedRoom;
+            if (!string.IsNullOrEmpty(roomName)) {
+                selectedRoom = mod.CurrentChapterStats.GetRoom(roomName);
+
+                if (selectedRoom == null) {
+                    mod.Log($"Didn't find room with debug name: '{roomName}'");
+                    return false;
+                }
+            } else {
+                selectedRoom = mod.CurrentChapterStats.CurrentRoom;
+
+                if (selectedRoom == null) {
+                    mod.Log($"No roomName given and player does not have a 'CurrentRoom'");
+                    return false;
+                }
+            }
+
+            mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
+            mod.SaveChapterStats();
+            //Don't invoke event
+
+            mod.Log($"Added golden death to '{roomName}'");
             return true;
         }
     }
