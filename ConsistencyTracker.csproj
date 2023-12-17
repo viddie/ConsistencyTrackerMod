@@ -7,12 +7,24 @@
     <RootNamespace>Celeste.Mod.ConsistencyTracker</RootNamespace>
     <LangVersion>7.3</LangVersion>
     <StrippedLibraries>lib-stripped</StrippedLibraries>
-    <CelesteGamePath Condition="'$(CelesteGamePath)' == '' And Exists('..\..\Celeste.exe')">..\..</CelesteGamePath>
-    <CelesteGamePath Condition="'$(CelesteGamePath)' == ''">$(StrippedLibraries)</CelesteGamePath>
+    <CelestePrefix Condition="'$(CelestePrefix)' == '' And (Exists('..\..\Celeste.exe') Or Exists('..\..\Celeste.dll'))">..\..</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == '' And (Exists('..\..\..\Celeste.exe') Or Exists('..\..\..\Celeste.dll'))">..\..\..</CelestePrefix>
+    <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
+    
+    <!-- Use the legacy reference dir for Core installs -->
+    <CelesteIsCore>false</CelesteIsCore>
+    <CelesteIsCore Condition="Exists('$(CelestePrefix)\Celeste.dll')">true</CelesteIsCore>
+    <CelestePrefix Condition="$(CelesteIsCore)">$(CelestePrefix)\legacyRef</CelestePrefix>
+    
     <CelesteType Condition="'$(CelesteType)' == '' And Exists('$(CelesteGamePath)\BuildIsXNA.txt')">XNA</CelesteType>
     <CelesteType Condition="'$(CelesteType)' == ''">FNA</CelesteType>
     <XNAPath Condition="'$(XNAPath)' == ''">$(WINDIR)\Microsoft.NET\assembly\GAC_32\{0}\v4.0_4.0.0.0__842cf8be1de50553\{0}.dll</XNAPath>
   </PropertyGroup>
+	
+  <Target Name="CheckCoreInstall" BeforeTargets="PrepareForBuild" Condition="$(CelesteIsCore)">
+    <Error Condition="!Exists('$(CelestePrefix)')" Text="Detected a .NET Core Everest install without the required legacyRef install needed to build .NET Framework mods - see the Everest wiki (https://github.com/EverestAPI/Resources/wiki/Code-Mod-Core-Migration-Guide) for info on how to set it up" />
+    <Message Text="Building against .NET Core Everest legacyRef install" Importance="high" />
+  </Target>
 
   <!--Disable "Copy Local" for all references-->
   <ItemDefinitionGroup>
@@ -27,10 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="$(CelesteGamePath)\Celeste.exe">
+    <Reference Include="$(CelestePrefix)\Celeste.exe">
       <Private>false</Private>
     </Reference>
-    <Reference Include="$(CelesteGamePath)\MMHOOK_Celeste.dll">
+    <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
       <Private>false</Private>
     </Reference>
     <Reference Include="$(StrippedLibraries)\SpeedrunTool.SpeedrunTool.dll">
@@ -61,7 +73,7 @@
   <Choose>
     <When Condition="'$(CelesteType)' == 'FNA'">
       <ItemGroup>
-        <Reference Include="$(CelesteGamePath)\FNA.dll">
+        <Reference Include="$(CelestePrefix)\FNA.dll">
           <Private>false</Private>
         </Reference>
       </ItemGroup>
