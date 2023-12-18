@@ -878,7 +878,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     if (!HasTriggeredPbEvent && currentRoom == pbRoom) {
                         HasTriggeredPbEvent = true;
                         Events.Events.InvokeEnteredPbRoomWithGolden();
-                    } else if (!HasTriggeredAfterPbEvent && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
+                    } else if (HasTriggeredPbEvent && !HasTriggeredAfterPbEvent && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
                         HasTriggeredAfterPbEvent = true;
                         Events.Events.InvokeExitedPbRoomWithGolden();
                     }
