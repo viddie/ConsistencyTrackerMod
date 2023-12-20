@@ -32,6 +32,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
 
         private bool PBPingedThisRun { get; set; } = false;
+        private bool PBPingedSkipRegularCheck { get; set; } = false;
         private bool UpdatedMessageWithDeath { get; set; } = false;
         private DiscordWebhookResponse EmbedMessage { get; set; }
         private RoomDetails LastRoomDetails { get; set; }
@@ -186,6 +187,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             SendPing(Mod.CurrentChapterPath, Mod.CurrentChapterStats, Mod.CurrentChapterPath.CurrentRoom, State.PbPingMessage);
             PBPingedThisRun = true;
+            PBPingedSkipRegularCheck = true;
         }
         private void Events_OnExitedPbRoomWithGolden() {
             Mod.Log($"Triggered PB Exited event");
@@ -195,6 +197,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             SendPing(Mod.CurrentChapterPath, Mod.CurrentChapterStats, Mod.CurrentChapterPath.CurrentRoom, State.PbPingMessage);
             PBPingedThisRun = true;
+            PBPingedSkipRegularCheck = true;
         }
         private void Events_OnResetSession(bool sameSession) {
             ResetRun(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
@@ -340,7 +343,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 SendUpdatePing(path, stats);
             }
 
-            if (Mod.ModSettings.PacePingPbPingType != PbPingType.NoPing && !PBPingedThisRun) {
+            if (PBPingedSkipRegularCheck) {
+                PBPingedSkipRegularCheck = false;
                 return; //Pinged from the PB ping, skip checking normal pace ping
             }
 
@@ -367,6 +371,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             PBPingedThisRun = false;
+            PBPingedSkipRegularCheck = false;
             UpdatedMessageWithDeath = false;
             EmbedMessage = null;
         }
@@ -376,6 +381,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (EmbedMessage == null) return; //no ping, no follow-up message
             PBPingedThisRun = false;
+            PBPingedSkipRegularCheck = false;
             UpdatedMessageWithDeath = true;
 
             string message = reset ? "Reset the run" : State.AfterPingDeathMessage;
