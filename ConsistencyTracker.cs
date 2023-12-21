@@ -874,7 +874,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && PlayerIsHoldingGolden) {
                 RoomInfo currentRoom = CurrentChapterPath.CurrentRoom;
                 RoomInfo pbRoom = PersonalBestStat.GetFurthestDeathRoom(CurrentChapterPath, CurrentChapterStats);
-                if (pbRoom != null) { //Don't call events if there is no PB
+                if (pbRoom != null && CurrentChapterStats.GoldenCollectedCount == 0) { //Don't call events if no PB or if golden has been collected
                     if (!HasTriggeredPbEvent && currentRoom == pbRoom) {
                         HasTriggeredPbEvent = true;
                         Events.Events.InvokeEnteredPbRoomWithGolden();
