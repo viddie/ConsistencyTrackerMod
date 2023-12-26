@@ -1,4 +1,4 @@
-﻿﻿using Celeste.Mod.ConsistencyTracker.Entities;
+﻿using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Menu;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
@@ -20,8 +20,7 @@ using System.Threading.Tasks;
 using static Celeste.Mod.ConsistencyTracker.Entities.WidgetLayout;
 using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
-namespace Celeste.Mod.ConsistencyTracker
-{
+namespace Celeste.Mod.ConsistencyTracker {
     [SettingName("MODOPTION_CCT_NAME")]
     public class ConsistencyTrackerSettings : EverestModuleSettings {
 
@@ -57,7 +56,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public string DataRootFolderLocation { get; set; } = null;
-
         #endregion
 
         #region Tracking Settings
@@ -135,7 +133,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RecordPath { get; set; } = false;
         [SettingIgnore]
         public bool CustomRoomNameAllSegments { get; set; } = true;
-        
+
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
             TextMenu.Item menuItem;
@@ -146,11 +144,11 @@ namespace Celeste.Mod.ConsistencyTracker
                 return;
             }
 
-            
+
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
             int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
-            List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
+            List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() {
                 new KeyValuePair<int, string>(0, "Default"),
             };
             if (hasPathList) {
@@ -178,8 +176,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasPathList
             });
-            
-            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) { 
+
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing segment name from clipboard...");
@@ -195,12 +193,12 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
             });
 
-            
+
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")} ==="));
             ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
                 Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
-            }; 
+            };
             ColoredButton altStartPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START")) {
                 HighlightColor = Color.Yellow,
                 Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
@@ -213,7 +211,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 recorderStateTitle = $"{Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}\n-----\n{Mod.DebugMapUtil.PathRec.GetRecorderStatus()}";
             }
 
-            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding:false);
+            TextMenu.SubHeader recorderStateHeader = new TextMenu.SubHeader($"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {recorderStateTitle}", topPadding: false);
             DoubleConfirmButton savePathRecordingButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_SAVE")) {
                 HighlightColor = Color.Yellow,
                 Disabled = !Mod.DoRecordPath && !Mod.DebugMapUtil.IsRecording,
@@ -295,7 +293,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TITLE")} ==="));
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
-            
+
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_BROWSER")) {
                 Disabled = true,
             });
@@ -311,11 +309,11 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnPressed = Mod.UngroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
-            
+
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
             List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
-                    new KeyValuePair<bool, string>(false, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY")),
-                    new KeyValuePair<bool, string>(true, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION")),
+                new KeyValuePair<bool, string>(false, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_GAMEPLAY")),
+                new KeyValuePair<bool, string>(true, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TRANSITION")),
             };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<bool>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_ROOM_TYPE_TITLE"), RoomType, currentRoomIsTransition ?? false) {
                 OnValueChange = (newValue) => {
@@ -324,14 +322,14 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom = newValue;
                     Mod.SavePathToFile();
                     Mod.StatsManager.AggregateStatsPassOnce(Mod.CurrentChapterPath);
-                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                    Mod.SaveChapterStats(); //Path changed, so force a stat recalculation
                 },
                 Disabled = !hasCurrentRoom
             });
 
             string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
-            
-            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) { 
+
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText().Trim();
                     Mod.Log($"Importing custom room name from clipboard...");
@@ -355,14 +353,14 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_TITLE")} ==="));
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) { 
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_EXPORT_CLIPBOARD")) {
                 OnPressed = () => {
                     if (Mod.CurrentChapterPath == null) return;
                     TextInput.SetClipboardText(JsonConvert.SerializeObject(Mod.CurrentChapterPath, Formatting.Indented));
                 },
                 Disabled = !hasPath
             });
-            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD")) { 
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_IO_IMPORT_CLIPBOARD")) {
                 OnDoubleConfirmation = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing path from clipboard...");
@@ -470,7 +468,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasPath,
                 HighlightColor = Color.Red,
             });
-            
+
             subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_RESET_GOLDEN_BERRY_COLLECTION")) {
                 OnDoubleConfirmation = () => {
                     Mod.WipeChapterGoldenBerryCollects();
@@ -482,7 +480,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")} ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS")) {
                 OnDoubleConfirmation = () => {
-                    Mod.CheckPrepackagedPaths(reset:true);
+                    Mod.CheckPrepackagedPaths(reset: true);
                 },
                 HighlightColor = Color.Red,
             });
@@ -491,7 +489,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS_HINT_3"));
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_TITLE")} ==="));
-            subMenu.Add(menuItem = new DoubleConfirmButton($"{Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET")} '{StatManager.FormatFileName}' {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE")}") { 
+            subMenu.Add(menuItem = new DoubleConfirmButton($"{Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_RESET")} '{StatManager.FormatFileName}' {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_LIVE_DATA_FILE")}") {
                 OnDoubleConfirmation = () => {
                     Mod.StatsManager.ResetFormats();
                 },
@@ -516,7 +514,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateCreateSummaryEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_SUMMARY_TITLE"), false);
             TextMenu.Item menuItem;
-            
+
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_SUMMARY_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
@@ -536,11 +534,11 @@ namespace Celeste.Mod.ConsistencyTracker
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_TITLE")} ==="));
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(5, "5"),
-                    new KeyValuePair<int, string>(10, "10"),
-                    new KeyValuePair<int, string>(20, "20"),
-                    new KeyValuePair<int, string>(100, "100"),
-                };
+                new KeyValuePair<int, string>(5, "5"),
+                new KeyValuePair<int, string>(10, "10"),
+                new KeyValuePair<int, string>(20, "20"),
+                new KeyValuePair<int, string>(100, "100"),
+            };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_SUMMARY_EXPORT_SUMMARY_OVER_X_ATTEMPTS"), AttemptCounts, SummarySelectedAttemptCount) {
                 OnValueChange = (value) => {
                     SummarySelectedAttemptCount = value;
@@ -570,7 +568,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [JsonIgnore]
         public bool LiveData { get; set; } = false;
-        
+
         [SettingIgnore]
         public bool LiveDataFileOutputEnabled { get; set; } = false;
         [SettingIgnore]
@@ -603,12 +601,12 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateLiveDataEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_TITLE"), false);
             TextMenu.Item menuItem;
-            
+
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_TITLE")} ==="));
             List<KeyValuePair<int, string>> PBNameTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP")),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP")),
-                    new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_DEBUG_ROOM_NAME")),
+                new KeyValuePair<int, string>((int)RoomNameDisplayType.AbbreviationAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_ABBREVIATION_AND_ROOM_NUMBER_IN_CP")),
+                new KeyValuePair<int, string>((int)RoomNameDisplayType.FullNameAndRoomNumberInCP, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_FULL_NAME_AND_ROOM_NUMBER_IN_CP")),
+                new KeyValuePair<int, string>((int)RoomNameDisplayType.DebugRoomName, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_ROOM_NAME_FORMAT_DEBUG_ROOM_NAME")),
             };
             if (LiveDataRoomNameDisplayType == RoomNameDisplayType.CustomRoomName) {
                 LiveDataRoomNameDisplayType = RoomNameDisplayType.AbbreviationAndRoomNumberInCP;
@@ -627,7 +625,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Override, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_OVERRIDE")),
                 new KeyValuePair<CustomNameBehavior, string>(CustomNameBehavior.Prepend, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR_PREPEND")),
             };
-            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), CustomNameBehaviors, LiveDataCustomNameBehavior) { 
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<CustomNameBehavior>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CUSTOM_ROOM_NAME_BEHAVIOR"), CustomNameBehaviors, LiveDataCustomNameBehavior) {
                 OnValueChange = (value) => {
                     LiveDataCustomNameBehavior = value;
                     Mod.SaveChapterStats();
@@ -642,11 +640,11 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_HIDE_FORMATS_WHEN_NO_PATH_HINT"));
 
             List<KeyValuePair<int, string>> AttemptCounts = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>(5, "5"),
-                    new KeyValuePair<int, string>(10, "10"),
-                    new KeyValuePair<int, string>(20, "20"),
-                    new KeyValuePair<int, string>(100, "100"),
-                };
+                new KeyValuePair<int, string>(5, "5"),
+                new KeyValuePair<int, string>(10, "10"),
+                new KeyValuePair<int, string>(20, "20"),
+                new KeyValuePair<int, string>(100, "100"),
+            };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_CONSIDER_LAST_X_ATTEMPTS"), AttemptCounts, LiveDataSelectedAttemptCount) {
                 OnValueChange = (value) => {
                     LiveDataSelectedAttemptCount = value;
@@ -663,7 +661,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_MAX_DECIMAL_PLACES_HINT"));
-            
+
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS"), LiveDataIgnoreUnplayedRooms) {
                 OnValueChange = v => {
                     LiveDataIgnoreUnplayedRooms = v;
@@ -672,7 +670,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_IGNORE_UNPLAYED_ROOMS_HINT"));
 
 
-            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS"))); 
+            subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS")));
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_SETTINGS_SUCCESS_RATE_COLORS_LIGHT_GREEN_PERCENTAGE"), PercentageSlider(), LiveDataChapterBarLightGreenPercent) {
                 OnValueChange = (value) => {
                     LiveDataChapterBarLightGreenPercent = value;
@@ -721,9 +719,9 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_ENABLE_HINT_2"));
 
             List<KeyValuePair<int, string>> ListTypes = new List<KeyValuePair<int, string>>() {
-                    new KeyValuePair<int, string>((int)ListFormat.Plain, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_PLAIN")),
-                    new KeyValuePair<int, string>((int)ListFormat.Json, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_JSON")),
-                };
+                new KeyValuePair<int, string>((int)ListFormat.Plain, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_PLAIN")),
+                new KeyValuePair<int, string>((int)ListFormat.Json, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT_JSON")),
+            };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FILE_OUTPUT_FORMAT"), ListTypes, (int)LiveDataListOutputFormat) {
                 OnValueChange = (value) => {
                     LiveDataListOutputFormat = (ListFormat)value;
@@ -737,14 +735,14 @@ namespace Celeste.Mod.ConsistencyTracker
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
                     string path = System.IO.Path.GetFullPath(relPath);
                     Mod.LogVerbose($"Opening format editor at '{path}'");
-                    Process.Start("explorer", path);
+                    Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
                 },
             });
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE")).Pressed(() => {
                 string relPath = ConsistencyTrackerModule.GetPathToFile(StatManager.BaseFolder, StatManager.FormatFileName);
                 string path = System.IO.Path.GetFullPath(relPath);
                 Mod.LogVerbose($"Opening format file at '{path}'");
-                Process.Start("explorer", path);
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             }));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_FORMAT_TEXT_FILE_HINT"));
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_RELOAD_FORMAT_FILE")) {
@@ -806,7 +804,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_OPEN_OVERLAY_IN_BROWSER")).Pressed(() => {
                 string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "CCTOverlay.html"));
-                Process.Start("explorer", path);
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             }));
 
 
@@ -832,15 +830,15 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             List<string> fontList = new List<string>() {
-                    "Renogare",
-                    "Helvetica",
-                    "Verdana",
-                    "Arial",
-                    "Times New Roman",
-                    "Courier",
-                    "Impact",
-                    "Comic Sans MS",
-                };
+                "Renogare",
+                "Helvetica",
+                "Verdana",
+                "Arial",
+                "Times New Roman",
+                "Courier",
+                "Impact",
+                "Comic Sans MS",
+            };
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_GENERAL_TEXT_FONT"), fontList, ExternalOverlayFontFamily) {
                 OnValueChange = v => {
                     ExternalOverlayFontFamily = v;
@@ -863,12 +861,12 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             List<string> availablePresets = new List<string>() {
-                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_1"),
-                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_2"),
-                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_3"),
-                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_4"),
-                    Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_5"),
-                };
+                Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_1"),
+                Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_2"),
+                Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_3"),
+                Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_4"),
+                Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET_5"),
+            };
             subMenu.Add(new TextMenuExt.EnumerableSlider<string>(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_COMPONENT_TEXT_STATS_PRESET"), availablePresets, ExternalOverlayTextDisplayPreset) {
                 OnValueChange = v => {
                     ExternalOverlayTextDisplayPreset = v;
@@ -906,7 +904,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
 
             //subMenu.Add(new TextMenu.SubHeader($"Success rate in a room to get a certain color (default: light green 95%, green 80%, yellow 50%)"));
-            
+
 
 
             //Room Attempts Display
@@ -959,10 +957,10 @@ namespace Celeste.Mod.ConsistencyTracker
         //Text Overlay
         [SettingIgnore]
         public bool IngameOverlayTextEnabled { get; set; } = false;
-        
+
         [SettingIgnore]
         public bool IngameOverlayOnlyShowInPauseMenu { get; set; } = false;
-        
+
 
         // ======== Text 1 ========
         [SettingIgnore]
@@ -976,7 +974,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public string IngameOverlayText1FormatGolden { get; set; }
-        
+
         [SettingIgnore]
         public bool IngameOverlayText1HideWithGolden { get; set; } = false;
 
@@ -992,7 +990,7 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText1OffsetY { get; set; } = 0;
 
-        
+
         // ======== Text 2 ========
         [SettingIgnore]
         public bool IngameOverlayText2Enabled { get; set; } = true;
@@ -1021,7 +1019,7 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText2OffsetY { get; set; } = 0;
 
-        
+
         // ======== Text 3 ========
         [SettingIgnore]
         public bool IngameOverlayText3Enabled { get; set; } = false;
@@ -1050,7 +1048,7 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText3OffsetY { get; set; } = 0;
 
-        
+
         // ======== Text 4 ========
         [SettingIgnore]
         public bool IngameOverlayText4Enabled { get; set; } = false;
@@ -1079,7 +1077,7 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText4OffsetY { get; set; } = 0;
 
-        
+
 
         //Debug Settings
         [SettingIgnore]
@@ -1091,7 +1089,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreateIngameOverlayEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
-            
+
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
@@ -1122,7 +1120,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
 
-            
+
 
             //Get all formats
             List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
@@ -1432,8 +1430,9 @@ namespace Celeste.Mod.ConsistencyTracker
                 case 4:
                     goldenFormat = IngameOverlayText4FormatGolden;
                     break;
-            };
-            
+            }
+            ;
+
             if (hasStats && holdingGolden && goldenFormat != noneFormat) {
                 Mod.LogVerbose($"In golden run and golden format is not '{noneFormat}', not updating text");
                 return;
@@ -1461,7 +1460,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 case 4:
                     regularFormat = IngameOverlayText4Format;
                     break;
-            };
+            }
+            ;
 
             if (!hasStats || !holdingGolden) {
                 Mod.LogVerbose($"Not in golden run, not updating text");
@@ -1512,7 +1512,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
                     string path = System.IO.Path.GetFullPath(relPath);
                     Mod.LogVerbose($"Opening physics inspector at '{path}'");
-                    Process.Start("explorer", path);
+                    Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
                 },
             });
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_RECORD_ENABLE"), LogPhysicsEnabled) {
@@ -1564,7 +1564,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y_HINT_3"));
 
-            
+
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_OPTIONAL_FLAGS_DASH_COUNT"), LogFlagDashes) {
                 OnValueChange = v => {
@@ -1598,14 +1598,14 @@ namespace Celeste.Mod.ConsistencyTracker
             menu.Add(subMenu);
         }
         #endregion
-        
+
         #region Pace Ping Settings
         [JsonIgnore]
         public bool PacePing { get; set; } = false;
 
         [SettingIgnore]
         public bool PacePingEnabled { get; set; } = false;
-        
+
         [SettingIgnore]
         public PbPingType PacePingPbPingType { get; set; } = PbPingType.NoPing;
 
@@ -1615,18 +1615,18 @@ namespace Celeste.Mod.ConsistencyTracker
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
-            
+
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
-            
+
 
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             PaceTiming paceTiming = null;
-            if (hasCurrentRoom) { 
+            if (hasCurrentRoom) {
                 paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
 
@@ -1640,7 +1640,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
 
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) {
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing default ping message from clipboard...");
@@ -1774,178 +1774,178 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_FAQ_TITLE"), false);
 
             List<FAQEntry.FAQSectionModel> faq = new List<FAQEntry.FAQSectionModel>() {
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_WHAT_IS_A_PATH_SEG_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RECORD_A_PATH_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_RENAME_CP_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_HOW_DO_I_EDIT_PATH_FILE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_SCREW_UP_VANILLA_PATH_FILE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PATH_MANAGEMENT_DONT_SEE_FC_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHAT_STATS_ARE_THERE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_WHERE_ARE_THE_STATS_SAVED_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_STATS_MANAGEMENT_ACCIDENTALLY_COLLECTED_GOLDEN_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){ 
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){ 
-                        new FAQEntry.FAQEntryModel(){ 
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_WHAT_IS_LIVE_DATA_FORMAT_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_DONT_SEE_XY_IN_MY_LIST_OF_FORMAT_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_HOW_CAN_I_MAKE_FORMAT_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_LIVE_DATA_ADD_STAT_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_OVERLAY_WHY_DOES_IT_SAY_PATH_EVERYWHERE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_REMOVE_OVERLAY_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_CUSTOMIZE_FORMAT_A"),
                         },
                     },
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_WHAT_IS_THE_IN_GAME_SUMMARY_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_IN_GAME_SUMMARY_HOW_TO_USE_A"),
                         },
                     },
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_EXTERNAL_TOOLS_IS_RUNNING_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_WHAT_IS_THE_PHYSICS_INSPECTOR_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_HOW_TO_USE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PHYSICS_INSPECTOR_OWN_MOD_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_WHAT_IS_PACE_PING_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_FOR_WHOM_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_HOW_TO_SETUP_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_EMOTE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_PACE_PING_EMOTE_A"),
                         },
                     }
                 },
-                new FAQEntry.FAQSectionModel(){
+                new FAQEntry.FAQSectionModel() {
                     Title = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_TITLE"),
-                    Entries = new List<FAQEntry.FAQEntryModel>(){
-                        new FAQEntry.FAQEntryModel(){
+                    Entries = new List<FAQEntry.FAQEntryModel>() {
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_NOT_LISTED_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_LOVE_Q"),
                             Answer = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_LOVE_A"),
                         },
-                        new FAQEntry.FAQEntryModel(){
+                        new FAQEntry.FAQEntryModel() {
                             Question = Dialog.Clean("MODOPTION_CCT_FAQ_OTHER_HATE_Q"),
                             Answer = ":("
                         },
@@ -1955,25 +1955,23 @@ namespace Celeste.Mod.ConsistencyTracker
 
             foreach (FAQEntry.FAQSectionModel section in faq) {
                 subMenu.Add(new TextMenu.SubHeader($"=== {section.Title} ==="));
-                foreach (FAQEntry.FAQEntryModel entry in section.Entries) { 
+                foreach (FAQEntry.FAQEntryModel entry in section.Entries) {
                     subMenu.Add(new FAQEntry(entry.Question, entry.Answer));
                 }
             }
 
-            
+
             menu.Add(subMenu);
         }
         #endregion
 
         #region Tool Versions
-
         [SettingIgnore]
         public string OverlayVersion { get; set; }
         [SettingIgnore]
         public string LiveDataEditorVersion { get; set; }
         [SettingIgnore]
         public string PhysicsInspectorVersion { get; set; }
-
         #endregion
 
         #region Hotkeys
@@ -1987,7 +1985,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonAddRoomSuccess { get; set; }
         public ButtonBinding ButtonRemoveRoomLastAttempt { get; set; }
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
-        
+
         public ButtonBinding ButtonImportCustomRoomNameFromClipboard { get; set; }
 
         public ButtonBinding ButtonToggleRecordPhysics { get; set; }
@@ -2018,7 +2016,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
             // ========= General Settings =========
             TextMenu.Slider textCountSlider = new TextMenu.Slider("Text Count", (v) => v == 1 ? $"1 Text" : $"{v} Texts", 1, 100, TestCount);
-            TextMenu.Slider selectedTextSlider = new TextMenu.Slider("Selected Text", (v) => $"Text {v+1}", 0, TestCount - 1, TestCount);
+            TextMenu.Slider selectedTextSlider = new TextMenu.Slider("Selected Text", (v) => $"Text {v + 1}", 0, TestCount - 1, TestCount);
 
             // ========== Text 1 ==========
             TextMenu.OnOff onOffEnabled = new TextMenu.OnOff("Text 1 Enabled", IngameOverlayText1Enabled) {
