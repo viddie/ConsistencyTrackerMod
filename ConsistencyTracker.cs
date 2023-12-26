@@ -22,8 +22,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static Celeste.Mod.ConsistencyTracker.ConsistencyTrackerModule;
-using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -33,7 +31,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.5.4";
+            public static string Mod => "2.5.5";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.2.1";
