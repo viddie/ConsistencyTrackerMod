@@ -463,19 +463,13 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
 
-            //Changing room via golden berry death or debug map teleport
-            if (playerIntro == Player.IntroTypes.Respawn && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
+            //Change room if we're not in the same room as before
+            if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
+                bool success = playerIntro != Player.IntroTypes.Respawn; //Changing room via golden berry death or debug map teleport
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
-                SetNewRoom(newCurrentRoom, false, PlayerIsHoldingGolden);
-            }
-            //Teleporters?
-            if (playerIntro == Player.IntroTypes.Transition && CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
-                if (level.Session.LevelData.HasCheckpoint) {
-                    LastRoomWithCheckpoint = newCurrentRoom;
-                }
-                SetNewRoom(newCurrentRoom, true, PlayerIsHoldingGolden);
+                SetNewRoom(newCurrentRoom, success, PlayerIsHoldingGolden);
             }
 
             if (DidRestart) {
