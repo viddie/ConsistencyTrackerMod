@@ -13,6 +13,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
      Stats to implement:
      {run:currentPbStatus}                 - Format e.g. "Current run: 75. best run", "Current run: 4. best run", "Current run: PB"
      {run:currentPbStatusSession}          - Format e.g. "Current run: 75. best run", "Current run: 4. best run", "Current run: PB"
+     {run:currentPbStatusNumber}                 - Format e.g. "Current run: 75. best run", "Current run: 4. best run", "Current run: PB"
+     {run:currentPbStatusSessionNumber}          - Format e.g. "Current run: 75. best run", "Current run: 4. best run", "Current run: PB"
      {run:currentPbStatusPercent}          - Format e.g. "Current run better than 0% of all runs", "Current run better than 72.39% of all runs", "Current run better than 100% of all runs"
      {run:currentPbStatusPercentSession}   - Format e.g. "Current run better than 0% of all runs", "Current run better than 72.39% of all runs", "Current run better than 100% of all runs"
 
@@ -24,12 +26,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public static string RunCurrentPbStatus = "{run:currentPbStatus}";
         public static string RunCurrentPbStatusSession = "{run:currentPbStatusSession}";
+        public static string RunCurrentPbStatusNumber = "{run:currentPbStatusNumber}";
+        public static string RunCurrentPbStatusSessionNumber = "{run:currentPbStatusSessionNumber}";
         public static string RunCurrentPbStatusPercent = "{run:currentPbStatusPercent}";
         public static string RunCurrentPbStatusPercentSession = "{run:currentPbStatusPercentSession}";
         public static string RunTopXPercent = "{run:topXPercent}";
         public static string RunTopXPercentSession = "{run:topXPercentSession}";
         public static List<string> IDs = new List<string>() {
             RunCurrentPbStatus, RunCurrentPbStatusSession,
+            RunCurrentPbStatusNumber, RunCurrentPbStatusSessionNumber,
             RunCurrentPbStatusPercent, RunCurrentPbStatusPercentSession,
             RunTopXPercent, RunTopXPercentSession
         };
@@ -41,6 +46,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             if (chapterPath == null) {
                 format = StatManager.MissingPathFormat(format, RunCurrentPbStatus);
                 format = StatManager.MissingPathFormat(format, RunCurrentPbStatusSession);
+                format = StatManager.MissingPathFormat(format, RunCurrentPbStatusNumber);
+                format = StatManager.MissingPathFormat(format, RunCurrentPbStatusSessionNumber);
                 format = StatManager.MissingPathFormat(format, RunCurrentPbStatusPercent);
                 format = StatManager.MissingPathFormat(format, RunCurrentPbStatusPercentSession);
                 format = StatManager.MissingPathFormat(format, RunTopXPercent);
@@ -51,6 +58,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             if (!chapterStats.ModState.PlayerIsHoldingGolden) { //If player is not holding the golden berry 
                 format = format.Replace(RunCurrentPbStatus, "-");
                 format = format.Replace(RunCurrentPbStatusSession, "-");
+                format = format.Replace(RunCurrentPbStatusNumber, "-");
+                format = format.Replace(RunCurrentPbStatusSessionNumber, "-");
                 format = format.Replace(RunCurrentPbStatusPercent, "-%");
                 format = format.Replace(RunCurrentPbStatusPercentSession, "-%");
                 format = format.Replace(RunTopXPercent, "-%");
@@ -60,6 +69,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             } else if (chapterPath.CurrentRoom == null) { //or is not on the path
                 format = StatManager.NotOnPathFormat(format, RunCurrentPbStatus);
                 format = StatManager.NotOnPathFormat(format, RunCurrentPbStatusSession);
+                format = StatManager.NotOnPathFormat(format, RunCurrentPbStatusNumber);
+                format = StatManager.NotOnPathFormat(format, RunCurrentPbStatusSessionNumber);
                 format = StatManager.NotOnPathFormatPercent(format, RunCurrentPbStatusPercent);
                 format = StatManager.NotOnPathFormatPercent(format, RunCurrentPbStatusPercentSession);
                 format = StatManager.NotOnPathFormatPercent(format, RunTopXPercent);
@@ -130,6 +141,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(RunCurrentPbStatusPercent, runStatusPercentStr);
             format = format.Replace(RunCurrentPbStatusPercentSession, runStatusPercentSessionStr);
 
+            format = format.Replace(RunCurrentPbStatusNumber, $"{runStatus}");
+            format = format.Replace(RunCurrentPbStatusSessionNumber, $"{runStatusSession}");
+            
             format = format.Replace(RunTopXPercent, topXPercentStr);
             format = format.Replace(RunTopXPercentSession, topXPercentSessionStr);
 
@@ -147,8 +161,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
                 new KeyValuePair<string, string>(RunCurrentPbStatus, Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS")),
+                new KeyValuePair<string, string>(RunCurrentPbStatusNumber, Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_NUMBER")),
                 new KeyValuePair<string, string>(RunCurrentPbStatusPercent, Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT")),
                 new KeyValuePair<string, string>(RunCurrentPbStatusSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_1")} {RunCurrentPbStatus}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_2")}"),
+                new KeyValuePair<string, string>(RunCurrentPbStatusSessionNumber, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_1_NUMBER")} {RunCurrentPbStatus}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_SESSION_2_NUMBER")}"),
                 new KeyValuePair<string, string>(RunCurrentPbStatusPercentSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_1")} {RunCurrentPbStatusPercent}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_CURRENT_PB_STATUS_PERCENT_SESSION_2")}"),
                 new KeyValuePair<string, string>(RunTopXPercent, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_1")} {RunCurrentPbStatusPercent}{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_2")}"),
                 new KeyValuePair<string, string>(RunTopXPercentSession, $"{Dialog.Clean("CCT_STAT_CURRENT_RUN_PB_EXPLANATIONS_RUN_TOP_X_PERCENT_SESSION")} {RunCurrentPbStatusPercentSession}"),
