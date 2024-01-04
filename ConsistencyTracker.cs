@@ -1816,6 +1816,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             LogUtils.LogEveryN($"Failed to get area stats: {details}", 60);
             return null;
         }
+
+        public Player GetPlayer() {
+            Scene scene = Engine.Scene;
+            if (!(scene is Level)) {
+                return null;
+            }
+            Level level = (Level)scene;
+            return level.Tracker.GetEntity<Player>();
+        }
         #endregion
     }
 }

@@ -16,6 +16,7 @@ using Monocle;
 using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses;
 using Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Requests;
 using Celeste.Mod.ConsistencyTracker.Utility;
+using Microsoft.Xna.Framework;
 
 namespace Celeste.Mod.ConsistencyTracker.EverestInterop
 {
@@ -1088,6 +1089,76 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 WriteResponse(c, responseStr);
             }
         };
+        
+        private static readonly RCEndPoint MadelineScreenPositionEndPoint = new RCEndPoint() {
+            Path = "/cct/madelineScreenPosition",
+            PathHelp = "/cct/madelineScreenPosition?x={x}&y={y}&width={width}&height={height}",
+            Name = "Consistency Tracker Madeline Screen Position [GET] [JSON]",
+            InfoHTML = "Checks if Madeline is within the specified rectangle on the screen. If no parameters are specified, the current position is returned.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+                if (!requestedJson) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.UnsupportedAccept, requestedJson, "text/plain");
+                    return;
+                }
+                
+                Player player = Mod.GetPlayer();
+                if (player == null) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Player not found (might be dead)");
+                    return;
+                }
+                Scene scene = Engine.Scene;
+                if (!(scene is Level)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Player is not in a level");
+                    return;
+                }
+
+                Level level = (Level)scene;
+
+                string xStr = GetQueryParameter(c, "x");
+                string yStr = GetQueryParameter(c, "y");
+                string widthStr = GetQueryParameter(c, "width");
+                string heightStr = GetQueryParameter(c, "height");
+
+                Vector2 screenPos = player.Position - level.Camera.Position;
+
+                MadelineScreenPositionResponse response = new MadelineScreenPositionResponse() {
+                    madelineScreenPosition = screenPos,
+                };
+                
+                if (xStr == null || yStr == null || widthStr == null || heightStr == null) {
+                    WriteResponse(c, FormatResponseJson(RCErrorCode.OK, response));
+                    return;
+                }
+                
+                if (!int.TryParse(xStr, out int x)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse x '{xStr}' to an integer");
+                    return;
+                }
+                if (!int.TryParse(yStr, out int y)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse y '{yStr}' to an integer");
+                    return;
+                }
+                if (!int.TryParse(widthStr, out int width)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse width '{widthStr}' to an integer");
+                    return;
+                }
+                if (!int.TryParse(heightStr, out int height)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse height '{heightStr}' to an integer");
+                    return;
+                }
+                
+                bool isInRectangle = screenPos.X >= x && screenPos.X <= x + width && screenPos.Y >= y && screenPos.Y <= y + height;
+
+                response.isInBounds = isInRectangle;
+                response.x = x;
+                response.y = y;
+                response.width = width;
+                response.height = height;
+                
+                WriteResponse(c, FormatResponseJson(RCErrorCode.OK, response));
+            }
+        };
         #endregion
 
         #region Load / Unload
@@ -1297,6 +1368,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
 
             //Other
             SetRootFolderEndPoint,
+            MadelineScreenPositionEndPoint,
         };
 
         private class UpdateCache {
