@@ -316,7 +316,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Hooks
         private void MainMenu_OnCreateButtons(OuiMainMenu menu, System.Collections.Generic.List<MenuButton> buttons) {
-            StatsManager = new StatManager();
+            if (StatsManager == null) {
+                StatsManager = new StatManager();
+            }
         }
 
         private void LockBlock_TryOpen(On.Celeste.LockBlock.orig_TryOpen orig, LockBlock self, Player player, Follower fol) {
