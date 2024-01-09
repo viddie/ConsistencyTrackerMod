@@ -181,7 +181,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         private void Events_OnEnteredPbRoomWithGolden() {
             Mod.Log($"Triggered PB Entered event");
-            if (PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbEntry) {
+            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbEntry) {
                 return;
             }
 
@@ -191,7 +191,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         private void Events_OnExitedPbRoomWithGolden() {
             Mod.Log($"Triggered PB Exited event");
-            if (PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbPassed) {
+            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbPassed) {
                 return;
             }
 
