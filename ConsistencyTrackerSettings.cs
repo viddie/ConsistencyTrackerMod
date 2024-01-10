@@ -1607,9 +1607,6 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool PacePingEnabled { get; set; } = false;
         
         [SettingIgnore]
-        public PbPingType PacePingPbPingType { get; set; } = PbPingType.NoPing;
-
-        [SettingIgnore]
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {

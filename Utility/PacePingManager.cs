@@ -224,7 +224,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         private void Events_OnExitedPbRoomWithGolden() {
             Mod.Log($"Triggered PB Exited event");
-            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbPassed) {
+            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun) {
                 return;
             }
             
