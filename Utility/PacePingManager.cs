@@ -107,6 +107,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             public string WinMessage { get; set; } = $"WIN!!!";
 
 
+            //Map Specific Settings
+            [JsonProperty("mapSettings")]
+            public Dictionary<string, MapSettings> MapSpecificSettings { get; set; } = new Dictionary<string, MapSettings>();
+
             //Ping Timings
             [JsonProperty("pacePingTimings")]
             public Dictionary<string, List<PaceTiming>> PacePingTimings { get; set; } = new Dictionary<string, List<PaceTiming>>();
@@ -145,12 +149,37 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             [JsonProperty("lastPingedAt")]
             public DateTime LastPingedAt { get; set; }
         }
+
+        public class MapSettings {
+            [JsonProperty("pingsEnabled")]
+            public bool PingsEnabled { get; set; }
+            
+            [JsonProperty("pbPingType")]
+            public PbPingType PbPingType { get; set; }
+        }
         #endregion
 
 
 
         public PaceStateSecret StateSecret { get; set; }
         public PaceState State { get; set; }
+        public MapSettings CurrentMapSettings {
+            get {
+                if (Mod.CurrentChapterStats == null || Mod.CurrentChapterPath == null) return new MapSettings(); //Not in a map
+                string currentMap = Mod.CurrentChapterStats.ChapterSID;
+                if (State.MapSpecificSettings == null) return new MapSettings();
+                if (!State.MapSpecificSettings.ContainsKey(currentMap)) return new MapSettings();
+                return State.MapSpecificSettings[currentMap];
+            }
+            set {
+                if (Mod.CurrentChapterStats == null || Mod.CurrentChapterPath == null) return; //Not in a map
+                string currentMap = Mod.CurrentChapterStats.ChapterSID;
+                if (State.MapSpecificSettings == null) State.MapSpecificSettings = new Dictionary<string, MapSettings>();
+                if (!State.MapSpecificSettings.ContainsKey(currentMap)) State.MapSpecificSettings.Add(currentMap, value);
+                else State.MapSpecificSettings[currentMap] = value;
+                SaveState();
+            }
+        }
 
         public PacePingManager() {
             LoadState();
@@ -181,7 +210,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         private void Events_OnEnteredPbRoomWithGolden() {
             Mod.Log($"Triggered PB Entered event");
-            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbEntry) {
+            if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun) {
+                return;
+            }
+
+            if (!CurrentMapSettings.PingsEnabled || CurrentMapSettings.PbPingType != PbPingType.PingOnPbEntry) {
                 return;
             }
 
@@ -192,6 +225,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private void Events_OnExitedPbRoomWithGolden() {
             Mod.Log($"Triggered PB Exited event");
             if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun || Mod.ModSettings.PacePingPbPingType != PbPingType.PingOnPbPassed) {
+                return;
+            }
+            
+            if (!CurrentMapSettings.PingsEnabled || CurrentMapSettings.PbPingType != PbPingType.PingOnPbPassed) {
                 return;
             }
 
