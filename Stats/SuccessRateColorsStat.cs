@@ -17,6 +17,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
          */
 
     public class SuccessRateColorsStat : Stat {
+        
+        public static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         public static string ChapterColorRed = "{chapter:color-red}";
         public static string ChapterColorYellow = "{chapter:color-yellow}";
@@ -75,15 +77,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                     float successRate = rStats.AverageSuccessOverN(StatManager.AttemptCount);
 
-                    if (successRate >= 0.949999) {
+                    if ((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate < 0.0001) {
                         colorCounts[0]++;
                         tempColorCountsCp[0]++;
 
-                    } else if (successRate >= 0.8) {
+                    } else if ((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate < 0.0001) {
                         colorCounts[1]++;
                         tempColorCountsCp[1]++;
 
-                    } else if (successRate >= 0.5) {
+                    } else if ((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate < 0.0001) {
                         colorCounts[2]++;
                         tempColorCountsCp[2]++;
 
