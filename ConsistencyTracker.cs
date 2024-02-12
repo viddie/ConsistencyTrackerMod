@@ -1290,35 +1290,38 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Checking for external tool updates...");
 
             string basePath = "Assets";
-            
+
+            string commonJsName = "common.js";
             List<string> externalOverlayFiles = new List<string>() {
-                    "common.js",
                     "CCTOverlay.html",
                     "CCTOverlay.js",
                     "CCTOverlay.css",
                     "img/goldberry.gif"
             };
-            string externalOverlayPath = $"{basePath}/ExternalOverlay";
-
+            string externalOverlayFolder = $"ExternalOverlay";
 
             List<string> livedataEditorFiles = new List<string>() {
                     "LiveDataEditTool.html",
                     "LiveDataEditTool.js",
                     "LiveDataEditTool.css",
             };
-            string livedataEditorPath = $"{basePath}/LiveDataEditor";
-
+            string livedataEditorFolder = $"LiveDataEditor";
 
             List<string> physicsInspectorFiles = new List<string>() {
                     "PhysicsInspector.html",
                     "PhysicsInspector.js",
                     "PhysicsInspector.css",
             };
-            string physicsInspectorPath = $"{basePath}/PhysicsInspector";
+            string physicsInspectorFolder = $"PhysicsInspector";
 
-
+            // common.js
+            string alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, commonJsName);
+            if (!File.Exists(alreadyGeneratedPath)) {
+                CreateExternalToolFileFromStream(commonJsName, $"{basePath}/{commonJsName}");
+            }
+            
             //Overlay files
-            string alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "common.js");
+            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, externalOverlayFolder, "CCTOverlay.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
                 VersionsCurrent.Overlay = VersionsNewest.Overlay;
@@ -1326,7 +1329,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
 
                 foreach (string file in externalOverlayFiles) {
-                    CreateExternalToolFileFromStream(file, $"{externalOverlayPath}/{file}");
+                    CreateExternalToolFileFromStream(file, $"{basePath}/{externalOverlayFolder}/{file}", externalOverlayFolder);
                 }
             } else {
                 Log($"External Overlay is up to date at version {VersionsCurrent.Overlay}");
@@ -1335,34 +1338,40 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Path Edit Tool files
 
             //Format Edit Tool files
-            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "LiveDataEditTool.html");
+            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, livedataEditorFolder, "LiveDataEditTool.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
                 VersionsCurrent.LiveDataEditor = VersionsNewest.LiveDataEditor;
 
                 foreach (string file in livedataEditorFiles) {
-                    CreateExternalToolFileFromStream(file, $"{livedataEditorPath}/{file}");
+                    CreateExternalToolFileFromStream(file, $"{basePath}/{livedataEditorFolder}/{file}", livedataEditorFolder);
                 }
             } else {
                 Log($"LiveData Editor is up to date at version {VersionsCurrent.LiveDataEditor}");
             }
 
             //Physics Inspector Tool files
-            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, "PhysicsInspector.html");
+            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, physicsInspectorFolder, "PhysicsInspector.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");
                 VersionsCurrent.PhysicsInspector = VersionsNewest.PhysicsInspector;
 
                 foreach (string file in physicsInspectorFiles) {
-                    CreateExternalToolFileFromStream(file, $"{physicsInspectorPath}/{file}");
+                    CreateExternalToolFileFromStream(file, $"{basePath}/{physicsInspectorFolder}/{file}", physicsInspectorFolder);
                 }
             } else {
                 Log($"Physics Inspector is up to date at version {VersionsCurrent.PhysicsInspector}");
             }
         }
 
-        private void CreateExternalToolFileFromStream(string fileName, string assetPath) {
-            CreateFileFromStream(ExternalToolsFolder, fileName, assetPath);
+        private void CreateExternalToolFileFromStream(string fileName, string assetPath, string subFolder = null) {
+            string path = subFolder != null ? Path.Combine(ExternalToolsFolder, subFolder) : ExternalToolsFolder;
+
+            if (!Directory.Exists(path)) {
+                Directory.CreateDirectory(path);
+            }
+            
+            CreateFileFromStream(path, fileName, assetPath);
         }
         private void CreatePathFileFromStream(string fileName, string assetPath) {
             CreateFileFromStream(PathsFolder, fileName, assetPath);

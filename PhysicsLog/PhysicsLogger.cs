@@ -876,12 +876,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
                     if (entityName == "CassetteBlock") {
                         Color color = Util.GetPrivateProperty<Color>(entity, "color");
+                        //bool isActive = (entity as CassetteBlock).Activated;
+                        //collider = new Hitbox(collider.Width, collider.Height, collider.Position.X, collider.Position.Y - (isActive ? 2 : 0));
                         loggedEntity.Properties.Add("color", color.ToHex());
                     }
                     if (entityName == "WonkyCassetteBlock") {
                         string textureDir = Util.GetPrivateProperty<object>(entity, "textureDir").ToString();
                         char cassetteType = textureDir.Last();
-
+                        
                         Mod.Log($"WonkyCassetteBlock type: {cassetteType}");
 
                         string color = "#a2babc";
