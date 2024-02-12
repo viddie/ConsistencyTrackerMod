@@ -77,15 +77,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                     float successRate = rStats.AverageSuccessOverN(StatManager.AttemptCount);
 
-                    if ((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate < 0.0001) {
+                    if (Math.Abs((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate) < 0.0001) {
                         colorCounts[0]++;
                         tempColorCountsCp[0]++;
 
-                    } else if ((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate < 0.0001) {
+                    } else if (Math.Abs((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate) < 0.0001) {
                         colorCounts[1]++;
                         tempColorCountsCp[1]++;
 
-                    } else if ((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate < 0.0001) {
+                    } else if (Math.Abs((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate) < 0.0001) {
                         colorCounts[2]++;
                         tempColorCountsCp[2]++;
 
