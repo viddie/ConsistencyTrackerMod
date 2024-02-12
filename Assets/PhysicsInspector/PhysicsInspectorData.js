@@ -82,6 +82,40 @@ function parsePhysicsLogFrame(line) {
   };
   return frame;
 }
+
+
+let relevantRoomNames = [];
+function findRelevantRooms() {
+  relevantRoomNames = [];
+
+  //Go through all frames
+  for (let i = 0; i < settings.frameStepSize; i++) {
+    let frameIndex = settings.frameMin != -1 ? settings.frameMin + i : i;
+    frameIndex = Math.min(frameIndex, physicsLogFrames.length - 1);
+    let frame = physicsLogFrames[frameIndex];
+
+    //Go through all roomLayouts
+    for (let j = 0; j < roomLayouts.length; j++) {
+      //Check if frame is in the room, if yes, add room to relevantRoomNames and break
+      if (relevantRoomNames.includes(roomLayouts[j].debugRoomName)) {
+        continue;
+      }
+
+      let roomLayout = roomLayouts[j];
+      let levelBounds = roomLayout.levelBounds;
+
+      if (
+        frame.positionX >= levelBounds.x &&
+        frame.positionX <= levelBounds.x + levelBounds.width &&
+        frame.positionY >= levelBounds.y &&
+        frame.positionY <= levelBounds.y + levelBounds.height
+      ) {
+        relevantRoomNames.push(roomLayout.debugRoomName);
+        break;
+      }
+    }
+  }
+}
 //#endregion
 
 //#region Display Utils

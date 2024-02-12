@@ -363,6 +363,7 @@ function addMouseHandlers() {
     var oldScale = konvaStage.scaleX();
     var pointer = konvaStage.getPointerPosition();
 
+    
     var mousePointTo = {
       x: (pointer.x - konvaStage.x()) / oldScale,
       y: (pointer.y - konvaStage.y()) / oldScale,
@@ -385,6 +386,7 @@ function addMouseHandlers() {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
+    
     konvaStage.position(newPos);
   });
 }
@@ -400,43 +402,6 @@ function createAllElements() {
   konvaPositionLayer.draw();
 }
 
-let relevantRoomNames = [];
-function findRelevantRooms() {
-  relevantRoomNames = [];
-
-  //Go through all frames
-  for (let i = 0; i < physicsLogFrames.length; i++) {
-    let frame = physicsLogFrames[i];
-
-    if (
-      (settings.frameMin != -1 && frame.frameNumber < settings.frameMin) ||
-      (settings.frameMax != -1 && frame.frameNumber > settings.frameMax)
-    ) {
-      continue;
-    }
-
-    //Go through all roomLayouts
-    for (let j = 0; j < roomLayouts.length; j++) {
-      //Check if frame is in the room, if yes, add room to relevantRoomNames and break
-      if (relevantRoomNames.includes(roomLayouts[j].debugRoomName)) {
-        continue;
-      }
-
-      let roomLayout = roomLayouts[j];
-      let levelBounds = roomLayout.levelBounds;
-
-      if (
-        frame.positionX >= levelBounds.x &&
-        frame.positionX <= levelBounds.x + levelBounds.width &&
-        frame.positionY >= levelBounds.y &&
-        frame.positionY <= levelBounds.y + levelBounds.height
-      ) {
-        relevantRoomNames.push(roomLayout.debugRoomName);
-        break;
-      }
-    }
-  }
-}
 //#endregion
 
 //#region Canvas Drawing
@@ -1030,12 +995,12 @@ function drawPhysicsLog() {
   let previousFrame = null;
   pointLabelPreviousValue = null;
 
-  for (let i = 0; i < physicsLogFrames.length; i++) {
-    let frame = physicsLogFrames[i];
+  for (let i = 0; i < settings.frameStepSize; i++) {
+    let frameIndex = settings.frameMin != -1 ? settings.frameMin + i : i;
+    frameIndex = Math.min(frameIndex, physicsLogFrames.length - 1);
+    let frame = physicsLogFrames[frameIndex];
 
-    if (settings.frameMin != -1 && frame.frameNumber < settings.frameMin) continue;
-    if (settings.frameMax != -1 && frame.frameNumber > settings.frameMax) break;
-
+    
     let rasterizedPos = getRasterziedPosition(frame);
     let posX = rasterizedPos.positionX;
     let posY = rasterizedPos.positionY;

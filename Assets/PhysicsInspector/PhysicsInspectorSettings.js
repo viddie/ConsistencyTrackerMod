@@ -41,7 +41,6 @@ let settings = {
 
   frameStepSize: 1000,
   frameMin: 0,
-  frameMax: 1000,
 
   decimals: 2,
 
@@ -113,7 +112,6 @@ function loadSettings() {
   }
 
   settings.frameMin = 0;
-  settings.frameMax = 1000;
 
   for (const key in settingsElements) {
     if (settingsElements.hasOwnProperty(key)) {
@@ -215,6 +213,7 @@ function loadSettings() {
   }
 
   Elements.PointLabels.value = settings.pointLabels;
+  Elements.FrameStepSize.value = settings.frameStepSize+"";
 
   settingsInited = true;
 }
@@ -329,33 +328,43 @@ function applySettings() {
 }
 
 //#region Button Actions
-function framePageUp(mult = 1) {
+function changedFrameStepSize(value){
+  settings.frameStepSize = parseInt(value);
+  saveSettings();
+  updateRecordingInfo();
+  redrawCanvas();
+}
+
+function framePageUp(mult = 1, event) {
+  let stepSize = event.ctrlKey ? 1 : settings.frameStepSize;
   if (settings.frameMin == -1) {
-    settings.frameMin = 1000 * (mult - 1);
-    settings.frameMax = 1000 * mult;
+    settings.frameMin = stepSize * (mult - 1);
   } else {
-    settings.frameMin += 1000 * mult;
-    settings.frameMax += 1000 * mult;
+    settings.frameMin += stepSize * mult;
   }
 
   if (settings.frameMin < 0) {
     settings.frameMin = 0;
-    settings.frameMax = 1000;
   }
+  
+  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(settings.frameStepSize / 2), physicsLogFrames.length - 1)];
 
   updateRecordingInfo();
   redrawCanvas();
+  if(!areModelCoordinatesOnScreen(centerFrame.positionX, centerFrame.positionY)){
+    centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
+  }
 }
 function frameEnd() {
-  settings.frameMin = roomLayoutRecording.frameCount - 1000;
-  settings.frameMax = roomLayoutRecording.frameCount;
+  settings.frameMin = physicsLogFrames.length - settings.frameStepSize;
+  const currentFrame = physicsLogFrames[settings.frameMin];
 
   updateRecordingInfo();
   redrawCanvas();
+  centerOnPositionReal(currentFrame.positionX, currentFrame.positionY);
 }
 function resetFramePage() {
   settings.frameMin = 0;
-  settings.frameMax = 1000;
   updateRecordingInfo();
 }
 function updateFrameButtonStates() {
@@ -364,7 +373,7 @@ function updateFrameButtonStates() {
   } else {
     Elements.PreviousFramesButton.removeAttribute("disabled");
   }
-  if (settings.frameMax >= roomLayoutRecording.frameCount) {
+  if (settings.frameMin + settings.frameStepSize >= physicsLogFrames.length) {
     Elements.NextFramesButton.setAttribute("disabled", true);
     Elements.FinalFramesButton.setAttribute("disabled", true);
   } else {

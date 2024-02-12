@@ -36,11 +36,24 @@
         </svg>
       </div>
       <h5>Frame Navigation</h5>
+      <select id="selected-frame-step-size" onchange="changedFrameStepSize(this.value)" style="width:100%">
+        <option value="1">1 frame per step</option>
+        <option value="5">5 frames per step</option>
+        <option value="10">10 frames per step</option>
+        <option value="15">15 frames per step</option>
+        <option value="20">20 frames per step</option>
+        <option value="30">30 frames per step</option>
+        <option value="50">50 frames per step</option>
+        <option value="100">100 frames per step</option>
+        <option value="300">300 frames per step</option>
+        <option value="500">500 frames per step</option>
+        <option value="1000">1000 frames per step</option>
+      </select>
       <div class="flex-center">
-        <button id="previous-frames-button" onclick="framePageUp(-1)" style="transform:scaleX(-1)"
+        <button id="previous-frames-button" onclick="framePageUp(-1, event)" style="transform:scaleX(-1)"
           class="slim-button">➔</button>
         <div style="width:10px"></div>
-        <button id="next-frames-button" onclick="framePageUp(1)" class="slim-button">➔</button>
+        <button id="next-frames-button" onclick="framePageUp(1, event)" class="slim-button">➔</button>
         <div style="width:10px"></div>
         <button id="final-frames-button" onclick="frameEnd()" class="slim-button">(E)</button>
       </div>

@@ -34,6 +34,7 @@ const Elements = {
   // EntityCounts: "entity-counts",
 
   OptionsContainer: "options-container",
+  FrameStepSize: "selected-frame-step-size",
   PointLabels: "point-labels",
   LayersContainer: "layers-container",
   TooltipsContainer: "tooltips-container",
@@ -200,12 +201,12 @@ function updateRecordingInfo() {
     }
   }
 
-  let frameCountText = roomLayoutRecording.frameCount + " frames";
+  let frameCountText = physicsLogFrames.length + " frames";
   let showingFramesText =
     "(Showing: " +
     settings.frameMin +
     " - " +
-    Math.min(settings.frameMax, roomLayoutRecording.frameCount) +
+    Math.min(settings.frameMin + settings.frameStepSize, physicsLogFrames.length) +
     ")";
 
   let sideAddition = "";
@@ -253,16 +254,46 @@ function goToPosition(x, y) {
   });
 }
 
+function konvaStageDebug(){
+  console.log("Konva Stage: ", {
+    width: konvaStage.width(),
+    height: konvaStage.height(),
+    scale: konvaStage.scaleX(),
+    x: konvaStage.x(),
+    y: konvaStage.y(),
+  });
+}
+
 function centerOnPosition(x, y) {
   goToPosition(x - konvaStage.width() / 2, y - konvaStage.height() / 2);
+}
+
+function centerOnPositionReal(x, y){
+  const scale = konvaStage.scaleX();
+  const newPos = {
+    x: -x * scale + konvaStage.width() / 2,
+    y: -y * scale + konvaStage.height() / 2,
+  };
+  konvaStage.position(newPos);
+}
+
+function areModelCoordinatesOnScreen(x, y){
+  const screenCoords = modelCoordinatesToScreen(x, y);
+  return screenCoords.x >= 0 && screenCoords.x <= konvaStage.width() && screenCoords.y >= 0 && screenCoords.y <= konvaStage.height();
+}
+function modelCoordinatesToScreen(x, y){
+  const scale = konvaStage.scaleX();
+  return {
+    x: x * scale + konvaStage.x(),
+    y: y * scale + konvaStage.y(),
+  };
 }
 
 function centerOnRoom(roomIndex) {
   let roomBounds = roomLayouts[roomIndex].levelBounds;
   let centerX = roomBounds.x + roomBounds.width / 2;
   let centerY = roomBounds.y + roomBounds.height / 2;
-  konvaStage.scale({ x: 1, y: 1 });
-  centerOnPosition(centerX, centerY);
+  centerOnPositionReal(centerX, centerY);
 }
 
 function zeroPad(num, size) {
