@@ -734,7 +734,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_TITLE")} ==="));
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_LIVE_DATA_FORMAT_EDITING_OPEN_EDITOR_IN_BROWSER")) {
                 OnPressed = () => {
-                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditTool.html");
+                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "LiveDataEditor", "LiveDataEditTool.html");
                     string path = System.IO.Path.GetFullPath(relPath);
                     Mod.LogVerbose($"Opening format editor at '{path}'");
                     Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
@@ -805,7 +805,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Item menuItem;
 
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_EXTERNAL_OVERLAY_SETTINGS_OPEN_OVERLAY_IN_BROWSER")).Pressed(() => {
-                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "CCTOverlay.html"));
+                string path = System.IO.Path.GetFullPath(ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "ExternalOverlay", "CCTOverlay.html"));
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             }));
 
@@ -1509,7 +1509,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_TITLE")} ==="));
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_GENERAL_OPEN_IN_BROWSER")) {
                 OnPressed = () => {
-                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector.html");
+                    string relPath = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.ExternalToolsFolder, "PhysicsInspector", "PhysicsInspector.html");
                     string path = System.IO.Path.GetFullPath(relPath);
                     Mod.LogVerbose($"Opening physics inspector at '{path}'");
                     Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });

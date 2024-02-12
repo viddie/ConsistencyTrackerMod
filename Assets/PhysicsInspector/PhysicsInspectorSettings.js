@@ -336,7 +336,7 @@ function changedFrameStepSize(value){
 }
 
 function framePageUp(mult = 1, event) {
-  let stepSize = event.ctrlKey ? 1 : settings.frameStepSize;
+  let stepSize = event.ctrlKey ? 1 : event.shiftKey ? settings.frameStepSize * 5 : settings.frameStepSize;
   if (settings.frameMin == -1) {
     settings.frameMin = stepSize * (mult - 1);
   } else {
@@ -355,13 +355,18 @@ function framePageUp(mult = 1, event) {
     centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
   }
 }
-function frameEnd() {
-  settings.frameMin = physicsLogFrames.length - settings.frameStepSize;
-  const currentFrame = physicsLogFrames[settings.frameMin];
+function frameEnd(event) {
+  if(event.ctrlKey){
+    settings.frameMin = 0;
+  } else {
+    settings.frameMin = physicsLogFrames.length - settings.frameStepSize;
+  }
+  
+  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(settings.frameStepSize / 2), physicsLogFrames.length - 1)];
 
   updateRecordingInfo();
   redrawCanvas();
-  centerOnPositionReal(currentFrame.positionX, currentFrame.positionY);
+  centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
 }
 function resetFramePage() {
   settings.frameMin = 0;

@@ -34,7 +34,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             public static string Mod => "2.5.9";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
-            public static string PhysicsInspector => "1.2.1";
+            public static string PhysicsInspector => "1.3.0";
         }
         public class VersionsCurrent {
             public static string Overlay {
@@ -1311,8 +1311,35 @@ namespace Celeste.Mod.ConsistencyTracker {
                     "PhysicsInspector.html",
                     "PhysicsInspector.js",
                     "PhysicsInspector.css",
+                    "PhysicsInspectorCanvas.js",
+                    "PhysicsInspectorData.js",
+                    "PhysicsInspectorSettings.js",
+                    "konva.min.js",
             };
             string physicsInspectorFolder = $"PhysicsInspector";
+            
+            
+            //Delete the old files, that are NOT yet sorted into the new folders
+            foreach (string file in externalOverlayFiles) {
+                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
+                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
+                }
+            }
+            if (Directory.Exists(GetPathToFile(ExternalToolsFolder, "img"))) {
+                Directory.Delete(GetPathToFile(ExternalToolsFolder, "img"));
+            }
+            
+            foreach (string file in livedataEditorFiles) {
+                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
+                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
+                }
+            }
+            foreach (string file in physicsInspectorFiles) {
+                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
+                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
+                }
+            }
+            
 
             // common.js
             string alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, commonJsName);
@@ -1321,12 +1348,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             
             //Overlay files
+            CheckFolderExists(GetPathToFile(ExternalToolsFolder, externalOverlayFolder));
             alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, externalOverlayFolder, "CCTOverlay.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
                 VersionsCurrent.Overlay = VersionsNewest.Overlay;
 
-                CheckFolderExists(GetPathToFile(ExternalToolsFolder, "img"));
+                CheckFolderExists(GetPathToFile(ExternalToolsFolder, externalOverlayFolder, "img"));
 
                 foreach (string file in externalOverlayFiles) {
                     CreateExternalToolFileFromStream(file, $"{basePath}/{externalOverlayFolder}/{file}", externalOverlayFolder);
@@ -1338,6 +1366,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Path Edit Tool files
 
             //Format Edit Tool files
+            CheckFolderExists(GetPathToFile(ExternalToolsFolder, livedataEditorFolder));
             alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, livedataEditorFolder, "LiveDataEditTool.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
@@ -1351,6 +1380,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             //Physics Inspector Tool files
+            CheckFolderExists(GetPathToFile(ExternalToolsFolder, physicsInspectorFolder));
             alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, physicsInspectorFolder, "PhysicsInspector.html");
             if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector) || !File.Exists(alreadyGeneratedPath)) {
                 Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");

@@ -16,7 +16,7 @@
 <body class="flex-center">
   <div id="main-view" class="flex-center">
     <div class="flex-center-column">
-      <h1>Physics Inspector Tool (v1.2.1)</h1>
+      <h1>Physics Inspector Tool (v1.3.0)</h1>
       <p></p>
       <h2 id="loading-text">Loading data...</h2>
     </div>
@@ -48,6 +48,8 @@
         <option value="300">300 frames per step</option>
         <option value="500">500 frames per step</option>
         <option value="1000">1000 frames per step</option>
+        <option value="none" disabled>Hint: CTRL + Click always moves 1 frame!</option>
+        <option value="none" disabled>Hint: SHIFT + Click moves 5x the frames!</option>
       </select>
       <div class="flex-center">
         <button id="previous-frames-button" onclick="framePageUp(-1, event)" style="transform:scaleX(-1)"
@@ -55,7 +57,7 @@
         <div style="width:10px"></div>
         <button id="next-frames-button" onclick="framePageUp(1, event)" class="slim-button">➔</button>
         <div style="width:10px"></div>
-        <button id="final-frames-button" onclick="frameEnd()" class="slim-button">(E)</button>
+        <button id="final-frames-button" onclick="frameEnd(event)" class="slim-button">(E)</button>
       </div>
       <hr>
       <h5>Recordings</h5>
@@ -138,7 +140,7 @@
           <button onclick="openEntitiesCountDialog()">Entity Counts</button>
           <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
           <button onclick="console.log('bleh')" disabled>More coming soon...</button>
-          <p>Version: 1.1.2</p>
+          <p>Version: 1.3.0</p>
         </div>
         <div id="entities-count-modal" class="modal">
           <h5 id="total-entities"></h5>
