@@ -155,9 +155,40 @@ function OnShowInspectorView() {
 
   centerOnPosition(centerX, centerY);
   applySettings();
+  
+  replayTimeoutFunction();
 }
 
 
+let replayTimeout = null;
+let replayIdleFrameCounter = 0;
+function replayTimeoutFunction() {
+  let speed = settings.replaySpeed; //In multiplier of frames, where 1 is 1 frame per 60th of a second
+  let ms = 1000 / 60 / speed;
+
+  if(settings.replayPlaying){
+    console.log("Replay running...");
+    let frame = physicsLogFrames[settings.frameMin];
+    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 30){
+      replayIdleFrameCounter++;
+    } else {
+      settings.frameMin += 1;
+      if (settings.frameMin < 0 || settings.frameMin >= physicsLogFrames.length) {
+        settings.frameMin = 0;
+      }
+      
+      frame = physicsLogFrames[settings.frameMin];
+
+      updateRecordingInfo();
+      redrawCanvas();
+    }
+    
+    if(!areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
+      centerOnPositionReal(frame.positionX, frame.positionY);
+    }
+  }
+  replayTimeout = setTimeout(replayTimeoutFunction, ms);
+}
 
 function getRasterziedPosition(frame) {
   if (settings.rasterizeMovement) {
@@ -280,6 +311,11 @@ function centerOnPositionReal(x, y){
 function areModelCoordinatesOnScreen(x, y){
   const screenCoords = modelCoordinatesToScreen(x, y);
   return screenCoords.x >= 0 && screenCoords.x <= konvaStage.width() && screenCoords.y >= 0 && screenCoords.y <= konvaStage.height();
+}
+function areModelCoordinatesComfortablyOnScreen(x, y){
+  const screenCoords = modelCoordinatesToScreen(x, y);
+  //Check if the coordinates are within comfortably within the screen (100 pixels distance from the edge)
+  return screenCoords.x >= 300 && screenCoords.x <= konvaStage.width() - 200 && screenCoords.y >= 100 && screenCoords.y <= konvaStage.height() - 100;
 }
 function modelCoordinatesToScreen(x, y){
   const scale = konvaStage.scaleX();

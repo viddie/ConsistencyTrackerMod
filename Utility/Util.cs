@@ -77,11 +77,49 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return (T)property.GetValue(null, null);
             }
         }
+        
+        public static T GetProtectedProperty<T>(object obj, string propertyName, bool isField = true, bool isPublic = false) {
+            if (obj == null) {
+                Mod.Log($"Object is null! Property: {propertyName}");
+                return default(T);
+            } else if (propertyName == null) {
+                Mod.Log($"Property name is null! Object: {obj.GetType().Name}");
+                return default(T);
+            }
 
-            /// <summary>
-            /// Converts from ticks (ns) to frames (17ms)
-            /// </summary>
-            public static long TicksToFrames(long ticks) {
+            Type type = obj.GetType();
+
+            BindingFlags flags = BindingFlags.Instance;
+
+            if (isPublic) {
+                flags |= BindingFlags.Public;
+            } else {
+                flags |= BindingFlags.NonPublic;
+            }
+
+            if (isField) {
+                FieldInfo field = type.GetField(propertyName, flags);
+                if (field == null) {
+                    Mod.Log($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    return default(T);
+                }
+                return (T)field.GetValue(obj);
+
+            } else {
+                PropertyInfo property = type.GetProperty(propertyName, flags);
+                if (property == null) {
+                    Mod.Log($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    return default(T);
+                }
+                return (T)property.GetValue(obj, null);
+            }
+        }
+
+        
+        /// <summary>
+        /// Converts from ticks (ns) to frames (17ms)
+        /// </summary>
+        public static long TicksToFrames(long ticks) {
             return ticks / 10000 / 17;
         }
 

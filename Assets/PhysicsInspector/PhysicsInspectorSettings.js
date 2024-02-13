@@ -39,8 +39,11 @@ let settings = {
   showOnlyRelevantRooms: true,
   rasterizeMovement: false,
 
-  frameStepSize: 1000,
+  frameStepSize: 500,
   frameMin: 0,
+  
+  replaySpeed: 1,
+  replayPlaying: false,
 
   decimals: 2,
 
@@ -78,6 +81,7 @@ let settings = {
 let settingsElements = {
   showRoomNames: "Show Room Names",
   rasterizeMovement: "Rasterize Movement",
+  replayPlaying: "Enable Replay",
 };
 let layerVisibilityElements = {
   layerVisibleRoomLayout: "Room Layout",
@@ -214,6 +218,17 @@ function loadSettings() {
 
   Elements.PointLabels.value = settings.pointLabels;
   Elements.FrameStepSize.value = settings.frameStepSize+"";
+  
+  //Fix the initial state of newly added settings
+  if(settings.replayPlaying === undefined){
+    settings.replayPlaying = false;
+  }
+  if(settings.replaySpeed === undefined){
+    settings.replaySpeed = 1;
+  }
+  
+  settings.replaySpeed = 1;
+  
 
   settingsInited = true;
 }
@@ -325,11 +340,22 @@ function applySettings() {
   if (!settings.layerVisiblePosition) {
     konvaPositionLayer.hide();
   }
+  
+  if(settings.frameStepSize === 1) {
+    konvaRoomMovableEntitiesInitialLayer.visible(false);
+  }
 }
 
 //#region Button Actions
 function changedFrameStepSize(value){
   settings.frameStepSize = parseInt(value);
+  
+  if(settings.frameStepSize === 1){
+    konvaRoomMovableEntitiesInitialLayer.visible(false);
+  } else {
+    konvaRoomMovableEntitiesInitialLayer.visible(true);
+  }
+  
   saveSettings();
   updateRecordingInfo();
   redrawCanvas();

@@ -78,9 +78,26 @@ function parsePhysicsLogFrame(line) {
     inputs: values[13],
     analogAimX: valuesLength > 15 ? parseFloat(values[14]) : -1,
     analogAimY: valuesLength > 15 ? parseFloat(values[15]) : -1,
+    entities: valuesLength > 16 ? joinArray(values.slice(16), ",") : "",
     idleFrames: [],
   };
+  
+  if(frame.entities !== ""){
+    frame.entities = JSON.parse(frame.entities);
+  }
+  
   return frame;
+}
+
+function joinArray(arr, separator) {
+    let str = "";
+    for (let i = 0; i < arr.length; i++) {
+        if (i > 0) {
+            str += separator;
+        }
+        str += arr[i];
+    }
+    return str;
 }
 
 

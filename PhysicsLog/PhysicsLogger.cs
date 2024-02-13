@@ -236,58 +236,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             if (MInput.GamePads.Length > 0 && Input.Aim.GamepadIndex >= 0) {
                 Vector2 aim = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left;
-                //toWrite += $",{Input.Aim.Value.X},{Input.Aim.Value.Y}";
                 toWrite += $",{aim.X},{aim.Y}";
             } else {
                 toWrite += $",-1,-1";
             }
             
-
-            //Vector2 aimValue = Input.Aim.Value;
-            //float aimThresh = Input.Aim.Threshold;
-            //Vector2 minputThumbLeft = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left;
-            //float minputThumbLeftAngle = MInput.GamePads[Input.Aim.GamepadIndex].CurrentState.ThumbSticks.Left.Angle();
-            //Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
-            //Mod.Log($"{aimValue.X},{aimValue.Y},{aimThresh},{aimValue.Length()},{aimValue.LengthSquared()},{minputThumbLeft.X},{minputThumbLeft.Y},{Math.Round(minputThumbLeftAngle * 180 / Math.PI)},{Input.MoveX.Value},{Input.MoveY.Value},{correctDashPrecision.X},{correctDashPrecision.Y}", isFollowup:true);
-
-            //int dashDirection = 0;
-            //int moveDirection = 0;
-
-            //Vector2 correctDashPrecision = CorrectDashPrecision(Input.LastAim);
-            //float dashVectorAngle = (float)(correctDashPrecision.Angle() * 180 / Math.PI);
-            //float dashAngle = VectorAngleToTAS(dashVectorAngle);
-            //if (dashAngle >= 342.5 || dashAngle < 17.5) {
-            //    dashDirection = Direction.UP;
-            //} else if (dashAngle >= 17.5 && dashAngle < 72.5) {
-            //    dashDirection = Direction.UP_RIGHT;
-            //} else if (dashAngle >= 72.5 && dashAngle < 112.5) {
-            //    dashDirection = Direction.RIGHT;
-            //} else if (dashAngle >= 112.5 && dashAngle < 157.5) {
-            //    dashDirection = Direction.DOWN_RIGHT;
-            //} else if (dashAngle >= 157.5 && dashAngle < 202.5) {
-            //    dashDirection = Direction.DOWN;
-            //} else if (dashAngle >= 202.5 && dashAngle < 247.5) {
-            //    dashDirection = Direction.DOWN_LEFT;
-            //} else if (dashAngle >= 247.5 && dashAngle < 287.5) {
-            //    dashDirection = Direction.LEFT;
-            //} else if (dashAngle >= 287.5 && dashAngle < 342.5) {
-            //    dashDirection = Direction.UP_LEFT;
-            //}
-
-            //Vector2 aimValue = Input.Aim.Value;
-            //if (aimValue.X > 0.3f) {
-            //    moveDirection = Direction.RIGHT;
-            //} else if (aimValue.X < -0.3f) {
-            //    moveDirection = Direction.LEFT;
-            //}
-            //if (aimValue.Y > 0.7f) {
-            //    moveDirection |= Direction.DOWN;
-            //} else if (aimValue.Y < -0.7f) {
-            //    moveDirection |= Direction.UP;
-            //}
-            
-            //Mod.Log($"correctDashPrecision.Angle(): {correctDashPrecision.Angle()}, dashAngle: {dashAngle} | Move Direction: {Direction.ToString(moveDirection)}, Dash Direction: {Direction.ToString(dashDirection)}", isFollowup: true);
-
+            HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
+            toWrite += $",{JsonConvert.SerializeObject(GetEntitiesFromLevel(level, EntityList.Movable, ref entities))}";
 
             if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
@@ -301,23 +256,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
             RecordingsManager.LogWriter.WriteLine(toWrite);
-        }
-        private Vector2 CorrectDashPrecision(Vector2 dir) {
-            if (dir.X != 0f && Math.Abs(dir.X) < 0.001f) {
-                dir.X = 0f;
-                dir.Y = Math.Sign(dir.Y);
-            } else if (dir.Y != 0f && Math.Abs(dir.Y) < 0.001f) {
-                dir.Y = 0f;
-                dir.X = Math.Sign(dir.X);
-            }
-
-            return dir;
-        }
-        private float VectorAngleToTAS(float angle) {
-            return mod(-angle + 90, 360);
-        }
-        private float mod(float x, int m) {
-            return (x % m + m) % m;
         }
 
         public void StartRecording() {
@@ -360,7 +298,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
 
         public string GetPhysicsLogHeader() {
-            return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs,Analog X,Analog Y";
+            return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs,Analog X,Analog Y,Entities";
         }
 
         private Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
@@ -572,12 +510,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private List<PhysicsLogRoomLayout> VisitedRoomsLayouts;
         private HashSet<Entity> LoggedEntitiesRaw;
 
-        private readonly List<string> EntityNamesOnlyPosition = new List<string>() {
+        private static readonly List<string> EntityNamesOnlyPosition = new List<string>() {
             "CrystalStaticSpinner",
             "DustStaticSpinner",
             "CustomSpinner",
+            "DustTrackSpinner", "DustRotateSpinner",
         };
-        private readonly List<string> EntityNamesHitboxColliders = new List<string>() {
+        private static readonly List<string> EntityNamesHitboxColliders = new List<string>() {
             "Spikes", "RainbowSpikes", "BouncySpikes",
             "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
             "Lightning",
@@ -623,15 +562,15 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             //Modded Entities
             "Portal",
         };
-        private readonly List<string> EntityNamesHitcircleColliders = new List<string>() {
+        private static readonly List<string> EntityNamesHitcircleColliders = new List<string>() {
             "Booster", "BlueBooster",
             "Bumper", "StaticBumper", "VortexBumper",
             "Shield",
         };
-        private readonly List<string> EntityNamesOther = new List<string>() {
+        private static readonly List<string> EntityNamesOther = new List<string>() {
             "ConnectedMoveBlock",
         };
-        private readonly List<string> IgnoreEntityNames = new List<string>() {
+        private static readonly List<string> IgnoreEntityNames = new List<string>() {
             //UI Entities
             "Player",
             "InputHistoryListener", "InputHistoryListEntity",
@@ -746,8 +685,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "Entity", "HelperEntity",
         };
 
-        private readonly List<string> EntityNamesToTest = new List<string>() {
+        private static readonly List<string> EntityNamesToTest = new List<string>() {
             
+        };
+
+        private static readonly List<string> MovableEntityNames = new List<string>() {
+            "DustTrackSpinner", "DustRotateSpinner",
+            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
+            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
+            "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
+            "BounceBlock", //Core Block
+            "CrushBlock", //Kevin
+            "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb",
+            "Cloud",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock",
+            "FallingBlock", "GroupedFallingBlock", "RisingBlock",
+            "AttachedJumpThru",
+            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
         };
 
 
@@ -798,266 +752,318 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 File.AppendAllText(path, $"{y}: {line}\n");
             }
 
-            List<LoggedEntity> entities = new List<LoggedEntity>();
-            List<LoggedEntity> otherEntities = new List<LoggedEntity>();
-            foreach (Entity entity in level.Entities) {
-                if (LoggedEntitiesRaw.Contains(entity)) continue;
-                LoggedEntitiesRaw.Add(entity);
-
-                string entityName = entity.GetType().Name;
-                LoggedEntity loggedEntity = new LoggedEntity() {
-                    Type = entityName,
-                    Position = entity.Position.ToJsonVector2(),
-                };
-                Collider collider = null;
-                bool logged = false;
-
-                if (EntityNamesToTest.Contains(entityName)) {
-                    Util.GetPrivateProperty<object>(entity, "a");
-                }
-
-                if (EntityNamesOnlyPosition.Contains(entityName)) {
-                    collider = entity.Collider;
-                    logged = true;
-                }
-
-                //Hitbox entities
-                if (EntityNamesHitboxColliders.Contains(entityName) || entityName == "Solid") {
-                    if (entity.Collider == null) {
-                        Mod.Log($"Entity '{entityName}' has no collider!");
-                        continue;
-                    }
-                    if (entity.Collider is Hitbox == false) {
-                        Mod.Log($"Entity '{entityName}' has a collider that is not a Hitbox!");
-                        continue;
-                    }
-
-                    collider = entity.Collider;
-
-                    //Optional properties
-                    if (entityName == "Strawberry") {
-                        Strawberry strawberry = entity as Strawberry;
-                        loggedEntity.Properties.Add("golden", strawberry.Golden);
-                    }
-
-                    if (entityName == "Refill" || entityName == "RefillWall") {
-                        bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
-                        bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
-
-                        loggedEntity.Properties.Add("twoDashes", twoDashes);
-                        loggedEntity.Properties.Add("oneUse", oneUse);
-                    }
-
-                    if (entityName == "MoveBlock" || entityName == "VitMoveBlock") {
-                        MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "direction");
-                        loggedEntity.Properties.Add("direction", direction.ToString());
-                    }
-                    if (entityName == "DreamMoveBlock") {
-                        MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "Direction", isPublic: true);
-                        loggedEntity.Properties.Add("direction", direction.ToString());
-                    }
-
-                    if (entityName == "Cloud") {
-                        bool fragile = Util.GetPrivateProperty<bool>(entity, "fragile");
-                        loggedEntity.Properties.Add("fragile", fragile);
-                    }
-
-                    if (entityName == "ClutterBlockBase") {
-                        ClutterBlockBase clutterBlockBase = entity as ClutterBlockBase;
-                        ClutterBlock.Colors color = clutterBlockBase.BlockColor;
-                        loggedEntity.Properties.Add("color", color.ToString());
-                    }
-
-                    if (entityName == "ClutterSwitch") {
-                        ClutterSwitch clutterSwitch = entity as ClutterSwitch;
-                        ClutterBlock.Colors color = Util.GetPrivateProperty<ClutterBlock.Colors>(clutterSwitch, "color");
-                        loggedEntity.Properties.Add("color", color.ToString());
-                    }
-
-                    if (entityName == "CassetteBlock") {
-                        Color color = Util.GetPrivateProperty<Color>(entity, "color");
-                        //bool isActive = (entity as CassetteBlock).Activated;
-                        //collider = new Hitbox(collider.Width, collider.Height, collider.Position.X, collider.Position.Y - (isActive ? 2 : 0));
-                        loggedEntity.Properties.Add("color", color.ToHex());
-                    }
-                    if (entityName == "WonkyCassetteBlock") {
-                        string textureDir = Util.GetPrivateProperty<object>(entity, "textureDir").ToString();
-                        char cassetteType = textureDir.Last();
-                        
-                        Mod.Log($"WonkyCassetteBlock type: {cassetteType}");
-
-                        string color = "#a2babc";
-                        if (cassetteType == 'A') {
-                            color = "#3d73be";
-                        } else if (cassetteType == 'B') {
-                            color = "#73324f";
-                        } else if (cassetteType == 'C') {
-                            color = "#c08362";
-                        } else if (cassetteType == 'D') {
-                            color = "#346157";
-                        }
-
-                        loggedEntity.Properties.Add("color", color);
-                    }
-
-                    if (entityName == "MovingTouchSwitch") {
-                        Vector2[] nodes = Util.GetPrivateProperty<Vector2[]>(entity, "touchSwitchNodes");
-                        List<JsonVector2> jsonNodes = new List<JsonVector2>();
-                        foreach (Vector2 node in nodes) {
-                            jsonNodes.Add(node.ToJsonVector2());
-                        }
-                        loggedEntity.Properties.Add("nodes", jsonNodes);
-                    }
-
-                    logged = true;
-                }
-
-
-                //Hitcircle entities
-                if (EntityNamesHitcircleColliders.Contains(entityName)) {
-                    if (entity.Collider == null) {
-                        Mod.Log($"Entity '{entityName}' has no collider!");
-                        continue;
-                    }
-                    if (entity.Collider is Circle == false) {
-                        Mod.Log($"Entity '{entityName}' has a collider that is not a Circle!");
-                        continue;
-                    }
-
-                    collider = entity.Collider;
-
-                    //Optional properties
-                    if (entityName == "Booster") {
-                        Booster booster = entity as Booster;
-                        bool red = Util.GetPrivateProperty<bool>(booster, "red");
-                        loggedEntity.Properties.Add("red", red);
-                    }
-                    if (entityName == "StaticBumper") {
-                        //public field: NotCoreMode
-                        bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "NotCoreMode", isPublic: true);
-                        loggedEntity.Properties.Add("notCoreMode", notCoreMode);
-                    }
-                    if (entityName == "VortexBumper") {
-                        //Interesting properties: fireMode, twoDashes, oneUse, deadly, notCoreMode
-                        bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
-                        bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
-                        bool deadly = Util.GetPrivateProperty<bool>(entity, "deadly");
-                        bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "notCoreMode");
-
-                        loggedEntity.Properties.Add("twoDashes", twoDashes);
-                        loggedEntity.Properties.Add("oneUse", oneUse);
-                        loggedEntity.Properties.Add("deadly", deadly);
-                        loggedEntity.Properties.Add("notCoreMode", notCoreMode);
-                    }
-
-                    entities.Add(loggedEntity);
-                    logged = true;
-                }
-
-                //Other entities
-                if (EntityNamesOther.Contains(entityName)) {
-                    if (entityName == "ConnectedMoveBlock") {
-                        MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "Direction", isPublic: true);
-                        loggedEntity.Properties.Add("direction", direction.ToString());
-
-                        Hitbox[] colliders = Util.GetPrivateProperty<Hitbox[]>(entity, "Colliders", isPublic: true);
-                        if (colliders != null && colliders.Length > 0) {
-                            collider = colliders[0];
-                        }
-                    }
-
-                    logged = true;
-                }
-
-
-                //Glider, TheoCrystal
-                if (entityName == "Glider" || entityName == "CustomGlider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
-                    Holdable hold = null;
-
-                    if (entityName == "Glider")
-                        hold = (entity as Glider).Hold;
-                    else if (entityName == "TheoCrystal")
-                        hold = (entity as TheoCrystal).Hold;
-
-                    if (hold == null) {
-                        hold = Util.GetPrivateProperty<Holdable>(entity, "Hold", isPublic: true);
-                    }
-
-                    if (hold == null) {
-                        collider = Util.GetPrivateProperty<Collider>(entity, "hitBox");
-                        if (collider == null && entity.Collider != null) {
-                            collider = entity.Collider;
-                        }
-                    } else {
-                        collider = hold.PickupCollider;
-                    }
-
-                    if (collider == null) {
-                        Mod.Log($"Holdable entity '{entityName}' has no collider!");
-                        continue;
-                    }
-                    logged = true;
-                }
-
-                //FinalBoss, BadelineBoost, FlingBird
-                if (entityName == "FinalBoss" || entityName == "BadelineBoost" || entityName == "FlingBird") {
-                    List<JsonVector2> nodes = new List<JsonVector2>();
-                    Vector2[] nodesEntity = null;
-                    int startIndex = 1;
-
-                    if (entityName == "FinalBoss") {
-                        FinalBoss boss = entity as FinalBoss;
-                        nodesEntity = Util.GetPrivateProperty<Vector2[]>(boss, "nodes");
-
-                    } else if (entityName == "BadelineBoost") {
-                        BadelineBoost boost = entity as BadelineBoost;
-                        nodesEntity = Util.GetPrivateProperty<Vector2[]>(boost, "nodes");
-
-                    } else if (entityName == "FlingBird") {
-                        FlingBird bird = entity as FlingBird;
-                        List<Vector2> allNodes = new List<Vector2>();
-                        for (int i = 0; i < bird.NodeSegments.Count; i++) {
-                            Vector2[] segment = bird.NodeSegments[i];
-                            allNodes.Add(segment[0]);
-                        }
-                        nodesEntity = allNodes.ToArray();
-                    }
-
-                    for (int i = startIndex; i < nodesEntity.Length; i++) {
-                        Vector2 node = nodesEntity[i];
-                        nodes.Add(node.ToJsonVector2());
-                    }
-
-                    collider = entity.Collider;
-
-                    loggedEntity.Properties.Add("nodes", nodes);
-                    logged = true;
-                }
-
-                if (logged) {
-                    AddColliderInfoToLoggedEntity(loggedEntity, collider);
-                    entities.Add(loggedEntity);
-
-                } else if (IgnoreEntityNames.Contains(entityName) == false) {
-                    AddOtherInfoToLoggedEntity(loggedEntity, entity);
-                    otherEntities.Add(loggedEntity);
-                }
-            }
-
+            List<LoggedEntity> entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
+            List<LoggedEntity> movableEntities = GetEntitiesFromLevel(level, EntityList.Movable, ref LoggedEntitiesRaw);
+            List<LoggedEntity> otherEntities = GetEntitiesFromLevel(level, EntityList.Other, ref LoggedEntitiesRaw);
+            
             string pathJson = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "room-layout.json");
             PhysicsLogRoomLayout roomLayout = new PhysicsLogRoomLayout() {
                 DebugRoomName = debugRoomName,
                 LevelBounds = level.Bounds.ToJsonRectangle(),
                 SolidTiles = solidTileData,
                 Entities = entities,
+                MovableEntities = movableEntities,
                 OtherEntities = otherEntities,
             };
             VisitedRoomsLayouts.Add(roomLayout);
 
-            //File.WriteAllText(pathJson, JsonConvert.SerializeObject(VisitedRoomsLayouts));
-            //SaveRoomLayoutsToFile(VisitedRoomsLayouts);
-
             Mod.Log($"Room layout saving done!");
+        }
+
+        public enum EntityList {
+            Static,
+            Movable,
+            Other
+        }
+        public static List<LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
+            List<LoggedEntity> entities = new List<LoggedEntity>();
+            foreach (Entity outerEntity in level.Entities) {
+                List<Entity> subEntities = new List<Entity>() {
+                    outerEntity
+                };
+
+                for (int subIndex = 0; subIndex < subEntities.Count; subIndex++) {
+                    Entity entity = subEntities[subIndex];
+                    string entityName = entity.GetType().Name;
+                    if (list == EntityList.Movable) {
+                        if (subIndex == 0 && !MovableEntityNames.Contains(entityName)) continue;
+
+                        if (entity is Platform platform) {
+                            //Mod.Log($"'{entityName}' is a Platform! Checking static movers...");
+                            List<StaticMover> staticMovers = Util.GetPrivateProperty<List<StaticMover>>(platform, "staticMovers");
+                            if (staticMovers != null) {
+                                foreach(StaticMover mover in staticMovers) {
+                                    //Mod.Log($"Static mover: {mover.Entity.GetType().Name}");
+                                    subEntities.Add(mover.Entity);
+                                }
+                            }
+                        }
+                    } else {
+                        if (MovableEntityNames.Contains(entityName)) continue;
+                        StaticMover entityMover = entity.Components.Get<StaticMover>(); //Entity is riding another entity
+                        //When the entitiy has a mover, is attached to a solid AND the solid allows moving, consider the entity as movable
+                        if (entityMover != null && entityMover.Platform != null && entityMover.Platform is Solid solid && solid.AllowStaticMovers
+                            && entityMover.Platform.GetType().IsSubclassOf(typeof(Solid))) {
+                            continue;
+                        }
+                        
+                        //Entities can also ride non-moving platforms
+                        // if (entity is Platform platform) {
+                        //     //Mod.Log($"'{entityName}' is a Platform! Checking static movers...");
+                        //     List<StaticMover> staticMovers = Util.GetPrivateProperty<List<StaticMover>>(platform, "staticMovers");
+                        //     if (staticMovers != null) {
+                        //         foreach(StaticMover mover in staticMovers) {
+                        //             //Mod.Log($"Static mover: {mover.Entity.GetType().Name}");
+                        //             subEntities.Add(mover.Entity);
+                        //         }
+                        //     }
+                        // }
+                    }
+                
+                    if (loggedEntitiesRaw.Contains(entity)) continue;
+                    loggedEntitiesRaw.Add(entity);
+
+                    LoggedEntity loggedEntity = new LoggedEntity() {
+                        Type = entityName,
+                        Position = entity.Position.ToJsonVector2(),
+                    };
+                    Collider collider = null;
+                    bool logged = false;
+
+                    if (EntityNamesToTest.Contains(entityName)) {
+                        Util.GetPrivateProperty<object>(entity, "a");
+                    }
+
+                    if (EntityNamesOnlyPosition.Contains(entityName)) {
+                        collider = entity.Collider;
+                        logged = true;
+                    }
+
+                    //Hitbox entities
+                    if (EntityNamesHitboxColliders.Contains(entityName) || entityName == "Solid") {
+                        if (entity.Collider == null) {
+                            Mod.Log($"Entity '{entityName}' has no collider!");
+                            continue;
+                        }
+                        if (entity.Collider is Hitbox == false) {
+                            Mod.Log($"Entity '{entityName}' has a collider that is not a Hitbox!");
+                            continue;
+                        }
+
+                        collider = entity.Collider;
+
+                        //Optional properties
+                        if (entityName == "Strawberry") {
+                            Strawberry strawberry = entity as Strawberry;
+                            loggedEntity.Properties.Add("golden", strawberry.Golden);
+                        }
+
+                        if (entityName == "Refill" || entityName == "RefillWall") {
+                            bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
+                            bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
+
+                            loggedEntity.Properties.Add("twoDashes", twoDashes);
+                            loggedEntity.Properties.Add("oneUse", oneUse);
+                        }
+
+                        if (entityName == "MoveBlock" || entityName == "VitMoveBlock") {
+                            MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "direction");
+                            loggedEntity.Properties.Add("direction", direction.ToString());
+                        }
+                        if (entityName == "DreamMoveBlock") {
+                            MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "Direction", isPublic: true);
+                            loggedEntity.Properties.Add("direction", direction.ToString());
+                        }
+
+                        if (entityName == "Cloud") {
+                            bool fragile = Util.GetPrivateProperty<bool>(entity, "fragile");
+                            loggedEntity.Properties.Add("fragile", fragile);
+                        }
+
+                        if (entityName == "ClutterBlockBase") {
+                            ClutterBlockBase clutterBlockBase = entity as ClutterBlockBase;
+                            ClutterBlock.Colors color = clutterBlockBase.BlockColor;
+                            loggedEntity.Properties.Add("color", color.ToString());
+                        }
+
+                        if (entityName == "ClutterSwitch") {
+                            ClutterSwitch clutterSwitch = entity as ClutterSwitch;
+                            ClutterBlock.Colors color = Util.GetPrivateProperty<ClutterBlock.Colors>(clutterSwitch, "color");
+                            loggedEntity.Properties.Add("color", color.ToString());
+                        }
+
+                        if (entityName == "CassetteBlock") {
+                            Color color = Util.GetPrivateProperty<Color>(entity, "color");
+                            //bool isActive = (entity as CassetteBlock).Activated;
+                            //collider = new Hitbox(collider.Width, collider.Height, collider.Position.X, collider.Position.Y - (isActive ? 2 : 0));
+                            loggedEntity.Properties.Add("color", color.ToHex());
+                        }
+                        if (entityName == "WonkyCassetteBlock") {
+                            string textureDir = Util.GetPrivateProperty<object>(entity, "textureDir").ToString();
+                            char cassetteType = textureDir.Last();
+                        
+                            Mod.Log($"WonkyCassetteBlock type: {cassetteType}");
+
+                            string color = "#a2babc";
+                            if (cassetteType == 'A') {
+                                color = "#3d73be";
+                            } else if (cassetteType == 'B') {
+                                color = "#73324f";
+                            } else if (cassetteType == 'C') {
+                                color = "#c08362";
+                            } else if (cassetteType == 'D') {
+                                color = "#346157";
+                            }
+
+                            loggedEntity.Properties.Add("color", color);
+                        }
+
+                        if (entityName == "MovingTouchSwitch") {
+                            Vector2[] nodes = Util.GetPrivateProperty<Vector2[]>(entity, "touchSwitchNodes");
+                            List<JsonVector2> jsonNodes = new List<JsonVector2>();
+                            foreach (Vector2 node in nodes) {
+                                jsonNodes.Add(node.ToJsonVector2());
+                            }
+                            loggedEntity.Properties.Add("nodes", jsonNodes);
+                        }
+
+                        logged = true;
+                    }
+
+
+                    //Hitcircle entities
+                    if (EntityNamesHitcircleColliders.Contains(entityName)) {
+                        if (entity.Collider == null) {
+                            Mod.Log($"Entity '{entityName}' has no collider!");
+                            continue;
+                        }
+                        if (entity.Collider is Circle == false) {
+                            Mod.Log($"Entity '{entityName}' has a collider that is not a Circle!");
+                            continue;
+                        }
+
+                        collider = entity.Collider;
+
+                        //Optional properties
+                        if (entityName == "Booster") {
+                            Booster booster = entity as Booster;
+                            bool red = Util.GetPrivateProperty<bool>(booster, "red");
+                            loggedEntity.Properties.Add("red", red);
+                        }
+                        if (entityName == "StaticBumper") {
+                            //public field: NotCoreMode
+                            bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "NotCoreMode", isPublic: true);
+                            loggedEntity.Properties.Add("notCoreMode", notCoreMode);
+                        }
+                        if (entityName == "VortexBumper") {
+                            //Interesting properties: fireMode, twoDashes, oneUse, deadly, notCoreMode
+                            bool twoDashes = Util.GetPrivateProperty<bool>(entity, "twoDashes");
+                            bool oneUse = Util.GetPrivateProperty<bool>(entity, "oneUse");
+                            bool deadly = Util.GetPrivateProperty<bool>(entity, "deadly");
+                            bool notCoreMode = Util.GetPrivateProperty<bool>(entity, "notCoreMode");
+
+                            loggedEntity.Properties.Add("twoDashes", twoDashes);
+                            loggedEntity.Properties.Add("oneUse", oneUse);
+                            loggedEntity.Properties.Add("deadly", deadly);
+                            loggedEntity.Properties.Add("notCoreMode", notCoreMode);
+                        }
+
+                        entities.Add(loggedEntity);
+                        logged = true;
+                    }
+
+                    //Other entities
+                    if (EntityNamesOther.Contains(entityName)) {
+                        if (entityName == "ConnectedMoveBlock") {
+                            MoveBlock.Directions direction = Util.GetPrivateProperty<MoveBlock.Directions>(entity, "Direction", isPublic: true);
+                            loggedEntity.Properties.Add("direction", direction.ToString());
+
+                            Hitbox[] colliders = Util.GetPrivateProperty<Hitbox[]>(entity, "Colliders", isPublic: true);
+                            if (colliders != null && colliders.Length > 0) {
+                                collider = colliders[0];
+                            }
+                        }
+
+                        logged = true;
+                    }
+
+
+                    //Glider, TheoCrystal
+                    if (entityName == "Glider" || entityName == "CustomGlider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
+                        Holdable hold = null;
+
+                        if (entityName == "Glider")
+                            hold = (entity as Glider).Hold;
+                        else if (entityName == "TheoCrystal")
+                            hold = (entity as TheoCrystal).Hold;
+
+                        if (hold == null) {
+                            hold = Util.GetPrivateProperty<Holdable>(entity, "Hold", isPublic: true);
+                        }
+
+                        if (hold == null) {
+                            collider = Util.GetPrivateProperty<Collider>(entity, "hitBox");
+                            if (collider == null && entity.Collider != null) {
+                                collider = entity.Collider;
+                            }
+                        } else {
+                            collider = hold.PickupCollider;
+                        }
+
+                        if (collider == null) {
+                            Mod.Log($"Holdable entity '{entityName}' has no collider!");
+                            continue;
+                        }
+                        logged = true;
+                    }
+
+                    //FinalBoss, BadelineBoost, FlingBird
+                    if (entityName == "FinalBoss" || entityName == "BadelineBoost" || entityName == "FlingBird") {
+                        List<JsonVector2> nodes = new List<JsonVector2>();
+                        Vector2[] nodesEntity = null;
+                        int startIndex = 1;
+
+                        if (entityName == "FinalBoss") {
+                            FinalBoss boss = entity as FinalBoss;
+                            nodesEntity = Util.GetPrivateProperty<Vector2[]>(boss, "nodes");
+
+                        } else if (entityName == "BadelineBoost") {
+                            BadelineBoost boost = entity as BadelineBoost;
+                            nodesEntity = Util.GetPrivateProperty<Vector2[]>(boost, "nodes");
+
+                        } else if (entityName == "FlingBird") {
+                            FlingBird bird = entity as FlingBird;
+                            List<Vector2> allNodes = new List<Vector2>();
+                            for (int i = 0; i < bird.NodeSegments.Count; i++) {
+                                Vector2[] segment = bird.NodeSegments[i];
+                                allNodes.Add(segment[0]);
+                            }
+                            nodesEntity = allNodes.ToArray();
+                        }
+
+                        for (int i = startIndex; i < nodesEntity.Length; i++) {
+                            Vector2 node = nodesEntity[i];
+                            nodes.Add(node.ToJsonVector2());
+                        }
+
+                        collider = entity.Collider;
+
+                        loggedEntity.Properties.Add("nodes", nodes);
+                        logged = true;
+                    }
+
+                    if (logged && (list == EntityList.Static || list == EntityList.Movable)) {
+                        AddColliderInfoToLoggedEntity(loggedEntity, collider);
+                        entities.Add(loggedEntity);
+
+                    } else if (IgnoreEntityNames.Contains(entityName) == false && list == EntityList.Other) {
+                        AddOtherInfoToLoggedEntity(loggedEntity, entity);
+                        entities.Add(loggedEntity);
+                    }
+                }
+            }
+
+            return entities;
         }
 
         public static void AddColliderInfoToLoggedEntity(LoggedEntity loggedEntity, Collider collider) {
