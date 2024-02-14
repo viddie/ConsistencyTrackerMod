@@ -28,6 +28,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
 
         [JsonProperty("rooms")]
         public List<PhysicsLogRoomLayout> Rooms { get; set; }
+        
+        [JsonProperty("usesMovableEntities")]
+        public bool UsesMovableEntities { get; set; }
 
     }
 }

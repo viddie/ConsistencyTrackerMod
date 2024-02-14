@@ -341,8 +341,10 @@ function applySettings() {
     konvaPositionLayer.hide();
   }
   
-  if(settings.frameStepSize === 1) {
+  if(roomLayoutRecording.usesMovableEntities && settings.frameStepSize === 1){
     konvaRoomMovableEntitiesInitialLayer.visible(false);
+  } else {
+    konvaRoomMovableEntitiesInitialLayer.visible(true);
   }
 }
 
@@ -350,7 +352,7 @@ function applySettings() {
 function changedFrameStepSize(value){
   settings.frameStepSize = parseInt(value);
   
-  if(settings.frameStepSize === 1){
+  if(settings.frameStepSize === 1 && roomLayoutRecording.usesMovableEntities){
     konvaRoomMovableEntitiesInitialLayer.visible(false);
   } else {
     konvaRoomMovableEntitiesInitialLayer.visible(true);
@@ -428,6 +430,11 @@ function ChangeRecording(selected) {
 
   fetchRoomLayout(afterFetchRoomLayout);
   resetFramePage();
+  if (roomLayoutRecording.usesMovableEntities && settings.frameStepSize === 1){
+    konvaRoomMovableEntitiesInitialLayer.visible(false);
+  } else {
+    konvaRoomMovableEntitiesInitialLayer.visible(true);
+  }
 }
 function showSavedRecording(id) {
   selectedRecording = id;

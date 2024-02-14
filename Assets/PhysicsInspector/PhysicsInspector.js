@@ -141,8 +141,8 @@ function OnShowInspectorView() {
   let firstFrame = physicsLogFrames[0];
 
   let firstRoomBounds = roomLayouts[0].levelBounds;
-  let centerX = firstRoomBounds.x + firstRoomBounds.width / 2;
-  let centerY = firstRoomBounds.y + firstRoomBounds.height / 2;
+  let centerX = firstRoomBounds.x + firstRoomBounds.w / 2;
+  let centerY = firstRoomBounds.y + firstRoomBounds.h / 2;
 
   //If the distance of firstFrame position to center of first room is greater than 1000, then center on firstFrame position
   let distanceToCenter = Math.sqrt(
@@ -156,6 +156,9 @@ function OnShowInspectorView() {
   centerOnPosition(centerX, centerY);
   applySettings();
   
+  if(replayTimeout){
+    clearTimeout(replayTimeout);
+  }
   replayTimeoutFunction();
 }
 
@@ -169,9 +172,10 @@ function replayTimeoutFunction() {
   if(settings.replayPlaying){
     console.log("Replay running...");
     let frame = physicsLogFrames[settings.frameMin];
-    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 30){
+    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 30 && frame.flags.indexOf("NoControl") === -1){
       replayIdleFrameCounter++;
     } else {
+      replayIdleFrameCounter = 0;
       settings.frameMin += 1;
       if (settings.frameMin < 0 || settings.frameMin >= physicsLogFrames.length) {
         settings.frameMin = 0;
@@ -569,15 +573,15 @@ function openOtherEntitiesDialog() {
       cell.innerText = roomName + "-" + totalCount;
       row.appendChild(cell);
       cell = document.createElement("td");
-      cell.innerText = entity.type;
+      cell.innerText = entity.t;
       row.appendChild(cell);
       cell = document.createElement("td");
       cell.classList.add("centered");
-      cell.innerText = "(" + entity.position.x.toFixed(2) + "|" + entity.position.y.toFixed(2) + ")";
+      cell.innerText = "(" + entity.p.x.toFixed(2) + "|" + entity.p.y.toFixed(2) + ")";
       row.appendChild(cell);
       cell = document.createElement("td");
       cell.classList.add("centered");
-      let collider = entity.properties.isSolid ? "Solid" : entity.properties.hasCollider ? "Trigger" : "None";
+      let collider = entity.r.isSolid ? "Solid" : entity.r.entity.r.c ? "Trigger" : "None";
       cell.innerText = collider;
       row.appendChild(cell);
       tableElem.appendChild(row);

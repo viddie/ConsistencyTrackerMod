@@ -65,6 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
                 RecordingStarted = recordingStarted,
                 FrameCount = frameCount,
                 Rooms = rooms,
+                UsesMovableEntities = Mod.ModSettings.LogMovableEntities,
             };
 
             File.WriteAllText(pathJson, JsonConvert.SerializeObject(file));

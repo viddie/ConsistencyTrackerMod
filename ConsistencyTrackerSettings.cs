@@ -1482,6 +1482,8 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool LogPhysicsEnabled { get; set; } = false;
         [SettingIgnore]
+        public bool LogMovableEntities { get; set; } = true;
+        [SettingIgnore]
         public bool LogSegmentOnDeath { get; set; } = true;
         [SettingIgnore]
         public bool LogSegmentOnLoadState { get; set; } = true;
@@ -1532,6 +1534,14 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.Log($"Max recent recordings set to {v}");
                 }
             });
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_LOG_MOVABLE_ENTITIES"), LogMovableEntities) {
+                OnValueChange = v => {
+                    LogMovableEntities = v;
+                    Mod.Log($"Logging movable entities {(v ? "enabled" : "disabled")}");
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_LOG_MOVABLE_ENTITIES_HINT"));
+            
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH"), LogSegmentOnDeath) {
                 OnValueChange = v => {
                     LogSegmentOnDeath = v;
@@ -1539,6 +1549,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_DEATH_HINT"));
+            
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE"), LogSegmentOnLoadState) {
                 OnValueChange = v => {
                     LogSegmentOnLoadState = v;
@@ -1546,6 +1557,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_SEGMENT_RECORDING_ON_LOAD_STATE_HINT"));
+            
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD"), LogPhysicsInputsToTasFile) {
                 OnValueChange = v => {
                     LogPhysicsInputsToTasFile = v;
@@ -1554,6 +1566,7 @@ namespace Celeste.Mod.ConsistencyTracker
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_1"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_COPY_TAS_FILE_TO_CLIPBOARD_HINT_2"));
+            
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_FLIP_Y"), LogFlipY) {
                 OnValueChange = v => {
                     LogFlipY = v;

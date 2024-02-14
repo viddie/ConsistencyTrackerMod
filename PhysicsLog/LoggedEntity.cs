@@ -8,19 +8,13 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
     public class LoggedEntity {
-        [JsonProperty("type")]
+        [JsonProperty("t")]
         public string Type { get; set; }
 
-        //[JsonProperty("x")]
-        //public float X { get; set; }
-
-        //[JsonProperty("y")]
-        //public float Y { get; set; }
-
-        [JsonProperty("position")]
+        [JsonProperty("p")]
         public JsonVector2 Position { get; set; }
 
-        [JsonProperty("properties")]
+        [JsonProperty("r")]
         public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
     }
 }

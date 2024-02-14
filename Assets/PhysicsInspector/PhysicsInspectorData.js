@@ -123,9 +123,9 @@ function findRelevantRooms() {
 
       if (
         frame.positionX >= levelBounds.x &&
-        frame.positionX <= levelBounds.x + levelBounds.width &&
+        frame.positionX <= levelBounds.x + levelBounds.w &&
         frame.positionY >= levelBounds.y &&
-        frame.positionY <= levelBounds.y + levelBounds.height
+        frame.positionY <= levelBounds.y + levelBounds.h
       ) {
         relevantRoomNames.push(roomLayout.debugRoomName);
         break;

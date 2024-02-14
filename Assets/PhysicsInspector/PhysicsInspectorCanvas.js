@@ -17,6 +17,7 @@ let hitboxEntityNames = {
     "TempleCrackedBlock",
     "InvisibleBarrier",
     "CustomInvisibleBarrier",
+    "SinkingPlatform",
   ],
   white: ["Spikes", "Lightning", "SeekerBarrier", "CrystalBombDetonator"],
   "#666666": [
@@ -95,30 +96,33 @@ let hitcircleEntityNames = {
   "#33c3ff": ["BlueBooster"],
   Special: ["Booster", "VortexBumper"],
 };
+let otherEntityNames = {
+  green: ["AngryOshiro"],
+};
 let specialEntityColorFunctions = {
   Strawberry: (entity) => {
-    return entity.properties.golden ? "#ffd700" : "#bb0000";
+    return entity.r.golden ? "#ffd700" : "#bb0000";
   },
   Refill: (entity) => {
-    return entity.properties.twoDashes ? "#fa7ded" : "#aedc5e";
+    return entity.r.twoDashes ? "#fa7ded" : "#aedc5e";
   },
   RefillWall: (entity) => {
-    return entity.properties.twoDashes ? "#fa7ded" : "#aedc5e";
+    return entity.r.twoDashes ? "#fa7ded" : "#aedc5e";
   },
   Cloud: (entity) => {
-    return entity.properties.fragile ? "#ffa5ff" : "#77cde3";
+    return entity.r.fragile ? "#ffa5ff" : "#77cde3";
   },
   Booster: (entity) => {
-    return entity.properties.red ? "#d3170a" : "#219974";
+    return entity.r.red ? "#d3170a" : "#219974";
   },
   CassetteBlock: (entity) => {
-    return entity.properties.color;
+    return entity.r.color;
   },
   WonkyCassetteBlock: (entity) => {
-    return entity.properties.color;
+    return entity.r.color;
   },
   VortexBumper: (entity) => {
-    return entity.properties.twoDashes ? "#fa7ded" : entity.properties.oneUse ? "#d3170a" : "#0f58d9";
+    return entity.r.twoDashes ? "#fa7ded" : entity.r.oneUse ? "#d3170a" : "#0f58d9";
   },
 };
 
@@ -143,14 +147,16 @@ let entityNamesText = {
   LinkedZipMover: [0.8, "Z"],
   LinkedZipMoverNoReturn: [0.8, "Z"],
 
+  SinkingPlatform: [0.2, "Sinking\nPlatform"],
+  
   SwapBlock: [0.8, "S"],
   ToggleSwapBlock: [0.8, "S"],
 
   BounceBlock: [0.2, "Core\nBlock"],
   CrushBlock: [0.25, "Kevin"],
 
-  Refill: [0.2, (entity) => (entity.properties.oneUse ? "" : "Refill")],
-  RefillWall: [0.25, (entity) => (entity.properties.oneUse ? "" : "Refill\nWall")],
+  Refill: [0.2, (entity) => (entity.r.oneUse ? "" : "Refill")],
+  RefillWall: [0.25, (entity) => (entity.r.oneUse ? "" : "Refill\nWall")],
 
   CrumblePlatform: [0.8, "C"],
   CrumbleBlock: [0.8, "C"],
@@ -189,8 +195,8 @@ let entityNamesText = {
   Bumper: [0.2, "Bumper"],
   StaticBumper: [0.175, "Static\nBumper"],
   VortexBumper: [
-    (entity) => (entity.properties.oneUse ? 0.125 : 0.175),
-    (entity) => (entity.properties.oneUse ? "Vortex\nBumper\n(One Use)" : "Vortex\nBumper"),
+    (entity) => (entity.r.oneUse ? 0.125 : 0.175),
+    (entity) => (entity.r.oneUse ? "Vortex\nBumper\n(One Use)" : "Vortex\nBumper"),
   ],
   Booster: [0.15, "Bubble"],
   BlueBooster: [0.15, "Blue\nBubble"],
@@ -402,7 +408,9 @@ function addMouseHandlers() {
 function createAllElements() {
   findRelevantRooms();
 
+  console.log("Drawing room bounds...");
   drawRoomBounds();
+  console.log("Drawing entities...");
   roomLayouts.forEach((roomLayout) => {
     let debugRoomName = roomLayout.debugRoomName;
 
@@ -428,6 +436,8 @@ function createAllElements() {
       konvaRoomOtherEntitiesLayer.add(shape);
     });
   });
+  
+  console.log("Drawing physics log...");
   drawPhysicsLog();
 
   // draw the image
@@ -456,8 +466,8 @@ function drawRoomBounds() {
       new Konva.Rect({
         x: levelBounds.x + tileOffsetX,
         y: levelBounds.y + tileOffsetY,
-        width: levelBounds.width,
-        height: levelBounds.height,
+        width: levelBounds.w,
+        height: levelBounds.h,
         stroke: "white",
         strokeWidth: 0.5,
       })
@@ -488,35 +498,35 @@ function createEntityShapes(entities, levelBounds, countEntities = true) {
   const shapes = [];
   
   entities.forEach((entity) => {
-    let entityX = entity.position.x + entitiesOffsetX;
-    let entityY = entity.position.y + entitiesOffsetY;
+    let entityX = entity.p.x + entitiesOffsetX;
+    let entityY = entity.p.y + entitiesOffsetY;
 
     if (
-        entity.type === "CrystalStaticSpinner" ||
-        entity.type === "DustStaticSpinner" ||
-        entity.type === "CustomSpinner" ||
-        entity.type === "DustTrackSpinner" || 
-        entity.type === "DustRotateSpinner"
+        entity.t === "CrystalStaticSpinner" ||
+        entity.t === "DustStaticSpinner" ||
+        entity.t === "CustomSpinner" ||
+        entity.t === "DustTrackSpinner" || 
+        entity.t === "DustRotateSpinner"
     ) {
       //Cull offscreen spinners
       if (
           levelBounds !== null && (
               entityX < levelBounds.x - spinnerRadius ||
-              entityX > levelBounds.x + levelBounds.width + spinnerRadius ||
+              entityX > levelBounds.x + levelBounds.w + spinnerRadius ||
               entityY < levelBounds.y - spinnerRadius ||
-              entityY > levelBounds.y + levelBounds.height + spinnerRadius
+              entityY > levelBounds.y + levelBounds.h + spinnerRadius
           )
       ) {
         return;
       }
 
       //Draw white circle with width 6 on entity position
-      let hitcircle = { x: 0, y: 0, radius: 6 };
+      let hitcircle = { x: 0, y: 0, r: 6 };
       shapes.push(createHitCircle(entityX, entityY, hitcircle, "white", 0.5));
 
       if (settings.showSpinnerRectangle) {
         //Draw white rectangle with width 16, height 4, x offset -8 and y offset -3 on entity position
-        let hitbox = { x: -8, y: -3, width: 16, height: 4 };
+        let hitbox = { x: -8, y: -3, w: 16, h: 4 };
         shapes.push(createHitbox(entityX, entityY, hitbox, "white", 0.5));
       }
     }
@@ -525,29 +535,29 @@ function createEntityShapes(entities, levelBounds, countEntities = true) {
   entities.forEach((entity) => {
     //add type to entityCounts
     if(countEntities){
-      if (entityCounts[entity.type] === undefined) {
-        entityCounts[entity.type] = 0;
+      if (entityCounts[entity.t] === undefined) {
+        entityCounts[entity.t] = 0;
       }
-      entityCounts[entity.type]++;
+      entityCounts[entity.t]++;
     }
 
-    let entityX = entity.position.x + entitiesOffsetX;
-    let entityY = entity.position.y + entitiesOffsetY;
+    let entityX = entity.p.x + entitiesOffsetX;
+    let entityY = entity.p.y + entitiesOffsetY;
 
     //If the entity type is in any of the value arrays in the hitboxEntityNames map
     let entityColor = Object.keys(hitboxEntityNames).find((color) =>
-        hitboxEntityNames[color].includes(entity.type)
+        hitboxEntityNames[color].includes(entity.t)
     );
     if (entityColor !== undefined) {
-      let hitbox = entity.properties.hitbox;
+      let hitbox = entity.r.b;
 
       if (entityColor === "Special") {
-        entityColor = specialEntityColorFunctions[entity.type](entity);
+        entityColor = specialEntityColorFunctions[entity.t](entity);
       }
 
       let dash = [];
-      if (entity.type in entityNamesDashedOutline) {
-        let dashValue = entityNamesDashedOutline[entity.type];
+      if (entity.t in entityNamesDashedOutline) {
+        let dashValue = entityNamesDashedOutline[entity.t];
         dash = [dashValue, dashValue];
       }
 
@@ -559,18 +569,18 @@ function createEntityShapes(entities, levelBounds, countEntities = true) {
 
     //If the entity type is in any of the value arrays in the hitcircleEntityNames map
     entityColor = Object.keys(hitcircleEntityNames).find((color) =>
-        hitcircleEntityNames[color].includes(entity.type)
+        hitcircleEntityNames[color].includes(entity.t)
     );
     if (entityColor !== undefined) {
-      let hitcircle = entity.properties.hitcircle;
+      let hitcircle = entity.r.c;
 
       if (entityColor === "Special") {
-        entityColor = specialEntityColorFunctions[entity.type](entity);
+        entityColor = specialEntityColorFunctions[entity.t](entity);
       }
 
       let dash = [];
-      if (entity.type in entityNamesDashedOutline) {
-        let dashValue = entityNamesDashedOutline[entity.type];
+      if (entity.t in entityNamesDashedOutline) {
+        let dashValue = entityNamesDashedOutline[entity.t];
         dash = [dashValue, dashValue];
       }
 
@@ -579,20 +589,28 @@ function createEntityShapes(entities, levelBounds, countEntities = true) {
       let additionalShapes = drawSimpleHitcircleAdditionalShape(entityColor, entityX, entityY, entity);
       shapes.push(...additionalShapes);
     }
+    
+    //If the entity type is in any of the value arrays in the otherEntityNames map
+    entityColor = Object.keys(otherEntityNames).find((color) =>
+        otherEntityNames[color].includes(entity.t)
+    );
+    if (entityColor !== undefined) {
+      shapes.push(...createOtherSingleEntityShape(entity));
+    }
 
     //Entity Type: FinalBoos
-    if (entity.type === "FinalBoss" || entity.type === "BadelineBoost" || entity.type === "FlingBird") {
-      let hitcircle = entity.properties.hitcircle;
-      let color = entity.type === "FlingBird" ? "cyan" : "#ff00ff";
+    if (entity.t === "FinalBoss" || entity.t === "BadelineBoost" || entity.t === "FlingBird") {
+      let hitcircle = entity.r.c;
+      let color = entity.t === "FlingBird" ? "cyan" : "#ff00ff";
 
       //draw the initial position
       shapes.push(createHitCircle(entityX, entityY, hitcircle, color));
 
       //loop through properties.nodes, and draw the circle at each node, and a line between each node
-      let nodes = entity.properties.nodes;
+      let nodes = entity.r.nodes;
       let previousNode = null;
       for (let i = 0; i < nodes.length; i++) {
-        if (entity.type === "FinalBoss" && i === nodes.length - 1) continue;
+        if (entity.t === "FinalBoss" && i === nodes.length - 1) continue;
 
         let node = nodes[i];
         let nodeX = node.x + hitcircle.x;
@@ -640,89 +658,97 @@ function createEntityShapes(entities, levelBounds, countEntities = true) {
 function createOtherEntityShapes(entities){
   let shapes = [];
   entities.forEach((entity) => {
-    if (!entity.properties.hasCollider) return;
+    if (!entity.r.bc) return;
 
-    let entityColor = entity.properties.isSolid ? "red" : "white";
-    let entityX = entity.position.x + entitiesOffsetX;
-    let entityY = entity.position.y + entitiesOffsetY;
-
-    let properties = entity.properties;
-
-    let textSplit = entity.type.split(/(?=[A-Z])/);
-    let maxWidth = 0;
-    //find the longest string in the array
-    textSplit.forEach((text) => {
-      if (text.length > maxWidth) {
-        maxWidth = text.length;
-      }
-    });
-    let maxDim = Math.max(textSplit.length, maxWidth);
-    let size = 1 / maxDim;
-    let text = textSplit.join("\n");
-
-    //Draw hitbox
-    if ("hitbox" in properties) {
-      shapes.push(createHitbox(entityX, entityY, properties.hitbox, entityColor));
-      //Text
-      let fontSize = Math.min(properties.hitbox.width, properties.hitbox.height) * size;
-      let offsetY = fontSize * 0.1;
-      shapes.push(
-          createLetterEntityText(entityX, entityY + offsetY, properties.hitbox, text, fontSize, entityColor)
-      );
-    }
-
-    //Draw hitcircle
-    if ("hitcircle" in properties) {
-      shapes.push(createHitCircle(entityX, entityY, properties.hitcircle, entityColor));
-      //Text
-      let fontSize = properties.hitcircle.radius * 2 * size * 0.8;
-      let offsetY = fontSize * 0.1;
-      shapes.push(
-          createLetterEntityTextCircle(
-              entityX,
-              entityY + offsetY,
-              properties.hitcircle,
-              text,
-              fontSize,
-              entityColor
-          )
-      );
-    }
-
-    //Draw colliderList
-    if ("colliderList" in properties) {
-      properties.colliderList.forEach((collider) => {
-        if (collider.type === "hitbox") {
-          shapes.push(createHitbox(entityX, entityY, collider.hitbox, entityColor));
-          if (entity.type.indexOf("Spinner") !== -1) return;
-          //Text
-          let fontSize = Math.min(collider.hitbox.width, collider.hitbox.height) * size;
-          let offsetY = fontSize * 0.1;
-          shapes.push(
-              createLetterEntityText(entityX, entityY + offsetY, collider.hitbox, text, fontSize, entityColor)
-          );
-        } else if (collider.type === "hitcircle") {
-          shapes.push(
-              createHitCircle(entityX, entityY, collider.hitcircle, entityColor)
-          );
-          //Text
-          let fontSize = collider.hitcircle.radius * 2 * size * 0.8;
-          let offsetY = fontSize * 0.1;
-          shapes.push(
-              createLetterEntityTextCircle(
-                  entityX,
-                  entityY + offsetY,
-                  collider.hitcircle,
-                  text,
-                  fontSize,
-                  entityColor
-              )
-          );
-        }
-      });
-    }
+    shapes.push(...createOtherSingleEntityShape(entity));
   });
   
+  return shapes;
+}
+
+function createOtherSingleEntityShape(entity){
+  let shapes = [];
+  if (!entity.r.bc) return shapes;
+
+  let entityColor = entity.r.bs ? "red" : "white";
+  let entityX = entity.p.x + entitiesOffsetX;
+  let entityY = entity.p.y + entitiesOffsetY;
+
+  let properties = entity.r;
+
+  let textSplit = entity.t.split(/(?=[A-Z])/);
+  let maxWidth = 0;
+  //find the longest string in the array
+  textSplit.forEach((text) => {
+    if (text.length > maxWidth) {
+      maxWidth = text.length;
+    }
+  });
+  let maxDim = Math.max(textSplit.length, maxWidth);
+  let size = 1 / maxDim;
+  let text = textSplit.join("\n");
+
+  //Draw hitbox
+  if ("b" in properties) {
+    shapes.push(createHitbox(entityX, entityY, properties.b, entityColor));
+    //Text
+    let fontSize = Math.min(properties.b.w, properties.b.h) * size;
+    let offsetY = fontSize * 0.1;
+    shapes.push(
+        createLetterEntityText(entityX, entityY + offsetY, properties.b, text, fontSize, entityColor)
+    );
+  }
+
+  //Draw hitcircle
+  if ("c" in properties) {
+    shapes.push(createHitCircle(entityX, entityY, properties.c, entityColor));
+    //Text
+    let fontSize = properties.c.r * 2 * size * 0.8;
+    let offsetY = fontSize * 0.1;
+    shapes.push(
+        createLetterEntityTextCircle(
+            entityX,
+            entityY + offsetY,
+            properties.c,
+            text,
+            fontSize,
+            entityColor
+        )
+    );
+  }
+
+  //Draw colliderList
+  if ("cl" in properties) {
+    properties.cl.forEach((collider) => {
+      if (collider.t === "b") {
+        shapes.push(createHitbox(entityX, entityY, collider.b, entityColor));
+        if (entity.t.indexOf("Spinner") !== -1) return;
+        //Text
+        let fontSize = Math.min(collider.b.w, collider.b.h) * size;
+        let offsetY = fontSize * 0.1;
+        shapes.push(
+            createLetterEntityText(entityX, entityY + offsetY, collider.b, text, fontSize, entityColor)
+        );
+      } else if (collider.t === "c") {
+        shapes.push(
+            createHitCircle(entityX, entityY, collider.c, entityColor)
+        );
+        //Text
+        let fontSize = collider.c.r * 2 * size * 0.8;
+        let offsetY = fontSize * 0.1;
+        shapes.push(
+            createLetterEntityTextCircle(
+                entityX,
+                entityY + offsetY,
+                collider.c,
+                text,
+                fontSize,
+                entityColor
+            )
+        );
+      }
+    });
+  }
   return shapes;
 }
 
@@ -730,8 +756,8 @@ function createHitbox(posX, posY, hitbox, entityColor, strokeWidth = 0.25, dash 
   return new Konva.Rect({
     x: posX + hitbox.x,
     y: posY + hitbox.y,
-    width: hitbox.width,
-    height: hitbox.height,
+    width: hitbox.w,
+    height: hitbox.h,
     stroke: entityColor,
     strokeWidth: strokeWidth,
     dash: dash,
@@ -742,7 +768,7 @@ function createHitCircle(posX, posY, hitcircle, entityColor, strokeWidth = 0.25,
   return new Konva.Circle({
     x: posX + hitcircle.x,
     y: posY + hitcircle.y,
-    radius: hitcircle.radius,
+    radius: hitcircle.r,
     stroke: entityColor,
     strokeWidth: strokeWidth,
     dash: dash,
@@ -751,11 +777,11 @@ function createHitCircle(posX, posY, hitcircle, entityColor, strokeWidth = 0.25,
 
 function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity) {
   let shapes = [];
-  let hitbox = entity.properties.hitbox;
+  let hitbox = entity.r.b;
 
-  //if entity.type is in entityNamesText, use the text properties from there
-  if (entity.type in entityNamesText) {
-    let textProperties = entityNamesText[entity.type];
+  //if entity.t is in entityNamesText, use the text properties from there
+  if (entity.t in entityNamesText) {
+    let textProperties = entityNamesText[entity.t];
     let size = textProperties[0];
     if (typeof size === "function") {
       size = size(entity);
@@ -766,7 +792,7 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     }
 
     if (text !== "") {
-      let fontSize = Math.min(hitbox.width, hitbox.height) * size;
+      let fontSize = Math.min(hitbox.w, hitbox.h) * size;
       let offsetY = fontSize * 0.1;
 
       shapes.push(
@@ -775,7 +801,7 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     }
   }
 
-  if (entity.type === "Strawberry" || entity.type === "SilverBerry") {
+  if (entity.t === "Strawberry" || entity.t === "SilverBerry") {
     shapes.push(
       new Konva.Circle({
         x: entityX,
@@ -788,14 +814,14 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
   }
   if (
     ["TouchSwitch", "FlagTouchSwitch", "SwitchGate", "FlagSwitchGate", "MovingTouchSwitch"].includes(
-      entity.type
+      entity.t
     )
   ) {
     let offsetX = 0,
       offsetY = 0;
-    if (entity.type === "SwitchGate" || entity.type === "FlagSwitchGate") {
-      offsetX = hitbox.width / 2;
-      offsetY = hitbox.height / 2;
+    if (entity.t === "SwitchGate" || entity.t === "FlagSwitchGate") {
+      offsetX = hitbox.w / 2;
+      offsetY = hitbox.h / 2;
     }
     shapes.push(
       new Konva.Circle({
@@ -807,8 +833,8 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
       })
     );
   }
-  if (entity.type === "MovingTouchSwitch") {
-    let nodes = entity.properties.nodes;
+  if (entity.t === "MovingTouchSwitch") {
+    let nodes = entity.r.nodes;
     //Draw the additional nodes
     let previousNode = null;
     nodes.forEach((node) => {
@@ -841,16 +867,16 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     });
   }
 
-  if ((entity.type === "Refill" || entity.type === "RefillWall") && entity.properties.oneUse === true) {
+  if ((entity.t === "Refill" || entity.t === "RefillWall") && entity.r.oneUse === true) {
     //Draw a cross on the refill
-    let offset = Math.min(hitbox.width, hitbox.height) * 0.1;
+    let offset = Math.min(hitbox.w, hitbox.h) * 0.1;
     shapes.push(
       new Konva.Line({
         points: [
           entityX + hitbox.x + offset,
           entityY + hitbox.y + offset,
-          entityX + hitbox.x + hitbox.width - offset,
-          entityY + hitbox.y + hitbox.height - offset,
+          entityX + hitbox.x + hitbox.w - offset,
+          entityY + hitbox.y + hitbox.h - offset,
         ],
         stroke: entityColor,
         strokeWidth: 0.25,
@@ -859,10 +885,10 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     shapes.push(
       new Konva.Line({
         points: [
-          entityX + hitbox.x + hitbox.width - offset,
+          entityX + hitbox.x + hitbox.w - offset,
           entityY + hitbox.y + offset,
           entityX + hitbox.x + offset,
-          entityY + hitbox.y + hitbox.height - offset,
+          entityY + hitbox.y + hitbox.h - offset,
         ],
         stroke: entityColor,
         strokeWidth: 0.25,
@@ -871,46 +897,46 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
   }
 
   if (
-    entity.type === "MoveBlock" ||
-    entity.type === "ConnectedMoveBlock" ||
-    entity.type === "DreamMoveBlock"
+    entity.t === "MoveBlock" ||
+    entity.t === "ConnectedMoveBlock" ||
+    entity.t === "DreamMoveBlock"
   ) {
-    let direction = entity.properties.direction; //Left, Right, Up, Down
+    let direction = entity.r.direction; //Left, Right, Up, Down
     //Draw an arrow pointing in the direction, in center of the hitbox
-    let strokeWidth = Math.min(hitbox.width, hitbox.height) * 0.2;
+    let strokeWidth = Math.min(hitbox.w, hitbox.h) * 0.2;
     let pointerSize = strokeWidth * 0.45;
 
-    let offset = Math.min(hitbox.width, hitbox.height) * 0.15;
+    let offset = Math.min(hitbox.w, hitbox.h) * 0.15;
     let arrowOffset = pointerSize * 3.5;
 
     let points = [];
     if (direction === "Left") {
       points = [
-        entityX + hitbox.x + hitbox.width - offset,
-        entityY + hitbox.y + hitbox.height / 2,
+        entityX + hitbox.x + hitbox.w - offset,
+        entityY + hitbox.y + hitbox.h / 2,
         entityX + hitbox.x + offset + arrowOffset,
-        entityY + hitbox.y + hitbox.height / 2,
+        entityY + hitbox.y + hitbox.h / 2,
       ];
     } else if (direction === "Right") {
       points = [
         entityX + hitbox.x + offset,
-        entityY + hitbox.y + hitbox.height / 2,
-        entityX + hitbox.x + hitbox.width - offset - arrowOffset,
-        entityY + hitbox.y + hitbox.height / 2,
+        entityY + hitbox.y + hitbox.h / 2,
+        entityX + hitbox.x + hitbox.w - offset - arrowOffset,
+        entityY + hitbox.y + hitbox.h / 2,
       ];
     } else if (direction === "Up") {
       points = [
-        entityX + hitbox.x + hitbox.width / 2,
-        entityY + hitbox.y + hitbox.height - offset,
-        entityX + hitbox.x + hitbox.width / 2,
+        entityX + hitbox.x + hitbox.w / 2,
+        entityY + hitbox.y + hitbox.h - offset,
+        entityX + hitbox.x + hitbox.w / 2,
         entityY + hitbox.y + offset + arrowOffset,
       ];
     } else if (direction === "Down") {
       points = [
-        entityX + hitbox.x + hitbox.width / 2,
+        entityX + hitbox.x + hitbox.w / 2,
         entityY + hitbox.y + offset,
-        entityX + hitbox.x + hitbox.width / 2,
-        entityY + hitbox.y + hitbox.height - offset - arrowOffset,
+        entityX + hitbox.x + hitbox.w / 2,
+        entityY + hitbox.y + hitbox.h - offset - arrowOffset,
       ];
     }
 
@@ -926,13 +952,13 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     );
   }
 
-  if (entity.type == "Puffer" || entity.type == "StaticPuffer" || entity.type == "SpeedPreservePuffer") {
+  if (entity.t == "Puffer" || entity.t == "StaticPuffer" || entity.t == "SpeedPreservePuffer") {
     let circleRadius = 32;
     //Draw a top half circle on the entity position using svg Path
     shapes.push(
       new Konva.Path({
         x: entityX,
-        y: entityY + hitbox.y + hitbox.height,
+        y: entityY + hitbox.y + hitbox.h,
         data:
           "M " +
           -circleRadius +
@@ -949,19 +975,19 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
     );
   }
 
-  if (entity.type == "ClutterBlockBase" || entity.type == "ClutterSwitch") {
-    let fontSize = Math.min(hitbox.width, hitbox.height) * 0.15;
+  if (entity.t == "ClutterBlockBase" || entity.t == "ClutterSwitch") {
+    let fontSize = Math.min(hitbox.w, hitbox.h) * 0.15;
     let offsetY = fontSize * 0.1;
     let clutterName;
-    if (entity.properties.color === "Red") {
+    if (entity.r.color === "Red") {
       clutterName = "Towels";
-    } else if (entity.properties.color === "Yellow") {
+    } else if (entity.r.color === "Yellow") {
       clutterName = "Boxes";
-    } else if (entity.properties.color === "Green") {
+    } else if (entity.r.color === "Green") {
       clutterName = "Books";
     }
 
-    if (entity.type == "ClutterSwitch") {
+    if (entity.t == "ClutterSwitch") {
       clutterName = "Switch:\n" + clutterName;
     }
 
@@ -975,10 +1001,10 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
 
 function drawSimpleHitcircleAdditionalShape(entityColor, entityX, entityY, entity) {
   let shapes = [];
-  let hitcircle = entity.properties.hitcircle;
+  let hitcircle = entity.r.c;
 
-  if (entity.type in entityNamesText) {
-    let textProperties = entityNamesText[entity.type];
+  if (entity.t in entityNamesText) {
+    let textProperties = entityNamesText[entity.t];
     let size = textProperties[0];
     if (typeof size === "function") {
       size = size(entity);
@@ -989,7 +1015,7 @@ function drawSimpleHitcircleAdditionalShape(entityColor, entityX, entityY, entit
     }
 
     if (text !== "") {
-      let fontSize = hitcircle.radius * 2 * size;
+      let fontSize = hitcircle.r * 2 * size;
       let offsetY = fontSize * 0.1;
 
       shapes.push(
@@ -1004,8 +1030,8 @@ function createLetterEntityText(entityX, entityY, hitbox, text, fontSize, entity
   return new Konva.Text({
     x: entityX + hitbox.x,
     y: entityY + hitbox.y,
-    width: hitbox.width,
-    height: hitbox.height,
+    width: hitbox.w,
+    height: hitbox.h,
     text: text,
     fontSize: fontSize,
     fontFamily: "Renogare",
@@ -1019,12 +1045,12 @@ function createLetterEntityTextCircle(entityX, entityY, hitcircle, text, fontSiz
   let hitbox = {
     x: hitcircle.x,
     y: hitcircle.y,
-    width: hitcircle.radius * 2,
-    height: hitcircle.radius * 2,
+    width: hitcircle.r * 2,
+    height: hitcircle.r * 2,
   };
   return createLetterEntityText(
-    entityX - hitcircle.radius,
-    entityY - hitcircle.radius,
+    entityX - hitcircle.r,
+    entityY - hitcircle.r,
     hitbox,
     text,
     fontSize,
@@ -1520,6 +1546,7 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
     konvaRoomMovableEntitiesLayer.add(shape);
   });
 
+  console.log("Got to rendering the tooltip!");
   shape.keepTooltipOpen = false;
 
   shape.on("click", function () {
@@ -1539,10 +1566,10 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
   });
   shape.on("mouseenter", function () {
     shape.strokeWidth(0.2);
+    konvaGroupTooltip.visible(true);
     if(settings.frameStepSize !== 1){
       maddyHitbox.visible(true);
       maddyHurtbox.visible(true);
-      konvaGroupTooltip.visible(true);
       movableShapes.forEach((shape) => {
         shape.visible(true);
       });
@@ -1552,10 +1579,10 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame) {
   shape.on("mouseleave", function () {
     if (!shape.keepTooltipOpen) {
       shape.strokeWidth(0);
+      konvaGroupTooltip.visible(false);
       if(settings.frameStepSize !== 1){
         maddyHitbox.visible(false);
         maddyHurtbox.visible(false);
-        konvaGroupTooltip.visible(false);
         movableShapes.forEach((shape) => {
           shape.visible(false);
         });

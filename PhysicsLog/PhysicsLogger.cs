@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using MonoMod.Utils;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 {
@@ -240,9 +241,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             } else {
                 toWrite += $",-1,-1";
             }
-            
-            HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
-            toWrite += $",{JsonConvert.SerializeObject(GetEntitiesFromLevel(level, EntityList.Movable, ref entities))}";
+
+            if (Mod.ModSettings.LogMovableEntities) {
+                HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
+                toWrite += $",{JsonConvert.SerializeObject(GetEntitiesFromLevel(level, EntityList.Movable, ref entities))}";
+            } else {
+                toWrite += ",[]";
+            }
 
             if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
@@ -524,6 +529,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "Refill", "CustomRefill", "RefillWall",
             "Spring", "CustomSpring", "DashSpring", "SpringGreen",
             "DreamBlock", "CustomDreamBlock", "CustomDreamBlockV2", "ConnectedDreamBlock", "DashThroughSpikes",
+            "SinkingPlatform",
             "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
             "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
             "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
@@ -568,7 +574,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "Shield",
         };
         private static readonly List<string> EntityNamesOther = new List<string>() {
-            "ConnectedMoveBlock",
+            "ConnectedMoveBlock", "AngryOshiro"
         };
         private static readonly List<string> IgnoreEntityNames = new List<string>() {
             //UI Entities
@@ -691,6 +697,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
         private static readonly List<string> MovableEntityNames = new List<string>() {
             "DustTrackSpinner", "DustRotateSpinner",
+            "SinkingPlatform", "AngryOshiro",
             "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
             "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
             "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
@@ -698,7 +705,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CrushBlock", //Kevin
             "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb",
             "Cloud",
-            "MoveBlock", "DreamMoveBlock", "VitMoveBlock",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock",
             "FallingBlock", "GroupedFallingBlock", "RisingBlock",
             "AttachedJumpThru",
             "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
@@ -775,6 +782,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             Movable,
             Other
         }
+
         public static List<LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
             List<LoggedEntity> entities = new List<LoggedEntity>();
             foreach (Entity outerEntity in level.Entities) {
@@ -982,11 +990,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                             if (colliders != null && colliders.Length > 0) {
                                 collider = colliders[0];
                             }
+                        } else if (entityName == "AngryOshiro") {
+                            AngryOshiro oshiro = entity as AngryOshiro;
+                            PlayerCollider playerCollider = Util.GetPrivateProperty<PlayerCollider>(oshiro, "bounceCollider");
+                            if (playerCollider != null) {
+                                ColliderList cl = new ColliderList(oshiro.Collider, playerCollider.Collider);
+                                collider = cl;
+                            } else {
+                                collider = oshiro.Collider;
+                            }
+
+                            loggedEntity.Properties.Add("bs", false);
+                            loggedEntity.Properties.Add("bc", true);
                         }
 
                         logged = true;
                     }
-
+                    
 
                     //Glider, TheoCrystal
                     if (entityName == "Glider" || entityName == "CustomGlider" || entityName == "RespawningJellyfish" || entityName == "TheoCrystal" || entityName == "CrystalBomb") {
@@ -1052,12 +1072,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         logged = true;
                     }
 
+                    if (!IgnoreEntityNames.Contains(entityName) && !logged && EntityList.Other == list) {
+                        AddOtherInfoToLoggedEntity(loggedEntity, entity);
+                        entities.Add(loggedEntity);
+                    }
+
                     if (logged && (list == EntityList.Static || list == EntityList.Movable)) {
                         AddColliderInfoToLoggedEntity(loggedEntity, collider);
-                        entities.Add(loggedEntity);
-
-                    } else if (IgnoreEntityNames.Contains(entityName) == false && list == EntityList.Other) {
-                        AddOtherInfoToLoggedEntity(loggedEntity, entity);
                         entities.Add(loggedEntity);
                     }
                 }
@@ -1073,9 +1094,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
             if (collider is Hitbox) {
-                loggedEntity.Properties.Add("hitbox", GetBasicColliderInfo(collider));
+                loggedEntity.Properties.Add("b", GetBasicColliderInfo(collider));
             } else if (collider is Circle) {
-                loggedEntity.Properties.Add("hitcircle", GetBasicColliderInfo(collider));
+                loggedEntity.Properties.Add("c", GetBasicColliderInfo(collider));
             } else if (collider is ColliderList) {
                 List<object> colliderList = new List<object>();
                 
@@ -1092,7 +1113,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
                 }
 
-                loggedEntity.Properties.Add("colliderList", colliderList);
+                loggedEntity.Properties.Add("cl", colliderList);
             }
         }
 
@@ -1120,8 +1141,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
 
         public static void AddOtherInfoToLoggedEntity(LoggedEntity loggedEntity, Entity entity) {
-            loggedEntity.Properties.Add("isSolid", entity is Solid);
-            loggedEntity.Properties.Add("hasCollider", entity.Collider != null);
+            loggedEntity.Properties.Add("bs", entity is Solid);
+            loggedEntity.Properties.Add("bc", entity.Collider != null);
             if (entity.Collider != null) {
                 AddColliderInfoToLoggedEntity(loggedEntity, entity.Collider);
             }
