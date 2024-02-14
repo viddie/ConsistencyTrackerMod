@@ -27,8 +27,5 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         [JsonProperty("movableEntities")]
         public List<LoggedEntity> MovableEntities { get; set; }
 
-        [JsonProperty("otherEntities")]
-        public List<LoggedEntity> OtherEntities { get; set; }
-
     }
 }

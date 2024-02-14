@@ -44,15 +44,16 @@ let settings = {
   
   replaySpeed: 1,
   replayPlaying: false,
+  replayIgnoreIdleFrames: false,
+  replayCenterCamera: true,
 
   decimals: 2,
 
   menuHidden: false,
-  pointLabels: "None",
+  pointLabels: "Inputs",
 
   layerVisibleRoomLayout: true,
   layerVisibleRoomEntities: true,
-  layerVisibleRoomOtherEntities: true,
   layerVisibleMaddyHitbox: true,
   layerVisibleTooltip: true,
   layerVisiblePosition: true,
@@ -81,13 +82,12 @@ let settings = {
 let settingsElements = {
   showRoomNames: "Show Room Names",
   rasterizeMovement: "Rasterize Movement",
-  replayPlaying: "Enable Replay",
 };
 let layerVisibilityElements = {
   layerVisibleRoomLayout: "Room Layout",
   layerVisibleRoomEntities: "Room Entities",
-  layerVisibleRoomOtherEntities: "Other Entities",
   layerVisibleTooltip: "Tooltip",
+  layerVisibleMaddyHitbox: "Hit-/Hurtbox",
   layerVisiblePosition: "Position",
 };
 let tooltipsInfoElements = {
@@ -125,44 +125,17 @@ function loadSettings() {
     }
   }
 
-  let skipRows = 3;
-  let combinedRows = 0;
-  let storedKey = null;
   for (const key in layerVisibilityElements) {
     if (!layerVisibilityElements.hasOwnProperty(key)) {
       return;
     }
-
-    if (combinedRows < 1 && storedKey == null && skipRows <= 0) {
-      storedKey = key;
-      continue;
-    } else if (storedKey != null) {
-      const storedLabel = layerVisibilityElements[storedKey];
-      let storedDiv = createSettingsCheckbox(storedKey, storedLabel, settings[key], changedLayerVisibility);
-      storedDiv.style.width = "50%";
-
-      const label = layerVisibilityElements[key];
-      let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
-      div.style.width = "50%";
-
-      //Combine the two
-      let container = document.createElement("div");
-      container.classList.add("flex-center");
-      container.appendChild(storedDiv);
-      container.appendChild(div);
-      container.style.justifyContent = "start";
-      Elements.LayersContainer.appendChild(container);
-    } else {
-      skipRows--;
-
-      const label = layerVisibilityElements[key];
-      let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
-      Elements.LayersContainer.appendChild(div);
-    }
+    const label = layerVisibilityElements[key];
+    let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
+    Elements.LayersContainer.appendChild(div);
   }
 
-  combinedRows = 0;
-  storedKey = null;
+  let combinedRows = 0;
+  let storedKey = null;
   for (const key in tooltipsInfoElements) {
     if (!tooltipsInfoElements.hasOwnProperty(key)) {
       continue;
@@ -218,6 +191,7 @@ function loadSettings() {
 
   Elements.PointLabels.value = settings.pointLabels;
   Elements.FrameStepSize.value = settings.frameStepSize+"";
+  Elements.ReplaySpeed.value = settings.replaySpeed+"";
   
   //Fix the initial state of newly added settings
   if(settings.replayPlaying === undefined){
@@ -226,9 +200,12 @@ function loadSettings() {
   if(settings.replaySpeed === undefined){
     settings.replaySpeed = 1;
   }
-  
-  settings.replaySpeed = 1;
-  
+  if(settings.replayIgnoreIdleFrames === undefined){
+    settings.replayIgnoreIdleFrames = false;
+  }
+  if (settings.replayCenterCamera === undefined){
+    settings.replayCenterCamera = true;
+  }
 
   settingsInited = true;
 }
@@ -361,6 +338,10 @@ function changedFrameStepSize(value){
   saveSettings();
   updateRecordingInfo();
   redrawCanvas();
+}
+
+function changedReplaySpeed(value){
+  settings.replaySpeed = parseFloat(value);
 }
 
 function framePageUp(mult = 1, event) {

@@ -761,7 +761,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             List<LoggedEntity> entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
             List<LoggedEntity> movableEntities = GetEntitiesFromLevel(level, EntityList.Movable, ref LoggedEntitiesRaw);
-            List<LoggedEntity> otherEntities = GetEntitiesFromLevel(level, EntityList.Other, ref LoggedEntitiesRaw);
             
             string pathJson = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "room-layout.json");
             PhysicsLogRoomLayout roomLayout = new PhysicsLogRoomLayout() {
@@ -770,7 +769,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 SolidTiles = solidTileData,
                 Entities = entities,
                 MovableEntities = movableEntities,
-                OtherEntities = otherEntities,
             };
             VisitedRoomsLayouts.Add(roomLayout);
 
@@ -779,8 +777,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
         public enum EntityList {
             Static,
-            Movable,
-            Other
+            Movable
         }
 
         public static List<LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
@@ -1072,15 +1069,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         logged = true;
                     }
 
-                    if (!IgnoreEntityNames.Contains(entityName) && !logged && EntityList.Other == list) {
+                    if (IgnoreEntityNames.Contains(entityName)) {
+                        continue;
+                    }
+                    
+                    if (!logged) {
                         AddOtherInfoToLoggedEntity(loggedEntity, entity);
-                        entities.Add(loggedEntity);
-                    }
-
-                    if (logged && (list == EntityList.Static || list == EntityList.Movable)) {
+                    } else {
                         AddColliderInfoToLoggedEntity(loggedEntity, collider);
-                        entities.Add(loggedEntity);
                     }
+                    entities.Add(loggedEntity);
                 }
             }
 

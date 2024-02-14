@@ -36,7 +36,15 @@ const Elements = {
   OptionsContainer: "options-container",
   FrameStepSize: "selected-frame-step-size",
   PointLabels: "point-labels",
+  
+  ReplaySpeed: "selected-replay-speed",
+  
+  LayersModalButton: "layers-modal-button",
+  LayersModal: "layers-modal",
   LayersContainer: "layers-container",
+  
+  TooltipsModalButton: "tooltips-modal-button",
+  TooltipsModal: "tooltips-modal",
   TooltipsContainer: "tooltips-container",
 
   OtherToolsButton: "other-tools-button",
@@ -172,7 +180,8 @@ function replayTimeoutFunction() {
   if(settings.replayPlaying){
     console.log("Replay running...");
     let frame = physicsLogFrames[settings.frameMin];
-    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 30 && frame.flags.indexOf("NoControl") === -1){
+    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 40 && frame.flags.indexOf("NoControl") === -1 && !settings.replayIgnoreIdleFrames){
+      redrawCanvas(frame.idleFrames[replayIdleFrameCounter].entities);
       replayIdleFrameCounter++;
     } else {
       replayIdleFrameCounter = 0;
@@ -187,7 +196,7 @@ function replayTimeoutFunction() {
       redrawCanvas();
     }
     
-    if(!areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
+    if(settings.replayCenterCamera && !areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
       centerOnPositionReal(frame.positionX, frame.positionY);
     }
   }
@@ -476,6 +485,30 @@ function openExportRecordingDialog() {
 //#endregion
 
 //#region Other Dialogs
+function openLayersDialog(){
+  xdialog.open({
+    extraClass: "no-title",
+    body: { element: Elements.LayersModal },
+    buttons: { ok: "Ok" },
+    style: "width:400px",
+    modal: false,
+    onok: function (param) {
+    },
+  });
+}
+
+function openTooltipsDialog() {
+  xdialog.open({
+    extraClass: "no-title",
+    body: { element: Elements.TooltipsModal },
+    buttons: { ok: "Ok" },
+    style: "width:500px",
+    modal: false,
+    onok: function (param) {
+    },
+  });
+}
+
 function openOtherToolsDialog() {
   Elements.OtherToolsButton.setAttribute("disabled", true);
   xdialog.open({

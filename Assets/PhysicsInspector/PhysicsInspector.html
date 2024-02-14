@@ -59,6 +59,7 @@
         <div style="width:10px"></div>
         <button id="final-frames-button" onclick="frameEnd(event)" class="slim-button">(E)</button>
       </div>
+      
       <hr>
       <h5>Recordings</h5>
       <select id="selected-recording" onchange="ChangeRecording(this.value)" style="width:100%">
@@ -86,7 +87,6 @@
       </div>
 
       <hr>
-
       <p id="recording-details">
         Recording: 1<br>
         Map: map<br>
@@ -94,7 +94,6 @@
       </p>
 
       <hr>
-
       <h5>Options</h5>
       <div id="options-container">
 
@@ -106,25 +105,56 @@
       </div>
 
       <hr>
-
-      <h5>Layer Visibility</h5>
-      <div id="layers-container">
-
+      <h5>Replay</h5>
+      <div class="flex-center flex-start">
+        <input type="checkbox" id="check-replayPlaying" onchange="changedBoolSetting('replayPlaying', this.checked)" />
+        <label for="check-replayPlaying">Replay Enabled</label>
       </div>
-
-      <hr>
-
-      <h5>Tooltip Info</h5>
-      <div id="tooltips-container">
-
+      <div class="flex-center">
+        <label for="selected-replay-speed" style="flex:3">Replay Speed:</label>
+        <select id="selected-replay-speed" onchange="changedReplaySpeed(this.value)" style="flex:2">
+          <option value="0.01">1% Speed</option>
+          <option value="0.05">5% Speed</option>
+          <option value="0.1">10% Speed</option>
+          <option value="0.15">15% Speed</option>
+          <option value="0.25">25% Speed</option>
+          <option value="0.5">50% Speed</option>
+          <option value="0.75">75% Speed</option>
+          <option value="1">100% Speed</option>
+          <option value="1.5">150% Speed</option>
+          <option value="2">200% Speed</option>
+          <option value="3">300% Speed</option>
+          <option value="4">400% Speed</option>
+          <option value="50">Fastest</option>
+        </select>
       </div>
-
+      <div class="flex-center flex-start">
+        <input type="checkbox" id="check-replayIgnoreIdleFrames" onchange="changedBoolSetting('replayIgnoreIdleFrames', this.checked)" />
+        <label for="check-replayIgnoreIdleFrames">Ignore Idle Frames</label>
+      </div>
+      <div class="flex-center flex-start">
+        <input type="checkbox" id="check-replayCenterCamera" onchange="changedBoolSetting('replayCenterCamera', this.checked)" />
+        <label for="check-replayCenterCamera">Keep Cam Centered</label>
+      </div>
+      
       <hr>
-
+      <button id="layers-modal-button" onclick="openLayersDialog()" class="small">Layer Visibility</button>
+      <button id="tooltips-modal-button" onclick="openTooltipsDialog()" class="small">Tooltip Info</button>
+      <hr>
       <button id="other-tools-button" onclick="openOtherToolsDialog()" class="unimportant small">Other Tools</button>
 
       <div style="display:none">
-
+        <div id="layers-modal" class="modal">
+          <h5>Layer Visibility</h5>
+          <div id="layers-container"></div>
+        </div>
+        <div id="tooltips-modal" class="modal">
+          <h5>Tooltip Info</h5>
+          <div id="tooltips-container"></div>
+        </div>
+      </div>
+      
+      <div style="display:none">
         <!-- Dialogs -->
         <div id="import-modal" class="modal">
           <h5>Data</h5>

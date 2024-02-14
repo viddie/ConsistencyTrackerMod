@@ -165,3 +165,7 @@ input:invalid.dialog-item.validated {
     margin-top: 0;
     margin-bottom: 5px;
 }
+
+.no-title .xd-title {
+    display: none;
+}
