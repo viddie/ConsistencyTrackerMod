@@ -22,7 +22,7 @@ function parsePhysicsLogFrames(fileContent) {
 
   //First line can be the header
   let header = lines[0];
-  let beginIndex = header.indexOf("Frame") !== -1 ? 1 : 0;
+  let beginIndex = header.indexOf("Frame,") !== -1 ? 1 : 0;
 
   //All other lines have the format:
   //FrameNumber, PositionX, PositionY, SpeedX, SpeedY, VelocityX, VelocityY, LiftBoostX, LiftBoostY, Flags, Inputs
@@ -46,7 +46,7 @@ function filterPhysicsLogFrames() {
     if (lastFrame === null) {
       filteredFrames.push(frame);
     } else {
-      if (lastFrame.positionX !== frame.positionX || lastFrame.positionY !== frame.positionY) {
+      if (lastFrame.positionX !== frame.positionX || lastFrame.positionY !== frame.positionY || isFrameFirstInRoom(frame)) {
         filteredFrames.push(frame);
       } else {
         // add the frame to the last frame's idleFrames
@@ -189,6 +189,87 @@ function getRecordingDisplayName(recordingType, recordingObj) {
 }
 //#endregion
 
+//#region New Data Format Stuff
+function isFrameFirstInRoom(frame){
+  return frame.flags.indexOf("FirstFrameInRoom") !== -1;
+}
+function getFirstFrameInRoom(frameIndex){
+  frameIndex = frameIndex ?? settings.frameMin;
+  
+  //Walk backwards from settings.frameMin through the physicsLogFrames and find the first frame with the "FirstFrameInRoom" flag
+  for (let i = frameIndex; i >= 0; i--) {
+    let frame = physicsLogFrames[i];
+    if (isFrameFirstInRoom(frame)) {
+      return frame;
+    }
+  }
+  return null;
+}
+
+function getFrameIndexFromFrame(frame){
+  for (let i = 0; i < physicsLogFrames.length; i++) {
+    if (physicsLogFrames[i].frameNumber === frame.frameNumber) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function getEntitiesForFrame(frameIndex){
+  let firstFrameInRoom = getFirstFrameInRoom(frameIndex);
+  let firstFrameIndex = getFrameIndexFromFrame(firstFrameInRoom);
+  //The first frame in each room holds the entities initial positions
+  //All subsequent frames hold the CHANGES to the entities, such as position difference, removal and addition
+  if(firstFrameInRoom === null){
+    return {};
+  }
+  
+  if(firstFrameIndex === frameIndex){
+    return firstFrameInRoom.entities;
+  }
+  
+  let entities = JSON.parse(JSON.stringify(firstFrameInRoom.entities));
+  for (let i = firstFrameIndex+1; i <= frameIndex; i++) {
+    let frame = physicsLogFrames[i];
+    let frameEntities = frame.entities;
+    entities = applyEntityChanges(entities, frameEntities);
+    if(frame.idleFrames.length > 0){
+      for (let j = 0; j < frame.idleFrames.length; j++) {
+        let idleFrame = frame.idleFrames[j];
+        let idleFrameEntities = idleFrame.entities;
+        entities = applyEntityChanges(entities, idleFrameEntities);
+      }
+    }
+  }
+  
+  return entities;
+}
+
+function applyEntityChanges(entities, changes){
+  let entitiesCopy = JSON.parse(JSON.stringify(entities));
+  for (const key in changes) {
+    const entity = changes[key];
+    if (entity.r.removed === true){
+      delete entitiesCopy[key];
+    } else if (entity.r.added === true){
+      entitiesCopy[key] = entity;
+    } else {
+      entitiesCopy[key].p.x += entity.p.x;
+      entitiesCopy[key].p.y += entity.p.y;
+      
+      //Loop through all entities and move the ones that are attached to this entity
+      for (const entityKey in entitiesCopy) {
+        const childEntity = entitiesCopy[entityKey];
+        if(childEntity.a === entity.i){
+          childEntity.p.x += entity.p.x;
+          childEntity.p.y += entity.p.y;
+        }
+      }
+    }
+  }
+  return entitiesCopy;
+}
+//#endregion
 
 //#region Main API Calls
 function performRequest(url, then, errorMessage, errorFunction = null) {
@@ -350,6 +431,7 @@ function getPhysicsLogAsStrings() {
     line = appendToLine(line, frame, "inputs");
     line = appendToLine(line, frame, "analogAimX");
     line = appendToLine(line, frame, "analogAimY");
+    line += ","+JSON.stringify(frame.entities);
     return line;
   }
 
@@ -401,7 +483,7 @@ function saveCurrentRecording(name, dataObj = null) {
     .then((response) => response.json())
     .then((responseObj) => {
       if (responseObj.errorCode === 0) {
-        location.reload();
+        //location.reload();
       }
     })
     .catch((err) => {

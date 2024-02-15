@@ -93,7 +93,7 @@ let hitboxEntityNames = {
   ],
   blue: ["TouchSwitch", "MovingTouchSwitch", "FlagTouchSwitch", "CrushBlock"],
   "#85e340": ["DashSwitch", "TempleGate"],
-  "#a200ff": ["MoveBlock", "ConnectedMoveBlock", "VitMoveBlock"],
+  "#a200ff": ["MoveBlock", "ConnectedMoveBlock", "VitMoveBlock", "MoveBlockCustomSpeed"],
   "#fa7ded": ["BouncySpikes"],
   Special: ["Strawberry", "Refill", "RefillWall", "Cloud", "CassetteBlock", "WonkyCassetteBlock"],
 };
@@ -325,6 +325,15 @@ let konvaPositionLayer = null;
 //#endregion
 
 //#region Canvas Init
+
+function renderCanvas() {
+  if(settings.displayMode === DisplayMode.Classic.name){
+    redrawCanvas();
+  } else if(settings.displayMode === DisplayMode.Replay.name){
+    console.log("Not implemented yet.");
+  }
+}
+
 function redrawCanvas(frameEntityData = null) {
   //Clear konva layers
   konvaRoomLayoutLayer.destroyChildren();
@@ -408,6 +417,7 @@ function addMouseHandlers() {
   });
 }
 
+
 function createAllElements(frameEntityData = null) {
   findRelevantRooms();
 
@@ -420,19 +430,16 @@ function createAllElements(frameEntityData = null) {
     }
 
     let levelBounds = roomLayout.levelBounds;
-    let entityShapes = createEntityShapes(roomLayout.entities, levelBounds);
-    entityShapes.forEach((shape) => {
-        konvaRoomEntitiesLayer.add(shape);
-    });
-
-    if(roomLayout.movableEntities !== undefined){
-      let movableShapes = createEntityShapes(roomLayout.movableEntities, levelBounds)
-      movableShapes.forEach((shape) => {
-        konvaRoomMovableEntitiesInitialLayer.add(shape);
-      });
+    //roomLayout.entities is an object with the entity ID as key and the entity as value
+    for (const entity of Object.values(roomLayout.entities)) {
+      let shapes = createEntityShapes(entity, levelBounds);
+      konvaRoomEntitiesLayer.add(...shapes);
     }
   });
   
+  drawMovableEntitiesInitialPositions();
+  
+  currentRoomEntities = null;
   drawPhysicsLog(frameEntityData);
 
   // draw the image
@@ -487,82 +494,97 @@ function drawRoomBounds() {
   });
 }
 
+function drawMovableEntitiesInitialPositions(){
+  let frameStart = settings.frameMin;
+  let frameEnd = frameStart + settings.frameStepSize;
+  
+  //Find all frames that have the flag FirstFrameInRoom
+  let firstFrames = [];
+  for (let i = frameStart; i <= frameEnd; i++) {
+    let frame = physicsLogFrames[i];
+    if (frame === undefined) continue;
+    if (frame.flags.indexOf("FirstFrameInRoom") !== -1) {
+      firstFrames.push(frame);
+    }
+  }
+  
+  if(firstFrames.length === 0){
+    firstFrames.push(getFirstFrameInRoom(frameStart));
+  }
+  
+  //Draw the initial position of all entities in the first frame of the rooms
+  firstFrames.forEach((frame) => {
+    let entities = frame.entities;
+    for (const entity of Object.values(entities)) {
+      let shapes = createEntityShapes(entity, null);
+      konvaRoomMovableEntitiesInitialLayer.add(...shapes);
+    }
+  });
+}
+
 let entityCounts = {};
-function createEntityShapes(entities, levelBounds, countEntities = true) {
+function createEntityShapes(entity, levelBounds) {
   const shapes = [];
   
   //Basic entities (Spinners)
-  entities.forEach((entity) => {
-    let entityX = entity.p.x + entitiesOffsetX;
-    let entityY = entity.p.y + entitiesOffsetY;
-
-    if (spinnerEntityNames.includes(entity.t)){
-      //Cull offscreen spinners
-      if (
-          levelBounds !== null && (
-              entityX < levelBounds.x - spinnerRadius ||
-              entityX > levelBounds.x + levelBounds.w + spinnerRadius ||
-              entityY < levelBounds.y - spinnerRadius ||
-              entityY > levelBounds.y + levelBounds.h + spinnerRadius
-          )
-      ) {
-        return;
-      }
-
-      shapes.push(...createSpinnerEntityShapes(entity));
+  let entityX = entity.p.x + entitiesOffsetX;
+  let entityY = entity.p.y + entitiesOffsetY;
+  if (spinnerEntityNames.includes(entity.t)){
+    //Cull offscreen spinners
+    if (
+        levelBounds !== null && (
+            entityX < levelBounds.x - spinnerRadius ||
+            entityX > levelBounds.x + levelBounds.w + spinnerRadius ||
+            entityY < levelBounds.y - spinnerRadius ||
+            entityY > levelBounds.y + levelBounds.h + spinnerRadius
+        )
+    ) {
+      return shapes;
     }
-  });
+
+    shapes.push(...createSpinnerEntityShapes(entity));
+  }
 
   //Non-Spinner entities
-  entities.forEach((entity) => {
-    //add type to entityCounts
-    if(countEntities){
-      if (entityCounts[entity.t] === undefined) {
-        entityCounts[entity.t] = 0;
-      }
-      entityCounts[entity.t]++;
-    }
+  let isOther = true;
 
-    let isOther = true;
-
-    //If the entity type is in any of the value arrays in the hitboxEntityNames map
-    let entityColor = Object.keys(hitboxEntityNames).find((color) =>
+  //If the entity type is in any of the value arrays in the hitboxEntityNames map
+  let entityColor = Object.keys(hitboxEntityNames).find((color) =>
       hitboxEntityNames[color].includes(entity.t)
-    );
-    if (entityColor !== undefined) {
-      shapes.push(...createHitBoxEntityShapes(entity, entityColor));
-      isOther = false;
-    }
+  );
+  if (entityColor !== undefined) {
+    shapes.push(...createHitBoxEntityShapes(entity, entityColor));
+    isOther = false;
+  }
 
-    //If the entity type is in any of the value arrays in the hitcircleEntityNames map
-    entityColor = Object.keys(hitcircleEntityNames).find((color) =>
+  //If the entity type is in any of the value arrays in the hitcircleEntityNames map
+  entityColor = Object.keys(hitcircleEntityNames).find((color) =>
       hitcircleEntityNames[color].includes(entity.t)
-    );
-    if (entityColor !== undefined) {
-      shapes.push(...createHitCircleEntityShapes(entity, entityColor));
-      isOther = false;
-    }
-    
-    //If the entity type is in any of the value arrays in the otherEntityNames map
-    entityColor = Object.keys(otherEntityNames).find((color) =>
-      otherEntityNames[color].includes(entity.t)
-    );
-    if (entityColor !== undefined) {
-      shapes.push(...createOtherEntityShape(entity));
-      isOther = false;
-    }
+  );
+  if (entityColor !== undefined) {
+    shapes.push(...createHitCircleEntityShapes(entity, entityColor));
+    isOther = false;
+  }
 
-    //Special entities
-    //Entity Type: FinalBoos
-    if (entity.t === "FinalBoss" || entity.t === "BadelineBoost" || entity.t === "FlingBird") {
-      shapes.push(...createBadelineBossShapes(entity));
-      isOther = false;
-    }
-    
-    if (isOther) {
-        shapes.push(...createOtherEntityShape(entity));
-    }
-  });
+  //If the entity type is in any of the value arrays in the otherEntityNames map
+  entityColor = Object.keys(otherEntityNames).find((color) =>
+      otherEntityNames[color].includes(entity.t)
+  );
+  if (entityColor !== undefined) {
+    shapes.push(...createOtherEntityShape(entity));
+    isOther = false;
+  }
+
+  //Special entities
+  //Entity Type: FinalBoos
+  if (entity.t === "FinalBoss" || entity.t === "BadelineBoost" || entity.t === "FlingBird") {
+    shapes.push(...createBadelineBossShapes(entity));
+    isOther = false;
+  }
+
+  if (isOther) {
+    shapes.push(...createOtherEntityShape(entity));
+  }
   
   return shapes;
 }
@@ -922,7 +944,9 @@ function createSimpleHitboxAdditionalShape(entityColor, entityX, entityY, entity
   if (
     entity.t === "MoveBlock" ||
     entity.t === "ConnectedMoveBlock" ||
-    entity.t === "DreamMoveBlock"
+    entity.t === "DreamMoveBlock" || 
+    entity.t === "MoveBlockCustomSpeed" || 
+    entity.t === "VitMoveBlock"
   ) {
     let direction = entity.r.direction; //Left, Right, Up, Down
     //Draw an arrow pointing in the direction, in center of the hitbox
@@ -1113,7 +1137,7 @@ function drawPhysicsLog(frameEntityData = null) {
       nextFrame = physicsLogFrames[i + 1];
     }
 
-    createPhysicsTooltip(posCircle, frame, previousFrame, nextFrame, frameEntityData);
+    createPhysicsTooltip(posCircle, frameIndex, frame, previousFrame, nextFrame, frameEntityData);
 
     drawAdditionalFrameData(frame, previousFrame);
     previousFrame = frame;
@@ -1225,7 +1249,8 @@ function drawPointLabels(frame, previousFrame) {
 //#endregion
 
 //#region Tooltips
-function createPhysicsTooltip(shape, frame, previousFrame, nextFrame, frameEntityData = null) {
+let currentRoomEntities = null; //{}
+function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame, frameEntityData = null) {
   let rasterizedPos = getRasterziedPosition(frame);
   let posX = rasterizedPos.positionX;
   let posY = rasterizedPos.positionY;
@@ -1565,16 +1590,34 @@ function createPhysicsTooltip(shape, frame, previousFrame, nextFrame, frameEntit
   
   
   //Render movable shapes
-  let movableShapes = createEntityShapes(frameEntityData ?? frame.entities, null);
-  movableShapes.forEach((shape) => {
-    shape.visible(settings.frameStepSize === 1);
-    konvaRoomMovableEntitiesLayer.add(shape);
-  });
+  if (currentRoomEntities === null){
+    currentRoomEntities = getEntitiesForFrame(frameIndex);
+  } else if (isFrameFirstInRoom(frame)){
+    currentRoomEntities = frame.entities;
+  } else {
+    currentRoomEntities = applyEntityChanges(currentRoomEntities, frame.entities);
+  }
+  
+  if(frame.frameNumber === 342){
+    console.log("Frame:", frame, "Entities:", currentRoomEntities);
+  }
+  
+  let movableShapes = [];
+  //currentRoomEntities is an object with entity ID as key and entity as value
+  for (let entityID in currentRoomEntities) {
+    let entity = currentRoomEntities[entityID];
+    let shapes = createEntityShapes(entity, null);
+    shapes.forEach((shape) => {
+      shape.visible(settings.frameStepSize === 1);
+      konvaRoomMovableEntitiesLayer.add(shape);
+      movableShapes.push(shape);
+    });
+  }
 
   shape.keepTooltipOpen = false;
 
   shape.on("click", function () {
-    console.log("Movable entities: ", frameEntityData ?? frame.entities);
+    console.log("Movable entities: ", currentRoomEntities);
     shape.keepTooltipOpen = !shape.keepTooltipOpen;
     if (shape.keepTooltipOpen) {
       shape.zIndex(150);

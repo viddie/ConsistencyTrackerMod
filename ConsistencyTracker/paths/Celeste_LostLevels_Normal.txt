@@ -1,8 +1,0 @@
-Singular;SI;14;a-00,a-01,a-02,a-03,a-04,a-05,b-00,b-01,b-02,b-03,b-04,b-05,b-06,b-07
-Power Source;PS;9;c-00,c-00b,c-01,c-02,c-03,d-00,d-05,e-00y,e-00yb
-Remembered;RM;13;e-00z,e-00,e-00b,e-01,e-02,e-03,e-04,e-05,e-05b,e-05c,e-06,e-07,e-08
-Event Horizon;EH;18;f-door,f-00,f-01,f-02,f-03,f-04,f-05,f-06,f-07,f-08,f-09,g-00,g-01,g-03,g-02,g-04,g-05,g-06
-Determination;DT;14;h-00b,h-00,h-01,h-02,h-03,h-03b,h-04,h-05,h-06,h-06b,h-07,h-08,h-09,h-10
-Stubbornness;ST;7;i-00,i-00b,i-01,i-02,i-03,i-04,i-05
-Reconciliation;RC;18;j-00,j-00b,j-01,j-02,j-03,j-04,j-05,j-06,j-07,j-08,j-09,j-10,j-11,j-12,j-13,j-14,j-14b,j-15
-Farewell;FW;1;j-16

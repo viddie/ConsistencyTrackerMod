@@ -22,7 +22,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         public List<int[]> SolidTiles { get; set; }
 
         [JsonProperty("entities")]
-        public List<LoggedEntity> Entities { get; set; }
+        public Dictionary<int, LoggedEntity> Entities { get; set; }
 
         [JsonProperty("movableEntities")]
         public List<LoggedEntity> MovableEntities { get; set; }

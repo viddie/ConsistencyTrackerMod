@@ -1,2 +1,0 @@
-Start;ST;9;start,0,1,d0,d7,d8,d3,d2,3x
-Intervention;IV;13;3,4,5,6,7,8,9,10,2,11,12b,12,13

@@ -1,3 +1,0 @@
-Start;ST;5;00,01,02,02b,03
-Contraption;CT;5;04,05,05b,06,07
-Scrap Pit;SP;6;08,08b,09,10,11,end

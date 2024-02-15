@@ -1,3 +1,0 @@
-Start;ST;6;start,00,01,01b,02b,02
-Combination Lock;CL;5;03,04,05,06,07
-Dream Altar;DA;6;08b,08,09,10,11,end

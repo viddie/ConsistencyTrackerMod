@@ -1,4 +1,0 @@
-Start;ST;4;start,a-00,a-01,a-02
-Central Chamber;CC;3;b-00,b-01,b-04,b-02,b-06,b-07,b-03,b-08
-Through the Mirror;TTM;5;b-09,c-01,c-02,c-03,c-04
-Mix Master;MM;6;d-00,d-01,d-02,d-03,d-04,d-05

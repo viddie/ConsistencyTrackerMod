@@ -1,17 +1,12 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Monocle;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Design;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using MonoMod.Utils;
+using Celeste.Mod.ConsistencyTracker.EverestInterop;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 {
@@ -107,6 +102,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private string TasFileContent = null;
 
         public PhysicsRecordingsManager RecordingsManager { get; set; }
+        private Dictionary<int, LoggedEntity> RoomEntities = new Dictionary<int, LoggedEntity>();
 
         public PhysicsLogger() {
             RecordingsManager = new PhysicsRecordingsManager();
@@ -118,6 +114,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             Everest.Events.Level.OnExit += Level_OnExit;
             Events.Events.OnResetSession += Events_OnResetSession;
         }
+
         public void UnHook() {
             On.Monocle.Engine.Update -= Engine_Update;
             Everest.Events.Level.OnExit -= Level_OnExit;
@@ -230,7 +227,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             toWrite += $",{liftboost.X},{liftboost.Y * flipYFactor}";
             toWrite += $",{speedRetention}";
             toWrite += $",{player.Stamina}";
-            toWrite += $",{string.Join(" ", GetPlayerFlags(player, level))}";
+            toWrite += $",{string.Join(" ", GetPlayerFlags(player, level, IsFirstFrameInRoom))}";
 
             UpdateJumpState();
             toWrite += $",{GetInputsFormatted()}";
@@ -243,11 +240,60 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
 
             if (Mod.ModSettings.LogMovableEntities) {
-                HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
-                toWrite += $",{JsonConvert.SerializeObject(GetEntitiesFromLevel(level, EntityList.Movable, ref entities))}";
+                if (!IsFirstFrameInRoom) {
+                    HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
+                    Dictionary<int, LoggedEntity> newRoomEntities  = GetEntitiesFromLevel(level, EntityList.Movable, ref entities);
+                    
+                    Dictionary<int, LoggedEntity> changes = new Dictionary<int, LoggedEntity>();
+                    //Compare these entities to the ones in the room
+                    foreach (KeyValuePair<int, LoggedEntity> pair in newRoomEntities) {
+                        LoggedEntity entity = pair.Value;
+                        if (RoomEntities.TryGetValue(entity.ID, out LoggedEntity roomEntity)) {
+                            if (!entity.Position.Equals(roomEntity.Position) && entity.AttachedTo == -1) {
+                                //Only note down the position difference as change
+                                changes.Add(entity.ID, new LoggedEntity() {
+                                    ID = entity.ID,
+                                    Position = new JsonVector2() {
+                                        X = entity.Position.X - roomEntity.Position.X,
+                                        Y = entity.Position.Y - roomEntity.Position.Y
+                                    },
+                                });
+                            }
+                        } else {
+                            //Entity wasnt found in the room
+                            LoggedEntity changedEntity = new LoggedEntity(entity);
+                            changedEntity.Properties.Add("added", true);
+                            changes.Add(entity.ID, changedEntity);
+                        }
+                    }
+                    
+                    //Check for removed entities
+                    foreach (KeyValuePair<int, LoggedEntity> roomEntity in RoomEntities) {
+                        if (!newRoomEntities.ContainsKey(roomEntity.Key)) {
+                            //Entity was removed
+                            changes.Add(roomEntity.Key, new LoggedEntity() {
+                                ID = roomEntity.Key,
+                                Properties = new Dictionary<string, object>() {
+                                    ["removed"] = true
+                                }
+                            });
+                        }
+                    }
+                    
+                    if (changes.Count > 0) {
+                        toWrite += $",{JsonConvert.SerializeObject(changes)}";
+                    } else {
+                        toWrite += ",{}";
+                    }
+                    RoomEntities = newRoomEntities;
+                } else {
+                    toWrite += $",{JsonConvert.SerializeObject(RoomEntities)}";
+                }
             } else {
-                toWrite += ",[]";
+                toWrite += ",{}";
             }
+            
+            IsFirstFrameInRoom = false;
 
             if (Settings.InputsToTasFile) {
                 string tasInputs = GetInputsTASFormatted();
@@ -276,6 +322,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             VisitedRooms = new HashSet<string>();
             VisitedRoomsLayouts = new List<PhysicsLogRoomLayout>();
             LoggedEntitiesRaw = new HashSet<Entity>();
+            IsFirstFrameInRoom = false;
+            LastRoomName = null;
 
             RecordingStarted = DateTime.Now;
             RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
@@ -327,7 +375,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             [Player.StSwim] = nameof(Player.StSwim),
             [Player.StTempleFall] = nameof(Player.StTempleFall),
         };
-        public List<string> GetPlayerFlags(Player player, Level level) {
+        public List<string> GetPlayerFlags(Player player, Level level, bool firstFrameInRoom = false) {
             List<string> flags = new List<string>();
             if (player.Dead) {
                 flags.Add("Dead");
@@ -422,6 +470,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             if (Settings.FlagFacing) {
                 string facingDir = player.Facing == Facings.Left ? "L" : "R";
                 flags.Add($"Facing({facingDir})");
+            }
+
+            if (firstFrameInRoom) {
+                flags.Add("FirstFrameInRoom");
             }
 
             return flags;
@@ -543,7 +595,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "FlyFeather",
             "Cloud",
             "WallBooster", "IcyFloor", //Conveyers or IceWalls, depending on Core Mode
-            "MoveBlock", "DreamMoveBlock", "VitMoveBlock",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "MoveBlockCustomSpeed",
             "CassetteBlock", "WonkyCassetteBlock",
 
             "Puffer", "StaticPuffer", "SpeedPreservePuffer",
@@ -705,49 +757,45 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CrushBlock", //Kevin
             "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb",
             "Cloud",
-            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock", "MoveBlockCustomSpeed",
             "FallingBlock", "GroupedFallingBlock", "RisingBlock",
             "AttachedJumpThru",
             "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
         };
 
 
+        private string LastRoomName = null;
+        private bool IsFirstFrameInRoom = false;
         public void SaveRoomLayout() {
             if (!(Engine.Scene is Level)) return;
             Level level = (Level)Engine.Scene;
-
+            
             string debugRoomName = level.Session.Level;
-            if (VisitedRooms.Contains(debugRoomName)) return;
+            //If we are in the same room as last frame
+            if (LastRoomName != null && LastRoomName == debugRoomName) return;
+            LastRoomName = debugRoomName;
+
+            IsFirstFrameInRoom = true; //To notify physics logger that we are in a new room
+            
+            //Note down the current state of the entities in the room
+            RoomEntities = GetEntitiesFromLevel(level, EntityList.Movable, ref LoggedEntitiesRaw);
+
+            //Save the static entities in the room
+            if (VisitedRooms.Contains(debugRoomName)) {
+                Mod.Log($"Room '{debugRoomName}' has already been visited! (LastRoomName: {LastRoomName})");
+                return;
+            }
             VisitedRooms.Add(debugRoomName);
 
             Mod.Log($"Saving room layout for room '{debugRoomName}'");
-
-            string path = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "RoomLayout.txt");
-
-            File.WriteAllText(path, $"Room Name '{level.Session.Level}'\n");
-            File.AppendAllText(path, $"level.Bounds: {level.Bounds}\n");
-            File.AppendAllText(path, $"level.TileBounds: {level.TileBounds}\n");
-            File.AppendAllText(path, $"level.LevelOffset: {level.LevelOffset}\n");
-            File.AppendAllText(path, $"level.LevelSolidOffset: {level.LevelSolidOffset}\n");
-            File.AppendAllText(path, $"level.Entities: \n{string.Join("\n", level.Entities.Select((e) => $"{e.GetType().Name} ({e.Position})"))}\n");
-
-            File.AppendAllText(path, $"\n");
-
-            File.AppendAllText(path, $"level.SolidTiles.Grid.Size: {level.SolidTiles.Grid.Size}\n");
-            File.AppendAllText(path, $"level.SolidTiles.Grid.CellsX: {level.SolidTiles.Grid.CellsX}\n");
-            File.AppendAllText(path, $"level.SolidTiles.Grid.CellsY: {level.SolidTiles.Grid.CellsY}\n");
-            File.AppendAllText(path, $"\nlevel.SolidTiles.Grid.Data:\n");
-
             
-            //Draw only our level
+            Dictionary<int, LoggedEntity> entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
+            
             int offsetX = level.LevelSolidOffset.X;
             int offsetY = level.LevelSolidOffset.Y;
-
             int width = level.Bounds.Width / 8;
             int height = level.Bounds.Height / 8;
-
             List<int[]> solidTileData = new List<int[]>();
-
             for (int y = 0; y < height; y++) {
                 int[] row = new int[width];
                 string line = "";
@@ -756,19 +804,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     line += row[x] == 1 ? "1" : " ";
                 }
                 solidTileData.Add(row);
-                File.AppendAllText(path, $"{y}: {line}\n");
             }
-
-            List<LoggedEntity> entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
-            List<LoggedEntity> movableEntities = GetEntitiesFromLevel(level, EntityList.Movable, ref LoggedEntitiesRaw);
             
-            string pathJson = ConsistencyTrackerModule.GetPathToFile(ConsistencyTrackerModule.LogsFolder, "room-layout.json");
             PhysicsLogRoomLayout roomLayout = new PhysicsLogRoomLayout() {
                 DebugRoomName = debugRoomName,
                 LevelBounds = level.Bounds.ToJsonRectangle(),
                 SolidTiles = solidTileData,
                 Entities = entities,
-                MovableEntities = movableEntities,
             };
             VisitedRoomsLayouts.Add(roomLayout);
 
@@ -780,12 +822,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             Movable
         }
 
-        public static List<LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
-            List<LoggedEntity> entities = new List<LoggedEntity>();
+        public static Dictionary<int, LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
+            Dictionary<int, LoggedEntity> entities = new Dictionary<int, LoggedEntity>();
             foreach (Entity outerEntity in level.Entities) {
                 List<Entity> subEntities = new List<Entity>() {
                     outerEntity
                 };
+                LoggedEntity loggedOuterEntity = null;
 
                 for (int subIndex = 0; subIndex < subEntities.Count; subIndex++) {
                     Entity entity = subEntities[subIndex];
@@ -832,6 +875,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         Type = entityName,
                         Position = entity.Position.ToJsonVector2(),
                     };
+                    if (loggedOuterEntity == null) loggedOuterEntity = loggedEntity;
                     Collider collider = null;
                     bool logged = false;
 
@@ -973,7 +1017,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                             loggedEntity.Properties.Add("notCoreMode", notCoreMode);
                         }
 
-                        entities.Add(loggedEntity);
+                        entities.Add(entity.GetHashCode(), loggedEntity);
                         logged = true;
                     }
 
@@ -1078,7 +1122,15 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     } else {
                         AddColliderInfoToLoggedEntity(loggedEntity, collider);
                     }
-                    entities.Add(loggedEntity);
+
+                    loggedEntity.ID = entity.GetHashCode();
+                    if (subIndex > 0) {
+                        loggedEntity.AttachedTo = loggedOuterEntity.ID;
+                    }
+
+                    if (!entities.ContainsKey(entity.GetHashCode())) {
+                        entities.Add(entity.GetHashCode(), loggedEntity);
+                    }
                 }
             }
 

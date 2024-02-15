@@ -1,4 +1,0 @@
-Start;ST;17;s0,s1,s2,s3,0x-a,00-a,02-a,02-b,03-a,05-a,06-a,07-a,07-b,06-b,06-c,08-c,08-b
-Huge Mess;HM;21;08-a,09-b,10-x,11-x,11-y,11-z,10-z,10-y,10-c,11-c,12-c,12-d,11-d,10-d,11-b,12-b,13-b,13-a,13-x,12-x,11-a
-Elevator Shaft;ES;7;09-d,08-d,06-d,04-d,04-c,02-c,02-d
-Presidential Suite;PS;9;00-d,roof00,roof01,roof02,roof03,roof04,roof05,roof06b,roof06

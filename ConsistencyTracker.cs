@@ -375,7 +375,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && !isSpeedBerry) {
+            if (self.Golden && !self.Winged && !isSpeedBerry) {
                 PlayerIsHoldingGolden = true;
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 SaveChapterStats();
@@ -402,7 +402,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && SettingsTrackGoldens) {
+            if (self.Golden && !self.Winged && SettingsTrackGoldens) {
                 Log($"Golden collected! GG :catpog:");
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();

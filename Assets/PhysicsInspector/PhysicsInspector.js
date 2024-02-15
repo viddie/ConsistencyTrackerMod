@@ -178,7 +178,6 @@ function replayTimeoutFunction() {
   let ms = 1000 / 60 / speed;
 
   if(settings.replayPlaying){
-    console.log("Replay running...");
     let frame = physicsLogFrames[settings.frameMin];
     if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 40 && frame.flags.indexOf("NoControl") === -1 && !settings.replayIgnoreIdleFrames){
       redrawCanvas(frame.idleFrames[replayIdleFrameCounter].entities);

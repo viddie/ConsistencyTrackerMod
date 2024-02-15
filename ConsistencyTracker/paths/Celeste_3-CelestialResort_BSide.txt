@@ -1,4 +1,0 @@
-Start;ST;6;00,01,02,03,04,05
-Staff Quarters;SQ;5;06,07,08,09,10
-Library;LB;5;11,13,14,15,12
-Rooftop;RT;7;16,17,18,19,21,20,end

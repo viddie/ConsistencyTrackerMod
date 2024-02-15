@@ -1,4 +1,14 @@
-﻿const PointLabelNone = "None";
+﻿const DisplayMode ={
+    Classic: {
+        name: "Classic",
+        description: "Shows multiple frames at once, hover over a frame to see movable entities and more details."
+    },
+    Replay: {
+        name: "Replay",
+        description: "Shows a single frame at a time, with the ability to play and pause the recording."
+    }
+};
+const PointLabelNone = "None";
 const PointLabels= {
   None: "None",
 
@@ -39,6 +49,8 @@ let settings = {
   showOnlyRelevantRooms: true,
   rasterizeMovement: false,
 
+  displayMode: DisplayMode.Classic.name,
+  
   frameStepSize: 500,
   frameMin: 0,
   

@@ -1,4 +1,0 @@
-Start;ST;11;a-00,a-01,a-01x,a-02,a-03,a-04,a-05,a-06,a-07,a-08,a-09
-Shrine;SH;5;b-00,b-02,b-05,b-08b,b-08
-Old Trail;OT;8;c-00,c-02,c-04,c-05,c-06,c-09,c-07,c-08
-Cliff Face;CF;10;d-00,d-01,d-02,d-03,d-04,d-05,d-06,d-07,d-08,d-09
