@@ -218,6 +218,11 @@ function loadSettings() {
   if (settings.replayCenterCamera === undefined){
     settings.replayCenterCamera = true;
   }
+  
+  if(settings.displayMode === undefined){
+    settings.displayMode = DisplayMode.Classic.name;
+  }
+  Elements.DisplayModeButton.innerText = "Mode: " + settings.displayMode;
 
   settingsInited = true;
 }
@@ -354,6 +359,7 @@ function changedFrameStepSize(value){
 
 function changedReplaySpeed(value){
   settings.replaySpeed = parseFloat(value);
+  saveSettings();
 }
 
 function framePageUp(mult = 1, event) {
@@ -459,6 +465,19 @@ function refreshSidebarMenuVisibility() {
   } else {
     Elements.SidebarMenu.style.transform = "translateX(0%)";
   }
+}
+
+function toggleDisplayMode(){
+  if(settings.displayMode === DisplayMode.Classic.name){
+      settings.displayMode = DisplayMode.Replay.name;
+  } else {
+      settings.displayMode = DisplayMode.Classic.name;
+  }
+  
+  Elements.DisplayModeButton.innerText = "Mode: " + settings.displayMode;
+  
+  saveSettings();
+  redrawCanvas();
 }
 //#endregion
 

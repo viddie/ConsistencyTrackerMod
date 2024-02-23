@@ -35,5 +35,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             };
             Properties = new Dictionary<string, object>(cloneFrom.Properties);
         }
+
+        public override string ToString() {
+            return $"LoggedEntity({ID}, {Type}, {Position})";
+        }
     }
 }

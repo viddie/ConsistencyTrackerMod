@@ -287,6 +287,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
                     RoomEntities = newRoomEntities;
                 } else {
+                    Mod.Log("First frame entities in room: " + Util.DictionaryToString(RoomEntities));
                     toWrite += $",{JsonConvert.SerializeObject(RoomEntities)}";
                 }
             } else {
@@ -641,10 +642,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "SelectedAreaEntity",
             "GrabbyIcon",
             "SpaceJumpIndicator", "JumpIndicator",
-            "TextOverlay",
+            "TextOverlay", "LineupIndicatorEntity", "SummaryHud",
             "TalkComponentUI",
             "DeathDisplay",
             "DashSequenceDisplay",
+            "AnalogDisplay",
+            "WorldTextEntity",
 
             //Deco
             "SolidTiles", "FG",
@@ -665,6 +668,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "CustomNPC", "MoreCustomNPC", "StrawberryJamJar",
             "MoonCreature", "FlutterBird",
             "ColoredHangingLamp", "Torch", "LitBlueTorch", "Cobweb",
+            "CustomMoonCreature",
 
             //Camera
             "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
@@ -680,7 +684,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "LuaCutsceneTrigger", "LuaCutsceneEntity",
             "DialogCutsceneTrigger", "MiniTextboxTrigger",
             "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger", "FloatExtendedVariantFadeTrigger", "ExtendedVariantFadeTrigger",
-            "FloatExtendedVariantTrigger", "ResetVariantsTrigger",
+            "FloatExtendedVariantTrigger", "ResetVariantsTrigger", "FloatFadeTrigger",
             "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
             "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
             "MiniHeartDoorUnlockCutsceneTrigger", "TimeModulationTrigger",
@@ -692,6 +696,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
             "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
             "ColoredLightbeam", "CustomLightBeam", "GradualChangeColorGradeTrigger",
+            "BloomColorFadeTrigger", "RainbowSpinnerColorFadeTrigger", "BloomColorTrigger",
 
             //Music
             "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
@@ -712,6 +717,11 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "ParallaxFadeOutController",
             "CustomizableGlassBlockAreaController",
             "CassetteMusicTransitionController",
+            "BitsMagicLanternController",
+            "LobbyMapController",
+            "RainbowTilesetController",
+            "StarClimbGraphicsController",
+            "AssistIconController",
 
             //Renderers
             "PathRenderer",
@@ -751,11 +761,11 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             "DustTrackSpinner", "DustRotateSpinner",
             "SinkingPlatform", "AngryOshiro",
             "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
-            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
+            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn", "DreamZipMover",
             "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
             "BounceBlock", //Core Block
-            "CrushBlock", //Kevin
-            "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb",
+            "CrushBlock", "UninterruptedNRCB",
+            "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb", "ExtendedVariantTheoCrystal",
             "Cloud",
             "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock", "MoveBlockCustomSpeed",
             "FallingBlock", "GroupedFallingBlock", "RisingBlock",
@@ -867,7 +877,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         //     }
                         // }
                     }
-                
+                    
                     if (loggedEntitiesRaw.Contains(entity)) continue;
                     loggedEntitiesRaw.Add(entity);
 
@@ -1119,7 +1129,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     
                     if (!logged) {
                         AddOtherInfoToLoggedEntity(loggedEntity, entity);
-                    } else {
+                    } else if(collider != null) {
                         AddColliderInfoToLoggedEntity(loggedEntity, collider);
                     }
 

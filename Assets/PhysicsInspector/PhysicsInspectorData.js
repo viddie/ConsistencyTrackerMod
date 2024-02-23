@@ -133,6 +133,25 @@ function findRelevantRooms() {
     }
   }
 }
+
+//Find the room layout that the frame is in
+function getRoomFromFrame(frame = null){
+  frame = frame ?? physicsLogFrames[settings.frameMin];
+  for (let i = 0; i < roomLayouts.length; i++) {
+    let roomLayout = roomLayouts[i];
+    let levelBounds = roomLayout.levelBounds;
+
+    if (
+        frame.positionX >= levelBounds.x &&
+        frame.positionX <= levelBounds.x + levelBounds.w &&
+        frame.positionY >= levelBounds.y &&
+        frame.positionY <= levelBounds.y + levelBounds.h
+    ) {
+      return roomLayout;
+    }
+  }
+  return null;
+}
 //#endregion
 
 //#region Display Utils
@@ -224,11 +243,11 @@ function getEntitiesForFrame(frameIndex){
     return {};
   }
   
+  let entities = JSON.parse(JSON.stringify(firstFrameInRoom.entities));
   if(firstFrameIndex === frameIndex){
-    return firstFrameInRoom.entities;
+    return entities;
   }
   
-  let entities = JSON.parse(JSON.stringify(firstFrameInRoom.entities));
   for (let i = firstFrameIndex+1; i <= frameIndex; i++) {
     let frame = physicsLogFrames[i];
     let frameEntities = frame.entities;

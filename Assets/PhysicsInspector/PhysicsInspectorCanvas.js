@@ -2,6 +2,15 @@
 let spinnerRadius = 6;
 let entitiesOffsetX = 0;
 let entitiesOffsetY = 0.5;
+
+const MaddyWidth = 7;
+const MaddyHeight = 10
+
+const TooltipMargin = 2;
+const TooltipBoxOffsetX = 5;
+const TooltipBoxOffsetY = 0 - MaddyHeight - 3;
+
+
 let spinnerEntityNames = [
     "CrystalStaticSpinner",
     "DustStaticSpinner",
@@ -345,7 +354,11 @@ function redrawCanvas(frameEntityData = null) {
   konvaLowPrioTooltipLayer.destroyChildren();
   konvaTooltipLayer.destroyChildren();
 
-  createAllElements(frameEntityData);
+  if(settings.displayMode === DisplayMode.Classic.name){
+    createAllElements(frameEntityData);
+  } else if(settings.displayMode === DisplayMode.Replay.name){
+    replayModeCreateInitialState();
+  }
 }
 
 function createCanvas() {
@@ -421,7 +434,10 @@ function addMouseHandlers() {
 function createAllElements(frameEntityData = null) {
   findRelevantRooms();
 
-  drawRoomBounds();
+  staticEntityCounts = {};
+  movableEntityCounts = {};
+  
+  drawAllRoomBounds();
   roomLayouts.forEach((roomLayout) => {
     let debugRoomName = roomLayout.debugRoomName;
 
@@ -435,6 +451,7 @@ function createAllElements(frameEntityData = null) {
       let shapes = createEntityShapes(entity, levelBounds);
       konvaRoomEntitiesLayer.add(...shapes);
     }
+    countEntities(roomLayout.entities, staticEntityCounts);
   });
   
   drawMovableEntitiesInitialPositions();
@@ -446,37 +463,54 @@ function createAllElements(frameEntityData = null) {
   konvaPositionLayer.draw();
 }
 
+let staticEntityCounts = {};
+let movableEntityCounts = {};
+function countEntities(entities, counterObject){
+  for (const entity of Object.values(entities)) {
+    if (entity.t in counterObject) {
+      counterObject[entity.t]++;
+    } else {
+      counterObject[entity.t] = 1;
+    }
+  }
+}
 //#endregion
 
 //#region Canvas Drawing
-function drawRoomBounds() {
-  let tileSize = 8;
-  let tileOffsetX = 0;
-  let tileOffsetY = 0.5;
-
+function drawAllRoomBounds() {
   roomLayouts.forEach((roomLayout) => {
     let debugRoomName = roomLayout.debugRoomName;
-
     if (settings.showOnlyRelevantRooms && !relevantRoomNames.includes(debugRoomName)) {
       return;
     }
+    
+    let shapes = createRoomBoundsShapes(roomLayout);
+    konvaRoomLayoutLayer.add(...shapes);
+  });
+}
 
-    let levelBounds = roomLayout.levelBounds;
-    let solidTiles = roomLayout.solidTiles; //2d array of bools, whether tiles are solid or not
+let SolidTileOffsetX = 0;
+let SolidTileOffsetY = 0.5;
+function createRoomBoundsShapes(roomLayout){
+  let shapes = [];
+  let debugRoomName = roomLayout.debugRoomName;
 
-    konvaRoomLayoutLayer.add(
+  let levelBounds = roomLayout.levelBounds;
+  let solidTiles = roomLayout.solidTiles; //2d array of bools, whether tiles are solid or not
+
+  shapes.push(
       new Konva.Rect({
-        x: levelBounds.x + tileOffsetX,
-        y: levelBounds.y + tileOffsetY,
+        x: levelBounds.x + SolidTileOffsetX,
+        y: levelBounds.y + SolidTileOffsetY,
         width: levelBounds.w,
         height: levelBounds.h,
         stroke: "white",
         strokeWidth: 0.5,
       })
-    );
+  );
 
-    if (settings.showRoomNames) {
-      konvaRoomLayoutLayer.add(
+  if (settings.showRoomNames) {
+    shapes.push(
         new Konva.Text({
           x: levelBounds.x + 3,
           y: levelBounds.y + 3,
@@ -487,11 +521,11 @@ function drawRoomBounds() {
           stroke: "black",
           strokeWidth: 1,
         })
-      );
-    }
+    );
+  }
 
-    drawSolidTileOutlines(solidTiles, levelBounds);
-  });
+  shapes.push(...createSolidTilesOutlines(solidTiles, levelBounds));
+  return shapes;
 }
 
 function drawMovableEntitiesInitialPositions(){
@@ -519,10 +553,11 @@ function drawMovableEntitiesInitialPositions(){
       let shapes = createEntityShapes(entity, null);
       konvaRoomMovableEntitiesInitialLayer.add(...shapes);
     }
+    
+    countEntities(entities, movableEntityCounts);
   });
 }
 
-let entityCounts = {};
 function createEntityShapes(entity, levelBounds) {
   const shapes = [];
   
@@ -571,7 +606,7 @@ function createEntityShapes(entity, levelBounds) {
       otherEntityNames[color].includes(entity.t)
   );
   if (entityColor !== undefined) {
-    shapes.push(...createOtherEntityShape(entity));
+    shapes.push(...createOtherEntityShape(entity, entityColor));
     isOther = false;
   }
 
@@ -593,14 +628,15 @@ function createEntityShapes(entity, levelBounds) {
 function createSpinnerEntityShapes(entity){
   let shapes = [];
   let entityX = entity.p.x + entitiesOffsetX;
-    let entityY = entity.p.y + entitiesOffsetY;
+  let entityY = entity.p.y + entitiesOffsetY;
+  
   //Draw white circle with width 6 on entity position
-  let hitcircle = { x: 0, y: 0, r: 6 };
+  let hitcircle = entity.r?.c ?? { x: 0, y: 0, r: 6 };
   shapes.push(createHitCircle(entityX, entityY, hitcircle, "white", 0.5));
 
   if (settings.showSpinnerRectangle) {
     //Draw white rectangle with width 16, height 4, x offset -8 and y offset -3 on entity position
-    let hitbox = { x: -8, y: -3, w: 16, h: 4 };
+    let hitbox = entity.r?.b ?? { x: -8, y: -3, w: 16, h: 4 };
     shapes.push(createHitbox(entityX, entityY, hitbox, "white", 0.5));
   }
   return shapes;
@@ -653,11 +689,25 @@ function createHitCircleEntityShapes(entity, color){
   return shapes;
 }
 
-function createOtherEntityShape(entity){
+let commonColorNames = [
+    "white", "black", "red", "green", "blue", "cyan", "yellow", "orange"
+];
+function createOtherEntityShape(entity, color){
   let shapes = [];
   if (!entity.r.bc) return shapes;
+  
+  if(color === undefined){
+    //Check if the entity.t contains a colors name from CSS_COLORS
+    //CSS_COLORS is an object with key => value of colorName => colorHex
+    //Ignore case
+    let entityTLower = entity.t.toLowerCase();
+    let colorName = Object.keys(CSS_COLOR_NAMES).find((color) => entityTLower.includes(color.toLowerCase()));
+    if(colorName !== undefined){
+      color = CSS_COLOR_NAMES[colorName];
+    }
+  }
 
-  let entityColor = entity.r.bs ? "red" : "white";
+  let entityColor = color ?? (entity.r.bs ? "red" : "white");
   let entityX = entity.p.x + entitiesOffsetX;
   let entityY = entity.p.y + entitiesOffsetY;
 
@@ -1108,43 +1158,73 @@ function createLetterEntityTextCircle(entityX, entityY, hitcircle, text, fontSiz
 
 //#region Physics Log
 function drawPhysicsLog(frameEntityData = null) {
-  let previousFrame = null;
   pointLabelPreviousValue = null;
 
   for (let i = 0; i < settings.frameStepSize; i++) {
     let frameIndex = settings.frameMin != -1 ? settings.frameMin + i : i;
-    frameIndex = Math.min(frameIndex, physicsLogFrames.length - 1);
-    let frame = physicsLogFrames[frameIndex];
+    if(frameIndex >= physicsLogFrames.length) break;
 
-    
-    let rasterizedPos = getRasterziedPosition(frame);
-    let posX = rasterizedPos.positionX;
-    let posY = rasterizedPos.positionY;
-
-    //Draw circle on position
-    let posCircle = new Konva.Circle({
-      x: posX,
-      y: posY,
-      radius: 1.25,
-      fill: getFramePointColor(frame),
-      stroke: "black",
-      strokeWidth: 0,
+    let physicsLogShapes = createPhysicsLogShapes(frameIndex);
+    konvaPositionLayer.add(...physicsLogShapes.point);
+    konvaMaddyHitboxLayer.add(...physicsLogShapes.tooltip.hitbox);
+    konvaTooltipLayer.add(...physicsLogShapes.tooltip.tooltip);
+    Object.keys(physicsLogShapes.tooltip.movables).forEach((key) => {
+      let entityShapes = physicsLogShapes.tooltip.movables[key];
+      konvaRoomMovableEntitiesLayer.add(...entityShapes);
     });
-    konvaPositionLayer.add(posCircle);
 
-    let nextFrame = null;
-    if (i < physicsLogFrames.length - 1) {
-      nextFrame = physicsLogFrames[i + 1];
-    }
-
-    createPhysicsTooltip(posCircle, frameIndex, frame, previousFrame, nextFrame, frameEntityData);
-
-    drawAdditionalFrameData(frame, previousFrame);
-    previousFrame = frame;
+    let shapes = createAdditionalFrameData(frameIndex);
+    konvaLowPrioTooltipLayer.add(...shapes.followLine);
+    konvaLowPrioTooltipLayer.add(...shapes.pointLabel);
   }
 }
 
-function drawAdditionalFrameData(frame, previousFrame) {
+function createPhysicsLogShapes(frameIndex){
+  let shapes = {
+    point: [],
+    tooltip: {},
+  };
+
+  let frame = physicsLogFrames[frameIndex];
+  let rasterizedPos = getRasterziedPosition(frame);
+  let posX = rasterizedPos.positionX;
+  let posY = rasterizedPos.positionY;
+  
+  let nextFrame = null;
+  if (frameIndex < physicsLogFrames.length - 1) {
+    nextFrame = physicsLogFrames[frameIndex + 1];
+  }
+  let previousFrame = null;
+  if (frameIndex > 0) {
+    previousFrame = physicsLogFrames[frameIndex - 1];
+  }
+
+  //Draw circle on position
+  let posCircle = new Konva.Circle({
+    x: posX,
+    y: posY,
+    radius: 1.25,
+    fill: getFramePointColor(frame),
+    stroke: "black",
+    strokeWidth: 0,
+  });
+  shapes.point.push(posCircle);
+  shapes.tooltip = createPhysicsTooltip(posCircle, frameIndex, frame, previousFrame, nextFrame);
+  return shapes;
+}
+
+function createAdditionalFrameData(frameIndex) {
+  let shapes = {
+    followLine: [],
+    pointLabel: [],
+  };
+
+  let frame = physicsLogFrames[frameIndex];
+  let previousFrame = null;
+  if (frameIndex > 0) {
+    previousFrame = physicsLogFrames[frameIndex - 1];
+  }
+  
   let rasterizedPos = getRasterziedPosition(frame);
   let posX = rasterizedPos.positionX;
   let posY = rasterizedPos.positionY;
@@ -1160,7 +1240,7 @@ function drawAdditionalFrameData(frame, previousFrame) {
     //Draw line to previous position
     if (previousFrame !== null) {
       let rasterizedPreviousPos = getRasterziedPosition(previousFrame);
-      konvaLowPrioTooltipLayer.add(
+      shapes.followLine.push(
         new Konva.Line({
           points: [rasterizedPreviousPos.positionX, rasterizedPreviousPos.positionY, posX, posY],
           stroke: "white",
@@ -1173,11 +1253,14 @@ function drawAdditionalFrameData(frame, previousFrame) {
   }
 
   if (settings.pointLabels !== PointLabelNone) {
-    drawPointLabels(frame, previousFrame);
+    shapes.pointLabel.push(...createPointLabel(frame, previousFrame));
   }
+  
+  return shapes;
 }
 
-function drawPointLabels(frame, previousFrame) {
+function createPointLabel(frame, previousFrame) {
+  let shapes = [];
   let text = "";
 
   if (settings.pointLabels === "DragX" && previousFrame !== null) {
@@ -1221,7 +1304,7 @@ function drawPointLabels(frame, previousFrame) {
   }
 
   if (text === "") {
-    return;
+    return shapes;
   }
 
   let rasterizedPos = getRasterziedPosition(frame);
@@ -1229,7 +1312,7 @@ function drawPointLabels(frame, previousFrame) {
   let posY = rasterizedPos.positionY;
   let boxWidth = 30;
   let fontSize = 1.5;
-  konvaLowPrioTooltipLayer.add(
+  shapes.push(
     new Konva.Text({
       x: posX - boxWidth / 2,
       y: posY - 1.5 - fontSize,
@@ -1245,61 +1328,138 @@ function drawPointLabels(frame, previousFrame) {
       strokeWidth: fontSize * 0.08,
     })
   );
+  
+  return shapes;
 }
 //#endregion
 
 //#region Tooltips
 let currentRoomEntities = null; //{}
 function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame, frameEntityData = null) {
+  let shapes = {
+    hitbox: [],
+    tooltip: [],
+    movables: [],
+  };
+  
   let rasterizedPos = getRasterziedPosition(frame);
   let posX = rasterizedPos.positionX;
   let posY = rasterizedPos.positionY;
 
-  let maddyWidth = 7;
-  let maddyHeight = 10;
 
+  let maddyHeight = MaddyHeight;
   if (frame.flags.includes("Ducking")) {
     maddyHeight = 5;
   }
 
   //Draw maddy's hitbox as rectangle
   let maddyHitbox = new Konva.Rect({
-    x: posX - maddyWidth / 2,
+    x: posX - MaddyWidth / 2,
     y: posY - maddyHeight,
-    width: maddyWidth,
+    width: MaddyWidth,
     height: maddyHeight,
     stroke: "red",
     strokeWidth: 0.125,
     visible: settings.frameStepSize === 1,
   });
-  konvaMaddyHitboxLayer.add(maddyHitbox);
+  shapes.hitbox.push(maddyHitbox);
 
   //Draw maddy's hurtbox as green rectangle
   let maddyHurtbox = new Konva.Rect({
-    x: posX - maddyWidth / 2,
+    x: posX - MaddyWidth / 2,
     y: posY - maddyHeight,
-    width: maddyWidth,
+    width: MaddyWidth,
     height: maddyHeight - 2,
     stroke: "green",
     strokeWidth: 0.125,
     visible: settings.frameStepSize === 1,
   });
-  konvaMaddyHitboxLayer.add(maddyHurtbox);
+  shapes.hitbox.push(maddyHurtbox);
 
-  let tooltipMargin = 2;
-  let tooltipBoxOffsetX = 5;
-  let tooltipBoxOffsetY = 0 - maddyHeight - 3;
+  //Create a group for the tooltip
+  let konvaGroupTooltip = createTooltipGroup(posX, posY, frame, nextFrame, previousFrame);
+  shapes.tooltip.push(konvaGroupTooltip);
+  
+  //Render movable shapes
+  if (currentRoomEntities === null){
+    currentRoomEntities = getEntitiesForFrame(frameIndex);
+  } else if (isFrameFirstInRoom(frame)){
+    currentRoomEntities = frame.entities;
+  } else {
+    currentRoomEntities = applyEntityChanges(currentRoomEntities, frame.entities);
+  }
+  
+  //currentRoomEntities is an object with entity ID as key and entity as value
+  for (let entityID in currentRoomEntities) {
+    let entity = currentRoomEntities[entityID];
+    let entityShapes = createEntityShapes(entity, null);
+    entityShapes.forEach((shape) => {
+      shape.visible(settings.frameStepSize === 1);
+    });
+    shapes.movables[entityID] = entityShapes;
+  }
 
+  shape.keepTooltipOpen = false;
+
+  shape.on("click", function () {
+    console.log("Movable entities: ", currentRoomEntities);
+    shape.keepTooltipOpen = !shape.keepTooltipOpen;
+    if (shape.keepTooltipOpen) {
+      shape.zIndex(150);
+      maddyHitbox.zIndex(0);
+      maddyHurtbox.zIndex(1);
+      konvaGroupTooltip.zIndex(0);
+    } else {
+      shape.zIndex(2);
+      maddyHurtbox.zIndex(2);
+      maddyHitbox.zIndex(2);
+      konvaGroupTooltip.zIndex(2);
+    }
+  });
+  shape.on("mouseenter", function () {
+    shape.strokeWidth(0.2);
+    konvaGroupTooltip.visible(true);
+    if(settings.frameStepSize !== 1){
+      maddyHitbox.visible(true);
+      maddyHurtbox.visible(true);
+      Object.keys(shapes.movables).forEach((id) => {
+        shapes.movables[id].forEach((shape) => {
+          shape.visible(true);
+        });
+      });
+      konvaRoomMovableEntitiesInitialLayer.visible(false);
+    }
+  });
+  shape.on("mouseleave", function () {
+    if (!shape.keepTooltipOpen) {
+      shape.strokeWidth(0);
+      konvaGroupTooltip.visible(false);
+      if(settings.frameStepSize !== 1){
+        maddyHitbox.visible(false);
+        maddyHurtbox.visible(false);
+        Object.keys(shapes.movables).forEach((id) => {
+          shapes.movables[id].forEach((shape) => {
+            shape.visible(false);
+          });
+        });
+        konvaRoomMovableEntitiesInitialLayer.visible(true);
+      }
+    }
+  });
+  
+  return shapes;
+}
+
+function createTooltipGroup(posX, posY, frame, nextFrame, previousFrame){
   let konvaGroupTooltip = new Konva.Group({
-    x: posX + tooltipBoxOffsetX,
-    y: posY + tooltipBoxOffsetY,
+    x: posX + TooltipBoxOffsetX,
+    y: posY + TooltipBoxOffsetY,
     visible: false,
   });
-  konvaTooltipLayer.add(konvaGroupTooltip);
 
   let konvaGroupTooltipInfo = new Konva.Group({
-    x: tooltipMargin,
-    y: tooltipMargin,
+    x: TooltipMargin,
+    y: TooltipMargin,
   });
 
   //Create a tooltip text with additional info about the frame
@@ -1354,15 +1514,15 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
     //Draw a filled red square in the subpixelUpSquare, based on the subpixelPos.up and subpixelPos.left values
     let subpixelSquareFill = new Konva.Rect({
       x:
-        containerWidth / 2 -
-        tooltipFontSize * 1.5 +
-        tooltipFontSize * squareMultiplier * subpixelPos.left -
-        squareSize / 2,
+          containerWidth / 2 -
+          tooltipFontSize * 1.5 +
+          tooltipFontSize * squareMultiplier * subpixelPos.left -
+          squareSize / 2,
       y:
-        subpixelOffsetY +
-        tooltipFontSize +
-        tooltipFontSize * squareMultiplier * subpixelPos.up -
-        squareSize / 2,
+          subpixelOffsetY +
+          tooltipFontSize +
+          tooltipFontSize * squareMultiplier * subpixelPos.up -
+          squareSize / 2,
       width: squareSize,
       height: squareSize,
       fill: "red",
@@ -1557,10 +1717,10 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
       y: analogOffsetY + analogCircle.radius * analogCircle.scale * 2 + 1,
       width: containerWidth,
       text:
-        "Angle: " +
-        angle.toFixed(settings.decimals) +
-        "°\nAmplitude: " +
-        amplitude.toFixed(settings.decimals),
+          "Angle: " +
+          angle.toFixed(settings.decimals) +
+          "°\nAmplitude: " +
+          amplitude.toFixed(settings.decimals),
       fontSize: tooltipFontSize,
       fontFamily: "Courier New",
       fill: "black",
@@ -1580,88 +1740,21 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
     stroke: "black",
     strokeWidth: 0.125,
   });
-  tooltipRect.width(tooltipText.width() + tooltipMargin * 2);
-  tooltipRect.height(tooltipText.height() + subpixelDisplayHeight + analogDisplayHeight + tooltipMargin * 2);
+  tooltipRect.width(tooltipText.width() + TooltipMargin * 2);
+  tooltipRect.height(tooltipText.height() + subpixelDisplayHeight + analogDisplayHeight + TooltipMargin * 2);
 
   konvaGroupTooltip.add(tooltipRect);
   konvaGroupTooltip.add(konvaGroupTooltipInfo);
 
   konvaGroupTooltip.y(konvaGroupTooltip.y() - tooltipRect.height());
   
-  
-  //Render movable shapes
-  if (currentRoomEntities === null){
-    currentRoomEntities = getEntitiesForFrame(frameIndex);
-  } else if (isFrameFirstInRoom(frame)){
-    currentRoomEntities = frame.entities;
-  } else {
-    currentRoomEntities = applyEntityChanges(currentRoomEntities, frame.entities);
-  }
-  
-  if(frame.frameNumber === 342){
-    console.log("Frame:", frame, "Entities:", currentRoomEntities);
-  }
-  
-  let movableShapes = [];
-  //currentRoomEntities is an object with entity ID as key and entity as value
-  for (let entityID in currentRoomEntities) {
-    let entity = currentRoomEntities[entityID];
-    let shapes = createEntityShapes(entity, null);
-    shapes.forEach((shape) => {
-      shape.visible(settings.frameStepSize === 1);
-      konvaRoomMovableEntitiesLayer.add(shape);
-      movableShapes.push(shape);
-    });
-  }
-
-  shape.keepTooltipOpen = false;
-
-  shape.on("click", function () {
-    console.log("Movable entities: ", currentRoomEntities);
-    shape.keepTooltipOpen = !shape.keepTooltipOpen;
-    if (shape.keepTooltipOpen) {
-      shape.zIndex(150);
-      maddyHitbox.zIndex(0);
-      maddyHurtbox.zIndex(1);
-      konvaGroupTooltip.zIndex(0);
-    } else {
-      shape.zIndex(2);
-      maddyHurtbox.zIndex(2);
-      maddyHitbox.zIndex(2);
-      konvaGroupTooltip.zIndex(2);
-    }
-  });
-  shape.on("mouseenter", function () {
-    shape.strokeWidth(0.2);
-    konvaGroupTooltip.visible(true);
-    if(settings.frameStepSize !== 1){
-      maddyHitbox.visible(true);
-      maddyHurtbox.visible(true);
-      movableShapes.forEach((shape) => {
-        shape.visible(true);
-      });
-      konvaRoomMovableEntitiesInitialLayer.visible(false);
-    }
-  });
-  shape.on("mouseleave", function () {
-    if (!shape.keepTooltipOpen) {
-      shape.strokeWidth(0);
-      konvaGroupTooltip.visible(false);
-      if(settings.frameStepSize !== 1){
-        maddyHitbox.visible(false);
-        maddyHurtbox.visible(false);
-        movableShapes.forEach((shape) => {
-          shape.visible(false);
-        });
-        konvaRoomMovableEntitiesInitialLayer.visible(true);
-      }
-    }
-  });
+  return konvaGroupTooltip;
 }
 //#endregion
 
 //#region Solid Tiles
-function drawSolidTileOutlines(solidTiles, levelBounds) {
+function createSolidTilesOutlines(solidTiles, levelBounds) {
+  let shapes = [];
   let tileSize = 8;
   let tileOffsetX = 0;
   let tileOffsetY = 0.5;
@@ -1678,23 +1771,24 @@ function drawSolidTileOutlines(solidTiles, levelBounds) {
 
       //Create konva line for each edge
       if (edges & Edge.Top) {
-        konvaRoomLayoutLayer.add(createEdgeLine([topleftX, topleftY, topleftX + tileSize, topleftY]));
+        shapes.push(createEdgeLine([topleftX, topleftY, topleftX + tileSize, topleftY]));
       }
       if (edges & Edge.Right) {
-        konvaRoomLayoutLayer.add(
+        shapes.push(
           createEdgeLine([topleftX + tileSize, topleftY, topleftX + tileSize, topleftY + tileSize])
         );
       }
       if (edges & Edge.Bottom) {
-        konvaRoomLayoutLayer.add(
+        shapes.push(
           createEdgeLine([topleftX, topleftY + tileSize, topleftX + tileSize, topleftY + tileSize])
         );
       }
       if (edges & Edge.Left) {
-        konvaRoomLayoutLayer.add(createEdgeLine([topleftX, topleftY, topleftX, topleftY + tileSize]));
+        shapes.push(createEdgeLine([topleftX, topleftY, topleftX, topleftY + tileSize]));
       }
     }
   }
+  return shapes;
 }
 
 function createEdgeLine(points) {
@@ -1728,6 +1822,210 @@ function getEmptyTileEdges(solidTiles, x, y) {
 }
 //#endregion
 
+//#endregion
+
+//#region Drawing Replay Mode
+const replayData = {
+  idleFrameIndex: -1,
+  roomBoundsShapes: [],
+  staticEntityShapes: {},
+  movableEntities: {},
+  movableEntityShapes: {},
+  physicsLog: {},
+  additionalFrameData: {},
+};
+function resetReplayData(){
+  replayData.idleFrameIndex = -1;
+  replayData.roomBoundsShapes = [];
+  replayData.staticEntityShapes = {};
+  replayData.movableEntities = {};
+  replayData.movableEntityShapes = {};
+  replayData.physicsLog = {};
+  replayData.additionalFrameData = {};
+}
+function replayModeCreateInitialState(){
+  resetReplayData();
+  
+  const frameIndex = settings.frameMin;
+  const currentFrame = physicsLogFrames[frameIndex];
+  const room = getRoomFromFrame(currentFrame);
+  replayData.roomBoundsShapes = createRoomBoundsShapes(room);
+
+  let levelBounds = room.levelBounds;
+  //roomLayout.entities is an object with the entity ID as key and the entity as value
+  for (const entity of Object.values(room.entities)) {
+    let shapes = createEntityShapes(entity, levelBounds);
+    replayData.staticEntityShapes[entity.i] = shapes;
+  }
+  
+  //Movable Entities
+  replayData.movableEntities = getEntitiesForFrame(frameIndex);
+  for (let entityID in replayData.movableEntities) {
+    let entity = replayData.movableEntities[entityID];
+    replayData.movableEntityShapes[entityID] = createEntityShapes(entity, null);
+  }
+  
+  
+  replayData.physicsLog = createPhysicsLogShapes(frameIndex);
+  replayData.additionalFrameData = createAdditionalFrameData(frameIndex);
+
+  
+  //Draw everything to their respective layers
+  replayData.roomBoundsShapes.forEach((shape) => konvaRoomLayoutLayer.add(shape));
+  for (let entityID in replayData.staticEntityShapes) {
+    replayData.staticEntityShapes[entityID].forEach((shape) => konvaRoomEntitiesLayer.add(shape));
+  }
+  
+  konvaPositionLayer.add(...replayData.physicsLog.point);
+  konvaMaddyHitboxLayer.add(...replayData.physicsLog.tooltip.hitbox);
+  konvaTooltipLayer.add(...replayData.physicsLog.tooltip.tooltip);
+  Object.keys(replayData.movableEntityShapes).forEach((key) => {
+    let entityShapes = replayData.movableEntityShapes[key];
+    konvaRoomMovableEntitiesLayer.add(...entityShapes);
+  });
+  konvaLowPrioTooltipLayer.add(...replayData.additionalFrameData.pointLabel);
+}
+
+function replayModeNextFrame(){
+  //Increase frameMin
+  const previousFrame = physicsLogFrames[settings.frameMin];
+  //Go to next frame, if:
+  //  - There are no idle frames
+  //  - We already handled all idle frames
+  //  - We are ignoring idle frames
+  if(previousFrame.idleFrames.length === 0 || (replayData.idleFrameIndex + 1 >= previousFrame.idleFrames.length) || settings.replayIgnoreIdleFrames){
+    replayData.idleFrameIndex = -1;
+    settings.frameMin += 1;
+    if(settings.frameMin >= physicsLogFrames.length) {
+      settings.frameMin = 0;
+      redrawCanvas();
+      return;
+    }
+  } else {
+    replayData.idleFrameIndex += 1;
+  }
+
+  //Get the current frame
+  const frameIndex = settings.frameMin;
+  const currentFrame = physicsLogFrames[settings.frameMin];
+  
+  if(replayData.idleFrameIndex === -1){
+    //Check if the frame is the first frame in a new room
+    if(isFrameFirstInRoom(currentFrame)){
+      replayModeNewRoom(currentFrame);
+      return;
+    }
+    
+    if(replayData.physicsLog.point === undefined){
+      console.log("Physics log is undefined");
+      return;
+    }
+    
+    //If its not, then update the movable entities
+    let pos = getRasterziedPosition(currentFrame);
+    let posDiff = null;
+    replayData.physicsLog.point.forEach((shape) => {
+      if(posDiff === null){
+        posDiff = {
+          positionX: shape.x() - pos.positionX,
+          positionY: shape.y() - pos.positionY,
+        };
+      }
+      shape.position({
+        x: pos.positionX,
+        y: pos.positionY,
+      });
+      shape.fill(getFramePointColor(currentFrame));
+    });
+    //Destroy and recreate tooltip and additional data
+    replayData.physicsLog.tooltip.hitbox.forEach((shape) => {
+      shape.destroy();
+    });
+    replayData.physicsLog.tooltip.tooltip.forEach((shape) => {
+      shape.destroy();
+    });
+    let physicsLog = createPhysicsLogShapes(frameIndex);
+    replayData.physicsLog.tooltip.hitbox = physicsLog.tooltip.hitbox;
+    replayData.physicsLog.tooltip.tooltip = physicsLog.tooltip.tooltip;
+    konvaMaddyHitboxLayer.add(...replayData.physicsLog.tooltip.hitbox);
+    konvaTooltipLayer.add(...replayData.physicsLog.tooltip.tooltip);
+
+    replayData.additionalFrameData.pointLabel.forEach((shape) => {
+      shape.destroy();
+    });
+    let additionalFrameData = createAdditionalFrameData(frameIndex);
+    replayData.additionalFrameData.pointLabel = additionalFrameData.pointLabel;
+    konvaLowPrioTooltipLayer.add(...replayData.additionalFrameData.pointLabel);
+  }
+    
+  //Update movable entities
+  let frameEntities = replayData.idleFrameIndex !== -1 ? currentFrame.idleFrames[replayData.idleFrameIndex].entities : currentFrame.entities;
+  replayModeUpdateEntities(frameEntities);
+  
+  if(settings.replayIgnoreIdleFrames && currentFrame.idleFrames.length > 0){
+    for (let i = 0; i < currentFrame.idleFrames.length; i++){
+      let frameEntities = currentFrame.idleFrames[i].entities;
+      replayModeUpdateEntities(frameEntities);
+    }
+  }
+}
+
+function replayModeUpdateEntities(frameEntities){
+  for (let entityID in frameEntities) {
+    let changes = frameEntities[entityID];
+    let entity = replayData.movableEntities[entityID];
+    if(changes.r.added === true){
+      let entityShapes = createEntityShapes(changes, null);
+      replayData.movableEntityShapes[entityID] = entityShapes;
+      konvaRoomMovableEntitiesLayer.add(...entityShapes);
+    } else if(changes.r.removed === true){
+      let entityShapes = replayData.movableEntityShapes[entityID];
+      entityShapes.forEach((shape) => {
+        shape.destroy();
+      });
+      delete replayData.movableEntityShapes[entityID];
+    } else {
+      let entityShapes = replayData.movableEntityShapes[entityID];
+      entityShapes.forEach((shape) => {
+        shape.position({
+          x: shape.x() + changes.p.x,
+          y: shape.y() + changes.p.y,
+        });
+      });
+      //Find attached entities
+      for (let attachedID in replayData.movableEntities){
+        let attachedEntity = replayData.movableEntities[attachedID];
+        if(attachedEntity.a === entity.i){
+          let attachedEntityShapes = replayData.movableEntityShapes[attachedID];
+          attachedEntityShapes.forEach((shape) => {
+            shape.position({
+              x: shape.x() + changes.p.x,
+              y: shape.y() + changes.p.y,
+            });
+          });
+        }
+      }
+    }
+  }
+  replayData.movableEntities = applyEntityChanges(replayData.movableEntities, frameEntities); 
+}
+
+function replayModeNewRoom(frame){
+  //Delete all old shapes
+  replayData.roomBoundsShapes.forEach((shape) => shape.destroy());
+  for (let entityID in replayData.staticEntityShapes) {
+    replayData.staticEntityShapes[entityID].forEach((shape) => shape.destroy());
+  }
+  for (let entityID in replayData.movableEntityShapes) {
+    replayData.movableEntityShapes[entityID].forEach((shape) => shape.destroy());
+  }
+  replayData.physicsLog.point.forEach((shape) => shape.destroy());
+  replayData.physicsLog.tooltip.hitbox.forEach((shape) => shape.destroy());
+  replayData.physicsLog.tooltip.tooltip.forEach((shape) => shape.destroy());
+  replayData.additionalFrameData.pointLabel.forEach((shape) => shape.destroy());
+  
+  replayModeCreateInitialState(); 
+}
 //#endregion
 
 //#region Canvas Utils
@@ -1918,4 +2216,160 @@ function formatTooltipText(frame, previousFrame, nextFrame) {
 
   return lines.join("\n");
 }
+//#endregion
+
+//#region CSS Colors
+const CSS_COLOR_NAMES = {
+  AliceBlue: '#F0F8FF',
+  AntiqueWhite: '#FAEBD7',
+  Aqua: '#00FFFF',
+  Aquamarine: '#7FFFD4',
+  Azure: '#F0FFFF',
+  Beige: '#F5F5DC',
+  Bisque: '#FFE4C4',
+  Black: '#000000',
+  BlanchedAlmond: '#FFEBCD',
+  Blue: '#0000FF',
+  BlueViolet: '#8A2BE2',
+  Brown: '#A52A2A',
+  BurlyWood: '#DEB887',
+  CadetBlue: '#5F9EA0',
+  Chartreuse: '#7FFF00',
+  Chocolate: '#D2691E',
+  Coral: '#FF7F50',
+  CornflowerBlue: '#6495ED',
+  Cornsilk: '#FFF8DC',
+  Crimson: '#DC143C',
+  Cyan: '#00FFFF',
+  DarkBlue: '#00008B',
+  DarkCyan: '#008B8B',
+  DarkGoldenRod: '#B8860B',
+  DarkGray: '#A9A9A9',
+  DarkGrey: '#A9A9A9',
+  DarkGreen: '#006400',
+  DarkKhaki: '#BDB76B',
+  DarkMagenta: '#8B008B',
+  DarkOliveGreen: '#556B2F',
+  DarkOrange: '#FF8C00',
+  DarkOrchid: '#9932CC',
+  DarkRed: '#8B0000',
+  DarkSalmon: '#E9967A',
+  DarkSeaGreen: '#8FBC8F',
+  DarkSlateBlue: '#483D8B',
+  DarkSlateGray: '#2F4F4F',
+  DarkSlateGrey: '#2F4F4F',
+  DarkTurquoise: '#00CED1',
+  DarkViolet: '#9400D3',
+  DeepPink: '#FF1493',
+  DeepSkyBlue: '#00BFFF',
+  DimGray: '#696969',
+  DimGrey: '#696969',
+  DodgerBlue: '#1E90FF',
+  FireBrick: '#B22222',
+  FloralWhite: '#FFFAF0',
+  ForestGreen: '#228B22',
+  Fuchsia: '#FF00FF',
+  Gainsboro: '#DCDCDC',
+  GhostWhite: '#F8F8FF',
+  Gold: '#FFD700',
+  GoldenRod: '#DAA520',
+  Gray: '#808080',
+  Grey: '#808080',
+  Green: '#008000',
+  GreenYellow: '#ADFF2F',
+  HoneyDew: '#F0FFF0',
+  HotPink: '#FF69B4',
+  IndianRed: '#CD5C5C',
+  Indigo: '#4B0082',
+  Ivory: '#FFFFF0',
+  Khaki: '#F0E68C',
+  Lavender: '#E6E6FA',
+  LavenderBlush: '#FFF0F5',
+  LawnGreen: '#7CFC00',
+  LemonChiffon: '#FFFACD',
+  LightBlue: '#ADD8E6',
+  LightCoral: '#F08080',
+  LightCyan: '#E0FFFF',
+  LightGoldenRodYellow: '#FAFAD2',
+  LightGray: '#D3D3D3',
+  LightGrey: '#D3D3D3',
+  LightGreen: '#90EE90',
+  LightPink: '#FFB6C1',
+  LightSalmon: '#FFA07A',
+  LightSeaGreen: '#20B2AA',
+  LightSkyBlue: '#87CEFA',
+  LightSlateGray: '#778899',
+  LightSlateGrey: '#778899',
+  LightSteelBlue: '#B0C4DE',
+  LightYellow: '#FFFFE0',
+  Lime: '#00FF00',
+  LimeGreen: '#32CD32',
+  Linen: '#FAF0E6',
+  Magenta: '#FF00FF',
+  Maroon: '#800000',
+  MediumAquaMarine: '#66CDAA',
+  MediumBlue: '#0000CD',
+  MediumOrchid: '#BA55D3',
+  MediumPurple: '#9370DB',
+  MediumSeaGreen: '#3CB371',
+  MediumSlateBlue: '#7B68EE',
+  MediumSpringGreen: '#00FA9A',
+  MediumTurquoise: '#48D1CC',
+  MediumVioletRed: '#C71585',
+  MidnightBlue: '#191970',
+  MintCream: '#F5FFFA',
+  MistyRose: '#FFE4E1',
+  Moccasin: '#FFE4B5',
+  NavajoWhite: '#FFDEAD',
+  Navy: '#000080',
+  OldLace: '#FDF5E6',
+  Olive: '#808000',
+  OliveDrab: '#6B8E23',
+  Orange: '#FFA500',
+  OrangeRed: '#FF4500',
+  Orchid: '#DA70D6',
+  PaleGoldenRod: '#EEE8AA',
+  PaleGreen: '#98FB98',
+  PaleTurquoise: '#AFEEEE',
+  PaleVioletRed: '#DB7093',
+  PapayaWhip: '#FFEFD5',
+  PeachPuff: '#FFDAB9',
+  Peru: '#CD853F',
+  Pink: '#FFC0CB',
+  Plum: '#DDA0DD',
+  PowderBlue: '#B0E0E6',
+  Purple: '#800080',
+  RebeccaPurple: '#663399',
+  Red: '#FF0000',
+  RosyBrown: '#BC8F8F',
+  RoyalBlue: '#4169E1',
+  SaddleBrown: '#8B4513',
+  Salmon: '#FA8072',
+  SandyBrown: '#F4A460',
+  SeaGreen: '#2E8B57',
+  SeaShell: '#FFF5EE',
+  Sienna: '#A0522D',
+  Silver: '#C0C0C0',
+  SkyBlue: '#87CEEB',
+  SlateBlue: '#6A5ACD',
+  SlateGray: '#708090',
+  SlateGrey: '#708090',
+  Snow: '#FFFAFA',
+  SpringGreen: '#00FF7F',
+  SteelBlue: '#4682B4',
+  Tan: '#D2B48C',
+  Teal: '#008080',
+  Thistle: '#D8BFD8',
+  Tomato: '#FF6347',
+  Turquoise: '#40E0D0',
+  Violet: '#EE82EE',
+  Wheat: '#F5DEB3',
+  White: '#FFFFFF',
+  WhiteSmoke: '#F5F5F5',
+  Yellow: '#FFFF00',
+  YellowGreen: '#9ACD32',
+  
+  //Custom colors
+  Dream: '#000000',
+};
 //#endregion

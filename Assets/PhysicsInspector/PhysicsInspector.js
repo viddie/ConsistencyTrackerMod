@@ -37,6 +37,7 @@ const Elements = {
   FrameStepSize: "selected-frame-step-size",
   PointLabels: "point-labels",
   
+  DisplayModeButton: "change-display-mode-button",
   ReplaySpeed: "selected-replay-speed",
   
   LayersModalButton: "layers-modal-button",
@@ -141,7 +142,11 @@ function OnShowInspectorView() {
   createLayers();
   addMouseHandlers();
 
-  createAllElements();
+  if(settings.displayMode === DisplayMode.Classic.name){
+    createAllElements();
+  } else if(settings.displayMode === DisplayMode.Replay.name){
+    replayModeCreateInitialState();
+  }
 
   //Sidemenu things
   updateRecordingInfo();
@@ -179,24 +184,31 @@ function replayTimeoutFunction() {
 
   if(settings.replayPlaying){
     let frame = physicsLogFrames[settings.frameMin];
-    if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 40 && frame.flags.indexOf("NoControl") === -1 && !settings.replayIgnoreIdleFrames){
-      redrawCanvas(frame.idleFrames[replayIdleFrameCounter].entities);
-      replayIdleFrameCounter++;
-    } else {
-      replayIdleFrameCounter = 0;
-      settings.frameMin += 1;
-      if (settings.frameMin < 0 || settings.frameMin >= physicsLogFrames.length) {
-        settings.frameMin = 0;
-      }
-      
-      frame = physicsLogFrames[settings.frameMin];
+    if(settings.displayMode === DisplayMode.Classic.name){
+      if(frame.idleFrames.length > replayIdleFrameCounter && replayIdleFrameCounter < 40 && frame.flags.indexOf("NoControl") === -1 && !settings.replayIgnoreIdleFrames){
+        redrawCanvas(frame.idleFrames[replayIdleFrameCounter].entities);
+        replayIdleFrameCounter++;
+      } else {
+        replayIdleFrameCounter = 0;
 
-      updateRecordingInfo();
-      redrawCanvas();
-    }
-    
-    if(settings.replayCenterCamera && !areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
-      centerOnPositionReal(frame.positionX, frame.positionY);
+        settings.frameMin += 1;
+        if (settings.frameMin < 0 || settings.frameMin >= physicsLogFrames.length) {
+          settings.frameMin = 0;
+        }
+
+        frame = physicsLogFrames[settings.frameMin];
+        updateRecordingInfo();
+        redrawCanvas();
+      }
+
+      if(settings.replayCenterCamera && !areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
+        centerOnPositionReal(frame.positionX, frame.positionY);
+      }
+    } else if (settings.displayMode === DisplayMode.Replay.name) {
+      replayModeNextFrame();
+      if(settings.replayCenterCamera && !areModelCoordinatesComfortablyOnScreen(frame.positionX, frame.positionY)){
+        centerOnPositionReal(frame.positionX, frame.positionY);
+      }
     }
   }
   replayTimeout = setTimeout(replayTimeoutFunction, ms);
@@ -540,13 +552,13 @@ function openEntitiesCountDialog() {
   //entityCounts already exists
 
   //Sort the keys based on the counts
-  let sortedKeys = Object.keys(entityCounts).sort(function (a, b) {
-    return entityCounts[b] - entityCounts[a];
+  let sortedKeys = Object.keys(staticEntityCounts).sort(function (a, b) {
+    return staticEntityCounts[b] - staticEntityCounts[a];
   });
   let totalCount = 0;
   for (let i = 0; i < sortedKeys.length; i++) {
     let key = sortedKeys[i];
-    let count = entityCounts[key];
+    let count = staticEntityCounts[key];
     totalCount += count;
     let row = document.createElement("tr");
     let cell = document.createElement("td");
@@ -568,7 +580,8 @@ function openEntitiesCountDialog() {
     buttons: { ok: "Ok" },
     style: "min-width:600px;max-width:1000px;max-height:800px;",
     listenEnterKey: true,
-    modal: false,
+    modal: true,
+    ondrag: () => false,
   });
 }
 
