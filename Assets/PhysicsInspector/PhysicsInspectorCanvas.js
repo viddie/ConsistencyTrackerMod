@@ -1,7 +1,10 @@
 ﻿//#region Constants
-let spinnerRadius = 6;
-let entitiesOffsetX = 0;
-let entitiesOffsetY = 0.5;
+const spinnerRadius = 6;
+const entitiesOffsetX = 0;
+const entitiesOffsetY = 0.5;
+
+const SolidTileOffsetX = 0;
+const SolidTileOffsetY = 0.5;
 
 const MaddyWidth = 7;
 const MaddyHeight = 10
@@ -11,14 +14,14 @@ const TooltipBoxOffsetX = 5;
 const TooltipBoxOffsetY = 0 - MaddyHeight - 3;
 
 
-let spinnerEntityNames = [
+const spinnerEntityNames = [
     "CrystalStaticSpinner",
     "DustStaticSpinner",
     "CustomSpinner",
     "DustTrackSpinner",
     "DustRotateSpinner",
 ];
-let hitboxEntityNames = {
+const hitboxEntityNames = {
   red: [
     "Solid",
     "FakeWall",
@@ -106,16 +109,16 @@ let hitboxEntityNames = {
   "#fa7ded": ["BouncySpikes"],
   Special: ["Strawberry", "Refill", "RefillWall", "Cloud", "CassetteBlock", "WonkyCassetteBlock"],
 };
-let hitcircleEntityNames = {
+const hitcircleEntityNames = {
   "#0f58d9": ["Bumper", "StaticBumper"],
   white: ["Shield"],
   "#33c3ff": ["BlueBooster"],
   Special: ["Booster", "VortexBumper"],
 };
-let otherEntityNames = {
+const otherEntityNames = {
   green: ["AngryOshiro"],
 };
-let specialEntityColorFunctions = {
+const specialEntityColorFunctions = {
   Strawberry: (entity) => {
     return entity.r.golden ? "#ffd700" : "#bb0000";
   },
@@ -142,7 +145,7 @@ let specialEntityColorFunctions = {
   },
 };
 
-let entityNamesDashedOutline = {
+const entityNamesDashedOutline = {
   FakeWall: 3.5,
   SeekerBarrier: 0.5,
   HoldableBarrier: 0.5,
@@ -158,7 +161,7 @@ let entityNamesDashedOutline = {
 
 //Objects that map entity names to text properties
 //Text properties: fontSize multiplier and text
-let entityNamesText = {
+const entityNamesText = {
   ZipMover: [0.8, "Z"],
   LinkedZipMover: [0.8, "Z"],
   LinkedZipMoverNoReturn: [0.8, "Z"],
@@ -220,7 +223,7 @@ let entityNamesText = {
 
 //Point Label Stuff
 let pointLabelPreviousValue = null;
-let frameDiffPointLabelFields = {
+const frameDiffPointLabelFields = {
   PositionX: [(frame) => frame.positionX.toFixed(settings.decimals), false],
   PositionY: [(frame) => frame.positionY.toFixed(settings.decimals), false],
   PositionCombined: [
@@ -300,7 +303,7 @@ let frameDiffPointLabelFields = {
   Stamina: [(frame) => frame.stamina.toFixed(settings.decimals), false],
   Inputs: [(frame) => frame.inputs, false],
 };
-let frameDiffDiffPointLabelFields = {
+const frameDiffDiffPointLabelFields = {
   AccelerationX: (frame, previousFrame) => (frame.speedX - previousFrame.speedX).toFixed(settings.decimals),
   AccelerationY: (frame, previousFrame) => (frame.speedY - previousFrame.speedY).toFixed(settings.decimals),
   AccelerationCombined: (frame, previousFrame) =>
@@ -489,8 +492,6 @@ function drawAllRoomBounds() {
   });
 }
 
-let SolidTileOffsetX = 0;
-let SolidTileOffsetY = 0.5;
 function createRoomBoundsShapes(roomLayout){
   let shapes = [];
   let debugRoomName = roomLayout.debugRoomName;
@@ -714,6 +715,9 @@ function createOtherEntityShape(entity, color){
   let properties = entity.r;
 
   let textSplit = entity.t.split(/(?=[A-Z])/);
+  if(settings.debugEntities){
+    textSplit.push(entity.i+"");
+  }
   let maxWidth = 0;
   //find the longest string in the array
   textSplit.forEach((text) => {
@@ -1402,7 +1406,7 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
   shape.keepTooltipOpen = false;
 
   shape.on("click", function () {
-    console.log("Movable entities: ", currentRoomEntities);
+    console.log("Movable entities: ", currentRoomEntities, "this frame: ", frame);
     shape.keepTooltipOpen = !shape.keepTooltipOpen;
     if (shape.keepTooltipOpen) {
       shape.zIndex(150);
@@ -1827,6 +1831,7 @@ function getEmptyTileEdges(solidTiles, x, y) {
 //#region Drawing Replay Mode
 const replayData = {
   idleFrameIndex: -1,
+  room: null,
   roomBoundsShapes: [],
   staticEntityShapes: {},
   movableEntities: {},
@@ -1836,6 +1841,7 @@ const replayData = {
 };
 function resetReplayData(){
   replayData.idleFrameIndex = -1;
+  replayData.room = null;
   replayData.roomBoundsShapes = [];
   replayData.staticEntityShapes = {};
   replayData.movableEntities = {};
@@ -1849,6 +1855,7 @@ function replayModeCreateInitialState(){
   const frameIndex = settings.frameMin;
   const currentFrame = physicsLogFrames[frameIndex];
   const room = getRoomFromFrame(currentFrame);
+  replayData.room = room;
   replayData.roomBoundsShapes = createRoomBoundsShapes(room);
 
   let levelBounds = room.levelBounds;
@@ -1865,7 +1872,7 @@ function replayModeCreateInitialState(){
     replayData.movableEntityShapes[entityID] = createEntityShapes(entity, null);
   }
   
-  
+  currentRoomEntities = null;
   replayData.physicsLog = createPhysicsLogShapes(frameIndex);
   replayData.additionalFrameData = createAdditionalFrameData(frameIndex);
 
@@ -1911,7 +1918,7 @@ function replayModeNextFrame(){
   
   if(replayData.idleFrameIndex === -1){
     //Check if the frame is the first frame in a new room
-    if(isFrameFirstInRoom(currentFrame)){
+    if(!isFrameInRoom(currentFrame, replayData.room) || isFrameFirstInRoom(currentFrame)){
       replayModeNewRoom(currentFrame);
       return;
     }
@@ -1986,6 +1993,9 @@ function replayModeUpdateEntities(frameEntities){
       delete replayData.movableEntityShapes[entityID];
     } else {
       let entityShapes = replayData.movableEntityShapes[entityID];
+      if(replayData.movableEntityShapes[entityID] === undefined){
+        console.log("Entity", entityID, "was not found in the entities list. entity shapes", replayData.movableEntityShapes, ", entities", replayData.movableEntities, ", changes", changes);
+      }
       entityShapes.forEach((shape) => {
         shape.position({
           x: shape.x() + changes.p.x,
@@ -2217,6 +2227,42 @@ function formatTooltipText(frame, previousFrame, nextFrame) {
   return lines.join("\n");
 }
 //#endregion
+
+function testFunction(){
+  testFunction2();
+}
+function testFunction1(){
+  let entityID = "6634462";
+  //Print the entity's details on every frame
+  for (let i = 0; i < physicsLogFrames.length; i++){
+    let frame = physicsLogFrames[i];
+    let isFirstFrame = isFrameFirstInRoom(frame);
+    if(frame.entities[entityID] !== undefined){
+      console.log("Frame", i, " (first: ", isFirstFrame, "):", frame.entities[entityID], " - position:", frame.entities[entityID].p);
+    }
+    if(frame.idleFrames.length > 0){
+      for (let j = 0; j < frame.idleFrames.length; j++){
+        let idleFrame = frame.idleFrames[j];
+        if(idleFrame.entities[entityID] !== undefined){
+          console.log("[IDLE] Frame", i, ", ", j, ":", idleFrame.entities[entityID], " - position:", idleFrame.entities[entityID].p);
+        }
+      }
+    }
+  }
+}
+function testFunction2(){
+  let out = {
+    frameMin: settings.frameMin,
+  };
+  
+  out.firstFrame = getFirstFrameInRoom(out.frameMin);
+  out.firstFrameIndex = getFrameIndexFromFrame(out.firstFrame);
+  out.firstFrameEntities = out.firstFrame.entities;
+  
+  out.entitiesNow = getEntitiesForFrame(out.frameMin);
+  
+  console.log(out);
+}
 
 //#region CSS Colors
 const CSS_COLOR_NAMES = {

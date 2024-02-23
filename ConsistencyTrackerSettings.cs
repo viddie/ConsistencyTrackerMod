@@ -1528,6 +1528,11 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_TITLE")} ==="));
+            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_RELOAD_CUSTOM_ENTITY_NAMES")){
+                OnPressed = () => {
+                    Mod.PhysicsLog.LoadCustomEntityNames();
+                }
+            });
             subMenu.Add(new TextMenu.Slider(Dialog.Clean("MODOPTION_CCT_PHYSICS_INSPECTOR_SETTINGS_SETTINGS_MAX_RECENT_RECORDINGS"), i => i.ToString(), 1, 1000, LogMaxRecentRecordings) {
                 OnValueChange = v => {
                     LogMaxRecentRecordings = v;

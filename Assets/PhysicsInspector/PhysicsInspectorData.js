@@ -119,19 +119,22 @@ function findRelevantRooms() {
       }
 
       let roomLayout = roomLayouts[j];
-      let levelBounds = roomLayout.levelBounds;
-
-      if (
-        frame.positionX >= levelBounds.x &&
-        frame.positionX <= levelBounds.x + levelBounds.w &&
-        frame.positionY >= levelBounds.y &&
-        frame.positionY <= levelBounds.y + levelBounds.h
-      ) {
+      if (isFrameInRoom(frame, roomLayout)) {
         relevantRoomNames.push(roomLayout.debugRoomName);
         break;
       }
     }
   }
+}
+
+function isFrameInRoom(frame, roomLayout){
+  let levelBounds = roomLayout.levelBounds;
+  return (
+      frame.positionX >= levelBounds.x &&
+      frame.positionX <= levelBounds.x + levelBounds.w &&
+      frame.positionY >= levelBounds.y &&
+      frame.positionY <= levelBounds.y + levelBounds.h
+  );
 }
 
 //Find the room layout that the frame is in
@@ -248,6 +251,15 @@ function getEntitiesForFrame(frameIndex){
     return entities;
   }
   
+  //Account for the first frame in the room also having idleFrames
+  if(firstFrameInRoom.idleFrames.length > 0){
+    for (let i = 0; i < firstFrameInRoom.idleFrames.length; i++) {
+      let idleFrame = firstFrameInRoom.idleFrames[i];
+      let idleFrameEntities = idleFrame.entities;
+      entities = applyEntityChanges(entities, idleFrameEntities);
+    }
+  }
+  
   for (let i = firstFrameIndex+1; i <= frameIndex; i++) {
     let frame = physicsLogFrames[i];
     let frameEntities = frame.entities;
@@ -273,6 +285,9 @@ function applyEntityChanges(entities, changes){
     } else if (entity.r.added === true){
       entitiesCopy[key] = entity;
     } else {
+      if(entitiesCopy[key] === undefined){
+        console.log("Entity", key, "was not found in the entities list. entities", entities, "changes", changes);
+      }
       entitiesCopy[key].p.x += entity.p.x;
       entitiesCopy[key].p.y += entity.p.y;
       

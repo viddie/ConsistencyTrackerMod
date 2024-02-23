@@ -48,6 +48,7 @@ let settings = {
   showSpinnerRectangle: true,
   showOnlyRelevantRooms: true,
   rasterizeMovement: false,
+  debugEntities: false,
 
   displayMode: DisplayMode.Classic.name,
   
@@ -94,6 +95,7 @@ let settings = {
 let settingsElements = {
   showRoomNames: "Show Room Names",
   rasterizeMovement: "Rasterize Movement",
+  debugEntities: "Debug Entities",
 };
 let layerVisibilityElements = {
   layerVisibleRoomLayout: "Room Layout",
@@ -378,7 +380,7 @@ function framePageUp(mult = 1, event) {
 
   updateRecordingInfo();
   redrawCanvas();
-  if(!areModelCoordinatesOnScreen(centerFrame.positionX, centerFrame.positionY)){
+  if(settings.replayCenterCamera && !areModelCoordinatesOnScreen(centerFrame.positionX, centerFrame.positionY)){
     centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
   }
 }

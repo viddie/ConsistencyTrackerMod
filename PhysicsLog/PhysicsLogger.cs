@@ -46,6 +46,222 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
         }
 
+        public enum EntityList {
+            Static,
+            Movable
+        }
+
+        private static List<string> EntityNamesSpinners = new List<string>() {
+            "CrystalStaticSpinner",
+            "DustStaticSpinner",
+            "CustomSpinner",
+            "DustTrackSpinner", "DustRotateSpinner",
+        };
+        private static List<string> EntityNamesHitboxColliders = new List<string>() {
+            "Spikes", "RainbowSpikes", "BouncySpikes",
+            "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
+            "Lightning",
+
+            "Refill", "CustomRefill", "RefillWall",
+            "Spring", "CustomSpring", "DashSpring", "SpringGreen",
+            "DreamBlock", "CustomDreamBlock", "CustomDreamBlockV2", "ConnectedDreamBlock", "DashThroughSpikes",
+            "SinkingPlatform",
+            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
+            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
+            "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
+            "BounceBlock", //Core Block
+            "CrushBlock", //Kevin
+            "DashBlock",
+            "DashSwitch", "TempleGate",
+            "Glider", "RespawningJellyfish",
+            "SeekerBarrier", "CrystalBombDetonator", "HoldableBarrier",
+            "TempleCrackedBlock",
+            "FlyFeather",
+            "Cloud",
+            "WallBooster", "IcyFloor", //Conveyers or IceWalls, depending on Core Mode
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "MoveBlockCustomSpeed",
+            "CassetteBlock", "WonkyCassetteBlock",
+
+            "Puffer", "StaticPuffer", "SpeedPreservePuffer",
+
+            "FallingBlock", "GroupedFallingBlock", "RisingBlock",
+            "JumpThru", "SidewaysJumpThru", "AttachedJumpThru", "JumpthruPlatform", "UpsideDownJumpThru", "AttachedSidewaysJumpThru",
+            "CrumblePlatform", "CrumbleBlock", "CrumbleBlockOnTouch", "VariableCrumblePlatform",
+            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
+            "ClutterBlockBase", "ClutterDoor", "ClutterSwitch",
+            "Key", "LockBlock",
+            "StarJumpBlock",
+
+            "Strawberry",
+            "SilverBerry",
+
+            "Lookout", "CustomPlaybackWatchtower", //Binos
+            "LightningBreakerBox",
+
+            "Killbox",
+            "FakeWall", "InvisibleBarrier", "CustomInvisibleBarrier",
+
+            //Modded Entities
+            "Portal",
+        };
+        private static List<string> EntityNamesHitcircleColliders = new List<string>() {
+            "Booster", "BlueBooster",
+            "Bumper", "StaticBumper", "VortexBumper",
+            "Shield",
+        };
+        private static List<string> EntityNamesOther = new List<string>() {
+            "ConnectedMoveBlock", "AngryOshiro"
+        };
+        private static List<string> IgnoreEntityNames = new List<string>() {
+            //UI Entities
+            "Player",
+            "InputHistoryListener", "InputHistoryListEntity",
+            "DashCountIndicator",
+            "Speedometer",
+            "SpeedrunTimerDisplay",
+            "BombTimerDisplay",
+            "TotalStrawberriesDisplay",
+            "GameplayStats",
+            "SelectedAreaEntity",
+            "GrabbyIcon",
+            "SpaceJumpIndicator", "JumpIndicator",
+            "TextOverlay", "LineupIndicatorEntity", "SummaryHud",
+            "TalkComponentUI",
+            "DeathDisplay",
+            "DashSequenceDisplay",
+            "AnalogDisplay",
+            "WorldTextEntity",
+
+            //Deco
+            "SolidTiles", "FG",
+            "Decal", "FlagDecal", "ParticleSystem", "ParticleEmitter", "FloatingDebris", "ForegroundDebris",
+            "BackgroundTiles", "BGTilesRenderer", "GlassBlockBg",
+            "MirrorSurfaces", "WaterSurface", "WaterFloatingObject", "ColoredWater", "ColoredWaterfall",
+            "ColoredBigWaterfall", "CustomParallaxBigWaterfall",
+            "DustEdges",
+            "FormationBackdrop",
+            "CustomHangingLamp", "ResortLantern", "WireLamps", "HangingLamp", "CustomTorch2", "LightSource", "LightingMask", "RustyLamp", "Lamp",
+            "LightBeam", "FlickerLightSource", "LightSourceZone", "InvisibleLightSource",
+            "Raindrop", "SpinnerGlow", "PlatformGlow", "RectangleGlow",
+            "StaticDoor", "LightOccludeBlock",
+            "CustomFlagline", "ConfettiTrigger",
+            "Clothesline", "Chain", "Wire", "Moth", "CustomFlutterBird",
+            "CustomPlayerPlayback", "CrumbleWallOnRumble",
+            "PseudoPolyhedron", "PlaybackBillboard",
+            "CustomNPC", "MoreCustomNPC", "StrawberryJamJar",
+            "MoonCreature", "FlutterBird",
+            "ColoredHangingLamp", "Torch", "LitBlueTorch", "Cobweb",
+            "CustomMoonCreature",
+
+            //Camera
+            "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
+            "SmoothCameraOffsetTrigger", "InstantLockingCameraTrigger", "CameraHitboxEntity",
+            "LookoutBlocker", "CameraAdvanceTargetTrigger", "CameraCatchupSpeedTrigger",
+            "OneWayCameraTrigger", "MomentumCameraOffsetTrigger", "CameraTargetCornerTrigger",
+            "CameraTargetCrossfadeTrigger",
+
+            //Triggers
+            "FlagTrigger", "FlagIfVisibleTrigger",
+            "TeleportationTrigger", "TeleportationTarget",
+            "ChangeRespawnTrigger", "SpawnFacingTrigger",
+            "LuaCutsceneTrigger", "LuaCutsceneEntity",
+            "DialogCutsceneTrigger", "MiniTextboxTrigger",
+            "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger", "FloatExtendedVariantFadeTrigger", "ExtendedVariantFadeTrigger",
+            "FloatExtendedVariantTrigger", "ResetVariantsTrigger", "FloatFadeTrigger",
+            "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
+            "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
+            "MiniHeartDoorUnlockCutsceneTrigger", "TimeModulationTrigger",
+            "PocketUmbrellaTrigger",
+
+            //Styles & Lighting
+            "StylegroundMask", "ColorGradeMask",
+            "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
+            "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
+            "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
+            "ColoredLightbeam", "CustomLightBeam", "GradualChangeColorGradeTrigger",
+            "BloomColorFadeTrigger", "RainbowSpinnerColorFadeTrigger", "BloomColorTrigger",
+
+            //Music
+            "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
+            "MusicTrigger",
+
+            //Controllers/Managers
+            "LaserDetectorManager",
+            "UnderwaterSwitchController",
+            "WindController",
+            "CustomSpinnerController",
+            "RainbowSpinnerColorController", "RainbowSpinnerColorAreaController",
+            "TimeController",
+            "SeekerEffectsController", "SeekerBarrierRenderer",
+            "StylegroundFadeController", "PhotosensitiveFlagController",
+            "EntityRainbowifyController",
+            "GlowController",
+            "TrailManager",
+            "ParallaxFadeOutController",
+            "CustomizableGlassBlockAreaController",
+            "CassetteMusicTransitionController",
+            "BitsMagicLanternController",
+            "LobbyMapController",
+            "RainbowTilesetController",
+            "StarClimbGraphicsController",
+            "AssistIconController",
+
+            //Renderers
+            "PathRenderer",
+            "LightningRenderer",
+            "DreamSpinnerRenderer", "DreamTunnelRenderer", "DreamTunnelEntryRenderer", "DreamJellyfishRenderer", "DreamDashController",
+            "MoveBlockBarrierRenderer", "PlayerSeekerBarrierRenderer", "PufferBarrierRenderer",
+            "CrystalBombDetonatorRenderer", "CrystalBombFieldRenderer",
+            "FlagKillBarrierRenderer",
+            "DecalContainerRenderer",
+            "InstantTeleporterRenderer",
+            "SpinnerConnectorRenderer",
+            "Renderer",
+
+            //Misc
+            "OnSpawnActivator", "EntityActivator",
+            "AttachedContainer",
+            "BurstEffect",
+            "ClutterBlock",
+            "EntityMover",
+            "LobbyMapWarp",
+            "AllInOneMask",
+
+            //Idk
+            "Why",
+            "BlockField",
+            "Border",
+            "SlashFx",
+            "Snapshot",
+            "Entity", "HelperEntity",
+        };
+        private static List<string> EntityNamesToTest = new List<string>() {
+            
+        };
+        private static List<string> EntityNamesMovables = new List<string>() {
+            "DustTrackSpinner", "DustRotateSpinner",
+            "SinkingPlatform", "AngryOshiro",
+            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
+            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn", "DreamZipMover",
+            "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
+            "BounceBlock", //Core Block
+            "CrushBlock", "UninterruptedNRCB",
+            "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb", "ExtendedVariantTheoCrystal",
+            "Cloud",
+            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock", "MoveBlockCustomSpeed",
+            "FallingBlock", "GroupedFallingBlock", "RisingBlock",
+            "AttachedJumpThru", "AttachedSidewaysJumpThru",
+            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
+        };
+
+        private static List<string> CustomEntityNamesMovables = new List<string>();
+        private static List<string> CustomIgnoredEntityNames = new List<string>();
+
+        
+        public static readonly string PhysicsLogFolder = "physics-recordings";
+        public static readonly string EntityListsFolder = "entity-lists";
+        
+        
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
         private static ConsistencyTrackerSettings ModSettings => Mod.ModSettings;
         public static class Settings {
@@ -100,12 +316,52 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private int TasFrameCount = 0;
         private string TasInputs = null;
         private string TasFileContent = null;
+        
+        
+        public bool IsInMap { get; set; }
+        private bool playerMarkedDead = false;
+        private bool doSegmentRecording = false;
+        private bool skipFrameOnSegment = false;
 
+        
         public PhysicsRecordingsManager RecordingsManager { get; set; }
         private Dictionary<int, LoggedEntity> RoomEntities = new Dictionary<int, LoggedEntity>();
 
         public PhysicsLogger() {
             RecordingsManager = new PhysicsRecordingsManager();
+
+            LoadCustomEntityNames();
+        }
+
+        public void LoadCustomEntityNames() {
+            ConsistencyTrackerModule.CheckFolderExists(
+                ConsistencyTrackerModule.GetPathToFile(PhysicsLogFolder, EntityListsFolder));
+            
+            LoadEntityNamesList(ref CustomEntityNamesMovables, "movable-entities");
+            LoadEntityNamesList(ref CustomIgnoredEntityNames, "ignored-entities");
+        }
+
+        private static readonly string _FileExplanation = "# Put 1 entity name (case sensitive!) per line\n" +
+                                                          "# The lists do the following:\n" +
+                                                          "# - movable-entities: Entities on this list will be tracked every frame for position changes\n" +
+                                                          "# - ignored-entities: Entities on this list will be ignored entirely\n";
+        private void LoadEntityNamesList(ref List<string> list, string listName) {
+            string filePath =
+                ConsistencyTrackerModule.GetPathToFile(PhysicsLogFolder, EntityListsFolder, listName + ".txt");
+            if (!File.Exists(filePath)) {
+                File.WriteAllText(filePath, _FileExplanation);
+                return;
+            }
+
+            list.Clear();
+            string[] lines = File.ReadAllLines(filePath);
+            foreach (string line in lines) {
+                if (line.Length > 0 && !line.StartsWith("#")) {
+                    list.Add(line);
+                }
+            }
+            
+            Mod.Log($"Loaded {list.Count} custom entity names from '{listName}.txt'");
         }
 
         #region Events
@@ -142,11 +398,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
         #endregion
 
-        public bool IsInMap { get; set; }
-        
-        private bool playerMarkedDead = false;
-        private bool doSegmentRecording = false;
-        private bool skipFrameOnSegment = false;
+        #region Recording
         public void SegmentLog(bool skipFrame) {
             Mod.Log($"Segmenting log... (FrameNumber: {FrameNumber})");
             doSegmentRecording = true;
@@ -287,7 +539,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
                     RoomEntities = newRoomEntities;
                 } else {
-                    Mod.Log("First frame entities in room: " + Util.DictionaryToString(RoomEntities));
                     toWrite += $",{JsonConvert.SerializeObject(RoomEntities)}";
                 }
             } else {
@@ -350,7 +601,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 Settings.IsRecording = true;
             }
         }
-
+        #endregion
+        
+        #region Physics Log
         public string GetPhysicsLogHeader() {
             return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs,Analog X,Analog Y,Entities";
         }
@@ -563,216 +816,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 return 0;
             }
         }
-
+        #endregion
+        
+        #region Room Layout
         private HashSet<string> VisitedRooms;
         private List<PhysicsLogRoomLayout> VisitedRoomsLayouts;
         private HashSet<Entity> LoggedEntitiesRaw;
-
-        private static readonly List<string> EntityNamesOnlyPosition = new List<string>() {
-            "CrystalStaticSpinner",
-            "DustStaticSpinner",
-            "CustomSpinner",
-            "DustTrackSpinner", "DustRotateSpinner",
-        };
-        private static readonly List<string> EntityNamesHitboxColliders = new List<string>() {
-            "Spikes", "RainbowSpikes", "BouncySpikes",
-            "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
-            "Lightning",
-
-            "Refill", "CustomRefill", "RefillWall",
-            "Spring", "CustomSpring", "DashSpring", "SpringGreen",
-            "DreamBlock", "CustomDreamBlock", "CustomDreamBlockV2", "ConnectedDreamBlock", "DashThroughSpikes",
-            "SinkingPlatform",
-            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
-            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn",
-            "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
-            "BounceBlock", //Core Block
-            "CrushBlock", //Kevin
-            "DashBlock",
-            "DashSwitch", "TempleGate",
-            "Glider", "RespawningJellyfish",
-            "SeekerBarrier", "CrystalBombDetonator", "HoldableBarrier",
-            "TempleCrackedBlock",
-            "FlyFeather",
-            "Cloud",
-            "WallBooster", "IcyFloor", //Conveyers or IceWalls, depending on Core Mode
-            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "MoveBlockCustomSpeed",
-            "CassetteBlock", "WonkyCassetteBlock",
-
-            "Puffer", "StaticPuffer", "SpeedPreservePuffer",
-
-            "FallingBlock", "GroupedFallingBlock", "RisingBlock",
-            "JumpThru", "SidewaysJumpThru", "AttachedJumpThru", "JumpthruPlatform", "UpsideDownJumpThru",
-            "CrumblePlatform", "CrumbleBlock", "CrumbleBlockOnTouch", "VariableCrumblePlatform",
-            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
-            "ClutterBlockBase", "ClutterDoor", "ClutterSwitch",
-            "Key", "LockBlock",
-            "StarJumpBlock",
-
-            "Strawberry",
-            "SilverBerry",
-
-            "Lookout", "CustomPlaybackWatchtower", //Binos
-            "LightningBreakerBox",
-
-            "Killbox",
-            "FakeWall", "InvisibleBarrier", "CustomInvisibleBarrier",
-
-            //Modded Entities
-            "Portal",
-        };
-        private static readonly List<string> EntityNamesHitcircleColliders = new List<string>() {
-            "Booster", "BlueBooster",
-            "Bumper", "StaticBumper", "VortexBumper",
-            "Shield",
-        };
-        private static readonly List<string> EntityNamesOther = new List<string>() {
-            "ConnectedMoveBlock", "AngryOshiro"
-        };
-        private static readonly List<string> IgnoreEntityNames = new List<string>() {
-            //UI Entities
-            "Player",
-            "InputHistoryListener", "InputHistoryListEntity",
-            "DashCountIndicator",
-            "Speedometer",
-            "SpeedrunTimerDisplay",
-            "BombTimerDisplay",
-            "TotalStrawberriesDisplay",
-            "GameplayStats",
-            "SelectedAreaEntity",
-            "GrabbyIcon",
-            "SpaceJumpIndicator", "JumpIndicator",
-            "TextOverlay", "LineupIndicatorEntity", "SummaryHud",
-            "TalkComponentUI",
-            "DeathDisplay",
-            "DashSequenceDisplay",
-            "AnalogDisplay",
-            "WorldTextEntity",
-
-            //Deco
-            "SolidTiles", "FG",
-            "Decal", "FlagDecal", "ParticleSystem", "ParticleEmitter", "FloatingDebris", "ForegroundDebris",
-            "BackgroundTiles", "BGTilesRenderer", "GlassBlockBg",
-            "MirrorSurfaces", "WaterSurface", "WaterFloatingObject", "ColoredWater", "ColoredWaterfall",
-            "ColoredBigWaterfall", "CustomParallaxBigWaterfall",
-            "DustEdges",
-            "FormationBackdrop",
-            "CustomHangingLamp", "ResortLantern", "WireLamps", "HangingLamp", "CustomTorch2", "LightSource", "LightingMask", "RustyLamp", "Lamp",
-            "LightBeam", "FlickerLightSource", "LightSourceZone", "InvisibleLightSource",
-            "Raindrop", "SpinnerGlow", "PlatformGlow", "RectangleGlow",
-            "StaticDoor", "LightOccludeBlock",
-            "CustomFlagline", "ConfettiTrigger",
-            "Clothesline", "Chain", "Wire", "Moth", "CustomFlutterBird",
-            "CustomPlayerPlayback", "CrumbleWallOnRumble",
-            "PseudoPolyhedron", "PlaybackBillboard",
-            "CustomNPC", "MoreCustomNPC", "StrawberryJamJar",
-            "MoonCreature", "FlutterBird",
-            "ColoredHangingLamp", "Torch", "LitBlueTorch", "Cobweb",
-            "CustomMoonCreature",
-
-            //Camera
-            "CameraTargetTrigger", "CameraOffsetBorder", "CameraOffsetTrigger",
-            "SmoothCameraOffsetTrigger", "InstantLockingCameraTrigger", "CameraHitboxEntity",
-            "LookoutBlocker", "CameraAdvanceTargetTrigger", "CameraCatchupSpeedTrigger",
-            "OneWayCameraTrigger", "MomentumCameraOffsetTrigger", "CameraTargetCornerTrigger",
-            "CameraTargetCrossfadeTrigger",
-
-            //Triggers
-            "FlagTrigger", "FlagIfVisibleTrigger",
-            "TeleportationTrigger", "TeleportationTarget",
-            "ChangeRespawnTrigger", "SpawnFacingTrigger",
-            "LuaCutsceneTrigger", "LuaCutsceneEntity",
-            "DialogCutsceneTrigger", "MiniTextboxTrigger",
-            "ExtendedVariantTrigger", "BooleanExtendedVariantTrigger", "ForceVariantTrigger", "FloatExtendedVariantFadeTrigger", "ExtendedVariantFadeTrigger",
-            "FloatExtendedVariantTrigger", "ResetVariantsTrigger", "FloatFadeTrigger",
-            "TriggerTrigger", "KillBoxTrigger", "LightningColorTrigger", "ColorGradeTrigger",
-            "RumbleTrigger", "ScreenWipeTrigger", "ShakeTrigger",
-            "MiniHeartDoorUnlockCutsceneTrigger", "TimeModulationTrigger",
-            "PocketUmbrellaTrigger",
-
-            //Styles & Lighting
-            "StylegroundMask", "ColorGradeMask",
-            "BloomFadeTrigger", "LightFadeTrigger", "BloomStrengthTrigger", "SetBloomStrengthTrigger", "SetBloomBaseTrigger", "SetDarknessAlphaTrigger",
-            "MadelineSpotlightModifierTrigger", "FlashTrigger", "AlphaLerpLightSource", "ColorLerpLightSource", "BloomMask", "MadelineSilhouetteTrigger",
-            "ColorGradeFadeTrigger", "EditDepthTrigger", "FlashlightColorTrigger", "LightningColorTrigger", "RemoveLightSourcesTrigger",
-            "ColoredLightbeam", "CustomLightBeam", "GradualChangeColorGradeTrigger",
-            "BloomColorFadeTrigger", "RainbowSpinnerColorFadeTrigger", "BloomColorTrigger",
-
-            //Music
-            "MusicParamTrigger", "AmbienceVolumeTrigger", "LightningMuter", "MusicFadeTrigger", "AmbienceParamTrigger",
-            "MusicTrigger",
-
-            //Controllers/Managers
-            "LaserDetectorManager",
-            "UnderwaterSwitchController",
-            "WindController",
-            "CustomSpinnerController",
-            "RainbowSpinnerColorController", "RainbowSpinnerColorAreaController",
-            "TimeController",
-            "SeekerEffectsController", "SeekerBarrierRenderer",
-            "StylegroundFadeController", "PhotosensitiveFlagController",
-            "EntityRainbowifyController",
-            "GlowController",
-            "TrailManager",
-            "ParallaxFadeOutController",
-            "CustomizableGlassBlockAreaController",
-            "CassetteMusicTransitionController",
-            "BitsMagicLanternController",
-            "LobbyMapController",
-            "RainbowTilesetController",
-            "StarClimbGraphicsController",
-            "AssistIconController",
-
-            //Renderers
-            "PathRenderer",
-            "LightningRenderer",
-            "DreamSpinnerRenderer", "DreamTunnelRenderer", "DreamTunnelEntryRenderer", "DreamJellyfishRenderer", "DreamDashController",
-            "MoveBlockBarrierRenderer", "PlayerSeekerBarrierRenderer", "PufferBarrierRenderer",
-            "CrystalBombDetonatorRenderer", "CrystalBombFieldRenderer",
-            "FlagKillBarrierRenderer",
-            "DecalContainerRenderer",
-            "InstantTeleporterRenderer",
-            "SpinnerConnectorRenderer",
-            "Renderer",
-
-            //Misc
-            "OnSpawnActivator", "EntityActivator",
-            "AttachedContainer",
-            "BurstEffect",
-            "ClutterBlock",
-            "EntityMover",
-            "LobbyMapWarp",
-            "AllInOneMask",
-
-            //Idk
-            "Why",
-            "BlockField",
-            "Border",
-            "SlashFx",
-            "Snapshot",
-            "Entity", "HelperEntity",
-        };
-
-        private static readonly List<string> EntityNamesToTest = new List<string>() {
-            
-        };
-
-        private static readonly List<string> MovableEntityNames = new List<string>() {
-            "DustTrackSpinner", "DustRotateSpinner",
-            "SinkingPlatform", "AngryOshiro",
-            "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
-            "ZipMover", "LinkedZipMover", "LinkedZipMoverNoReturn", "DreamZipMover",
-            "TouchSwitch", "SwitchGate", "FlagTouchSwitch", "FlagSwitchGate", "MovingTouchSwitch",
-            "BounceBlock", //Core Block
-            "CrushBlock", "UninterruptedNRCB",
-            "Glider", "RespawningJellyfish", "CustomGlider", "TheoCrystal", "CrystalBomb", "ExtendedVariantTheoCrystal",
-            "Cloud",
-            "MoveBlock", "DreamMoveBlock", "VitMoveBlock", "ConnectedMoveBlock", "MoveBlockCustomSpeed",
-            "FallingBlock", "GroupedFallingBlock", "RisingBlock",
-            "AttachedJumpThru",
-            "FloatySpaceBlock", "FancyFloatySpaceBlock", "FloatierSpaceBlock", "FloatyBreakBlock",
-        };
-
 
         private string LastRoomName = null;
         private bool IsFirstFrameInRoom = false;
@@ -826,11 +875,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             Mod.Log($"Room layout saving done!");
         }
-
-        public enum EntityList {
-            Static,
-            Movable
-        }
+        #endregion
 
         public static Dictionary<int, LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
             Dictionary<int, LoggedEntity> entities = new Dictionary<int, LoggedEntity>();
@@ -844,7 +889,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     Entity entity = subEntities[subIndex];
                     string entityName = entity.GetType().Name;
                     if (list == EntityList.Movable) {
-                        if (subIndex == 0 && !MovableEntityNames.Contains(entityName)) continue;
+                        if (subIndex == 0 && !IsMovableEntity(entityName)) continue;
 
                         if (entity is Platform platform) {
                             //Mod.Log($"'{entityName}' is a Platform! Checking static movers...");
@@ -857,7 +902,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                             }
                         }
                     } else {
-                        if (MovableEntityNames.Contains(entityName)) continue;
+                        if (IsMovableEntity(entityName)) continue;
                         StaticMover entityMover = entity.Components.Get<StaticMover>(); //Entity is riding another entity
                         //When the entitiy has a mover, is attached to a solid AND the solid allows moving, consider the entity as movable
                         if (entityMover != null && entityMover.Platform != null && entityMover.Platform is Solid solid && solid.AllowStaticMovers
@@ -893,8 +938,28 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         Util.GetPrivateProperty<object>(entity, "a");
                     }
 
-                    if (EntityNamesOnlyPosition.Contains(entityName)) {
-                        collider = entity.Collider;
+                    if (IsSpinnerEntity(entityName)) {
+                        if (entity.Collider is ColliderList colliderList && colliderList.colliders.Length == 2) {
+                            bool boxCorrect = false, circleCorrect = false;
+                            foreach (Collider spinnerCollider in colliderList.colliders) {
+                                if (spinnerCollider is Hitbox hitbox) {
+                                    if (hitbox.Position.X == -8 && hitbox.Position.Y == -3 && hitbox.Width == 16 &&
+                                        hitbox.Height == 4) {
+                                        boxCorrect = true;
+                                    }
+                                } else if (spinnerCollider is Circle circle) {
+                                    if (circle.Position.X == 0 && circle.Position.Y == 0 && circle.Radius == 6) {
+                                        circleCorrect = true;
+                                    }
+                                }
+                            }
+                            
+                            //If the spinner is not exactly default properties, log the collider list
+                            if (!boxCorrect || !circleCorrect) {
+                                collider = colliderList;
+                            }
+                        }
+                        
                         logged = true;
                     }
 
@@ -1123,7 +1188,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         logged = true;
                     }
 
-                    if (IgnoreEntityNames.Contains(entityName)) {
+                    if (IsIgnoredEntity(entityName)) {
                         continue;
                     }
                     
@@ -1147,6 +1212,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             return entities;
         }
 
+        #region Util
         public static void AddColliderInfoToLoggedEntity(LoggedEntity loggedEntity, Collider collider) {
             if (collider == null) {
                 Mod.Log($"Entity '{loggedEntity.Type}' has no collider set!");
@@ -1207,5 +1273,16 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 AddColliderInfoToLoggedEntity(loggedEntity, entity.Collider);
             }
         }
+
+        public static bool IsMovableEntity(string name) {
+            return EntityNamesMovables.Contains(name) || CustomEntityNamesMovables.Contains(name);
+        }
+        public static bool IsSpinnerEntity(string name) {
+            return EntityNamesSpinners.Contains(name);
+        }
+        public static bool IsIgnoredEntity(string name) {
+            return IgnoreEntityNames.Contains(name) || CustomIgnoredEntityNames.Contains(name);
+        }
+        #endregion
     }
 }
