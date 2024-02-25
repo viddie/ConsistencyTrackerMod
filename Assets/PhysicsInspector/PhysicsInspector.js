@@ -16,6 +16,7 @@ const Elements = {
   NextFramesButton: "next-frames-button",
   PreviousFramesButton: "previous-frames-button",
   FinalFramesButton: "final-frames-button",
+  SelectJumpToRoom: "select-jump-to-room",
 
   SelectedRecording: "selected-recording",
   OptgroupRecent: "optgroup-recent",
@@ -38,6 +39,7 @@ const Elements = {
   PointLabels: "point-labels",
   
   DisplayModeButton: "change-display-mode-button",
+  CheckReplayPlaying: "check-replayPlaying",
   ReplaySpeed: "selected-replay-speed",
   
   LayersModalButton: "layers-modal-button",
@@ -149,8 +151,6 @@ function OnShowInspectorView() {
   }
 
   //Sidemenu things
-  updateRecordingInfo();
-
   let firstFrame = physicsLogFrames[0];
 
   let firstRoomBounds = roomLayouts[0].levelBounds;
@@ -167,7 +167,7 @@ function OnShowInspectorView() {
   }
 
   centerOnPosition(centerX, centerY);
-  applySettings();
+  updateSettings();
   
   if(replayTimeout){
     clearTimeout(replayTimeout);
@@ -229,76 +229,6 @@ function getRasterziedPosition(frame) {
 }
 
 
-function updateRecordingInfo() {
-  let isRecent = selectedRecordingType === RecordingTypes.Recent;
-
-  let recordingTypeText = "Type: " + (isRecent ? "Recent" : "Saved");
-  let recordingNameText;
-
-  if (isRecent) {
-    let inRecordingString = isRecording ? " (Recording...)" : "";
-    let fileOffset = isRecording ? 1 : 0;
-    recordingNameText =
-      "Recording: (" +
-      (selectedRecording + 1) +
-      "/" +
-      (recentPhysicsLogFilesList.length + fileOffset) +
-      ")" +
-      inRecordingString;
-  } else {
-    let id = selectedRecording;
-    //search through savedPhysicsRecordingsList for the id, and get the name
-    for (let i = 0; i < savedPhysicsRecordingsList.length; i++) {
-      if (savedPhysicsRecordingsList[i].id === id) {
-        recordingNameText = "Recording: " + savedPhysicsRecordingsList[i].name;
-        break;
-      }
-    }
-  }
-
-  let frameCountText = physicsLogFrames.length + " frames";
-  let showingFramesText =
-    "(Showing: " +
-    settings.frameMin +
-    " - " +
-    Math.min(settings.frameMin + settings.frameStepSize, physicsLogFrames.length) +
-    ")";
-
-  let sideAddition = "";
-  if (roomLayoutRecording.sideName !== "A-Side") {
-    sideAddition = " [" + roomLayoutRecording.sideName + "]";
-  }
-  let mapText = "Map: " + roomLayoutRecording.chapterName + sideAddition;
-
-  //parse roomLayoutRecording.recordingStarted from "2020-05-01T20:00:00.0000000+02:00" to "2020-05-01 20:00:00"
-  let date = new Date(roomLayoutRecording.recordingStarted);
-  let dateString =
-    date.getFullYear() +
-    "-" +
-    zeroPad(date.getMonth() + 1, 2) +
-    "-" +
-    zeroPad(date.getDate(), 2) +
-    " " +
-    zeroPad(date.getHours(), 2) +
-    ":" +
-    zeroPad(date.getMinutes(), 2) +
-    ":" +
-    zeroPad(date.getSeconds(), 2);
-  let timeRecordedText = "Time recorded: " + dateString;
-
-  Elements.RecordingDetails.innerText =
-    recordingNameText +
-    "\n" +
-    frameCountText +
-    " " +
-    showingFramesText +
-    "\n" +
-    mapText +
-    "\n" +
-    timeRecordedText;
-
-  updateFrameButtonStates();
-}
 //#endregion
 
 //#region Util

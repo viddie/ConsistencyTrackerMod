@@ -128,6 +128,7 @@ function findRelevantRooms() {
 }
 
 function isFrameInRoom(frame, roomLayout){
+  if(roomLayout === null || roomLayout === undefined) return false;
   let levelBounds = roomLayout.levelBounds;
   return (
       frame.positionX >= levelBounds.x &&
@@ -138,6 +139,18 @@ function isFrameInRoom(frame, roomLayout){
 }
 
 //Find the room layout that the frame is in
+function getRoomIndexFromFrameIndex(frameIndex){
+  let frame = physicsLogFrames[frameIndex];
+  let room = getRoomFromFrame(frame);
+  if(room === null) return -1;
+
+  for (let i = 0; i < roomLayouts.length; i++) {
+    if(roomLayouts[i].debugRoomName === room.debugRoomName){
+      return i;
+    }
+  }
+  return -1;
+}
 function getRoomFromFrame(frame = null){
   frame = frame ?? physicsLogFrames[settings.frameMin];
   for (let i = 0; i < roomLayouts.length; i++) {

@@ -60,9 +60,21 @@
         <button id="final-frames-button" onclick="frameEnd(event)" class="slim-button">(E)</button>
       </div>
       
+      <select id="select-jump-to-room" onchange="jumpToRoom(this.value)" style="width:100%">
+        <option value="-1">Jump to room...</option>
+        <option value="0">Room 0</option>
+        <option value="1">Room 1</option>
+        <option value="2">Room 2</option>
+      </select>
+      <div id="room-nav" class="flex-center">
+        <button id="previous-room-button" onclick="jumpToNextRoom(event, -1)" class="slim-button small" style="transform:scaleX(-1)">➔</button>
+        <div style="width:5px"></div>
+        <button id="next-room-button" onclick="jumpToNextRoom(event, 1)" class="slim-button small">➔</button>
+      </div>
+      
       <hr>
       <h5>Recordings</h5>
-      <select id="selected-recording" onchange="ChangeRecording(this.value)" style="width:100%">
+      <select id="selected-recording" onchange="changeRecording(this.value)" style="width:100%">
         <optgroup id="optgroup-recent" label="Recent&nbsp;">
           <option>City 1 Branch A</option>
           <option>City 1 Branch B</option>
@@ -104,6 +116,8 @@
         <select id="point-labels" onchange="changedPointLabel(this.value)"></select>
       </div>
 
+      <button id="change-display-mode-button" onclick="toggleDisplayMode()" class="small">Toggle Display Mode</button>
+      
       <hr>
       <h5>Replay</h5>
       <div class="flex-center flex-start">
@@ -121,29 +135,18 @@
           <option value="0.5">50% Speed</option>
           <option value="0.75">75% Speed</option>
           <option value="1">100% Speed</option>
+          <option value="1.1">110% Speed</option>
+          <option value="1.25">125% Speed</option>
           <option value="1.5">150% Speed</option>
           <option value="2">200% Speed</option>
           <option value="3">300% Speed</option>
-          <option value="4">400% Speed</option>
           <option value="50">Fastest</option>
         </select>
       </div>
-      <div class="flex-center flex-start">
-        <input type="checkbox" id="check-replayIgnoreIdleFrames" onchange="changedBoolSetting('replayIgnoreIdleFrames', this.checked)" />
-        <label for="check-replayIgnoreIdleFrames">Ignore Idle Frames</label>
-      </div>
-      <div class="flex-center flex-start">
-        <input type="checkbox" id="check-replayCenterCamera" onchange="changedBoolSetting('replayCenterCamera', this.checked)" />
-        <label for="check-replayCenterCamera">Keep Cam Centered</label>
-      </div>
       
       <hr>
-      <button id="change-display-mode-button" onclick="toggleDisplayMode()" class="small">Toggle Display Mode</button>
-      <hr>
-      <button id="layers-modal-button" onclick="openLayersDialog()" class="small">Layer Visibility</button>
       <button id="tooltips-modal-button" onclick="openTooltipsDialog()" class="small">Tooltip Info</button>
-      <hr>
-      <button id="test-button" onclick="testFunction()" class="small">Test Button</button>
+      <button id="layers-modal-button" onclick="openLayersDialog()" class="small">Layer Visibility</button>
       <hr>
       <button id="other-tools-button" onclick="openOtherToolsDialog()" class="unimportant small">Other Tools</button>
 
@@ -173,6 +176,7 @@
         <div id="other-tools-modal" class="modal">
           <button onclick="openEntitiesCountDialog()">Entity Counts</button>
           <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
+          <button onclick="testFunction()">Test Button</button>
           <button onclick="console.log('bleh')" disabled>More coming soon...</button>
           <p>Version: 1.3.0</p>
         </div>

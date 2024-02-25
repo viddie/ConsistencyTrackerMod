@@ -1,4 +1,5 @@
-﻿const DisplayMode ={
+﻿//#region Constants
+const DisplayMode ={
     Classic: {
         name: "Classic",
         description: "Shows multiple frames at once, hover over a frame to see movable entities and more details."
@@ -38,6 +39,7 @@ const PointLabels= {
   Stamina: "Stamina",
   Inputs: "Inputs",
 };
+//#endregion
 
 //#region Settings
 let selectedRecordingType = RecordingTypes.Recent;
@@ -91,11 +93,13 @@ let settings = {
 };
 //#endregion
 
-//#region Settings
+//#region Settings Elements
 let settingsElements = {
   showRoomNames: "Show Room Names",
   rasterizeMovement: "Rasterize Movement",
   debugEntities: "Debug Entities",
+  replayCenterCamera: "Camera: Follow Frames",
+  replayIgnoreIdleFrames: "Replay: Skip Idle Frames",
 };
 let layerVisibilityElements = {
   layerVisibleRoomLayout: "Room Layout",
@@ -123,6 +127,9 @@ let tooltipsInfoElements = {
 };
 
 let settingsInited = false;
+//#endregion
+
+//#region Settings Load/Update
 function loadSettings() {
   let settingsStr = localStorage.getItem("settings");
   if (settingsStr !== null) {
@@ -131,40 +138,260 @@ function loadSettings() {
 
   settings.frameMin = 0;
 
-  for (const key in settingsElements) {
-    if (settingsElements.hasOwnProperty(key)) {
-      const label = settingsElements[key];
-      let div = createSettingsCheckbox(key, label, settings[key], changedBoolSetting);
-      Elements.OptionsContainer.appendChild(div);
-    }
+  createOnOffSettings();
+  createLayerVisibilitySettings();
+  createTooltipInfoSettings();
+  createPointLabelOptions();
+
+  //Fix the initial state of newly added settings
+  if(settings.replayPlaying === undefined){
+    settings.replayPlaying = false;
+  }
+  if(settings.replaySpeed === undefined){
+    settings.replaySpeed = 1;
+  }
+  if(settings.replayIgnoreIdleFrames === undefined){
+    settings.replayIgnoreIdleFrames = false;
+  }
+  if (settings.replayCenterCamera === undefined){
+    settings.replayCenterCamera = true;
+  }
+  if(settings.displayMode === undefined){
+    settings.displayMode = DisplayMode.Classic.name;
+  }
+  
+  updateSettings();
+
+  settingsInited = true;
+}
+function saveSettings() {
+  localStorage.setItem("settings", JSON.stringify(settings));
+  updateSettings();
+  redrawCanvas();
+}
+
+function updateSettings(){
+  if (settings.menuHidden) {
+    refreshSidebarMenuVisibility();
+  }
+  
+  Elements.PointLabels.value = settings.pointLabels;
+  Elements.FrameStepSize.value = settings.frameStepSize+"";
+  Elements.ReplaySpeed.value = settings.replaySpeed+"";
+  Elements.CheckReplayPlaying.checked = settings.replayPlaying;
+  
+  Elements.DisplayModeButton.innerText = "Mode: " + settings.displayMode;
+  
+  updateLayerVisibilities();
+  updateFrameButtonStates();
+  updateRecordingInfo();
+  updateRecordingActionButtonStates();
+  updateJumpToRoomSelect();
+}
+function refreshSidebarMenuVisibility() {
+  //Slide the menu out to the left by setting transform: translateX(-100%)
+  if (settings.menuHidden) {
+    Elements.SidebarMenu.style.transform = "translateX(-100%)";
+  } else {
+    Elements.SidebarMenu.style.transform = "translateX(0%)";
+  }
+}
+function updateLayerVisibilities(){
+  if(konvaRoomLayoutLayer === null) return; //Not ready yet
+  
+  if (!settings.layerVisibleRoomLayout) konvaRoomLayoutLayer.hide();
+  else konvaRoomLayoutLayer.show();
+
+  if (!settings.layerVisibleRoomEntities) konvaRoomEntitiesLayer.hide();
+  else konvaRoomEntitiesLayer.show();
+
+  if (!settings.layerVisibleMaddyHitbox) konvaMaddyHitboxLayer.hide();
+  else konvaMaddyHitboxLayer.show();
+
+  if (!settings.layerVisibleTooltip) {
+    konvaTooltipLayer.hide();
+    konvaLowPrioTooltipLayer.hide();
+  } else {
+    konvaTooltipLayer.show();
+    konvaLowPrioTooltipLayer.show();
   }
 
-  for (const key in layerVisibilityElements) {
-    if (!layerVisibilityElements.hasOwnProperty(key)) {
-      return;
+  if (!settings.layerVisiblePosition) konvaPositionLayer.hide();
+  else konvaPositionLayer.show();
+    
+  
+  if(roomLayoutRecording.usesMovableEntities && settings.frameStepSize === 1){
+    konvaRoomMovableEntitiesInitialLayer.visible(false);
+  } else {
+    konvaRoomMovableEntitiesInitialLayer.visible(true);
+  }
+}
+function updateFrameButtonStates() {
+  if(physicsLogFrames === null) return; //Not ready yet
+  
+  let stepSize = settings.displayMode === DisplayMode.Replay.name ? 1 : settings.frameStepSize;
+  
+  if (settings.frameMin === 0) {
+    Elements.PreviousFramesButton.setAttribute("disabled", true);
+  } else {
+    Elements.PreviousFramesButton.removeAttribute("disabled");
+  }
+  if (settings.frameMin + stepSize >= physicsLogFrames.length) {
+    Elements.NextFramesButton.setAttribute("disabled", true);
+    Elements.FinalFramesButton.setAttribute("disabled", true);
+  } else {
+    Elements.NextFramesButton.removeAttribute("disabled");
+    Elements.FinalFramesButton.removeAttribute("disabled");
+  }
+}
+function updateRecordingInfo() {
+  if(recentPhysicsLogFilesList === null || savedPhysicsRecordingsList === null) return; //Not ready yet
+  
+  let isRecent = selectedRecordingType === RecordingTypes.Recent;
+
+  let recordingTypeText = "Type: " + (isRecent ? "Recent" : "Saved");
+  let recordingNameText;
+
+  if (isRecent) {
+    let inRecordingString = isRecording ? " (Recording...)" : "";
+    let fileOffset = isRecording ? 1 : 0;
+    recordingNameText =
+      "Recording: (" +
+      (selectedRecording + 1) +
+      "/" +
+      (recentPhysicsLogFilesList.length + fileOffset) +
+      ")" +
+      inRecordingString;
+  } else {
+    //search through savedPhysicsRecordingsList for the id, and get the name
+    for (let i = 0; i < savedPhysicsRecordingsList.length; i++) {
+      if (savedPhysicsRecordingsList[i].id === selectedRecording) {
+        recordingNameText = "Recording: " + savedPhysicsRecordingsList[i].name;
+        break;
+      }
     }
+  }
+  
+  let frameCountText = physicsLogFrames.length + " frames";
+  let frameAddition = "";
+  if(settings.displayMode === DisplayMode.Replay.name && !settings.replayIgnoreIdleFrames){
+    frameAddition = " (+"+(replayData.idleFrameIndex+1)+")";
+  }
+  let frameToAddition = "";
+  if(settings.displayMode !== DisplayMode.Replay.name){
+    frameToAddition = " - "+Math.min(settings.frameMin + settings.frameStepSize, physicsLogFrames.length);
+  }
+  
+  let showingFramesText =
+    "(Showing: " + settings.frameMin + frameAddition + frameToAddition + ")";
+
+  let sideAddition = "";
+  if (roomLayoutRecording.sideName !== "A-Side") {
+    sideAddition = " [" + roomLayoutRecording.sideName + "]";
+  }
+  let mapText = "Map: " + roomLayoutRecording.chapterName + sideAddition;
+  
+  let roomText = "Room (debug name): ";
+  let currentRoom = getRoomFromFrame(physicsLogFrames[settings.frameMin]);
+  if(currentRoom !== null){
+    roomText += currentRoom.debugRoomName; 
+  } else {
+    roomText += "---";
+  }
+
+  //parse roomLayoutRecording.recordingStarted from "2020-05-01T20:00:00.0000000+02:00" to "2020-05-01 20:00:00"
+  let date = new Date(roomLayoutRecording.recordingStarted);
+  let dateString =
+    date.getFullYear() +
+    "-" +
+    zeroPad(date.getMonth() + 1, 2) +
+    "-" +
+    zeroPad(date.getDate(), 2) +
+    " " +
+    zeroPad(date.getHours(), 2) +
+    ":" +
+    zeroPad(date.getMinutes(), 2) +
+    ":" +
+    zeroPad(date.getSeconds(), 2);
+  let timeRecordedText = "Time recorded: " + dateString;
+
+  Elements.RecordingDetails.innerText =
+    recordingNameText +
+    "\n" +
+    frameCountText +
+    " " +
+    showingFramesText +
+    "\n" +
+    mapText +
+    "\n" +
+    roomText +
+    "\n" +
+    timeRecordedText;
+}
+function updateRecordingActionButtonStates() {
+  if (selectedRecordingType === RecordingTypes.Recent) {
+    Elements.SaveRecordingButton.removeAttribute("disabled");
+    Elements.RenameRecordingButton.setAttribute("disabled", true);
+    Elements.DeleteRecordingButton.setAttribute("disabled", true);
+  } else {
+    Elements.SaveRecordingButton.setAttribute("disabled", true);
+    Elements.RenameRecordingButton.removeAttribute("disabled");
+    Elements.DeleteRecordingButton.removeAttribute("disabled");
+  }
+}
+function updateJumpToRoomSelect(){
+  if (roomLayouts === null) return; //Not ready yet
+
+  let select = Elements.SelectJumpToRoom;
+  select.innerHTML = "";
+
+  let option = document.createElement("option");
+  option.value = -1;
+  option.text = "-- Jump to Room --";
+  select.appendChild(option);
+
+  for (let i = 0; i < roomLayouts.length; i++) {
+    let room = roomLayouts[i];
+    option = document.createElement("option");
+    option.value = i;
+    option.text = room.debugRoomName;
+    select.appendChild(option);
+  }
+
+  select.value = -1;
+}
+//#endregion
+
+//#region Create Settings Elements
+function createOnOffSettings(){
+  for (const key in settingsElements) {
+    const label = settingsElements[key];
+    let div = createSettingsCheckbox(key, label, settings[key], changedBoolSetting);
+    Elements.OptionsContainer.appendChild(div);
+  }
+}
+
+function createLayerVisibilitySettings() {
+  for (const key in layerVisibilityElements) {
     const label = layerVisibilityElements[key];
     let div = createSettingsCheckbox(key, label, settings[key], changedLayerVisibility);
     Elements.LayersContainer.appendChild(div);
   }
+}
 
+function createTooltipInfoSettings(){
   let combinedRows = 0;
   let storedKey = null;
   for (const key in tooltipsInfoElements) {
-    if (!tooltipsInfoElements.hasOwnProperty(key)) {
-      continue;
-    }
-
     if (combinedRows < 5 && storedKey == null) {
       storedKey = key;
-      continue;
     } else if (storedKey != null) {
       const storedLabel = tooltipsInfoElements[storedKey];
       let storedDiv = createSettingsCheckbox(
-        storedKey,
-        storedLabel,
-        settings.tooltipInfo[storedKey],
-        changedTooltipInfo
+          storedKey,
+          storedLabel,
+          settings.tooltipInfo[storedKey],
+          changedTooltipInfo
       );
       storedDiv.style.width = "50%";
 
@@ -187,46 +414,16 @@ function loadSettings() {
       Elements.TooltipsContainer.appendChild(div);
     }
   }
+}
 
-  if (settings.menuHidden) {
-    refreshSidebarMenuVisibility();
-  }
-
-  //Add PointLabelNames to the combobox in Elements.PointLabels
+function createPointLabelOptions(){
   for (const key in PointLabels) {
-    if (PointLabels.hasOwnProperty(key)) {
-      const label = PointLabels[key];
-      let option = document.createElement("option");
-      option.value = key;
-      option.text = label;
-      Elements.PointLabels.appendChild(option);
-    }
+    const label = PointLabels[key];
+    let option = document.createElement("option");
+    option.value = key;
+    option.text = label;
+    Elements.PointLabels.appendChild(option);
   }
-
-  Elements.PointLabels.value = settings.pointLabels;
-  Elements.FrameStepSize.value = settings.frameStepSize+"";
-  Elements.ReplaySpeed.value = settings.replaySpeed+"";
-  
-  //Fix the initial state of newly added settings
-  if(settings.replayPlaying === undefined){
-    settings.replayPlaying = false;
-  }
-  if(settings.replaySpeed === undefined){
-    settings.replaySpeed = 1;
-  }
-  if(settings.replayIgnoreIdleFrames === undefined){
-    settings.replayIgnoreIdleFrames = false;
-  }
-  if (settings.replayCenterCamera === undefined){
-    settings.replayCenterCamera = true;
-  }
-  
-  if(settings.displayMode === undefined){
-    settings.displayMode = DisplayMode.Classic.name;
-  }
-  Elements.DisplayModeButton.innerText = "Mode: " + settings.displayMode;
-
-  settingsInited = true;
 }
 
 function createSettingsCheckbox(settingName, settingLabel, currentValue, onChangeFunction) {
@@ -250,13 +447,13 @@ function createSettingsCheckbox(settingName, settingLabel, currentValue, onChang
 
   return div;
 }
+//#endregion
 
+//#region Settings Change Functions
 function changedBoolSetting(settingName, value) {
   settings[settingName] = value;
   saveSettings();
-  redrawCanvas();
 }
-
 function changedLayerVisibility(layerName, value) {
   let layerToSet = null;
   switch (layerName) {
@@ -265,9 +462,6 @@ function changedLayerVisibility(layerName, value) {
       break;
     case "layerVisibleRoomEntities":
       layerToSet = konvaRoomEntitiesLayer;
-      break;
-    case "layerVisibleRoomOtherEntities":
-      layerToSet = konvaRoomOtherEntitiesLayer;
       break;
     case "layerVisibleMaddyHitbox":
       layerToSet = konvaMaddyHitboxLayer;
@@ -280,93 +474,31 @@ function changedLayerVisibility(layerName, value) {
       break;
   }
 
-  if (value) {
-    layerToSet.show();
-  } else {
-    layerToSet.hide();
-  }
-
-  if (layerName === "layerVisibleTooltip") {
-    if (value) {
-      konvaLowPrioTooltipLayer.show();
-    } else {
-      konvaLowPrioTooltipLayer.hide();
-    }
-  }
-
   settings[layerName] = value;
-
   saveSettings();
-  redrawCanvas();
 }
 function changedTooltipInfo(settingName, value) {
   settings.tooltipInfo[settingName] = value;
   saveSettings();
-  redrawCanvas();
 }
 function changedPointLabel(pointLabel) {
   if (!settingsInited) return;
-
   settings.pointLabels = pointLabel;
   saveSettings();
-  redrawCanvas();
 }
-
-function saveSettings() {
-  localStorage.setItem("settings", JSON.stringify(settings));
-}
-
-function applySettings() {
-  if (!settings.layerVisibleRoomLayout) {
-    konvaRoomLayoutLayer.hide();
-  }
-  if (!settings.layerVisibleRoomEntities) {
-    konvaRoomEntitiesLayer.hide();
-  }
-  if (!settings.layerVisibleRoomOtherEntities) {
-    konvaRoomOtherEntitiesLayer.hide();
-  }
-  if (!settings.layerVisibleMaddyHitbox) {
-    konvaMaddyHitboxLayer.hide();
-  }
-  if (!settings.layerVisibleTooltip) {
-    konvaTooltipLayer.hide();
-    konvaLowPrioTooltipLayer.hide();
-  }
-  if (!settings.layerVisiblePosition) {
-    konvaPositionLayer.hide();
-  }
-  
-  if(roomLayoutRecording.usesMovableEntities && settings.frameStepSize === 1){
-    konvaRoomMovableEntitiesInitialLayer.visible(false);
-  } else {
-    konvaRoomMovableEntitiesInitialLayer.visible(true);
-  }
-}
-
-//#region Button Actions
 function changedFrameStepSize(value){
   settings.frameStepSize = parseInt(value);
-  
-  if(settings.frameStepSize === 1 && roomLayoutRecording.usesMovableEntities){
-    konvaRoomMovableEntitiesInitialLayer.visible(false);
-  } else {
-    konvaRoomMovableEntitiesInitialLayer.visible(true);
-  }
-  
   saveSettings();
-  updateRecordingInfo();
-  redrawCanvas();
 }
-
 function changedReplaySpeed(value){
   settings.replaySpeed = parseFloat(value);
   saveSettings();
 }
 
 function framePageUp(mult = 1, event) {
-  let stepSize = event.ctrlKey ? 1 : event.shiftKey ? settings.frameStepSize * 5 : settings.frameStepSize;
-  if (settings.frameMin == -1) {
+  let stepSize = settings.displayMode === DisplayMode.Replay.name ? 1 : settings.frameStepSize;
+  stepSize = event.ctrlKey ? 1 : event.shiftKey ? stepSize * 5 : stepSize;
+  if (settings.frameMin === -1) {
     settings.frameMin = stepSize * (mult - 1);
   } else {
     settings.frameMin += stepSize * mult;
@@ -374,49 +506,80 @@ function framePageUp(mult = 1, event) {
 
   if (settings.frameMin < 0) {
     settings.frameMin = 0;
+  } else if (settings.frameMin >= physicsLogFrames.length) {
+    settings.frameMin = physicsLogFrames.length - stepSize;
   }
   
-  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(settings.frameStepSize / 2), physicsLogFrames.length - 1)];
+  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(stepSize / 2), physicsLogFrames.length - 1)];
 
-  updateRecordingInfo();
-  redrawCanvas();
+  saveSettings();
   if(settings.replayCenterCamera && !areModelCoordinatesOnScreen(centerFrame.positionX, centerFrame.positionY)){
     centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
   }
 }
 function frameEnd(event) {
+  let stepSize = settings.displayMode === DisplayMode.Replay.name ? 1 : settings.frameStepSize;
   if(event.ctrlKey){
     settings.frameMin = 0;
   } else {
-    settings.frameMin = physicsLogFrames.length - settings.frameStepSize;
+    settings.frameMin = physicsLogFrames.length - stepSize;
   }
   
-  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(settings.frameStepSize / 2), physicsLogFrames.length - 1)];
+  const centerFrame = physicsLogFrames[Math.min(settings.frameMin + Math.floor(stepSize / 2), physicsLogFrames.length - 1)];
 
-  updateRecordingInfo();
-  redrawCanvas();
+  saveSettings();
   centerOnPositionReal(centerFrame.positionX, centerFrame.positionY);
 }
 function resetFramePage() {
   settings.frameMin = 0;
-  updateRecordingInfo();
+  saveSettings();
 }
-function updateFrameButtonStates() {
-  if (settings.frameMin == 0) {
-    Elements.PreviousFramesButton.setAttribute("disabled", true);
-  } else {
-    Elements.PreviousFramesButton.removeAttribute("disabled");
+function jumpToRoom(index){
+  if(index === -1) return;
+  
+  let room = roomLayouts[index];
+  let bounds = room.levelBounds; //{x, y, w, h}
+  
+  //Find the first frame that falls into the bounds of this room
+  let frameIndex = 0;
+  for (let i = 0; i < physicsLogFrames.length; i++) {
+    let frame = physicsLogFrames[i];
+    if (frame.positionX >= bounds.x && frame.positionX <= bounds.x + bounds.w && frame.positionY >= bounds.y && frame.positionY <= bounds.y + bounds.h) {
+      frameIndex = i;
+      break;
+    }
   }
-  if (settings.frameMin + settings.frameStepSize >= physicsLogFrames.length) {
-    Elements.NextFramesButton.setAttribute("disabled", true);
-    Elements.FinalFramesButton.setAttribute("disabled", true);
-  } else {
-    Elements.NextFramesButton.removeAttribute("disabled");
-    Elements.FinalFramesButton.removeAttribute("disabled");
+  
+  //Search frames ahead until a frame is found that does NOT have the flag "NoControl"
+  for (let i = frameIndex; i < physicsLogFrames.length; i++) {
+    let frame = physicsLogFrames[i];
+    if (!frame.flags.includes("NoControl")) {
+      frameIndex = i;
+      break;
+    }
   }
+  
+  settings.frameMin = frameIndex;
+  saveSettings();
+  
+  let frame = physicsLogFrames[frameIndex];
+  centerOnPositionReal(frame.positionX, frame.positionY);
+}
+function jumpToNextRoom(event, dir){
+  if(roomLayouts === null) return;
+  
+  //Find the room that the settings.frameMin frame is in
+  let currentRoomIndex = getRoomIndexFromFrameIndex(settings.frameMin);
+  if(currentRoomIndex === -1) return;
+
+  let distance = event.shiftKey ? 3 : 1;
+  let nextRoomIndex = currentRoomIndex + dir * distance;
+  nextRoomIndex = Math.max(0, Math.min(roomLayouts.length - 1, nextRoomIndex));
+
+  jumpToRoom(nextRoomIndex);
 }
 
-function ChangeRecording(selected) {
+function changeRecording(selected) {
   //selected is in the form of "recent-0" or "saved-0"
   let split = selected.split("-");
   let selectedRecordingTypeStr = split[0];
@@ -425,48 +588,14 @@ function ChangeRecording(selected) {
   selectedRecordingType = selectedRecordingTypeStr == "recent" ? RecordingTypes.Recent : RecordingTypes.Saved;
   selectedRecording = selectedRecordingId;
 
-  updateRecordingActionButtonStates();
-
   console.log("ChangeRecording -> Selected: ", selected);
 
   fetchRoomLayout(afterFetchRoomLayout);
-  resetFramePage();
-  if (roomLayoutRecording.usesMovableEntities && settings.frameStepSize === 1){
-    konvaRoomMovableEntitiesInitialLayer.visible(false);
-  } else {
-    konvaRoomMovableEntitiesInitialLayer.visible(true);
-  }
+  resetFramePage(); //Will update settings
 }
-function showSavedRecording(id) {
-  selectedRecording = id;
-  selectedRecordingType = RecordingTypes.Saved;
-  fetchRoomLayout(afterFetchRoomLayout);
-  resetFramePage();
-}
-function updateRecordingActionButtonStates() {
-  if (selectedRecordingType === RecordingTypes.Recent) {
-    Elements.SaveRecordingButton.removeAttribute("disabled");
-    Elements.RenameRecordingButton.setAttribute("disabled", true);
-    Elements.DeleteRecordingButton.setAttribute("disabled", true);
-  } else {
-    Elements.SaveRecordingButton.setAttribute("disabled", true);
-    Elements.RenameRecordingButton.removeAttribute("disabled");
-    Elements.DeleteRecordingButton.removeAttribute("disabled");
-  }
-}
-
 function toggleSidebarMenuSetting() {
   settings.menuHidden = !settings.menuHidden;
-  refreshSidebarMenuVisibility();
   saveSettings();
-}
-function refreshSidebarMenuVisibility() {
-  //Slide the menu out to the left by setting transform: translateX(-100%)
-  if (settings.menuHidden) {
-    Elements.SidebarMenu.style.transform = "translateX(-100%)";
-  } else {
-    Elements.SidebarMenu.style.transform = "translateX(0%)";
-  }
 }
 
 function toggleDisplayMode(){
@@ -476,11 +605,7 @@ function toggleDisplayMode(){
       settings.displayMode = DisplayMode.Classic.name;
   }
   
-  Elements.DisplayModeButton.innerText = "Mode: " + settings.displayMode;
-  
   saveSettings();
-  redrawCanvas();
 }
 //#endregion
 
-//#endregion

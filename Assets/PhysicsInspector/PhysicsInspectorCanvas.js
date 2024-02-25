@@ -631,13 +631,25 @@ function createSpinnerEntityShapes(entity){
   let entityX = entity.p.x + entitiesOffsetX;
   let entityY = entity.p.y + entitiesOffsetY;
   
+  //Default proportions
+  let hitcircle = { x: 0, y: 0, r: 6 };
+  let hitbox = { x: -8, y: -3, w: 16, h: 4 };
+  
+  if(entity.r?.cl){
+    for(const collider of entity.r.cl){
+      if(collider.t === "c"){
+        hitcircle = collider.c;
+      } else if(collider.t === "b"){
+        hitbox = collider.b;
+      }
+    }
+  }
+  
   //Draw white circle with width 6 on entity position
-  let hitcircle = entity.r?.c ?? { x: 0, y: 0, r: 6 };
   shapes.push(createHitCircle(entityX, entityY, hitcircle, "white", 0.5));
 
   if (settings.showSpinnerRectangle) {
     //Draw white rectangle with width 16, height 4, x offset -8 and y offset -3 on entity position
-    let hitbox = entity.r?.b ?? { x: -8, y: -3, w: 16, h: 4 };
     shapes.push(createHitbox(entityX, entityY, hitbox, "white", 0.5));
   }
   return shapes;
@@ -1364,7 +1376,7 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
     height: maddyHeight,
     stroke: "red",
     strokeWidth: 0.125,
-    visible: settings.frameStepSize === 1,
+    visible: settings.frameStepSize === 1 || settings.displayMode === DisplayMode.Replay.name,
   });
   shapes.hitbox.push(maddyHitbox);
 
@@ -1376,7 +1388,7 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
     height: maddyHeight - 2,
     stroke: "green",
     strokeWidth: 0.125,
-    visible: settings.frameStepSize === 1,
+    visible: settings.frameStepSize === 1 || settings.displayMode === DisplayMode.Replay.name,
   });
   shapes.hitbox.push(maddyHurtbox);
 
@@ -1423,7 +1435,7 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
   shape.on("mouseenter", function () {
     shape.strokeWidth(0.2);
     konvaGroupTooltip.visible(true);
-    if(settings.frameStepSize !== 1){
+    if(settings.frameStepSize !== 1 && settings.displayMode !== DisplayMode.Replay.name){
       maddyHitbox.visible(true);
       maddyHurtbox.visible(true);
       Object.keys(shapes.movables).forEach((id) => {
@@ -1438,7 +1450,7 @@ function createPhysicsTooltip(shape, frameIndex, frame, previousFrame, nextFrame
     if (!shape.keepTooltipOpen) {
       shape.strokeWidth(0);
       konvaGroupTooltip.visible(false);
-      if(settings.frameStepSize !== 1){
+      if(settings.frameStepSize !== 1 && settings.displayMode !== DisplayMode.Replay.name){
         maddyHitbox.visible(false);
         maddyHurtbox.visible(false);
         Object.keys(shapes.movables).forEach((id) => {
@@ -1856,13 +1868,15 @@ function replayModeCreateInitialState(){
   const currentFrame = physicsLogFrames[frameIndex];
   const room = getRoomFromFrame(currentFrame);
   replayData.room = room;
-  replayData.roomBoundsShapes = createRoomBoundsShapes(room);
+  replayData.roomBoundsShapes = room ? createRoomBoundsShapes(room) : [];
 
-  let levelBounds = room.levelBounds;
+  let levelBounds = room?.levelBounds;
   //roomLayout.entities is an object with the entity ID as key and the entity as value
-  for (const entity of Object.values(room.entities)) {
-    let shapes = createEntityShapes(entity, levelBounds);
-    replayData.staticEntityShapes[entity.i] = shapes;
+  if(room){
+    for (const entity of Object.values(room.entities)) {
+      let shapes = createEntityShapes(entity, levelBounds);
+      replayData.staticEntityShapes[entity.i] = shapes;
+    }
   }
   
   //Movable Entities
@@ -1975,6 +1989,9 @@ function replayModeNextFrame(){
       replayModeUpdateEntities(frameEntities);
     }
   }
+  
+  updateRecordingInfo();
+  updateFrameButtonStates();
 }
 
 function replayModeUpdateEntities(frameEntities){
@@ -1987,14 +2004,19 @@ function replayModeUpdateEntities(frameEntities){
       konvaRoomMovableEntitiesLayer.add(...entityShapes);
     } else if(changes.r.removed === true){
       let entityShapes = replayData.movableEntityShapes[entityID];
+      if(entityShapes === undefined){
+        console.log("Entity", entityID, "was not found in the entities list. Lets hope it was removed properly :frankpraise:");
+        continue;
+      }
       entityShapes.forEach((shape) => {
         shape.destroy();
       });
       delete replayData.movableEntityShapes[entityID];
     } else {
       let entityShapes = replayData.movableEntityShapes[entityID];
-      if(replayData.movableEntityShapes[entityID] === undefined){
+      if(entityShapes === undefined){
         console.log("Entity", entityID, "was not found in the entities list. entity shapes", replayData.movableEntityShapes, ", entities", replayData.movableEntities, ", changes", changes);
+        continue;
       }
       entityShapes.forEach((shape) => {
         shape.position({
