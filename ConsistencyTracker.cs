@@ -1816,9 +1816,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Util
         public static string SanitizeSIDForDialog(string sid) {
-            string bsSuffix = "_pqeijpvqie";
-            string dialogCleaned = Dialog.Get($"{sid}{bsSuffix}");
-            return dialogCleaned.Substring(1, sid.Length);
+            return sid.DialogKeyify();
         }
 
         public void InsertCheckpointIntoPath(Checkpoint cp, string roomName) {
@@ -1833,7 +1831,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             string cpName = Dialog.Get(cpDialogName);
             Log($"Dialog.Get says: {cpName}");
 
-            //if (cpName.Length+1 >= cpDialogName.Length && cpName.Substring(1, cpDialogName.Length) == cpDialogName) cpName = null;
             if (cpName.StartsWith("[") && cpName.EndsWith("]")) cpName = null;
 
             PathRec.AddCheckpoint(pos, cpName);
