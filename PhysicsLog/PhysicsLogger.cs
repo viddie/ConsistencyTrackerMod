@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Celeste.Mod.ConsistencyTracker.EverestInterop;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 {
