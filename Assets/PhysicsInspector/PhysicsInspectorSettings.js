@@ -164,18 +164,17 @@ function loadSettings() {
 
   settingsInited = true;
 }
-function saveSettings() {
+function saveSettings(redraw = true) {
   localStorage.setItem("settings", JSON.stringify(settings));
   updateSettings();
-  redrawCanvas();
+  if(redraw) redrawCanvas();
 }
 
 function updateSettings(){
-  if (settings.menuHidden) {
-    refreshSidebarMenuVisibility();
-  }
+  refreshSidebarMenuVisibility();
   
   Elements.PointLabels.value = settings.pointLabels;
+  Elements.SelectDecimals.value = settings.decimals+"";
   Elements.FrameStepSize.value = settings.frameStepSize+"";
   Elements.ReplaySpeed.value = settings.replaySpeed+"";
   Elements.CheckReplayPlaying.checked = settings.replayPlaying;
@@ -486,6 +485,11 @@ function changedPointLabel(pointLabel) {
   settings.pointLabels = pointLabel;
   saveSettings();
 }
+function changedDecimals(decimals) {
+  if (!settingsInited) return;
+  settings.decimals = parseInt(decimals);
+  saveSettings();
+}
 function changedFrameStepSize(value){
   settings.frameStepSize = parseInt(value);
   saveSettings();
@@ -595,7 +599,7 @@ function changeRecording(selected) {
 }
 function toggleSidebarMenuSetting() {
   settings.menuHidden = !settings.menuHidden;
-  saveSettings();
+  saveSettings(false);
 }
 
 function toggleDisplayMode(){

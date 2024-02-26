@@ -1495,7 +1495,7 @@ function createTooltipGroup(posX, posY, frame, nextFrame, previousFrame){
   //Subpixel display
   let subpixelDisplayHeight = 0;
   if (settings.tooltipInfo.subpixelDisplay) {
-    let subpixelPos = getSubpixelDistances(frame.positionX, frame.positionY);
+    let subpixelPos = getSubpixelDistances(frame.positionX, frame.positionY, 10);
 
     let containerWidth = tooltipText.width();
     let subpixelOffsetY = tooltipText.height() + 1;
@@ -1877,6 +1877,8 @@ function replayModeCreateInitialState(){
       let shapes = createEntityShapes(entity, levelBounds);
       replayData.staticEntityShapes[entity.i] = shapes;
     }
+    staticEntityCounts = {};
+    countEntities(room.entities, staticEntityCounts);
   }
   
   //Movable Entities
@@ -2250,6 +2252,7 @@ function formatTooltipText(frame, previousFrame, nextFrame) {
 }
 //#endregion
 
+//#region Test Functions
 function testFunction(){
   testFunction2();
 }
@@ -2285,6 +2288,7 @@ function testFunction2(){
   
   console.log(out);
 }
+//#endregion
 
 //#region CSS Colors
 const CSS_COLOR_NAMES = {

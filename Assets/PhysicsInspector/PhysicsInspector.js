@@ -37,6 +37,7 @@ const Elements = {
   OptionsContainer: "options-container",
   FrameStepSize: "selected-frame-step-size",
   PointLabels: "point-labels",
+  SelectDecimals: "select-decimals",
   
   DisplayModeButton: "change-display-mode-button",
   CheckReplayPlaying: "check-replayPlaying",
@@ -512,64 +513,6 @@ function openEntitiesCountDialog() {
     listenEnterKey: true,
     modal: true,
     ondrag: () => false,
-  });
-}
-
-function openOtherEntitiesDialog() {
-  let tableElem = Elements.OtherEntitiesModal.querySelector("table");
-  tableElem.innerHTML = "";
-
-  //Create headers: Entity #, Entity Name, Position, Collider
-  let headerRow = document.createElement("tr");
-  let headerCell = document.createElement("th");
-  headerCell.innerText = "Entity #";
-  headerRow.appendChild(headerCell);
-  headerCell = document.createElement("th");
-  headerCell.innerText = "Entity Name";
-  headerRow.appendChild(headerCell);
-  headerCell = document.createElement("th");
-  headerCell.innerText = "Position";
-  headerRow.appendChild(headerCell);
-  headerCell = document.createElement("th");
-  headerCell.innerText = "Collider";
-  headerRow.appendChild(headerCell);
-  tableElem.appendChild(headerRow);
-
-  //Loop through all roomLayouts
-  let totalCount = 0;
-  for (let i = 0; i < roomLayouts.length; i++) {
-    let roomName = roomLayouts[i].debugRoomName;
-    let otherEntities = roomLayouts[i].otherEntities;
-    for (let j = 0; j < otherEntities.length; j++) {
-      totalCount++;
-      let entity = otherEntities[j];
-      let row = document.createElement("tr");
-      let cell = document.createElement("td");
-      cell.innerText = roomName + "-" + totalCount;
-      row.appendChild(cell);
-      cell = document.createElement("td");
-      cell.innerText = entity.t;
-      row.appendChild(cell);
-      cell = document.createElement("td");
-      cell.classList.add("centered");
-      cell.innerText = "(" + entity.p.x.toFixed(2) + "|" + entity.p.y.toFixed(2) + ")";
-      row.appendChild(cell);
-      cell = document.createElement("td");
-      cell.classList.add("centered");
-      let collider = entity.r.isSolid ? "Solid" : entity.r.entity.r.c ? "Trigger" : "None";
-      cell.innerText = collider;
-      row.appendChild(cell);
-      tableElem.appendChild(row);
-    }
-  }
-
-  xdialog.open({
-    title: "Other Entities (" + totalCount + ")",
-    body: { element: Elements.OtherEntitiesModal },
-    buttons: { ok: "Ok" },
-    style: "min-width:800px;max-width:1000px;max-height:800px;",
-    listenEnterKey: true,
-    modal: false,
   });
 }
 //#endregion

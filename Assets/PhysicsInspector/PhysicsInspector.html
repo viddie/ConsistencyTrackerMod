@@ -116,10 +116,26 @@
         <select id="point-labels" onchange="changedPointLabel(this.value)"></select>
       </div>
 
+      <div class="flex-center">
+        <label for="select-decimals">Decimals:</label>
+        <select id="select-decimals" onchange="changedDecimals(this.value)">
+          <option value="0">0 Digits</option>
+          <option value="1">1 Digit</option>
+          <option value="2">2 Digits</option>
+          <option value="3">3 Digits</option>
+          <option value="4">4 Digits</option>
+          <option value="5">5 Digits</option>
+          <option value="6">6 Digits</option>
+          <option value="7">7 Digits</option>
+          <option value="8">8 Digits</option>
+          <option value="9">9 Digits</option>
+          <option value="10">10 Digits</option>
+        </select>
+      </div>
+
       <button id="change-display-mode-button" onclick="toggleDisplayMode()" class="small">Toggle Display Mode</button>
       
       <hr>
-      <h5>Replay</h5>
       <div class="flex-center flex-start">
         <input type="checkbox" id="check-replayPlaying" onchange="changedBoolSetting('replayPlaying', this.checked)" />
         <label for="check-replayPlaying">Replay Enabled</label>
@@ -175,7 +191,6 @@
         </div>
         <div id="other-tools-modal" class="modal">
           <button onclick="openEntitiesCountDialog()">Entity Counts</button>
-          <button onclick="openOtherEntitiesDialog()">Other Entity Counts</button>
           <button onclick="testFunction()">Test Button</button>
           <button onclick="console.log('bleh')" disabled>More coming soon...</button>
           <p>Version: 1.3.0</p>
