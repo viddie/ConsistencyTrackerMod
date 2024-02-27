@@ -1482,7 +1482,7 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool LogPhysicsEnabled { get; set; } = false;
         [SettingIgnore]
-        public bool LogMovableEntities { get; set; } = true;
+        public bool LogMovableEntities { get; set; } = false;
         [SettingIgnore]
         public bool LogSegmentOnDeath { get; set; } = true;
         [SettingIgnore]
