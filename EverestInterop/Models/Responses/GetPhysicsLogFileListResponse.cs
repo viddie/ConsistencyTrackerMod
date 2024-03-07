@@ -34,6 +34,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop.Models.Responses
             [JsonProperty("name")]
             public string Name { get; set; }
 
+            [JsonProperty("SID")]
+            public string SID { get; set; }
+
             [JsonProperty("chapterName")]
             public string ChapterName { get; set; }
 

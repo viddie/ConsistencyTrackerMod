@@ -14,6 +14,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("SID")]
+        public string SID { get; set; }
+
         [JsonProperty("chapterName")]
         public string ChapterName { get; set; }
 

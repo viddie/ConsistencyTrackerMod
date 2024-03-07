@@ -304,6 +304,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
 
         private DateTime RecordingStarted;
+        private string RecordingStartedInSID;
         private string RecordingStartedInChapterName;
         private string RecordingStartedInSideName;
         private Vector2 LastExactPos = Vector2.Zero;
@@ -577,6 +578,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             LastRoomName = null;
 
             RecordingStarted = DateTime.Now;
+            RecordingStartedInSID = Mod.CurrentChapterStats.ChapterSID;
             RecordingStartedInChapterName = Mod.CurrentChapterStats.ChapterName;
             RecordingStartedInSideName = Mod.CurrentChapterStats.SideName;
         }
@@ -591,7 +593,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 TasFileContent = "";
             }
 
-            RecordingsManager.SaveRoomLayoutsToFile(VisitedRoomsLayouts, RecordingStartedInChapterName, RecordingStartedInSideName, RecordingStarted, FrameNumber);
+            RecordingsManager.SaveRoomLayoutsToFile(VisitedRoomsLayouts, RecordingStartedInSID, RecordingStartedInChapterName, RecordingStartedInSideName, RecordingStarted, FrameNumber);
 
             //Turns recording back on after storing segment
             if (doSegmentRecording) {
