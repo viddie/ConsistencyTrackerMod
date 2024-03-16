@@ -53,7 +53,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             LogWriter = null;
         }
 
-        public void SaveRoomLayoutsToFile(List<PhysicsLogRoomLayout> rooms, string SID, string chapterName, string sideName, DateTime recordingStarted, int frameCount) {
+        public void SaveRoomLayoutsToFile(List<PhysicsLogRoomLayout> rooms, string SID, string MapBin, string chapterName, string sideName, DateTime recordingStarted, int frameCount) {
             Mod.Log($"Saving room layouts (count: '{rooms.Count}') to file.");
 
             string pathJson = GetPathToFile(RecordingType.Recent, FileType.Layout, 0);
@@ -61,6 +61,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             PhysicsLogLayoutsFile file = new PhysicsLogLayoutsFile() {
                 Name = null,
                 SID = SID,
+                MapBin = MapBin,
                 ChapterName = chapterName,
                 SideName = sideName,
                 RecordingStarted = recordingStarted,
@@ -122,6 +123,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
                 ID = id,
                 Name = name,
                 SID = layoutFile.SID,
+                MapBin = layoutFile.MapBin,
                 ChapterName = layoutFile.ChapterName,
                 SideName = layoutFile.SideName,
                 RecordingStarted = layoutFile.RecordingStarted,

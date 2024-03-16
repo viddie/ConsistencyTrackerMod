@@ -12,6 +12,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string ChapterName { get; set; }
         public string ChapterSID { get; set; }
         public string ChapterSIDDialogSanitized { get; set; }
+        public string MapBin { get; set; }
         public string SideName { get; set; }
 
         public string SanitizeRoomName(string name) {
@@ -42,6 +43,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             ChapterName = chapNameClean;
             ChapterSID = session.MapData.Data.SID;
             ChapterSIDDialogSanitized = ConsistencyTrackerModule.SanitizeSIDForDialog(session.MapData.Data.SID);
+            MapBin = session.MapData.Filename;
             SideName = session.Area.Mode.ToReadableString();
         }
 
