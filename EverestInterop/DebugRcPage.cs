@@ -1049,6 +1049,21 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
             }
         };
 
+        // +------------------------------------------+
+        // |            /cct/segmentRecording         |
+        // +------------------------------------------+
+        private static readonly RCEndPoint SegmentPhysicsLogEndpoint = new RCEndPoint() {
+            Path = "/cct/segmentRecording",
+            PathHelp = "/cct/segmentRecording",
+            Name = "Consistency Tracker Segment Physics Log [GET]",
+            InfoHTML = "Manually segment the physics recording",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                Mod.PhysicsLog.SegmentLog(false);
+                WriteResponse(c, RCErrorCode.OK, requestedJson);
+            }
+        };
 
         #endregion
 
@@ -1369,6 +1384,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
             SaveRecordingEndpoint,
             RenameRecordingEndpoint,
             DeleteRecordingEndpoint,
+            SegmentPhysicsLogEndpoint,
 
             //Other
             SetRootFolderEndPoint,
