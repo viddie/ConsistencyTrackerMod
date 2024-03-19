@@ -26,6 +26,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("chapterSIDDialogSanitized")]
         public string ChapterSIDDialogSanitized { get; set; }
 
+        [JsonProperty("mapBin")]
+        public string MapBin { get; set; }
+
         [JsonProperty("chapterDebugName")]
         public string ChapterDebugName { get; set; }
 

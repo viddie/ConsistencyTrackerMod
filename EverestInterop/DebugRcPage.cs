@@ -875,6 +875,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     response.RecentPhysicsLogFiles.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
                         ID = i + recordingOffset,
                         Name = null,
+                        SID = file.SID,
+                        MapBin = file.MapBin,
                         ChapterName = file.ChapterName,
                         SideName = file.SideName,
                         FrameCount = file.FrameCount,
@@ -888,6 +890,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     response.SavedPhysicsRecordings.Add(new GetPhysicsLogFileListResponse.PhysicsLogFile() {
                         ID = recording.ID,
                         Name = recording.Name,
+                        SID = recording.SID,
+                        MapBin = recording.MapBin,
                         ChapterName = recording.ChapterName,
                         SideName = recording.SideName,
                         FrameCount = recording.FrameCount,
