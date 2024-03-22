@@ -710,6 +710,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.ChapterDebugName = CurrentChapterDebugName;
             CurrentChapterStats.CampaignName = chapterInfo.CampaignName;
             CurrentChapterStats.ChapterName = chapterInfo.ChapterName;
+            CurrentChapterStats.MapBin = chapterInfo.MapBin;
             CurrentChapterStats.ChapterSID = chapterInfo.ChapterSID;
             CurrentChapterStats.ChapterSIDDialogSanitized = chapterInfo.ChapterSIDDialogSanitized;
             CurrentChapterStats.SideName = chapterInfo.SideName;
