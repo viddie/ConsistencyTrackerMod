@@ -48,9 +48,11 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
 
         public void StopRecording() {
             Mod.Log("Stopping recording.");
-            LogWriter.Close();
-            LogWriter.Dispose();
-            LogWriter = null;
+            if (LogWriter != null) {
+                LogWriter.Close();
+                LogWriter.Dispose();
+                LogWriter = null;
+            }
         }
 
         public void SaveRoomLayoutsToFile(List<PhysicsLogRoomLayout> rooms, string SID, string MapBin, string chapterName, string sideName, DateTime recordingStarted, int frameCount) {
