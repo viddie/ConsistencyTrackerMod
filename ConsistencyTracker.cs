@@ -31,10 +31,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.7.3";
+            public static string Mod => "2.7.4";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
-            public static string PhysicsInspector => "1.4.0";
+            public static string PhysicsInspector => "1.4.1";
         }
         public class VersionsCurrent {
             public static string Overlay {
