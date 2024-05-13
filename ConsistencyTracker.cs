@@ -1220,7 +1220,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 File.Delete(path);
             }
             //Move backup to actual file
-            File.Move(backupPath, path);
+            File.Copy(backupPath, path);
 
             string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
 
