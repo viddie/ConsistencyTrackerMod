@@ -31,7 +31,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.7.4";
+            public static string Mod => "2.7.5";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.4.1";
@@ -1099,15 +1099,34 @@ namespace Celeste.Mod.ConsistencyTracker {
             return pathList;
         }
 
+        public void MoveFileToSaveLocation(string path) {
+            string destPath = null;
+            int backupNum = 1;
+            
+            while (true) {
+                destPath = path + ".bak."+backupNum;
+                if (!File.Exists(destPath)) {
+                    break;
+                }
+                backupNum++;
+            }
+            
+            Log($"\tMoving backup stats file to safe location: "+destPath, true);
+            File.Move(path, destPath);
+        }
         public ChapterStatsList GetCurrentChapterStats() {
             string pathTXT = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
             string pathJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
+            string backupJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
 
             Log($"CurrentChapterName: '{CurrentChapterDebugName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
 
             ChapterStatsList toRet = null;
             if (!File.Exists(pathTXT) && !File.Exists(pathJSON)) { //Create new
+                if (File.Exists(backupJSON)) {
+                    MoveFileToSaveLocation(backupJSON);
+                }
                 toRet = new ChapterStatsList();
                 toRet.GetStats(0).SetCurrentRoom(CurrentRoomName);
                 return toRet;
@@ -1130,6 +1149,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return toRet;
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats list, trying older stats formats...", true);
+                if (File.Exists(backupJSON)) {
+                    MoveFileToSaveLocation(backupJSON);
+                }
             }
 
             ChapterStats chapterStats = null;
@@ -1141,6 +1163,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
+                if (File.Exists(backupJSON)) {
+                    MoveFileToSaveLocation(backupJSON);
+                }
             }
 
             if (chapterStats == null) {
