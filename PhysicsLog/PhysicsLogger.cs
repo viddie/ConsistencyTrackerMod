@@ -494,7 +494,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             if (Mod.ModSettings.LogMovableEntities) {
                 if (!IsFirstFrameInRoom) {
-                    HashSet<Entity> entities = new HashSet<Entity>(); //Have this be empty, as we dont mind duplicates here
+                    HashSet<int> entities = new HashSet<int>(); //Have this be empty, as we dont mind duplicates here
                     Dictionary<int, LoggedEntity> newRoomEntities  = GetEntitiesFromLevel(level, EntityList.Movable, ref entities);
                     
                     Dictionary<int, LoggedEntity> changes = new Dictionary<int, LoggedEntity>();
@@ -574,7 +574,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             VisitedRooms = new HashSet<string>();
             VisitedRoomsLayouts = new List<PhysicsLogRoomLayout>();
-            LoggedEntitiesRaw = new HashSet<Entity>();
+            LoggedEntitiesRaw = new HashSet<int>();
             IsFirstFrameInRoom = false;
             LastRoomName = null;
 
@@ -824,7 +824,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         #region Room Layout
         private HashSet<string> VisitedRooms;
         private List<PhysicsLogRoomLayout> VisitedRoomsLayouts;
-        private HashSet<Entity> LoggedEntitiesRaw;
+        private HashSet<int> LoggedEntitiesRaw;
 
         private string LastRoomName = null;
         private bool IsFirstFrameInRoom = false;
@@ -880,7 +880,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
         #endregion
 
-        public static Dictionary<int, LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<Entity> loggedEntitiesRaw) {
+        public static Dictionary<int, LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<int> loggedEntitiesRaw) {
             Dictionary<int, LoggedEntity> entities = new Dictionary<int, LoggedEntity>();
             foreach (Entity outerEntity in level.Entities) {
                 List<Entity> subEntities = new List<Entity>() {
@@ -925,9 +925,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         //     }
                         // }
                     }
-                    
-                    if (loggedEntitiesRaw.Contains(entity)) continue;
-                    loggedEntitiesRaw.Add(entity);
+
+                    int entityHash = entity.GetHashCode();
+                    if (loggedEntitiesRaw.Contains(entityHash)) continue;
+                    loggedEntitiesRaw.Add(entityHash);
 
                     LoggedEntity loggedEntity = new LoggedEntity() {
                         Type = entityName,
@@ -1095,7 +1096,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                             loggedEntity.Properties.Add("notCoreMode", notCoreMode);
                         }
 
-                        entities.Add(entity.GetHashCode(), loggedEntity);
+                        entities.Add(entityHash, loggedEntity);
                         logged = true;
                     }
 
@@ -1201,13 +1202,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         AddColliderInfoToLoggedEntity(loggedEntity, collider);
                     }
 
-                    loggedEntity.ID = entity.GetHashCode();
+                    loggedEntity.ID = entityHash;
                     if (subIndex > 0) {
                         loggedEntity.AttachedTo = loggedOuterEntity.ID;
                     }
 
-                    if (!entities.ContainsKey(entity.GetHashCode())) {
-                        entities.Add(entity.GetHashCode(), loggedEntity);
+                    if (!entities.ContainsKey(entityHash)) {
+                        entities.Add(entityHash, loggedEntity);
                     }
                 }
             }
