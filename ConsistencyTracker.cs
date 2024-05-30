@@ -1760,6 +1760,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             int count = 0;
             if (ModSettings.CustomRoomNameAllSegments) { //Find all other rooms with same name in other segments 
                 foreach (PathSegment segment in CurrentChapterPathSegmentList.Segments) {
+                    if (segment.Path == null) continue;
                     foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
                         foreach (RoomInfo rInfo in cpInfo.Rooms) {
                             if (rInfo.DebugRoomName == currentRoomName) {
