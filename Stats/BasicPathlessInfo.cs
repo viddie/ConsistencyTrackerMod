@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
+using GameData = Celeste.Mod.ConsistencyTracker.Utility.GameData;
 
 namespace Celeste.Mod.ConsistencyTracker.Stats {
 
@@ -37,6 +38,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
      {chapter:goldenChance} path
      
      {campaign:name}
+     {campaign:gamebananaId}
 
      "path" note means a recorded path is required for this stat
      "path+" note additionally means that the player needs to be ON the path for this stat
@@ -76,13 +78,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         //public static string ChapterGoldenChance = "{chapter:goldenChance}";
 
         public static string CampaignName = "{campaign:name}";
+        public static string CampaignGamebananaId = "{campaign:gamebananaId}";
 
         public static List<string> IDs = new List<string>() {
             PlayerHoldingGolden, PlayerGoldenDone, PlayerChapterCompleted,
-            ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
+            ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion, 
             RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
             ChapterName, ChapterSideName, ChapterDebugName, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
-            CampaignName
+            CampaignName, CampaignGamebananaId
         };
 
         public BasicPathlessInfo() : base(IDs) { }
@@ -105,11 +108,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterDebugName}");
             format = format.Replace(ChapterName, $"{chapterStats.ChapterName}");
             format = format.Replace(ChapterSideName, $"{chapterStats.SideName}");
-            format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
             format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");
             format = format.Replace(ChapterSanitizedSID, $"{chapterStats.ChapterSIDDialogSanitized}");
             format = format.Replace(ChapterHasPath, $"{StatManager.FormatBool(chapterPath != null)}");
 
+            format = format.Replace(CampaignName, $"{chapterStats.CampaignName}");
+            format = format.Replace(CampaignGamebananaId, $"{GameData.GetModGamebananaId()}");
             
 
             return format;

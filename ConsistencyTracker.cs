@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using GameData = Celeste.Mod.ConsistencyTracker.Utility.GameData;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
@@ -172,6 +173,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             Log($"~~~==== CCT STARTED ({time}) ====~~~");
             
+            GameData.Load();
+            
             CheckFolderExists(GetPathToFile(PathsFolder));
             CheckPrepackagedPaths(reset:false);
             
@@ -205,6 +208,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 PhysicsLog.StopRecording();
             }
 
+            GameData.Unload();
             DebugRcPage.Unload();
             LogCleanup();
         }

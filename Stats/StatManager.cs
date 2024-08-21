@@ -159,7 +159,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             Mod.Log($"Outputting formats done! (Time taken: {(endTime - startTime).TotalMilliseconds}ms)");
         }
         public string FormatVariableFormat(string format) {
-            if (LastPassChapterStats == null || LastPassPathInfo == null) throw new NoStatPassException();
+            if (!HadPass) throw new NoStatPassException();
 
             foreach (Stat stat in AllStats) {
                 if (stat.ContainsIdentificator(format)) {

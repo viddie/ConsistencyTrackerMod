@@ -148,11 +148,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return false;
         }
 
-        public static string DictionaryToString<K, V>(Dictionary<K, V> dict) {
+        public static string DictionaryToString<K, V>(Dictionary<K, V> dict, Func<V, string> valueFormatter = null) {
             if (dict == null) return "null";
             StringBuilder sb = new StringBuilder();
             foreach (KeyValuePair<K, V> kvp in dict) {
-                sb.Append($"[{kvp.Key}] -> '{kvp.Value}'");
+                string valueString = valueFormatter?.Invoke(kvp.Value) ?? kvp.Value?.ToString() ?? "null";
+                sb.Append($"[{kvp.Key}] -> '{valueString}'");
             }
             return sb.ToString();
         }

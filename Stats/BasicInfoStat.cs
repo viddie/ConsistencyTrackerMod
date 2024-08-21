@@ -142,6 +142,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {
             return new List<KeyValuePair<string, string>>() {
                 new KeyValuePair<string, string>(BasicPathlessInfo.CampaignName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CAMPAIGN_NAME")),
+                new KeyValuePair<string, string>(BasicPathlessInfo.CampaignGamebananaId, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CAMPAIGN_GAMEBANANA_ID")),
 
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_NAME")),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SIDE_NAME")),

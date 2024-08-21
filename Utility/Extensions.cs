@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class Extensions {
@@ -68,6 +70,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public static string ToHex(this Color color) {
             return "#" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
+        }
+    }
+    
+    internal static class DynamicDataExtensions {
+        private static readonly ConditionalWeakTable<object, DynamicData> cached = new ConditionalWeakTable<object, DynamicData>();
+
+        public static DynamicData GetDynamicDataInstance(this object obj) {
+            return cached.GetValue(obj, key => new DynamicData(key));
         }
     }
 }
