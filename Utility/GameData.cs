@@ -66,10 +66,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             if (modUpdateInfos?.TryGetValue(moduleName, out var modUpdateInfo) == true) {
                 //In case that the player is using a particular version of Everest, which temporarily removed this field.
-                try {
+                if (typeof(ModUpdateInfo).GetProperty("GameBananaId") != null) {
                     return modUpdateInfo.GameBananaId;
-                } catch (MissingMethodException) {
-                    return 0;
                 }
             }
             return 0;
