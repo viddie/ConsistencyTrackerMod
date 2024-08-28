@@ -156,7 +156,9 @@ namespace Celeste.Mod.ConsistencyTracker {
         public TextOverlay IngameOverlay;
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
-        public PacePingManager PacePingManager;
+        // public PacePingManager PacePingManager;
+        public MultiPacePingManager MultiPacePingManager;
+
         public DebugMapUtil DebugMapUtil;
 
 
@@ -191,7 +193,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             DebugMapUtil = new DebugMapUtil();
             PhysicsLog = new PhysicsLogger();
-            PacePingManager = new PacePingManager();
+            // PacePingManager = new PacePingManager();
+            MultiPacePingManager = new MultiPacePingManager();
             HookStuff();
 
             
@@ -258,7 +261,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Other objects
             PhysicsLog.Hook();
             DebugMapUtil.Hook();
-            PacePingManager.Hook();
+            // PacePingManager.Hook();
+            MultiPacePingManager.Hook();
         }
 
         private void UnHookStuff() {
@@ -303,7 +307,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Other objects
             PhysicsLog.UnHook();
             DebugMapUtil.UnHook();
-            PacePingManager.UnHook();
+            // PacePingManager.UnHook();
+            MultiPacePingManager.UnHook();
         }
 
         public override void Initialize()

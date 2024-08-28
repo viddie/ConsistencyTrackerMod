@@ -806,10 +806,10 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 fileName = SanitizeFolderFileName(fileName);
                 extension = SanitizeFolderFileName(extension);
 
-                if ($"{fileName}.{extension}" == PacePingManager.SaveStateSecretFileName) {
-                    WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"This file is protected from being read via this API");
-                    return;
-                }
+                // if ($"{fileName}.{extension}" == PacePingManager.SaveStateSecretFileName) {
+                //     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"This file is protected from being read via this API");
+                //     return;
+                // }
 
                 string combinedPath;
                 if (subFolderName == null) {

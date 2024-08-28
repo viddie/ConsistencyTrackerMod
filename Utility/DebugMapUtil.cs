@@ -137,7 +137,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     }
 
 
-                    PacePingManager.PaceTiming paceTiming = Mod.PacePingManager.GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
+                    // PacePingManager.PaceTiming paceTiming = Mod.PacePingManager.GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
+                    PacePingManager.PaceTiming paceTiming = Mod.MultiPacePingManager.Get(0).GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
+
                     if (paceTiming != null) {
                         formattedName = $"{formattedName}\n>Ping<";
                         scaleDivider += 2;

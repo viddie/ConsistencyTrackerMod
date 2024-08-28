@@ -18,8 +18,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         private const string FolderName = "pace-ping";
-        private const string SavedStateFileName = "state.json";
-        public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM.json";
+        private const string SavedStateFileNameBase = "state";
+        public const string SaveStateSecretFileNameBase = "state-secret_DONT_SHOW_ON_STREAM";
+
+        private string SavedStateFileName;
+        public string SaveStateSecretFileName;
 
         private const int PROGRESS_LENGTH = 20;
         private const string CHAR_NO_PROGRESS = ":black_large_square:"; //□,-
@@ -79,6 +82,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public class PaceState {
             //Defaults
+            [JsonProperty("pingName")]
+            public string PingName {get; set;} = "Default";
+            
             [JsonProperty("webhookUsername")]
             public string WebhookUsername { get; set; } = $"Pace-Bot";
 
@@ -182,6 +188,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public PacePingManager() {
+            LoadState();
+        }
+
+        public PacePingManager(int iteration) {
+            SavedStateFileName = SavedStateFileNameBase + "_" + iteration + ".json";
+            SaveStateSecretFileName = SaveStateSecretFileNameBase + "_" + iteration + ".json";
             LoadState();
         }
 
@@ -680,6 +692,84 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             return timings.FirstOrDefault(timing => timing.DebugRoomName == debugRoomName);
         }
+
+
+        public void SetPingName(string name) {
+            State.PingName = name;
+            SaveState();
+        }
         #endregion
+    }
+
+    public class MultiPacePingManager {
+        private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+
+        private const string FolderName = "pace-ping";
+        private const string SavedStateFileName = "state";
+        public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM";
+
+        public List<PacePingManager> pacePingManagers { get; set; }
+        public int currSelected;
+
+        public MultiPacePingManager() {
+            pacePingManagers = new List<PacePingManager>();
+            LoadState();
+            currSelected = 0;
+        }
+
+
+        private void LoadState() {
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FolderName));
+
+            int currIteration = 0;
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + "_" + currIteration + ".json");
+
+            do {
+                PacePingManager manager = new PacePingManager(currIteration);
+                pacePingManagers.Add(manager);
+                currIteration++;
+                stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + "_" + currIteration + ".json");
+            } while (File.Exists(stateFilePath));
+        }
+
+        public void Hook() {
+            foreach (var manager in pacePingManagers) {
+                manager.Hook();
+            }
+        }
+
+        public void UnHook() {
+            foreach (PacePingManager manager in pacePingManagers) {
+                manager.UnHook();
+            }
+        }
+
+        public PacePingManager Get(int idx) {
+            return pacePingManagers[idx];
+        }
+
+        
+
+        public IEnumerable<PacePingManager> GetManagers() {
+            foreach (var manager in pacePingManagers) {
+                yield return manager;
+            }
+        }
+
+        public void SetSelectedPing(int idx) {
+            currSelected = idx;
+        }
+
+        public PacePingManager GetSelectedPing() {
+            return pacePingManagers[currSelected];
+        }
+
+        public PacePingManager AddNewPing() {
+            PacePingManager newManager = new PacePingManager(pacePingManagers.Count);
+            pacePingManagers.Add(newManager);
+            return newManager;
+        }
+
+
     }
 }
