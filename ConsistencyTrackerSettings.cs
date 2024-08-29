@@ -1829,6 +1829,8 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_4"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_5"));
 
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
                 OnPressed = () => {
