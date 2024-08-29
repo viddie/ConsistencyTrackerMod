@@ -805,11 +805,14 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 subFolderName = SanitizeFolderFileName(subFolderName);
                 fileName = SanitizeFolderFileName(fileName);
                 extension = SanitizeFolderFileName(extension);
+                foreach (var manager in Mod.MultiPacePingManager.GetManagers()) {
+                    if ($"{fileName}.{extension}" == manager.SaveStateSecretFileName)
+                    {
+                        WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"This file is protected from being read via this API");
+                        return;
+                    }
 
-                // if ($"{fileName}.{extension}" == PacePingManager.SaveStateSecretFileName) {
-                //     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"This file is protected from being read via this API");
-                //     return;
-                // }
+                }
 
                 string combinedPath;
                 if (subFolderName == null) {
