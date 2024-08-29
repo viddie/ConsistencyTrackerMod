@@ -342,6 +342,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             LoadState();
         }
 
+        public void SavePingName(string name) {
+            State.PingName = name;
+            SaveState();
+        }
+
+
         public void SaveDiscordWebhook(string webhook) {
             StateSecret.WebhookUrl = webhook;
             SaveState();
@@ -694,10 +700,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
 
-        public void SetPingName(string name) {
-            State.PingName = name;
-            SaveState();
-        }
         #endregion
     }
 
@@ -742,13 +744,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             foreach (PacePingManager manager in pacePingManagers) {
                 manager.UnHook();
             }
-        }
-
-        public PacePingManager Get(int idx) {
-            return pacePingManagers[idx];
-        }
-
-        
+        }        
 
         public IEnumerable<PacePingManager> GetManagers() {
             foreach (var manager in pacePingManagers) {
