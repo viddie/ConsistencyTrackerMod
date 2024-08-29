@@ -300,6 +300,21 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         #endregion
 
+        private bool DeleteState() {
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
+            if (File.Exists(stateFilePath) && File.Exists(stateSecretFilePath)) {
+                try {
+                    File.Delete(stateFilePath);
+                    File.Delete(stateSecretFilePath);
+                } catch (Exception) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
         #region Mod Options Actions
         public bool SetCurrentRoomPacePingEnabled(bool isEnabled) {
             bool isNowEnabled = false;
@@ -381,6 +396,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             paceTiming.CustomPingMessage = message;
             SaveState();
+        }
+
+        public bool DeletePing() {
+            return DeleteState();
         }
         #endregion
 
@@ -725,6 +744,16 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             int currIteration = 0;
             string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + "_" + currIteration + ".json");
+            string oldStateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + ".json");
+
+            // Migration logic
+            if (!File.Exists(stateFilePath) && File.Exists(oldStateFilePath)) {
+                string secretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName + "_" + currIteration + ".json");
+                string oldSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName + ".json");
+
+                File.Copy(oldStateFilePath, stateFilePath);
+                File.Copy(oldSecretFilePath, secretFilePath);
+            }
 
             do {
                 PacePingManager manager = new PacePingManager(currIteration);
@@ -764,6 +793,23 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             PacePingManager newManager = new PacePingManager(pacePingManagers.Count);
             pacePingManagers.Add(newManager);
             return newManager;
+        }
+
+        public bool DeleteCurrentPing() {
+            if (pacePingManagers.Count <= 1) {
+                return false;
+            }
+            bool deleted = GetSelectedPing().DeletePing();
+
+            if(deleted) {
+                pacePingManagers.RemoveAt(currSelected);
+                if (currSelected >= pacePingManagers.Count) {
+                    currSelected = pacePingManagers.Count - 1;
+                }
+                return true;
+            }
+            return false;
+
         }
 
 

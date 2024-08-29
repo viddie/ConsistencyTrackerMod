@@ -1933,6 +1933,36 @@ namespace Celeste.Mod.ConsistencyTracker
             }));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2"));
+          
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_TITLE")} ==="));
+            DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE"))
+            {
+                Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1,
+                HighlightColor = Color.Red,
+            };
+            deleteButton.OnDoubleConfirmation = () =>
+            {
+                int index = Mod.MultiPacePingManager.currSelected;
+                bool didDelete = Mod.DeleteCurrentChapterPathSegment();
+
+                if (didDelete)
+                {
+                    sliderCurrentPing.Values.RemoveAt(index);
+                    PacePingLiveUpdate(sliderCurrentPing,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector);
+
+                }
+
+                deleteButton.Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1;
+            };
+            subMenu.Add(deleteButton);
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE_HINT_1"));
+
+            menu.Add(subMenu);
 
             menu.Add(subMenu);
         }
