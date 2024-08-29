@@ -1629,12 +1629,54 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
+        private void PacePingLiveUpdate(TextMenuExt.EnumerableSlider<int> sliderCurrentPing = null,
+                                        TextMenu.OnOff togglePacePingButton = null,
+                                        TextMenu.Button testButton = null,
+                                        TextMenu.Button importMessageButton = null,
+                                        TextMenu.OnOff mapSpecificPing = null,
+                                        TextMenuExt.EnumerableSlider<PbPingType> pbPingSelector = null) {
+            bool hasPath = Mod.CurrentChapterPath != null;
+            bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
+            PacePingManager manager = Mod.MultiPacePingManager.GetSelectedPing();
+            if (sliderCurrentPing != null) {
+                sliderCurrentPing.Values[Mod.MultiPacePingManager.currSelected] = Tuple.Create(manager.State.PingName, Mod.MultiPacePingManager.currSelected);
+            }
+
+            PaceTiming timing = null;
+            if (hasCurrentRoom)
+            {
+                timing = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
+            }
+            
+            if (togglePacePingButton != null) {
+                togglePacePingButton.Index = (timing != null) ? 1 : 0;
+                togglePacePingButton.SelectWiggler.Start();
+            }
+
+            if (testButton != null) {
+                testButton.Disabled = timing == null;
+            }
+            if (importMessageButton != null) {
+                importMessageButton.Disabled = timing == null;
+            }
+
+            MapSettings mapSpecificSettings = manager.CurrentMapSettings;
+
+            if (mapSpecificPing != null) {
+                mapSpecificPing.Index = mapSpecificSettings.PingsEnabled ? 1 : 0;
+                mapSpecificPing.SelectWiggler.Start();
+            }
+
+            if (pbPingSelector != null) {
+                pbPingSelector.Index = (int)mapSpecificSettings.PbPingType;
+            }
+        }
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
-            
-            
-            
+
+
+
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
@@ -1650,6 +1692,35 @@ namespace Celeste.Mod.ConsistencyTracker
             if (hasCurrentRoom) { 
                 paceTiming = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
+
+
+            TextMenu.OnOff mapSpecificPing;
+            MapSettings mapSpecificSettings = Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings;
+            mapSpecificPing = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PING_ENABLED"), mapSpecificSettings.PingsEnabled)
+            {
+                OnValueChange = v =>
+                {
+                    mapSpecificSettings.PingsEnabled = v;
+                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
+                },
+                Disabled = !hasPath
+            };
+
+            TextMenuExt.EnumerableSlider<PbPingType> pbPingSelector;
+            List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
+                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
+            };
+            pbPingSelector = new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PB_PING"), pbPingTypes, mapSpecificSettings.PbPingType)
+            {
+                OnValueChange = (newValue) =>
+                {
+                    mapSpecificSettings.PbPingType = newValue;
+                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
+                },
+                Disabled = !hasPath
+            };
 
 
             int segmentCount = Mod.MultiPacePingManager.pacePingManagers.Count;
@@ -1687,13 +1758,14 @@ namespace Celeste.Mod.ConsistencyTracker
                                     }},
                 Disabled = paceTiming == null
             };
-           
 
             TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
                 OnValueChange = (isEnabled) => {
                     bool isNowEnabled = Mod.MultiPacePingManager.GetSelectedPing().SetCurrentRoomPacePingEnabled(isEnabled);
                     importMessageButton.Disabled = !isNowEnabled;
                     testButton.Disabled = !isNowEnabled;
+                    PacePingLiveUpdate(importMessageButton: importMessageButton,
+                                        testButton: testButton);
                 },
                 Disabled = !hasCurrentRoom
             };
@@ -1701,19 +1773,19 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), PingList, Mod.MultiPacePingManager.currSelected) {
                 OnValueChange = (newValue) => {
                     Mod.MultiPacePingManager.SetSelectedPing(newValue);
-                    PaceTiming timing = null;
-                    if (hasCurrentRoom) { 
-                        timing = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
-                    }
-                    togglePacePingButton.Index = (timing != null) ? 1 : 0;
-                    togglePacePingButton.SelectWiggler.Start();
-                    importMessageButton.Disabled = timing == null;
-                    testButton.Disabled = timing == null;
+                    PacePingLiveUpdate(null,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector
+                                        );
                 },
                 Disabled = !hasPathList
             };
             subMenu.Add(sliderCurrentPing);
             subMenu.AddDescription(menu, sliderCurrentPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_PING_HINT"));
+
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_ADD_PING")) {
                 OnPressed = () => {
                     PacePingManager newPing = Mod.MultiPacePingManager.AddNewPing();
@@ -1721,14 +1793,14 @@ namespace Celeste.Mod.ConsistencyTracker
                         sliderCurrentPing.Values.Add(Tuple.Create(newPing.State.PingName, Mod.MultiPacePingManager.pacePingManagers.Count - 1));
                         sliderCurrentPing.SelectWiggler.Start();
                     }
-                    PaceTiming timing = null;
-                    if (hasCurrentRoom) { 
-                        timing = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
-                    }
-                    togglePacePingButton.Index = (timing != null) ? 1 : 0;
-                    togglePacePingButton.SelectWiggler.Start();
-                },
-                Disabled = !hasPathList
+                    PacePingLiveUpdate(sliderCurrentPing,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector
+                                        );
+                }
             });
 
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_IMPORT_NAME")) { 
@@ -1736,15 +1808,12 @@ namespace Celeste.Mod.ConsistencyTracker
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing ping name from clipboard...");
                     try {
-                        Mod.MultiPacePingManager.GetSelectedPing().SetPingName(text);
-                        bool renamed = true;
-                        //TODO Check why this is gated
-                        if (renamed) {
-                            sliderCurrentPing.Values[Mod.MultiPacePingManager.currSelected] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
-                            sliderCurrentPing.SelectWiggler.Start();
+                        Mod.MultiPacePingManager.GetSelectedPing().SavePingName(text);
+                        PacePingLiveUpdate( sliderCurrentPing: sliderCurrentPing);
+                                            
                         }
-                    } catch (Exception ex) {
-                        Mod.Log($"Couldn't import segment name from clipboard: {ex}");
+                    catch (Exception ex) {
+                        Mod.Log($"Couldn't import ping name from clipboard: {ex}");
                     }
                 },
             });
@@ -1795,35 +1864,31 @@ namespace Celeste.Mod.ConsistencyTracker
                     }
                 },
             });
-
+            
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE")) {
-                OnPressed = Mod.MultiPacePingManager.GetSelectedPing().ReloadStateFile,
+                OnPressed = () => {
+                        Mod.MultiPacePingManager.GetSelectedPing().ReloadStateFile();
+                        // Live-update ping settings
+                        string pingName = Mod.MultiPacePingManager.GetSelectedPing().State.PingName;
+                        PacePingLiveUpdate(sliderCurrentPing,
+                                           togglePacePingButton,
+                                           testButton,
+                                           importMessageButton,
+                                           mapSpecificPing,
+                                           pbPingSelector);
+
+                },
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE_HINT"));
 
             //Map Specific Settings
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_HEADER")} ==="));
-            MapSettings mapSpecificSettings = Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings;
-            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PING_ENABLED"), mapSpecificSettings.PingsEnabled) {
-                OnValueChange = v => {
-                    mapSpecificSettings.PingsEnabled = v;
-                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
-                },
-                Disabled = !hasPath
-            });
-            
-            List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
-                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
-            };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PB_PING"), pbPingTypes, mapSpecificSettings.PbPingType) {
-                OnValueChange = (newValue) => {
-                    mapSpecificSettings.PbPingType = newValue;
-                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
-                },
-                Disabled = !hasPath
-            });
+
+            subMenu.Add(menuItem = mapSpecificPing);
+
+
+
+            subMenu.Add(pbPingSelector);
 
             
             string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
