@@ -147,7 +147,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
                     }
 
-
                     DrawTextOnRoom(template, camera, formattedName, scaleDivider);
                 }
 

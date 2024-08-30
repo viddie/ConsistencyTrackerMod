@@ -19,8 +19,6 @@ using System.Text;
 using System.Threading.Tasks;
 using static Celeste.Mod.ConsistencyTracker.Entities.WidgetLayout;
 using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
-using static Celeste.Mod.ConsistencyTracker.Utility.MultiPacePingManager;
-
 
 namespace Celeste.Mod.ConsistencyTracker
 {
@@ -1677,16 +1675,12 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
 
-
-
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
 
-            //TODO: What is the cancel case?
-            bool hasPathList = true;
             
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
@@ -1725,11 +1719,13 @@ namespace Celeste.Mod.ConsistencyTracker
             };
 
 
-            int segmentCount = Mod.MultiPacePingManager.pacePingManagers.Count;
+            int pingCount = Mod.MultiPacePingManager.pacePingManagers.Count;
             List<KeyValuePair<int, string>> PingList = new List<KeyValuePair<int, string>>() { 
                 new KeyValuePair<int, string>(0, "Default"),
             };
-            if (hasPathList) {
+            
+            // Probably unnecessary, but including in case I missed an edge case 
+            if (pingCount > 0) {
                 PingList.Clear();
                 for (int i = 0; i < Mod.MultiPacePingManager.pacePingManagers.Count; i++) {
                     PacePingManager manager = Mod.MultiPacePingManager.pacePingManagers[i];
@@ -1778,7 +1774,7 @@ namespace Celeste.Mod.ConsistencyTracker
                                         pbPingSelector
                                         );
                 },
-                Disabled = !hasPathList
+                Disabled = pingCount == 0
             };
             subMenu.Add(sliderCurrentPing);
             subMenu.AddDescription(menu, sliderCurrentPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_PING_HINT"));
@@ -1884,15 +1880,11 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_HEADER")} ==="));
 
             subMenu.Add(menuItem = mapSpecificPing);
-
-
-
             subMenu.Add(pbPingSelector);
 
             
             string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TITLE")}{roomAddition} ==="));
-            
 
             subMenu.Add(togglePacePingButton);
             subMenu.AddDescription(menu, togglePacePingButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT"));
