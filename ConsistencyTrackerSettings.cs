@@ -1640,6 +1640,7 @@ namespace Celeste.Mod.ConsistencyTracker
             PacePingManager manager = Mod.MultiPacePingManager.GetSelectedPing();
             if (sliderCurrentPing != null) {
                 sliderCurrentPing.Values[Mod.MultiPacePingManager.currSelected] = Tuple.Create(manager.State.PingName, Mod.MultiPacePingManager.currSelected);
+                sliderCurrentPing.Index = Mod.MultiPacePingManager.currSelected;
             }
 
             PaceTiming timing = null;
@@ -1671,6 +1672,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 pbPingSelector.Index = (int)mapSpecificSettings.PbPingType;
             }
         }
+
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
@@ -1749,13 +1751,8 @@ namespace Celeste.Mod.ConsistencyTracker
             };
             TextMenu.Button testButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING")) {
                 OnPressed = () => {
-                                    foreach (var manager in Mod.MultiPacePingManager.GetManagers()) 
-                                    {
-                                        PaceTiming timing = manager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
-                                        if (timing != null) {
-                                            manager.TestPingForCurrentRoom();
-                                        }
-                                    }},
+                    Mod.MultiPacePingManager.GetSelectedPing().TestPingForCurrentRoom();
+                },
                 Disabled = paceTiming == null
             };
 
@@ -1945,7 +1942,7 @@ namespace Celeste.Mod.ConsistencyTracker
             deleteButton.OnDoubleConfirmation = () =>
             {
                 int index = Mod.MultiPacePingManager.currSelected;
-                bool didDelete = Mod.DeleteCurrentChapterPathSegment();
+                bool didDelete = Mod.MultiPacePingManager.DeleteCurrentPing();
 
                 if (didDelete)
                 {
@@ -1963,8 +1960,6 @@ namespace Celeste.Mod.ConsistencyTracker
             };
             subMenu.Add(deleteButton);
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE_HINT_1"));
-
-            menu.Add(subMenu);
 
             menu.Add(subMenu);
         }

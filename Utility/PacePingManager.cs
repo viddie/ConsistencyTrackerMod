@@ -315,6 +315,25 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return false;
         }
 
+        public bool RenameState(int iteration) {
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
+            SavedStateFileName = SavedStateFileNameBase + "_" + iteration + ".json";
+            SaveStateSecretFileName = SaveStateSecretFileNameBase + "_" + iteration + ".json";
+            SaveState();
+            if (File.Exists(stateFilePath) && File.Exists(stateSecretFilePath)) {
+                try {
+                    File.Delete(stateFilePath);
+                    File.Delete(stateSecretFilePath);
+                    return true;
+                } catch (Exception) {
+                    return false;
+                }
+            }
+            return false;
+
+        }
+
         #region Mod Options Actions
         public bool SetCurrentRoomPacePingEnabled(bool isEnabled) {
             bool isNowEnabled = false;
@@ -805,6 +824,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 pacePingManagers.RemoveAt(currSelected);
                 if (currSelected >= pacePingManagers.Count) {
                     currSelected = pacePingManagers.Count - 1;
+                } else {
+                    for (int i = currSelected; i < pacePingManagers.Count; i++) {
+                        pacePingManagers[i].RenameState(i);
+                    }
                 }
                 return true;
             }
