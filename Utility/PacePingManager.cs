@@ -816,6 +816,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             bool deleted = GetSelectedPing().DeletePing();
 
             if(deleted) {
+                GetSelectedPing().UnHook();
                 pacePingManagers.RemoveAt(currSelected);
                 if (currSelected >= pacePingManagers.Count) {
                     currSelected = pacePingManagers.Count - 1;
