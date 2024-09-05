@@ -175,17 +175,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
 
         public void InitStatTextOptions() {
-            StatText1.Font = Dialog.Languages["english"].Font;
-            StatText1.FontFaceSize = Dialog.Languages["english"].FontFaceSize;
+            StatText1.Font = Dialog.Language.Font;
+            StatText1.FontFaceSize = Dialog.Language.FontFaceSize;
 
-            StatText2.Font = Dialog.Languages["english"].Font;
-            StatText2.FontFaceSize = Dialog.Languages["english"].FontFaceSize;
+            StatText2.Font = Dialog.Language.Font;
+            StatText2.FontFaceSize = Dialog.Language.FontFaceSize;
 
-            StatText3.Font = Dialog.Languages["english"].Font;
-            StatText3.FontFaceSize = Dialog.Languages["english"].FontFaceSize;
+            StatText3.Font = Dialog.Language.Font;
+            StatText3.FontFaceSize = Dialog.Language.FontFaceSize;
 
-            StatText4.Font = Dialog.Languages["english"].Font;
-            StatText4.FontFaceSize = Dialog.Languages["english"].FontFaceSize;
+            StatText4.Font = Dialog.Language.Font;
+            StatText4.FontFaceSize = Dialog.Language.FontFaceSize;
         }
 
         public void SetTextVisible(int textNum, bool visible) {
