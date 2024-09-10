@@ -136,11 +136,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                         }
                     }
 
+                    foreach (var manager in Mod.MultiPacePingManager.GetManagers()) {
+                        PacePingManager.PaceTiming paceTiming = manager.GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
+                        string pingName = manager.State.PingName;
+                        if (paceTiming != null)
+                        {
+                            formattedName = $"{formattedName}\n>{pingName} Ping<";
+                            scaleDivider += 2;
+                        }
 
-                    PacePingManager.PaceTiming paceTiming = Mod.PacePingManager.GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
-                    if (paceTiming != null) {
-                        formattedName = $"{formattedName}\n>Ping<";
-                        scaleDivider += 2;
                     }
 
                     DrawTextOnRoom(template, camera, formattedName, scaleDivider);
