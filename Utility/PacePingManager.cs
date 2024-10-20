@@ -331,7 +331,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 }
             }
             return false;
-
         }
 
         #region Mod Options Actions
@@ -380,7 +379,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             State.PingName = name;
             SaveState();
         }
-
 
         public void SaveDiscordWebhook(string webhook) {
             StateSecret.WebhookUrl = webhook;
@@ -739,8 +737,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             return timings.FirstOrDefault(timing => timing.DebugRoomName == debugRoomName);
         }
-
-
         #endregion
     }
 
@@ -759,7 +755,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             LoadState();
             currSelected = 0;
         }
-
 
         private void LoadState() {
             ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FolderName));
@@ -825,6 +820,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             bool deleted = GetSelectedPing().DeletePing();
 
             if(deleted) {
+                GetSelectedPing().UnHook();
                 pacePingManagers.RemoveAt(currSelected);
                 if (currSelected >= pacePingManagers.Count) {
                     currSelected = pacePingManagers.Count - 1;
@@ -836,9 +832,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return true;
             }
             return false;
-
         }
-
-
     }
 }
