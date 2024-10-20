@@ -30,6 +30,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static ConsistencyTrackerModule Instance;
         private static readonly int LOG_FILE_COUNT = 10;
 
+        public static Object LogLock = new Object();
+
         #region Versions
         public class VersionsNewest {
             public static string Mod => "2.7.9";
@@ -1824,17 +1826,18 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (!LogInitialized) {
                 return;
             }
+            lock(LogLock) {
+                if (!isFollowup) {
+                    StackFrame frame = new StackTrace().GetFrame(frameBack);
+                    string methodName = frame.GetMethod().Name;
+                    string typeName = frame.GetMethod().DeclaringType.Name;
 
-            if (!isFollowup) {
-                StackFrame frame = new StackTrace().GetFrame(frameBack);
-                string methodName = frame.GetMethod().Name;
-                string typeName = frame.GetMethod().DeclaringType.Name;
+                    string time = DateTime.Now.ToString("HH:mm:ss.ffff");
 
-                string time = DateTime.Now.ToString("HH:mm:ss.ffff");
-
-                LogFileWriter.WriteLine($"[{time}]\t[{typeName}.{methodName}]\t{log}");
-            } else {
-                LogFileWriter.WriteLine($"\t\t{log}");
+                    LogFileWriter.WriteLine($"[{time}]\t[{typeName}.{methodName}]\t{log}");
+                } else {
+                    LogFileWriter.WriteLine($"\t\t{log}");
+                }
             }
         }
 
