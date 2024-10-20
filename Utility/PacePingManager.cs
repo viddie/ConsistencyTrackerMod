@@ -416,7 +416,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public bool DeletePing() {
-            this.UnHook();
             return DeleteState();
         }
         #endregion
