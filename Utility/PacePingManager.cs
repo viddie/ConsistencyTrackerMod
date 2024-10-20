@@ -418,6 +418,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public bool DeletePing() {
+            this.UnHook();
             return DeleteState();
         }
         #endregion
@@ -425,6 +426,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         #region State
         public void CheckPacePing(PathInfo path, ChapterStats stats, bool ignoreGolden = false) {
             if (path == null) return; //No path = no ping
+
+            if (!CurrentMapSettings.PingsEnabled) return; //Map ping disabled = no ping
 
             RoomInfo currentRoom = path.CurrentRoom;
             if (currentRoom == null) return; //Not on path = no ping
@@ -810,6 +813,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public PacePingManager AddNewPing() {
             PacePingManager newManager = new PacePingManager(pacePingManagers.Count);
+            newManager.Hook();
             pacePingManagers.Add(newManager);
             return newManager;
         }
