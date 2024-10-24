@@ -1764,7 +1764,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasCurrentRoom
             };
 
-            TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), PingList, Mod.MultiPacePingManager.currSelected) {
+            TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_CURRENT_PING"), PingList, Mod.MultiPacePingManager.currSelected) {
                 OnValueChange = (newValue) => {
                     Mod.MultiPacePingManager.SetSelectedPing(newValue);
                     PacePingLiveUpdate(null,
@@ -1777,6 +1777,17 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = pingCount == 0
             };
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE"), PacePingEnabled) {
+                OnValueChange = v => {
+                    PacePingEnabled = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_4"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_5"));
+
             subMenu.Add(sliderCurrentPing);
             subMenu.AddDescription(menu, sliderCurrentPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_PING_HINT"));
 
@@ -1815,16 +1826,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE")} ==="));
-            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE"), PacePingEnabled) {
-                OnValueChange = v => {
-                    PacePingEnabled = v;
-                }
-            });
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_4"));
-            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_5"));
 
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
                 OnPressed = () => {
