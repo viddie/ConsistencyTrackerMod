@@ -1696,8 +1696,9 @@ namespace Celeste.Mod.ConsistencyTracker
             {
                 OnValueChange = v =>
                 {
-                    mapSpecificSettings.PingsEnabled = v;
-                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
+                    MapSettings currMapSettings = Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings;
+                    currMapSettings.PingsEnabled = v;
+                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = currMapSettings;
                 },
                 Disabled = !hasPath
             };
@@ -1784,7 +1785,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     PacePingManager newPing = Mod.MultiPacePingManager.AddNewPing();
                     if (newPing != null) {
                         sliderCurrentPing.Values.Add(Tuple.Create(newPing.State.PingName, Mod.MultiPacePingManager.pacePingManagers.Count - 1));
-                        sliderCurrentPing.SelectWiggler.Start();
+                        Mod.MultiPacePingManager.SetSelectedPing(Mod.MultiPacePingManager.pacePingManagers.Count-1);
                     }
                     PacePingLiveUpdate(sliderCurrentPing,
                                         togglePacePingButton,
