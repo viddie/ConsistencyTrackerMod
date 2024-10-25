@@ -1627,25 +1627,156 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool PacePingAllDeathsEnabled { get; set; } = false;
 
+        private void PacePingLiveUpdate(TextMenuExt.EnumerableSlider<int> sliderCurrentPing = null,
+                                        TextMenu.OnOff togglePacePingButton = null,
+                                        TextMenu.Button testButton = null,
+                                        TextMenu.Button importMessageButton = null,
+                                        TextMenu.OnOff mapSpecificPing = null,
+                                        TextMenuExt.EnumerableSlider<PbPingType> pbPingSelector = null) {
+            bool hasPath = Mod.CurrentChapterPath != null;
+            bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
+            PacePingManager manager = Mod.MultiPacePingManager.GetSelectedPing();
+            if (sliderCurrentPing != null) {
+                sliderCurrentPing.Values[Mod.MultiPacePingManager.currSelected] = Tuple.Create(manager.State.PingName, Mod.MultiPacePingManager.currSelected);
+                sliderCurrentPing.Index = Mod.MultiPacePingManager.currSelected;
+            }
+
+            PaceTiming timing = null;
+            if (hasCurrentRoom)
+            {
+                timing = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
+            }
+            
+            if (togglePacePingButton != null) {
+                togglePacePingButton.Index = (timing != null) ? 1 : 0;
+                togglePacePingButton.SelectWiggler.Start();
+            }
+
+            if (testButton != null) {
+                testButton.Disabled = timing == null;
+            }
+            if (importMessageButton != null) {
+                importMessageButton.Disabled = timing == null;
+            }
+
+            MapSettings mapSpecificSettings = manager.CurrentMapSettings;
+
+            if (mapSpecificPing != null) {
+                mapSpecificPing.Index = mapSpecificSettings.PingsEnabled ? 1 : 0;
+                mapSpecificPing.SelectWiggler.Start();
+            }
+
+            if (pbPingSelector != null) {
+                pbPingSelector.Index = (int)mapSpecificSettings.PbPingType;
+            }
+        }
+
         public void CreatePacePingEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_TITLE"), false);
             TextMenu.Item menuItem;
-            
+
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_NOT_IN_GAME_HINT"), false));
                 menu.Add(subMenu);
                 return;
             }
-            
 
+            
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             PaceTiming paceTiming = null;
             if (hasCurrentRoom) { 
-                paceTiming = Mod.PacePingManager.GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
+                paceTiming = Mod.MultiPacePingManager.GetSelectedPing().GetPaceTiming(Mod.CurrentChapterPath.ChapterSID, Mod.CurrentChapterPath.CurrentRoom.DebugRoomName);
             }
 
-            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE")} ==="));
+
+            TextMenu.OnOff mapSpecificPing;
+            MapSettings mapSpecificSettings = Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings;
+            mapSpecificPing = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PING_ENABLED"), mapSpecificSettings.PingsEnabled)
+            {
+                OnValueChange = v =>
+                {
+                    MapSettings currMapSettings = Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings;
+                    currMapSettings.PingsEnabled = v;
+                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = currMapSettings;
+                },
+                Disabled = !hasPath
+            };
+
+            TextMenuExt.EnumerableSlider<PbPingType> pbPingSelector;
+            List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
+                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
+                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
+            };
+            pbPingSelector = new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PB_PING"), pbPingTypes, mapSpecificSettings.PbPingType)
+            {
+                OnValueChange = (newValue) =>
+                {
+                    mapSpecificSettings.PbPingType = newValue;
+                    Mod.MultiPacePingManager.GetSelectedPing().CurrentMapSettings = mapSpecificSettings;
+                },
+                Disabled = !hasPath
+            };
+
+
+            int pingCount = Mod.MultiPacePingManager.pacePingManagers.Count;
+            List<KeyValuePair<int, string>> PingList = new List<KeyValuePair<int, string>>() { 
+                new KeyValuePair<int, string>(0, "Default"),
+            };
+            
+            // Probably unnecessary, but including in case I missed an edge case 
+            if (pingCount > 0) {
+                PingList.Clear();
+                for (int i = 0; i < Mod.MultiPacePingManager.pacePingManagers.Count; i++) {
+                    PacePingManager manager = Mod.MultiPacePingManager.pacePingManagers[i];
+                    PingList.Add(new KeyValuePair<int, string>(i, manager.State.PingName));
+                }
+            }
+
+            TextMenu.Button importMessageButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_MSG_IMPORT")) {
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing custom ping message from clipboard...");
+                    try {
+                        Mod.MultiPacePingManager.GetSelectedPing().SaveCustomPingMessage(text);
+                    } catch (Exception ex) {
+                        Mod.Log($"Couldn't import custom ping message from clipboard: {ex}");
+                    }
+                },
+                Disabled = paceTiming == null,
+            };
+            TextMenu.Button testButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING")) {
+                OnPressed = () => {
+                    Mod.MultiPacePingManager.GetSelectedPing().TestPingForCurrentRoom();
+                },
+                Disabled = paceTiming == null
+            };
+
+            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
+                OnValueChange = (isEnabled) => {
+                    bool isNowEnabled = Mod.MultiPacePingManager.GetSelectedPing().SetCurrentRoomPacePingEnabled(isEnabled);
+                    importMessageButton.Disabled = !isNowEnabled;
+                    testButton.Disabled = !isNowEnabled;
+                    PacePingLiveUpdate(importMessageButton: importMessageButton,
+                                        testButton: testButton);
+                },
+                Disabled = !hasCurrentRoom
+            };
+
+            TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_CURRENT_PING"), PingList, Mod.MultiPacePingManager.currSelected) {
+                OnValueChange = (newValue) => {
+                    Mod.MultiPacePingManager.SetSelectedPing(newValue);
+                    PacePingLiveUpdate(null,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector
+                                        );
+                },
+                Disabled = pingCount == 0
+            };
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_ENABLE"), PacePingEnabled) {
                 OnValueChange = v => {
                     PacePingEnabled = v;
@@ -1654,13 +1785,54 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_1"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_2"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_3"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_4"));
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_HINT_5"));
+
+            subMenu.Add(sliderCurrentPing);
+            subMenu.AddDescription(menu, sliderCurrentPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_PING_HINT"));
+
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_ADD_PING")) {
+                OnPressed = () => {
+                    PacePingManager newPing = Mod.MultiPacePingManager.AddNewPing();
+                    if (newPing != null) {
+                        sliderCurrentPing.Values.Add(Tuple.Create(newPing.State.PingName, Mod.MultiPacePingManager.pacePingManagers.Count - 1));
+                        Mod.MultiPacePingManager.SetSelectedPing(Mod.MultiPacePingManager.pacePingManagers.Count-1);
+                    }
+                    PacePingLiveUpdate(sliderCurrentPing,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector
+                                        );
+                }
+            });
+
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_IMPORT_NAME")) { 
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText();
+                    Mod.Log($"Importing ping name from clipboard...");
+                    try {
+                        Mod.MultiPacePingManager.GetSelectedPing().SavePingName(text);
+                        PacePingLiveUpdate( sliderCurrentPing: sliderCurrentPing);
+                                            
+                        }
+                    catch (Exception ex) {
+                        Mod.Log($"Couldn't import ping name from clipboard: {ex}");
+                    }
+                },
+            });
+            
+
+
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_TITLE")} ==="));
 
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_MSG_IMPORT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing default ping message from clipboard...");
                     try {
-                        Mod.PacePingManager.SaveDefaultPingMessage(text);
+                        Mod.MultiPacePingManager.GetSelectedPing().SaveDefaultPingMessage(text);
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import default ping message from clipboard: {ex}");
                     }
@@ -1671,7 +1843,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
-                    Mod.PacePingManager.SaveDiscordWebhook(text);
+                    Mod.MultiPacePingManager.GetSelectedPing().SaveDiscordWebhook(text);
                 } catch (Exception ex) {
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
@@ -1683,69 +1855,38 @@ namespace Celeste.Mod.ConsistencyTracker
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing pb ping message from clipboard...");
                     try {
-                        Mod.PacePingManager.SavePBPingMessage(text);
+                        Mod.MultiPacePingManager.GetSelectedPing().SavePBPingMessage(text);
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import pb ping message from clipboard: {ex}");
                     }
                 },
             });
-
+            
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE")) {
-                OnPressed = Mod.PacePingManager.ReloadStateFile,
+                OnPressed = () => {
+                        Mod.MultiPacePingManager.GetSelectedPing().ReloadStateFile();
+                        // Live-update ping settings
+                        string pingName = Mod.MultiPacePingManager.GetSelectedPing().State.PingName;
+                        PacePingLiveUpdate(sliderCurrentPing,
+                                           togglePacePingButton,
+                                           testButton,
+                                           importMessageButton,
+                                           mapSpecificPing,
+                                           pbPingSelector);
+
+                },
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_GENERAL_RELOAD_STATE_FILE_HINT"));
 
             //Map Specific Settings
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_HEADER")} ==="));
-            MapSettings mapSpecificSettings = Mod.PacePingManager.CurrentMapSettings;
-            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PING_ENABLED"), mapSpecificSettings.PingsEnabled) {
-                OnValueChange = v => {
-                    mapSpecificSettings.PingsEnabled = v;
-                    Mod.PacePingManager.CurrentMapSettings = mapSpecificSettings;
-                },
-                Disabled = !hasPath
-            });
-            
-            List<KeyValuePair<PbPingType, string>> pbPingTypes = new List<KeyValuePair<PbPingType, string>>() {
-                new KeyValuePair<PbPingType, string>(PbPingType.NoPing, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_NO")),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbEntry, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_ENTRY")),
-                new KeyValuePair<PbPingType, string>(PbPingType.PingOnPbPassed, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_PB_PING_PASSED")),
-            };
-            subMenu.Add(new TextMenuExt.EnumerableSlider<PbPingType>(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_MAP_SPECIFIC_PB_PING"), pbPingTypes, mapSpecificSettings.PbPingType) {
-                OnValueChange = (newValue) => {
-                    mapSpecificSettings.PbPingType = newValue;
-                    Mod.PacePingManager.CurrentMapSettings = mapSpecificSettings;
-                },
-                Disabled = !hasPath
-            });
+
+            subMenu.Add(menuItem = mapSpecificPing);
+            subMenu.Add(pbPingSelector);
 
             
             string roomAddition = hasCurrentRoom ? $" ({Mod.CurrentChapterPath.CurrentRoom.GetFormattedRoomName(StatManager.RoomNameType)})" : "";
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TITLE")}{roomAddition} ==="));
-            TextMenu.Button importMessageButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_MSG_IMPORT")) {
-                OnPressed = () => {
-                    string text = TextInput.GetClipboardText();
-                    Mod.Log($"Importing custom ping message from clipboard...");
-                    try {
-                        Mod.PacePingManager.SaveCustomPingMessage(text);
-                    } catch (Exception ex) {
-                        Mod.Log($"Couldn't import custom ping message from clipboard: {ex}");
-                    }
-                },
-                Disabled = paceTiming == null,
-            };
-            TextMenu.Button testButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_TEST_PING")) {
-                OnPressed = Mod.PacePingManager.TestPingForCurrentRoom,
-                Disabled = paceTiming == null,
-            };
-            TextMenu.OnOff togglePacePingButton = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM"), paceTiming != null) {
-                OnValueChange = (isEnabled) => {
-                    bool isNowEnabled = Mod.PacePingManager.SetCurrentRoomPacePingEnabled(isEnabled);
-                    importMessageButton.Disabled = !isNowEnabled;
-                    testButton.Disabled = !isNowEnabled;
-                },
-                Disabled = !hasCurrentRoom
-            };
 
             subMenu.Add(togglePacePingButton);
             subMenu.AddDescription(menu, togglePacePingButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_CURRENT_ROOM_PING_THIS_ROOM_HINT"));
@@ -1767,7 +1908,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     string text = TextInput.GetClipboardText();
                     Mod.Log($"Importing all deaths message from clipboard...");
                     try {
-                        Mod.PacePingManager.SaveAllDeathsMessage(text);
+                        Mod.MultiPacePingManager.GetSelectedPing().SaveAllDeathsMessage(text);
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import all deaths message from clipboard: {ex}");
                     }
@@ -1778,13 +1919,41 @@ namespace Celeste.Mod.ConsistencyTracker
                 string text = TextInput.GetClipboardText();
                 Mod.Log($"Importing WebHook url from clipboard...");
                 try {
-                    Mod.PacePingManager.SaveDiscordWebhookAllDeaths(text);
+                    Mod.MultiPacePingManager.GetSelectedPing().SaveDiscordWebhookAllDeaths(text);
                 } catch (Exception ex) {
                     Mod.Log($"Couldn't import WebHook url from clipboard: {ex}");
                 }
             }));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_1"));
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_ALL_DEATHS_WEBHOOK_IMPORT_HINT_2"));
+          
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_TITLE")} ==="));
+            DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE"))
+            {
+                Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1,
+                HighlightColor = Color.Red,
+            };
+            deleteButton.OnDoubleConfirmation = () =>
+            {
+                int index = Mod.MultiPacePingManager.currSelected;
+                bool didDelete = Mod.MultiPacePingManager.DeleteCurrentPing();
+
+                if (didDelete)
+                {
+                    sliderCurrentPing.Values.RemoveAt(index);
+                    PacePingLiveUpdate(sliderCurrentPing,
+                                        togglePacePingButton,
+                                        testButton,
+                                        importMessageButton,
+                                        mapSpecificPing,
+                                        pbPingSelector);
+
+                }
+
+                deleteButton.Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1;
+            };
+            subMenu.Add(deleteButton);
+            subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE_HINT_1"));
 
             menu.Add(subMenu);
         }

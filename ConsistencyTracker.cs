@@ -30,6 +30,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static ConsistencyTrackerModule Instance;
         private static readonly int LOG_FILE_COUNT = 10;
 
+        public static Object LogLock = new Object();
+
         #region Versions
         public class VersionsNewest {
             public static string Mod => "2.7.10";
@@ -156,7 +158,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         public TextOverlay IngameOverlay;
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
-        public PacePingManager PacePingManager;
+        public MultiPacePingManager MultiPacePingManager;
+
         public DebugMapUtil DebugMapUtil;
 
 
@@ -191,7 +194,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             DebugMapUtil = new DebugMapUtil();
             PhysicsLog = new PhysicsLogger();
-            PacePingManager = new PacePingManager();
+            MultiPacePingManager = new MultiPacePingManager();
             HookStuff();
 
             
@@ -260,7 +263,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Other objects
             PhysicsLog.Hook();
             DebugMapUtil.Hook();
-            PacePingManager.Hook();
+            MultiPacePingManager.Hook();
         }
 
         private void LevelOnUpdate(On.Celeste.Level.orig_Update orig, Level self) {
@@ -331,7 +334,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Other objects
             PhysicsLog.UnHook();
             DebugMapUtil.UnHook();
-            PacePingManager.UnHook();
+            MultiPacePingManager.UnHook();
         }
 
         public override void Initialize()
@@ -1853,17 +1856,18 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (!LogInitialized) {
                 return;
             }
+            lock(LogLock) {
+                if (!isFollowup) {
+                    StackFrame frame = new StackTrace().GetFrame(frameBack);
+                    string methodName = frame.GetMethod().Name;
+                    string typeName = frame.GetMethod().DeclaringType.Name;
 
-            if (!isFollowup) {
-                StackFrame frame = new StackTrace().GetFrame(frameBack);
-                string methodName = frame.GetMethod().Name;
-                string typeName = frame.GetMethod().DeclaringType.Name;
+                    string time = DateTime.Now.ToString("HH:mm:ss.ffff");
 
-                string time = DateTime.Now.ToString("HH:mm:ss.ffff");
-
-                LogFileWriter.WriteLine($"[{time}]\t[{typeName}.{methodName}]\t{log}");
-            } else {
-                LogFileWriter.WriteLine($"\t\t{log}");
+                    LogFileWriter.WriteLine($"[{time}]\t[{typeName}.{methodName}]\t{log}");
+                } else {
+                    LogFileWriter.WriteLine($"\t\t{log}");
+                }
             }
         }
 
