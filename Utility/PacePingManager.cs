@@ -441,9 +441,6 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return; //Pinged from the PB ping, skip checking normal pace ping
             }
             
-            //Check map specific ping enabled
-            if (!CurrentMapSettings.PingsEnabled) return;
-
             PaceTiming paceTiming = GetPaceTiming(path.ChapterSID, currentRoom.DebugRoomName);
             if (paceTiming == null) {
                 Mod.LogVerbose($"No ping timing setup for room '{currentRoom.GetFormattedRoomName(StatManager.RoomNameType)}'");
