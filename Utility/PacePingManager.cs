@@ -384,6 +384,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 PBPingedSkipRegularCheck = false;
                 return; //Pinged from the PB ping, skip checking normal pace ping
             }
+            
+            //Check map specific ping enabled
+            if (!CurrentMapSettings.PingsEnabled) return;
 
             PaceTiming paceTiming = GetPaceTiming(path.ChapterSID, currentRoom.DebugRoomName);
             if (paceTiming == null) {

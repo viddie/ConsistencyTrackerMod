@@ -12,10 +12,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         
         public static T GetPrivateProperty<T>(object obj, string propertyName, bool isField = true, bool isPublic = false) {
             if (obj == null) {
-                Mod.Log($"Object is null! Property: {propertyName}");
+                Mod.LogVerbose($"Object is null! Property: {propertyName}");
                 return default(T);
             } else if (propertyName == null) {
-                Mod.Log($"Property name is null! Object: {obj.GetType().Name}");
+                Mod.LogVerbose($"Property name is null! Object: {obj.GetType().Name}");
                 return default(T);
             }
 
@@ -32,7 +32,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (isField) {
                 FieldInfo field = type.GetField(propertyName, flags);
                 if (field == null) {
-                    Mod.Log($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)field.GetValue(obj);
@@ -40,7 +40,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             } else {
                 PropertyInfo property = type.GetProperty(propertyName, flags);
                 if (property == null) {
-                    Mod.Log($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)property.GetValue(obj, null);
@@ -49,10 +49,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public static T GetPrivateStaticProperty<T>(object obj, string propertyName, bool isField = true) {
             if (obj == null) {
-                Mod.Log($"Object is null! Property: {propertyName}");
+                Mod.LogVerbose($"Object is null! Property: {propertyName}");
                 return default(T);
             } else if (propertyName == null) {
-                Mod.Log($"Property name is null! Object: {obj.GetType().Name}");
+                Mod.LogVerbose($"Property name is null! Object: {obj.GetType().Name}");
                 return default(T);
             }
 
@@ -63,7 +63,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (isField) {
                 FieldInfo field = type.GetField(propertyName, flags);
                 if (field == null) {
-                    Mod.Log($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)field.GetValue(null);
@@ -71,7 +71,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             } else {
                 PropertyInfo property = type.GetProperty(propertyName, flags);
                 if (property == null) {
-                    Mod.Log($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Static).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Static).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)property.GetValue(null, null);
@@ -80,10 +80,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         
         public static T GetProtectedProperty<T>(object obj, string propertyName, bool isField = true, bool isPublic = false) {
             if (obj == null) {
-                Mod.Log($"Object is null! Property: {propertyName}");
+                Mod.LogVerbose($"Object is null! Property: {propertyName}");
                 return default(T);
             } else if (propertyName == null) {
-                Mod.Log($"Property name is null! Object: {obj.GetType().Name}");
+                Mod.LogVerbose($"Property name is null! Object: {obj.GetType().Name}");
                 return default(T);
             }
 
@@ -100,7 +100,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (isField) {
                 FieldInfo field = type.GetField(propertyName, flags);
                 if (field == null) {
-                    Mod.Log($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Field '{propertyName}' not found in {type.Name}! Available fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)field.GetValue(obj);
@@ -108,7 +108,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             } else {
                 PropertyInfo property = type.GetProperty(propertyName, flags);
                 if (property == null) {
-                    Mod.Log($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
+                    Mod.LogVerbose($"Property '{propertyName}' not found in {type.Name}! Available Fields: [{string.Join(", ", type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}], Available Properties: [{string.Join(", ", type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance).Select(p => p.Name))}] | Public Fields: [{string.Join(", ", type.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}], Public Properties: [{string.Join(", ", type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name))}]");
                     return default(T);
                 }
                 return (T)property.GetValue(obj, null);

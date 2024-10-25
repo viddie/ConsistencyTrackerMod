@@ -213,6 +213,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             LogCleanup();
         }
 
+        private int _CheckFrames = 0;
         private void HookStuff() {
             //Create stats manager
             Everest.Events.MainMenu.OnCreateButtons += MainMenu_OnCreateButtons;
@@ -222,6 +223,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
             Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
+            On.Celeste.Level.Update += LevelOnUpdate;
             On.Celeste.Level.TeleportTo += Level_TeleportTo;
             //Track deaths
             Everest.Events.Player.OnDie += Player_OnDie;
@@ -261,6 +263,31 @@ namespace Celeste.Mod.ConsistencyTracker {
             PacePingManager.Hook();
         }
 
+        private void LevelOnUpdate(On.Celeste.Level.orig_Update orig, Level self) {
+            orig(self);
+
+            if (_CheckFrames <= 0) {
+                return;
+            }
+            _CheckFrames--;
+            
+            LogVerbose($"Checking frames after room transition ({_CheckFrames})...");
+            Player player = self.Tracker.GetEntity<Player>();
+            bool newHoldingGolden = PlayerIsHoldingGoldenBerry(player);
+            if (PlayerIsHoldingGolden == newHoldingGolden) {
+                return;
+            }
+            
+            PlayerIsHoldingGolden = newHoldingGolden;
+            
+            //Save stats to ensure the golden berry is counted
+            SaveChapterStats();
+            if (newHoldingGolden) {
+                //Check pace pings, since golden berry state changed
+                CheckPaceEvents(CurrentRoomName);
+            }
+        }
+
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
             On.Celeste.Level.Begin -= Level_Begin;
@@ -268,6 +295,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Everest.Events.Level.OnComplete -= Level_OnComplete;
             Everest.Events.Level.OnTransitionTo -= Level_OnTransitionTo;
             Everest.Events.Level.OnLoadLevel -= Level_OnLoadLevel;
+            On.Celeste.Level.Update -= LevelOnUpdate;
             On.Celeste.Level.TeleportTo -= Level_TeleportTo;
 
             //Track deaths
@@ -468,6 +496,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
+
+            _CheckFrames = 5;
 
             //Change room if we're not in the same room as before
             if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
@@ -869,6 +899,10 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SaveChapterStats();
             }
 
+            CheckPaceEvents(newRoomName);
+        }
+
+        private void CheckPaceEvents(string newRoomName) {
             //PB state tracking
             if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && PlayerIsHoldingGolden) {
                 RoomInfo currentRoom = CurrentChapterPath.CurrentRoom;
