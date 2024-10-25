@@ -34,7 +34,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.7.10";
+            public static string Mod => "2.8.0";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.4.1";
