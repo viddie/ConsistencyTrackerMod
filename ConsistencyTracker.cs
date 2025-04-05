@@ -1,20 +1,14 @@
-﻿using Celeste.Editor;
-using Celeste.Mod.ConsistencyTracker.Entities;
+﻿using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary;
 using Celeste.Mod.ConsistencyTracker.Enums;
-using Celeste.Mod.ConsistencyTracker.Events;
 using Celeste.Mod.ConsistencyTracker.EverestInterop;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.ThirdParty;
 using Celeste.Mod.ConsistencyTracker.Utility;
-using Celeste.Mod.SpeedrunTool.DeathStatistics;
-using Celeste.Mod.SpeedrunTool.SaveLoad;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Monocle;
-using MonoMod.Cil;
 using MonoMod.ModInterop;
 using Newtonsoft.Json;
 using System;
@@ -34,7 +28,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.8.0";
+            public static string Mod => "2.8.1";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.0";
             public static string PhysicsInspector => "1.4.1";
@@ -340,11 +334,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Initialize()
         {
             base.Initialize();
-
-            // load SpeedrunTool if it exists
-            if (Everest.Modules.Any(m => m.Metadata.Name == "SpeedrunTool")) {
-                SpeedrunToolSupport.Load();
-            }
+            
+            SpeedrunToolSupport.Load();
         }
 
         #endregion
