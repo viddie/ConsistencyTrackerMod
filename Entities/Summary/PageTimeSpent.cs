@@ -66,7 +66,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             long totalTime = 0;
             long totalTimeInRuns = 0;
             long totalTimeCasual = 0;
-            if (path == null) {
+            if (path == null || path.GameplayRoomCount == 0) {
                 foreach (var pair in stats.Rooms.OrderBy(p => p.Key)) {
                     RoomStats rStats = pair.Value;
                     long timeSpent = rStats.TimeSpentInRoom;

@@ -63,6 +63,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             }
 
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                int cpDeaths = 0;
                 foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     RoomStats rStats = stats.GetRoom(rInfo);
                     Entries.Add(new Entry() {
@@ -71,11 +72,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                         CheckpointName = cpInfo.Name,
                         CheckpointNumber = cpInfo.CPNumberInChapter
                     });
+                    cpDeaths += rStats.GoldenBerryDeaths;
                 }
-                CheckpointEntriesCount.Add(Tuple.Create(cpInfo.Name, cpInfo.GameplayRoomCount, cpInfo.Stats.GoldenBerryDeaths));
+                CheckpointEntriesCount.Add(Tuple.Create(cpInfo.Name, cpInfo.GameplayRoomCount, cpDeaths));
             }
 
-            TotalGoldenRuns = path.Stats.GoldenBerryDeaths + stats.GoldenCollectedCount;
+            TotalGoldenRuns = path.WalkPath().Sum(r => stats.GetRoom(r).GoldenBerryDeaths) + stats.GoldenCollectedCount;
         }
 
         public override void Render() {
