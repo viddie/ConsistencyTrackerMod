@@ -14,6 +14,8 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string ChapterSIDDialogSanitized { get; set; }
         public string MapBin { get; set; }
         public string SideName { get; set; }
+        public GoldenTier Tier { get; set; } = new GoldenTier(-1); //-1 = Undetermined
+        public int GoldenPoints { get; set; } = -1; //-1 means not set and should be automatically determined throught the tier
 
         public string SanitizeRoomName(string name) {
             name = name.Replace(";", "");

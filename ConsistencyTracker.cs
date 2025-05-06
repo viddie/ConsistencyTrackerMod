@@ -606,7 +606,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_UpdateTime(On.Celeste.Level.orig_UpdateTime orig, Level self) {
             orig(self);
-
+            
             if (CurrentChapterStats == null) return;
             if (CurrentChapterStats.CurrentRoom == null) return;
 
@@ -1772,6 +1772,27 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
             SetNewRoom(actualRoomName, false);
+
+            SavePathToFile();
+            SaveChapterStats();
+        }
+
+        public void ChangeRoomDifficultyWeight(int newDifficulty) {
+            if (CurrentChapterPath == null) {
+                Log($"CurrentChapterPath was null");
+                return;
+            }
+
+            if (CurrentChapterPath.CurrentRoom == null) {
+                Log($"Room '{CurrentRoomName}' is not on path!");
+                return;
+            }
+            
+            Log($"Changing rooms difficulty for '{CurrentRoomName}' to '{newDifficulty}'");
+            CurrentChapterPath.CurrentRoom.DifficultyWeight = newDifficulty;
+
+            CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
+            SetNewRoom(CurrentRoomName, false);
 
             SavePathToFile();
             SaveChapterStats();

@@ -27,6 +27,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             new AverageLastRunsStat(),
             new SuccessRateColorsStat(),
             new BasicInfoStat(),
+            new DifficultyWeightStats(),
             new ListRoomNamesStat(),
             new ListSuccessRatesStat(),
             new ListChokeRatesStat(),
@@ -208,6 +209,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     }
                     if (rInfo.DebugRoomName == Mod.SpeedrunToolSaveStateRoomName) {
                         pathInfo.SpeedrunToolSaveStateRoom = rInfo;
+                    }
+
+                    if (!rInfo.IsNonGameplayRoom) {
+                        cpInfo.Stats.DifficultyWeight += rInfo.DifficultyWeight;
+                        pathInfo.Stats.DifficultyWeight += rInfo.DifficultyWeight;
                     }
                 }
 

@@ -328,8 +328,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !hasCurrentRoom
             });
-
-            string currentRoomCustomName = Mod.CurrentChapterPath?.CurrentRoom?.CustomRoomName;
+            
+            CreateRoomDifficultySection(subMenu);
             
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_IMPORT_CLIPBOARD")) { 
                 OnPressed = () => {
@@ -401,6 +401,34 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2"));
 
             menu.Add(subMenu);
+        }
+
+        private string FormatDifficultyHelpLabel() {
+            if (Mod.CurrentChapterPath == null || Mod.CurrentChapterPath.CurrentRoom == null) {
+                return "";
+            }
+
+            int roomWeight = Mod.CurrentChapterPath.CurrentRoom.DifficultyWeight;
+            int cpWeight = Mod.CurrentChapterPath.CurrentRoom.Checkpoint.Stats.DifficultyWeight;
+            int chapterWeight = Mod.CurrentChapterPath.Stats.DifficultyWeight;
+            double roomInCpRatio = (double)roomWeight / cpWeight;
+            double roomInChapterRatio = (double)roomWeight / chapterWeight;
+            double cpInChapterRatio = (double)cpWeight / chapterWeight;
+
+            return $"Total CP difficulty: {cpWeight} (This Room: {roomInCpRatio:P})\n" +
+                   $"Total chapter difficulty: {chapterWeight} (This Room: {roomInChapterRatio:P}, This CP: {cpInChapterRatio:P})";
+        }
+        private void CreateRoomDifficultySection(TextMenuExt.SubMenu subMenu) {
+            int currentRoomDifficultyWeight = Mod.CurrentChapterPath?.CurrentRoom?.DifficultyWeight ?? 0;
+            TextMenu.SubHeader diffLabel = new TextMenu.SubHeader(FormatDifficultyHelpLabel(), topPadding: false);
+            subMenu.Add(new TextMenu.Slider("Room Difficulty Weight", i => i.ToString(), 0, 1000, currentRoomDifficultyWeight) {
+                OnValueChange = (value) => {
+                    Mod.ChangeRoomDifficultyWeight(value);
+                    diffLabel.Title = FormatDifficultyHelpLabel();
+                },
+                Disabled = Mod.CurrentChapterPath?.CurrentRoom == null
+            });
+            subMenu.Add(diffLabel);
         }
         #endregion
 

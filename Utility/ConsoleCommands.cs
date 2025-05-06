@@ -157,6 +157,52 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             string output = string.Join("\n", outputLines);
             ConsolePrint($"Time spent in all rooms ({selectedTimeStr}):\n{output}");
         }
+        
+        [Command("cct-diff", "Set the difficulty shares of the current room.")]
+        public static void CctDiff(int difficulty = Int32.MinValue) {
+            PathInfo path = Mod.CurrentChapterPath;
+
+            if (path == null) {
+                ConsolePrint("No path available. Please enter a map with a path first.");
+                return;
+            } else if (path.CurrentRoom == null) {
+                ConsolePrint("This room is not on the paht.");
+                return;
+            }
+
+            if (difficulty == Int32.MinValue) {
+                ConsolePrint($"Difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' is: {path.CurrentRoom.DifficultyWeight}");
+                return;
+            }
+
+            path.CurrentRoom.DifficultyWeight = difficulty;
+            Mod.SavePathToFile();
+            Mod.SaveChapterStats();
+            ConsolePrint($"Set difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
+        }
+
+        [Command("cct-diff-all", "Set the difficulty shares of ALL rooms.")]
+        public static void CctDiffAll(int difficulty = Int32.MinValue) {
+            PathInfo path = Mod.CurrentChapterPath;
+
+            if (path == null) {
+                ConsolePrint("No path available. Please enter a map with a path first.");
+                return;
+            }
+
+            if (difficulty == Int32.MinValue) {
+                ConsolePrint($"Add a difficulty parameter to overwrite the difficulty of ALL rooms. Example: cct-diff-all 10");
+                return;
+            }
+
+            foreach (RoomInfo rInfo in path.WalkPath()) {
+                rInfo.DifficultyWeight = difficulty;
+            }
+            
+            Mod.SavePathToFile();
+            Mod.SaveChapterStats();
+            ConsolePrint($"Set difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
+        }
 
         [Command("cct-test", "A test command used in development of CCT. Effect can change at random and is not known. Use at your own risk.")]
         public static void CctTest(float correctionFactor = 1f) {
