@@ -220,13 +220,18 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return;
             }
 
+            CustomNameBehavior customNameBehavior = Mod.ModSettings.LiveDataCustomNameBehavior;
+            if (path.GameplayRoomCount > 200) {
+                customNameBehavior = CustomNameBehavior.Ignore;
+            }
+
             if (difficulty == Int32.MinValue) {
                 var chokeRateData = ChokeRateStat.GetRoomData(path, stats);
                 string toPrint = "";
                 foreach (CheckpointInfo cpInfo in path.Checkpoints) {
                     toPrint += $"\n{cpInfo.Name} ({cpInfo.Abbreviation}) (Total: {cpInfo.Stats.DifficultyWeight}): ";
                     foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
-                        string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
+                        string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType, customNameBehavior);
                         int roomDifficulty = rInfo.DifficultyWeight;
                         string tilde = "";
                         if (roomDifficulty == -1) {
@@ -287,9 +292,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (chokeRateData.ContainsKey(rInfo)) {
                 var data = chokeRateData[rInfo];
                 float successRate = data.Item2;
-                if (successRate == 1 || float.IsNaN(successRate)) {
+                if (float.IsNaN(successRate)) {
                     diff = baseValue;
-                } else if (successRate == 0) {
+                } else if (successRate == 1 || successRate == 0) {
                     diff = 0;
                 } else {
                     float chokeRate = 1 - successRate;
