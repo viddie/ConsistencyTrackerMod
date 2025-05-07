@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.Utility;
 
 namespace Celeste.Mod.ConsistencyTracker.Stats {
 
@@ -53,23 +54,34 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             
             RoomInfo rInfo = chapterPath.CurrentRoom;
             
-            int roomWeight = rInfo.DifficultyWeight;
+            var chokeRateData = ChokeRateStat.GetRoomData(chapterPath, chapterStats);
+            int roomDifficulty = rInfo.DifficultyWeight;
+            string tilde = "";
+            if (roomDifficulty == -1) {
+                roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(chokeRateData, rInfo);
+                tilde = "~";
+            }
+            
             int cpWeight = rInfo.Checkpoint.Stats.DifficultyWeight;
             int chapterWeight = chapterPath.Stats.DifficultyWeight;
-            double roomInCpPercent = Math.Round((double)roomWeight / cpWeight * 100, decimalPlaces);
-            double roomInChapterPercent = Math.Round((double)roomWeight / chapterWeight * 100, decimalPlaces);
+            double roomInCpPercent = Math.Round((double)roomDifficulty / cpWeight * 100, decimalPlaces);
+            double roomInChapterPercent = Math.Round((double)roomDifficulty / chapterWeight * 100, decimalPlaces);
             double cpInChapterPercent = Math.Round((double)cpWeight / chapterWeight * 100, decimalPlaces);
             
-            format = format.Replace(RoomDiffInCpPercent, $"{roomInCpPercent}%");
-            format = format.Replace(RoomDiffInChapterPercent, $"{roomInChapterPercent}%");
+            format = format.Replace(RoomDiffInCpPercent, $"{tilde}{roomInCpPercent}%");
+            format = format.Replace(RoomDiffInChapterPercent, $"{tilde}{roomInChapterPercent}%");
             format = format.Replace(CheckpointDiffInChapterPercent, $"{cpInChapterPercent}%");
             
             
             //Room diff in chapter progress
             int pastDifficulty = 0;
-            foreach (RoomInfo roomInfo in chapterPath.WalkPath()) {
-                if (roomInfo == rInfo) break; //Current room is uncleared, so stop before this is counted
-                pastDifficulty += roomInfo.DifficultyWeight;
+            foreach (RoomInfo tempRoom in chapterPath.WalkPath()) {
+                if (tempRoom == rInfo) break; //Current room is uncleared, so stop before this is counted
+                int roomDiff = tempRoom.DifficultyWeight;
+                if (roomDiff == -1) {
+                    roomDiff = ConsoleCommands.GetRoomDifficultyBasedOnStats(chokeRateData, tempRoom);
+                }
+                pastDifficulty += roomDiff;
             }
             double roomDiffChapterProgressPercent = Math.Round((double)pastDifficulty / chapterWeight * 100, decimalPlaces);
             format = format.Replace(RoomDiffChapterProgress, $"{roomDiffChapterProgressPercent}%");

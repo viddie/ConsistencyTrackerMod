@@ -150,6 +150,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public StatManager StatsManager;
         public TextOverlay IngameOverlay;
+        public GraphOverlay GraphOverlay;
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
         public MultiPacePingManager MultiPacePingManager;
@@ -334,7 +335,6 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Initialize()
         {
             base.Initialize();
-            
             SpeedrunToolSupport.Load();
         }
 
@@ -519,6 +519,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
                 SummaryOverlay = new SummaryHud();
                 level.Add(SummaryOverlay);
+                
+                GraphOverlay = new GraphOverlay();
+                level.Add(GraphOverlay);
             }
         }
 
@@ -992,6 +995,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             IngameOverlay = level.Tracker.GetEntity<TextOverlay>();
             SummaryOverlay = level.Tracker.GetEntity<SummaryHud>();
+            GraphOverlay = level.Tracker.GetEntity<GraphOverlay>();
 
             PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
             CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];

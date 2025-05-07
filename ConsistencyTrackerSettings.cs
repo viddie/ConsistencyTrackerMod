@@ -416,7 +416,8 @@ namespace Celeste.Mod.ConsistencyTracker
             double cpInChapterRatio = (double)cpWeight / chapterWeight;
 
             return $"Total CP difficulty: {cpWeight} (This Room: {roomInCpRatio:P})\n" +
-                   $"Total chapter difficulty: {chapterWeight} (This Room: {roomInChapterRatio:P}, This CP: {cpInChapterRatio:P})";
+                   $"Total chapter difficulty: {chapterWeight} (This Room: {roomInChapterRatio:P}, This CP: {cpInChapterRatio:P})\n" +
+                   $"Check out the console commands 'cct-diff', 'cct-diff-all' and 'cct-diff-auto' for more efficient ways to set the difficulty weight.";
         }
         private void CreateRoomDifficultySection(TextMenuExt.SubMenu subMenu) {
             int currentRoomDifficultyWeight = Mod.CurrentChapterPath?.CurrentRoom?.DifficultyWeight ?? 0;
@@ -983,7 +984,48 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool ShowCCTRoomNamesOnDebugMap { get; set; } = true;
         [SettingIgnore]
         public bool ShowSuccessRateBordersOnDebugMap { get; set; } = false;
+        
+        #region Graph Overlay
+        //Graph Overlay
+        [SettingIgnore]
+        public bool IngameOverlayGraphEnabled { get; set; } = false;
+        
+        [SettingIgnore]
+        public StatTextPosition IngameOverlayGraphPosition { get; set; } = StatTextPosition.BottomCenter;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphWidth { get; set; } = 300;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphHeight { get; set; } = 35;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphOffsetX { get; set; } = 5;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphOffsetY { get; set; } = 1;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphBarSpacing { get; set; } = 1;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphRoomsPadding { get; set; } = 50;
+        
+        [SettingIgnore]
+        public bool IngameOverlayGraphShowGoldenPbBar { get; set; } = true;
+        
+        [SettingIgnore]
+        public bool IngameOverlayGraphCurrentRoomExplicit { get; set; } = true;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphHiddenRoomsIndicatorWidth { get; set; } = 2;
+        
+        [SettingIgnore]
+        public int IngameOverlayGraphBackgroundDim { get; set; } = 3;
+        #endregion
+        
 
+        #region Text Overlay Settings
         //Text Overlay
         [SettingIgnore]
         public bool IngameOverlayTextEnabled { get; set; } = false;
@@ -1011,9 +1053,6 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText1Size { get; set; } = 100;
 
-        //[SettingIgnore]
-        //public int IngameOverlayText1Alpha { get; set; } = 100;
-
         [SettingIgnore]
         public int IngameOverlayText1OffsetX { get; set; } = 5;
 
@@ -1039,9 +1078,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingIgnore]
         public int IngameOverlayText2Size { get; set; } = 100;
-
-        //[SettingIgnore]
-        //public int IngameOverlayText2Alpha { get; set; } = 100;
 
         [SettingIgnore]
         public int IngameOverlayText2OffsetX { get; set; } = 5;
@@ -1069,9 +1105,6 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText3Size { get; set; } = 100;
 
-        //[SettingIgnore]
-        //public int IngameOverlayText3Alpha { get; set; } = 100;
-
         [SettingIgnore]
         public int IngameOverlayText3OffsetX { get; set; } = 5;
 
@@ -1098,16 +1131,13 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public int IngameOverlayText4Size { get; set; } = 100;
 
-        //[SettingIgnore]
-        //public int IngameOverlayText4Alpha { get; set; } = 100;
-
         [SettingIgnore]
         public int IngameOverlayText4OffsetX { get; set; } = 5;
 
         [SettingIgnore]
         public int IngameOverlayText4OffsetY { get; set; } = 0;
+        #endregion
 
-        
 
         //Debug Settings
         [SettingIgnore]
@@ -1137,7 +1167,87 @@ namespace Celeste.Mod.ConsistencyTracker
                     ShowSuccessRateBordersOnDebugMap = v;
                 }
             });
+            
+            
+            List<KeyValuePair<StatTextPosition, string>> statTextPositions = new List<KeyValuePair<StatTextPosition, string>>() {
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_RIGHT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_LEFT")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_CENTER")),
+                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_RIGHT")),
+            };
 
+            
+            // ========== Graph ==========
+            subMenu.Add(new TextMenu.SubHeader($"=== Chapter Graph ==="));
+            subMenu.Add(new TextMenu.OnOff("Chapter Graph Enabled", IngameOverlayGraphEnabled) {
+                OnValueChange = v => {
+                    IngameOverlayGraphEnabled = v;
+                }
+            });
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), statTextPositions, IngameOverlayGraphPosition) {
+                OnValueChange = v => {
+                    IngameOverlayGraphPosition = v;
+                }
+            });
+            subMenu.Add(new TextMenuExt.IntSlider("Graph Width", 0, 2000, IngameOverlayGraphWidth) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphWidth = value;
+                }
+            });
+            subMenu.Add(new TextMenuExt.IntSlider("Graph Height", 0, 2000, IngameOverlayGraphHeight) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphHeight = value;
+                }
+            });
+            subMenu.Add(new TextMenuExt.IntSlider("Graph Offset X", 0, 2000, IngameOverlayGraphOffsetX) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphOffsetX = value;
+                }
+            });
+            subMenu.Add(new TextMenuExt.IntSlider("Graph Offset Y", 0, 2000, IngameOverlayGraphOffsetY) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphOffsetY = value;
+                }
+            });
+            subMenu.Add(new TextMenu.Slider("Graph Bar Spacing", (i) => $"{i} Pixel(s)", 0, 100, IngameOverlayGraphBarSpacing) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphBarSpacing = value;
+                }
+            });
+            subMenu.Add(new TextMenu.Slider("Graph Room Padding", (i) => $"{i} Room(s)", 0, 1000, IngameOverlayGraphRoomsPadding) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphRoomsPadding = value;
+                }
+            });
+            subMenu.Add(new TextMenu.OnOff("Graph Show Golden PB Bar", IngameOverlayGraphShowGoldenPbBar) {
+                OnValueChange = v => {
+                    IngameOverlayGraphShowGoldenPbBar = v;
+                }
+            });
+            subMenu.Add(new TextMenu.OnOff("Graph Current Room Indicator Explicit", IngameOverlayGraphCurrentRoomExplicit) {
+                OnValueChange = v => {
+                    IngameOverlayGraphCurrentRoomExplicit = v;
+                }
+            });
+            subMenu.Add(new TextMenu.Slider("Graph Hidden Rooms Indicator Width", (i) => $"{i} Pixel(s)", 0, 20, IngameOverlayGraphHiddenRoomsIndicatorWidth) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphHiddenRoomsIndicatorWidth = value;
+                }
+            });
+            subMenu.Add(new TextMenu.Slider("Graph Background Dim", (i) => $"{i*10} %", 0, 10, IngameOverlayGraphBackgroundDim) {
+                OnValueChange = (value) => {
+                    IngameOverlayGraphBackgroundDim = value;
+                }
+            });
+            
+            
+            
+            // ========== Text Overlay ==========
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TITLE")} ==="));
             subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_ENABLE"), IngameOverlayTextEnabled) {
                 OnValueChange = v => {
@@ -1150,8 +1260,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
 
-            
-
+            #region Overlay Texts
             //Get all formats
             List<string> availableFormats = new List<string>(Mod.StatsManager.GetFormatListSorted().Select((f) => f.Name));
             List<string> availableFormatsGolden = new List<string>(availableFormats);
@@ -1165,18 +1274,6 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasStats = Mod.CurrentChapterStats != null;
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
 
-            List<KeyValuePair<StatTextPosition, string>> StatTextPositions = new List<KeyValuePair<StatTextPosition, string>>() {
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_CENTER")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_LEFT")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.BottomRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_BOTTOM_RIGHT")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_CENTER")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_LEFT")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.MiddleRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_MIDDLE_RIGHT")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopCenter, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_CENTER")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopLeft, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_LEFT")),
-                new KeyValuePair<StatTextPosition, string>(StatTextPosition.TopRight, Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION_TOP_RIGHT")),
-            };
-
             // ========== Text 1 ==========
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_TITLE")} ==="));
             subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_1_ENABLE"), IngameOverlayText1Enabled) {
@@ -1185,7 +1282,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(1, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText1Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), statTextPositions, IngameOverlayText1Position) {
                 OnValueChange = v => {
                     IngameOverlayText1Position = v;
                     Mod.IngameOverlay.SetTextPosition(1, v);
@@ -1220,12 +1317,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextSize(1, value);
                 }
             });
-            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText1Alpha) {
-            //    OnValueChange = (value) => {
-            //        IngameOverlayText1Alpha = value;
-            //        Mod.IngameOverlay.SetTextAlpha(1, value);
-            //    }
-            //});
             subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText1OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText1OffsetX = value;
@@ -1248,7 +1339,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(2, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText2Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), statTextPositions, IngameOverlayText2Position) {
                 OnValueChange = v => {
                     IngameOverlayText2Position = v;
                     Mod.IngameOverlay.SetTextPosition(2, v);
@@ -1283,12 +1374,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextSize(2, value);
                 }
             });
-            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText2Alpha) {
-            //    OnValueChange = (value) => {
-            //        IngameOverlayText2Alpha = value;
-            //        Mod.IngameOverlay.SetTextAlpha(2, value);
-            //    }
-            //});
             subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText2OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText2OffsetX = value;
@@ -1310,7 +1395,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(3, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText3Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), statTextPositions, IngameOverlayText3Position) {
                 OnValueChange = v => {
                     IngameOverlayText3Position = v;
                     Mod.IngameOverlay.SetTextPosition(3, v);
@@ -1345,12 +1430,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextSize(3, value);
                 }
             });
-            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText3Alpha) {
-            //    OnValueChange = (value) => {
-            //        IngameOverlayText3Alpha = value;
-            //        Mod.IngameOverlay.SetTextAlpha(3, value);
-            //    }
-            //});
             subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText3OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText3OffsetX = value;
@@ -1373,7 +1452,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextVisible(4, v);
                 }
             });
-            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), StatTextPositions, IngameOverlayText4Position) {
+            subMenu.Add(new TextMenuExt.EnumerableSlider<StatTextPosition>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_POSITION"), statTextPositions, IngameOverlayText4Position) {
                 OnValueChange = v => {
                     IngameOverlayText4Position = v;
                     Mod.IngameOverlay.SetTextPosition(4, v);
@@ -1408,12 +1487,6 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextSize(4, value);
                 }
             });
-            //subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>("Alpha", PercentageSlider(5, 5, 100), IngameOverlayText4Alpha) {
-            //    OnValueChange = (value) => {
-            //        IngameOverlayText4Alpha = value;
-            //        Mod.IngameOverlay.SetTextAlpha(4, value);
-            //    }
-            //});
             subMenu.Add(new TextMenuExt.IntSlider(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OFFSET_X"), 0, 2000, IngameOverlayText4OffsetX) {
                 OnValueChange = (value) => {
                     IngameOverlayText4OffsetX = value;
@@ -1426,19 +1499,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.IngameOverlay.SetTextOffsetY(4, value);
                 }
             });
-
-
-
-            //subMenu.Add(new TextMenu.SubHeader("[Developement Only] Debug Features"));
-            //subMenu.Add(new TextMenu.OnOff("Text Overlay Debug Position", IngameOverlayTextDebugPositionEnabled) {
-            //    OnValueChange = v => {
-            //        IngameOverlayTextDebugPositionEnabled = v;
-            //        Mod.IngameOverlay.GetStatText(1).DebugShowPosition = v;
-            //        Mod.IngameOverlay.GetStatText(2).DebugShowPosition = v;
-            //        Mod.IngameOverlay.GetStatText(3).DebugShowPosition = v;
-            //        Mod.IngameOverlay.GetStatText(4).DebugShowPosition = v;
-            //    }
-            //});
+            #endregion
 
             menu.Add(subMenu);
         }

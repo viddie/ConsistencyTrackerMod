@@ -277,7 +277,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
             GoldenCollectedThisRun = false;
         }
-
+        
         public string ToChapterStatsString() {
             List<string> lines = new List<string>();
             lines.Add($"{CurrentRoom}");

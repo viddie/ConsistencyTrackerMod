@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Celeste.Mod.ConsistencyTracker.Utility;
 
 namespace Celeste.Mod.ConsistencyTracker.Stats {
     public class StatManager {
@@ -186,6 +187,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             pathInfo.Stats = new AggregateStats();
 
             pathInfo.CurrentRoom = null;
+            var chokeRateData = ChokeRateStat.GetRoomData(pathInfo, chapterStats);
 
             //Walk the path
             foreach (CheckpointInfo cpInfo in pathInfo.Checkpoints) {
@@ -212,8 +214,11 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                     }
 
                     if (!rInfo.IsNonGameplayRoom) {
-                        cpInfo.Stats.DifficultyWeight += rInfo.DifficultyWeight;
-                        pathInfo.Stats.DifficultyWeight += rInfo.DifficultyWeight;
+                        int roomDifficulty = rInfo.DifficultyWeight;
+                        if (roomDifficulty == -1)
+                            roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(chokeRateData, rInfo);
+                        cpInfo.Stats.DifficultyWeight += roomDifficulty;
+                        pathInfo.Stats.DifficultyWeight += roomDifficulty;
                     }
                 }
 

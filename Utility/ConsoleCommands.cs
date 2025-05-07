@@ -158,40 +158,87 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             ConsolePrint($"Time spent in all rooms ({selectedTimeStr}):\n{output}");
         }
         
-        [Command("cct-diff", "Set the difficulty shares of the current room.")]
-        public static void CctDiff(int difficulty = Int32.MinValue) {
+        [Command("cct-diff", "Set the difficulty shares of the current (or specified) room. Examples: cct-diff 50, cct-diff 75 EH-8")]
+        public static void CctDiff(int difficulty = Int32.MinValue, string roomName = null) {
             PathInfo path = Mod.CurrentChapterPath;
+            ChapterStats stats = Mod.CurrentChapterStats;
 
-            if (path == null) {
+            if (path == null || stats == null) {
                 ConsolePrint("No path available. Please enter a map with a path first.");
                 return;
-            } else if (path.CurrentRoom == null) {
-                ConsolePrint("This room is not on the paht.");
+            }
+
+            roomName = EscapeStringParameter(roomName);
+            RoomInfo targetRoom = null;
+            if (!string.IsNullOrEmpty(roomName)) {
+                //Find room by name
+                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                    foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                        string rName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType, CustomNameBehavior.Ignore);
+                        if (rName != roomName) continue;
+                        targetRoom = rInfo;
+                        break;
+                    }
+                }
+                if (targetRoom == null) {
+                    ConsolePrint($"Didn't find room with name '{roomName}' in this chapter");
+                    return;
+                }
+            } else {
+                targetRoom = path.CurrentRoom;
+            }
+            
+            if (targetRoom == null) {
+                ConsolePrint("This room is not on the path.");
                 return;
             }
 
             if (difficulty == Int32.MinValue) {
-                ConsolePrint($"Difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' is: {path.CurrentRoom.DifficultyWeight}");
+                string calculatedWeight = "";
+                if (targetRoom.DifficultyWeight == -1) {
+                    var chokeRateData = ChokeRateStat.GetRoomData(path, stats);
+                    int roomDifficulty = GetRoomDifficultyBasedOnStats(chokeRateData, targetRoom);
+                    calculatedWeight = $" (calculated difficulty: {roomDifficulty})";
+                }
+                ConsolePrint($"Difficulty of room '{targetRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' is: {targetRoom.DifficultyWeight}{calculatedWeight}");
                 return;
             }
 
-            path.CurrentRoom.DifficultyWeight = difficulty;
+            targetRoom.DifficultyWeight = difficulty;
             Mod.SavePathToFile();
             Mod.SaveChapterStats();
-            ConsolePrint($"Set difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
+            ConsolePrint($"Set difficulty of room '{targetRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
         }
 
-        [Command("cct-diff-all", "Set the difficulty shares of ALL rooms.")]
+        [Command("cct-diff-all", "Set the difficulty shares of ALL rooms. Use without parameter to get a list of all room difficulties.")]
         public static void CctDiffAll(int difficulty = Int32.MinValue) {
             PathInfo path = Mod.CurrentChapterPath;
+            ChapterStats stats = Mod.CurrentChapterStats;
 
-            if (path == null) {
+            if (path == null || stats == null) {
                 ConsolePrint("No path available. Please enter a map with a path first.");
                 return;
             }
 
             if (difficulty == Int32.MinValue) {
-                ConsolePrint($"Add a difficulty parameter to overwrite the difficulty of ALL rooms. Example: cct-diff-all 10");
+                var chokeRateData = ChokeRateStat.GetRoomData(path, stats);
+                string toPrint = "";
+                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                    toPrint += $"\n{cpInfo.Name} ({cpInfo.Abbreviation}) (Total: {cpInfo.Stats.DifficultyWeight}): ";
+                    foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
+                        string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
+                        int roomDifficulty = rInfo.DifficultyWeight;
+                        string tilde = "";
+                        if (roomDifficulty == -1) {
+                            roomDifficulty = GetRoomDifficultyBasedOnStats(chokeRateData, rInfo);
+                            tilde = "~";
+                        }
+                        toPrint += $"{roomName}: {tilde}{roomDifficulty} | ";
+                    }
+                    toPrint = toPrint.Substring(0, toPrint.Length - 3);
+                }
+                ConsolePrint($"All room difficulties (Total: {path.Stats.DifficultyWeight}):{toPrint}\n" +
+                             $"Difficulties with a '~' are -1 and calculated dynamically based on your choke rate stats.");
                 return;
             }
 
@@ -201,7 +248,58 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             
             Mod.SavePathToFile();
             Mod.SaveChapterStats();
-            ConsolePrint($"Set difficulty of room '{path.CurrentRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
+            ConsolePrint($"Set difficulty of all rooms to {difficulty}");
+        }
+        
+        [Command("cct-diff-auto", "Sets all room difficulties based on your current golden stats.")]
+        public static void CctDiffAuto(int baseValue = 10, float baseChokePercent = 0.05f) {
+            PathInfo path = Mod.CurrentChapterPath;
+            ChapterStats stats = Mod.CurrentChapterStats;
+
+            if (path == null || stats == null) {
+                ConsolePrint("No stats available. Please enter a map with a path first.");
+                return;
+            }
+
+            if (baseValue < 1) {
+                ConsolePrint($"Base value must be at least 1. Example: cct-diff-auto 10");
+                return;
+            }
+            
+            var roomData = ChokeRateStat.GetRoomData(path, stats);
+
+            string toPrint = "";
+            foreach (RoomInfo rInfo in path.WalkPath()) {
+                rInfo.DifficultyWeight = GetRoomDifficultyBasedOnStats(roomData, rInfo);
+                string roomName = rInfo.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType);
+                toPrint += $"{roomName}: {rInfo.DifficultyWeight}\n";
+            }
+
+            toPrint = toPrint.Substring(0, toPrint.Length - 1);
+            
+            Mod.SavePathToFile();
+            Mod.SaveChapterStats();
+            ConsolePrint($"Auto assigned room difficulties based on your stats:\n{toPrint}");
+        }
+
+        public static int GetRoomDifficultyBasedOnStats(Dictionary<RoomInfo, Tuple<int, float, int, float>> chokeRateData, RoomInfo rInfo, int baseValue = 10, float baseChokePercent = 0.05f) {
+            int diff = baseValue;
+            if (chokeRateData.ContainsKey(rInfo)) {
+                var data = chokeRateData[rInfo];
+                float successRate = data.Item2;
+                if (successRate == 1 || float.IsNaN(successRate)) {
+                    diff = baseValue;
+                } else if (successRate == 0) {
+                    diff = 0;
+                } else {
+                    float chokeRate = 1 - successRate;
+                    float diffNom = baseChokePercent / chokeRate;
+                    diff = (int)(baseValue / diffNom);
+                }
+            } else {
+                diff = baseValue;
+            }
+            return diff;
         }
 
         [Command("cct-test", "A test command used in development of CCT. Effect can change at random and is not known. Use at your own risk.")]

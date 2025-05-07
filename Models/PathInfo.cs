@@ -359,7 +359,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public bool IsNonGameplayRoom { get; set; }
 
         [JsonProperty("difficultyWeight")]
-        public int DifficultyWeight { get; set; } = 1;
+        public int DifficultyWeight { get; set; } = -1;
 
         public override string ToString() {
             return DebugRoomName;
