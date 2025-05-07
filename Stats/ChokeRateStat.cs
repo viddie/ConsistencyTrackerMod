@@ -265,10 +265,13 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
+        public static Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData { get; set; } = null;
         /// <summary>
         /// Gets the following data for every room: Golden Entries, Golden Success Rate, Golden Entries Session, Golden Success Rate Session
         /// </summary>
         public static Dictionary<RoomInfo, Tuple<int, float, int, float>> GetRoomData(PathInfo chapterPath, ChapterStats chapterStats) {
+            if (ChokeRateData != null) return ChokeRateData;
+            
             Dictionary<RoomInfo, Tuple<int, float, int, float>> roomData = new Dictionary<RoomInfo, Tuple<int, float, int, float>>();
 
             foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
@@ -314,6 +317,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 }
             }
 
+            ChokeRateData = roomData;
             return roomData;
         }
 

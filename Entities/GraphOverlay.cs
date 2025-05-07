@@ -29,6 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static int BackgroundDim => Mod.ModSettings.IngameOverlayGraphBackgroundDim;
 
         private Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData { get; set; }
+        private int HighestDifficulty { get; set; } = 0;
         private RoomInfo PbRoom { get; set; }
 
         public GraphOverlay() {
@@ -51,6 +52,16 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             
             ChokeRateData = ChokeRateStat.GetRoomData(path, stats);
             PbRoom = StatsUtil.GetFurthestGoldenRun(path, stats);
+            
+            HighestDifficulty = 0;
+            foreach (RoomInfo rInfo in path.WalkPath()) {
+                int roomDifficulty = rInfo.DifficultyWeight;
+                if (roomDifficulty == -1) {
+                    roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(ChokeRateData, rInfo);
+                }
+                HighestDifficulty = Math.Max(HighestDifficulty, roomDifficulty);
+            }
+            HighestDifficulty = Math.Max(1, HighestDifficulty);
         }
 
         public override void Render() {
@@ -71,17 +82,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             //HOWEVER, each bar needs to be exactly a pixel integer. If there is extra space, it should be padded left and right of
             //the graph area.
             //There should be exactly 1 pixel of space between each bar
-
-            int highestDiff = 0;
-            foreach (RoomInfo rInfo in path.WalkPath()) {
-                int roomDifficulty = rInfo.DifficultyWeight;
-                if (roomDifficulty == -1) {
-                    roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(ChokeRateData, rInfo);
-                }
-                highestDiff = Math.Max(highestDiff, roomDifficulty);
-            }
-
-            highestDiff = Math.Max(1, highestDiff);
             
             int gameplayRoomCount = path.GameplayRoomCount;
             RoomInfo currentRoom = path.CurrentRoom;
@@ -117,18 +117,23 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             bool gotGolden = stats.GoldenCollectedCount > 0;
             
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                bool breakout = false;
                 foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     //Dont display this room if its not within the room range to display
                     //Only display rooms that are within RoomsPadding of the current room number
-                    if (rInfo.RoomNumberInChapter < displayMinRoomNumber || rInfo.RoomNumberInChapter > displayMaxRoomNumber) {
+                    if (rInfo.RoomNumberInChapter < displayMinRoomNumber) {
                         continue;
+                    }
+                    if (rInfo.RoomNumberInChapter > displayMaxRoomNumber) {
+                        breakout = true;
+                        break;
                     }
 
                     int roomDifficulty = rInfo.DifficultyWeight;
                     if (roomDifficulty == -1) {
                         roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(ChokeRateData, rInfo);
                     }
-                    int barHeight = (int)(availableBarHeight * ((double)roomDifficulty / highestDiff));
+                    int barHeight = (int)(availableBarHeight * ((double)roomDifficulty / HighestDifficulty));
                     barHeight = Math.Max(1, barHeight);
                     Color barColor = !currentRoomIndicatorExplicit && rInfo.RoomNumberInChapter == currentRoomNumber ? Color.Red : Color.White;
                     visitedCurrent = rInfo.RoomNumberInChapter == currentRoomNumber ? true : visitedCurrent;
@@ -166,6 +171,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     
                     barsDrawn++;
                 }
+
+                if (breakout) break;
             }
             
             //Draw a 1 pixel bar on the left and right to indicate how many rooms are hidden
