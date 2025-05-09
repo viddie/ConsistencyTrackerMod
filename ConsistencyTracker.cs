@@ -669,7 +669,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         }
         private void Events_OnGoldenDeath() {
-            
+            ChokeRateStat.ChokeRateData = null; //Reset caching
         }
         private void Events_OnGoldenCollect(GoldenType type) {
 
@@ -709,6 +709,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
+            
+            //Reset caching of choke rate data
+            ChokeRateStat.ChokeRateData = null;
             
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false, false);

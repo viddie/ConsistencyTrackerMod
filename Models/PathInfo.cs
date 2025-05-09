@@ -45,6 +45,17 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("ignoredRooms")]
         public List<string> IgnoredRooms { get; set; } = new List<string>();
+        
+        
+        [JsonProperty("tier")]
+        public GoldenTier Tier { get; set; } = new GoldenTier(-1); //-1 = Undetermined
+        [JsonProperty("goldenPoints")]
+        public int GoldenPoints { get; set; } = -1; //-1 means not set and should be automatically determined throught the tier
+        [JsonProperty("enduranceFactor")]
+        public int EnduranceFactor { get; set; } = 13; // 1 + x / 10
+        [JsonProperty("endurancePower")]
+        public int EndurancePower { get; set; } = 15; // x / 10
+        
 
         [JsonIgnore]
         public AggregateStats Stats { get; set; } = null;

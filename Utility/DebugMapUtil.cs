@@ -170,7 +170,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
                     RoomStats rStats = Mod.CurrentChapterStats.GetRoom(rInfo);
                     Color color = Color.Gray;
-                    float successRate = rStats.AverageSuccessOverSelectedN() * 100;
+                    float successRate = rStats.AverageSuccessOverN(Mod.ModSettings.LiveDataSelectedAttemptCount) * 100;
                     if (successRate >= settings.LiveDataChapterBarLightGreenPercent) {
                         color = new Color(0, 230, 0);
                     } else if (successRate >= settings.LiveDataChapterBarGreenPercent) {

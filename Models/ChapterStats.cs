@@ -649,7 +649,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return AverageSuccessOverN(attemptCount);
         }
 
-
         public int SuccessesOverN(int n) {
             int countSucceeded = 0;
             for (int i = 0; i < n; i++) {

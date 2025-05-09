@@ -187,7 +187,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             pathInfo.Stats = new AggregateStats();
 
             pathInfo.CurrentRoom = null;
-            ChokeRateStat.ChokeRateData = null; //Reset caching
             var chokeRateData = ChokeRateStat.GetRoomData(pathInfo, chapterStats);
 
             //Walk the path

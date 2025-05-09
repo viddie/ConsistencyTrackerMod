@@ -294,7 +294,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 float successRate = data.Item2;
                 if (float.IsNaN(successRate)) {
                     diff = baseValue;
-                } else if (successRate == 1 || successRate == 0) {
+                } else if (successRate == 1) {
                     diff = 0;
                 } else {
                     float chokeRate = 1 - successRate;

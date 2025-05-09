@@ -138,11 +138,11 @@ namespace Celeste.Mod.ConsistencyTracker
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
+            menu.Add(subMenu);
             TextMenu.Item menuItem;
 
             if (!inGame) {
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
-                menu.Add(subMenu);
                 return;
             }
 
@@ -299,6 +299,8 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_BROWSER")) {
                 Disabled = true,
             });
+            
+            
             subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_REMOVE_CURRENT_ROOM")) {
                 OnPressed = Mod.RemoveRoomFromChapterPath,
                 Disabled = !hasCurrentRoom
@@ -399,9 +401,8 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(deleteButton);
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_1"));
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_DANGER_ZONE_DELETE_HINT_2"));
-
-            menu.Add(subMenu);
         }
+
 
         private string FormatDifficultyHelpLabel() {
             if (Mod.CurrentChapterPath == null || Mod.CurrentChapterPath.CurrentRoom == null) {
@@ -417,7 +418,8 @@ namespace Celeste.Mod.ConsistencyTracker
 
             return $"Total CP difficulty: {cpWeight} (This Room: {roomInCpRatio:P})\n" +
                    $"Total chapter difficulty: {chapterWeight} (This Room: {roomInChapterRatio:P}, This CP: {cpInChapterRatio:P})\n" +
-                   $"Check out the console commands 'cct-diff', 'cct-diff-all' and 'cct-diff-auto' for more efficient ways to set the difficulty weight.";
+                   $"Check out the console commands 'cct-diff', 'cct-diff-all' and 'cct-diff-auto'\n" +
+                   $"for more efficient ways to set the difficulty weight.";
         }
         private void CreateRoomDifficultySection(TextMenuExt.SubMenu subMenu) {
             int currentRoomDifficultyWeight = Mod.CurrentChapterPath?.CurrentRoom?.DifficultyWeight ?? 0;
@@ -430,6 +432,92 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = Mod.CurrentChapterPath?.CurrentRoom == null
             });
             subMenu.Add(diffLabel);
+        }
+        #endregion
+
+        #region Path Golden Tier Settings
+        public bool PathGoldenTierSettings { get; set; } = false;
+        
+        public void CreatePathGoldenTierSettingsEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu("Path Golden Tier Settings", false);
+            menu.Add(subMenu);
+            TextMenu.Item menuItem;
+
+            if (!inGame) {
+                subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
+                return;
+            }
+            
+            CreateTierSection(subMenu);
+        }
+
+        private string FormatGpHelpString(GoldenTier selectedTier, int gpValue) {
+            if (gpValue <= 0) {
+                if (selectedTier.Sort == -1) {
+                    return $"Undetermined doesn't give any points.";
+                } else if (selectedTier.Sort == 0) {
+                    return $"Untiered doesn't give any points.";
+                }
+                return $"{selectedTier.GetTierString()} = {Math.Round(selectedTier.GetGp(), 2)} gp";
+            }
+            GoldenTier calculatedTier = GoldenTier.GetTierByGp(gpValue);
+            return $"{gpValue} gp = {calculatedTier.GetTierString(true)}";
+        }
+        private void CreateTierSection(TextMenuExt.SubMenu subMenu) {
+            bool hasPath = Mod.CurrentChapterPath != null;
+            GoldenTier chapterTier = hasPath ? Mod.CurrentChapterPath.Tier : new GoldenTier(-1);
+            int gpValue = hasPath ? Mod.CurrentChapterPath.GoldenPoints : -1;
+            int enduranceFactor = hasPath ? Mod.CurrentChapterPath.EnduranceFactor : 13;
+            int endurancePower = hasPath ? Mod.CurrentChapterPath.EndurancePower : 15;
+            TextMenu.SubHeader gpSubHeader = new TextMenu.SubHeader(FormatGpHelpString(chapterTier, gpValue), topPadding: false);
+            subMenu.Add(new TextMenuExt.EnumerableSlider<GoldenTier>("Golden Tier", GoldenTier.GetTiers(), chapterTier) {
+                OnValueChange = (newValue) => {
+                    Mod.CurrentChapterPath.Tier = newValue;
+                    Mod.SavePathToFile();
+                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                    gpSubHeader.Title = FormatGpHelpString(newValue, gpValue);
+                },
+                Disabled = !hasPath
+            });
+            subMenu.Add(new TextMenuExt.IntSlider("GP Value", -1, 99999, gpValue) {
+                OnValueChange = (value) => {
+                    Mod.CurrentChapterPath.GoldenPoints = value;
+                    Mod.SavePathToFile();
+                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                    gpSubHeader.Title = FormatGpHelpString(chapterTier, value);
+                },
+                Disabled = !hasPath
+            });
+            subMenu.Add(gpSubHeader);
+            EnduranceGraph enduranceGraph = new EnduranceGraph(1 + enduranceFactor / 10f, endurancePower / 10f);
+            TextMenu.Slider enduranceSlider = new TextMenu.Slider("Endurance Slope", i => Math.Round(i / 10f + 1, 1).ToString(), 0, 100, enduranceFactor) {
+                OnValueChange = (value) => {
+                    Mod.CurrentChapterPath.EnduranceFactor = value;
+                    Mod.SavePathToFile();
+                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                    enduranceGraph.TargetSlope = 1 + value / 10f;
+                },
+                Disabled = !hasPath
+            };
+            subMenu.Add(enduranceSlider);
+            subMenu.AddDescription(subMenu.Container, enduranceSlider,
+                                   "This value defines the slope of the endurance curve.\n" +
+                                   "Lower value = Starting/Ending rooms are worth more. Middle rooms are worth less.\n" +
+                                   "Higher value = Starting/Ending rooms are worth less. Middle rooms are worth more.");
+            TextMenu.Slider endurancePowerSlider = new TextMenu.Slider("Endurance Power", i => Math.Round(i / 10f, 2).ToString(), 1, 100, endurancePower) {
+                OnValueChange = (value) => {
+                    Mod.CurrentChapterPath.EndurancePower = value;
+                    Mod.SavePathToFile();
+                    Mod.SaveChapterStats();//Path changed, so force a stat recalculation
+                    enduranceGraph.TargetPower = value / 10f;
+                },
+                Disabled = !hasPath
+            };
+            subMenu.Add(endurancePowerSlider);
+            subMenu.AddDescription(subMenu.Container, endurancePowerSlider, "This value defines the power applied to the endurance curve.\n" +
+                                                                       "Lower value = Starting rooms are worth more. Middle/Ending rooms are worth less.\n" +
+                                                                       "Higher value = Starting rooms are worth less. Middle/Ending rooms are worth more.");
+            subMenu.Add(enduranceGraph);
         }
         #endregion
 
