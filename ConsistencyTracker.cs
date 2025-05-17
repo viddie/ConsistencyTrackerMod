@@ -1784,7 +1784,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveChapterStats();
         }
 
-        public void ChangeRoomDifficultyWeight(int newDifficulty) {
+        public void ChangeRoomDifficultyWeight(int newDifficulty, RoomInfo targetRoom = null) {
             if (CurrentChapterPath == null) {
                 Log($"CurrentChapterPath was null");
                 return;
@@ -1796,7 +1796,57 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             
             Log($"Changing rooms difficulty for '{CurrentRoomName}' to '{newDifficulty}'");
-            CurrentChapterPath.CurrentRoom.DifficultyWeight = newDifficulty;
+
+            bool applyToAllSegments = ModSettings.RoomDifficultyAllSegments;
+
+            RoomInfo room = CurrentChapterPath.CurrentRoom;
+            if (applyToAllSegments) {
+                foreach (PathSegment segment in CurrentChapterPathSegmentList.Segments) {
+                    if (segment.Path == null) continue;
+                    foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
+                        foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                            if (rInfo.DebugRoomName == room.DebugRoomName) {
+                                rInfo.DifficultyWeight = newDifficulty;
+                            }
+                        }
+                    }
+                }
+                Log($"Applied difficulty change to all segments");
+            } else {
+                CurrentChapterPath.CurrentRoom.DifficultyWeight = newDifficulty;
+            }
+
+            CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
+            SetNewRoom(CurrentRoomName, false);
+
+            SavePathToFile();
+            SaveChapterStats();
+        }
+
+        public void ChangeAllRoomDifficultyWeights(int newDifficulty) {
+            if (CurrentChapterPath == null) {
+                Log($"CurrentChapterPath was null");
+                return;
+            }
+            
+            Log($"Changing all rooms difficulties for the current chapter");
+
+            bool applyToAllSegments = ModSettings.RoomDifficultyAllSegments;
+            List<PathSegment> segments = new List<PathSegment>() { CurrentChapterPathSegmentList.CurrentSegment };
+
+            if (applyToAllSegments) {
+                foreach (PathSegment segment in CurrentChapterPathSegmentList.Segments) {
+                    if (segment.Path == null) continue;
+                    if (segments.Contains(segment)) continue;
+                    segments.Add(segment);
+                }
+            }
+
+            foreach (PathSegment segment in segments) {
+                foreach (RoomInfo rInfo in segment.Path.WalkPath()) {
+                    rInfo.DifficultyWeight = newDifficulty;
+                }
+            }
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
             SetNewRoom(CurrentRoomName, false);

@@ -135,6 +135,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RecordPath { get; set; } = false;
         [SettingIgnore]
         public bool CustomRoomNameAllSegments { get; set; } = true;
+        [SettingIgnore]
+        public bool RoomDifficultyAllSegments { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
@@ -418,13 +420,13 @@ namespace Celeste.Mod.ConsistencyTracker
 
             return $"Total CP difficulty: {cpWeight} (This Room: {roomInCpRatio:P})\n" +
                    $"Total chapter difficulty: {chapterWeight} (This Room: {roomInChapterRatio:P}, This CP: {cpInChapterRatio:P})\n" +
-                   $"Check out the console commands 'cct-diff', 'cct-diff-all' and 'cct-diff-auto'\n" +
+                   $"Check out the console commands 'cct-diff' and 'cct-diff-all'\n" +
                    $"for more efficient ways to set the difficulty weight.";
         }
         private void CreateRoomDifficultySection(TextMenuExt.SubMenu subMenu) {
             int currentRoomDifficultyWeight = Mod.CurrentChapterPath?.CurrentRoom?.DifficultyWeight ?? 0;
             TextMenu.SubHeader diffLabel = new TextMenu.SubHeader(FormatDifficultyHelpLabel(), topPadding: false);
-            subMenu.Add(new TextMenu.Slider("Room Difficulty Weight", i => i.ToString(), 0, 1000, currentRoomDifficultyWeight) {
+            subMenu.Add(new TextMenu.Slider("Room Difficulty Weight", i => i.ToString(), -1, 1000, currentRoomDifficultyWeight) {
                 OnValueChange = (value) => {
                     Mod.ChangeRoomDifficultyWeight(value);
                     diffLabel.Title = FormatDifficultyHelpLabel();
@@ -432,6 +434,12 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = Mod.CurrentChapterPath?.CurrentRoom == null
             });
             subMenu.Add(diffLabel);
+            subMenu.Add(new TextMenu.OnOff("Apply Difficulty Changes To All Segments", RoomDifficultyAllSegments) {
+                OnValueChange = (value) => {
+                    RoomDifficultyAllSegments = value;
+                },
+                Disabled = Mod.CurrentChapterPath?.CurrentRoom == null
+            });
         }
         #endregion
 
@@ -467,15 +475,20 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasPath = Mod.CurrentChapterPath != null;
             GoldenTier chapterTier = hasPath ? Mod.CurrentChapterPath.Tier : new GoldenTier(-1);
             int gpValue = hasPath ? Mod.CurrentChapterPath.GoldenPoints : -1;
-            int enduranceFactor = hasPath ? Mod.CurrentChapterPath.EnduranceFactor : 13;
+            int enduranceFactor = hasPath ? Mod.CurrentChapterPath.EnduranceFactor : 3;
             int endurancePower = hasPath ? Mod.CurrentChapterPath.EndurancePower : 15;
+            double calculatedMaxGP = hasPath ? (gpValue == -1 ? chapterTier.GetGp() : gpValue) : -1;
+            EnduranceGraph enduranceGraph = new EnduranceGraph(1 + enduranceFactor / 10f, endurancePower / 10f, calculatedMaxGP);
             TextMenu.SubHeader gpSubHeader = new TextMenu.SubHeader(FormatGpHelpString(chapterTier, gpValue), topPadding: false);
+            
             subMenu.Add(new TextMenuExt.EnumerableSlider<GoldenTier>("Golden Tier", GoldenTier.GetTiers(), chapterTier) {
                 OnValueChange = (newValue) => {
                     Mod.CurrentChapterPath.Tier = newValue;
                     Mod.SavePathToFile();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     gpSubHeader.Title = FormatGpHelpString(newValue, gpValue);
+                    double calcMaxGP = hasPath ? (gpValue == -1 ? newValue.GetGp() : gpValue) : -1;
+                    enduranceGraph.MaxGP = calcMaxGP;
                 },
                 Disabled = !hasPath
             });
@@ -485,11 +498,12 @@ namespace Celeste.Mod.ConsistencyTracker
                     Mod.SavePathToFile();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     gpSubHeader.Title = FormatGpHelpString(chapterTier, value);
+                    double calcMaxGP = hasPath ? (value == -1 ? chapterTier.GetGp() : value) : -1;
+                    enduranceGraph.MaxGP = calcMaxGP;
                 },
                 Disabled = !hasPath
             });
             subMenu.Add(gpSubHeader);
-            EnduranceGraph enduranceGraph = new EnduranceGraph(1 + enduranceFactor / 10f, endurancePower / 10f);
             TextMenu.Slider enduranceSlider = new TextMenu.Slider("Endurance Slope", i => Math.Round(i / 10f + 1, 1).ToString(), 0, 100, enduranceFactor) {
                 OnValueChange = (value) => {
                     Mod.CurrentChapterPath.EnduranceFactor = value;
@@ -1072,6 +1086,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool ShowCCTRoomNamesOnDebugMap { get; set; } = true;
         [SettingIgnore]
         public bool ShowSuccessRateBordersOnDebugMap { get; set; } = false;
+        [SettingIgnore]
+        public bool ShowRoomDifficultiesOnDebugMap { get; set; } = true;
         
         #region Graph Overlay
         //Graph Overlay
@@ -1253,6 +1269,11 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_DEBUG_MAP_SHOW_SUCCESS_RATE_BORDERS"), ShowSuccessRateBordersOnDebugMap) {
                 OnValueChange = v => {
                     ShowSuccessRateBordersOnDebugMap = v;
+                }
+            });
+            subMenu.Add(new TextMenu.OnOff("Show Room Difficulties On Debug Map", ShowRoomDifficultiesOnDebugMap) {
+                OnValueChange = v => {
+                    ShowRoomDifficultiesOnDebugMap = v;
                 }
             });
             

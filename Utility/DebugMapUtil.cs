@@ -11,6 +11,7 @@ using Celeste.Editor;
 using Monocle;
 using System.Web.UI;
 using System.Xml.Linq;
+using Celeste.Mod.ConsistencyTracker.Stats;
 using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
@@ -74,6 +75,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Camera camera = Util.GetPrivateStaticProperty<Camera>(self, "Camera");
             ConsistencyTrackerSettings settings = Mod.ModSettings;
             PathInfo currentPath = Mod.CurrentChapterPath;
+            ChapterStats currentStats = Mod.CurrentChapterStats;
 
             if (IsRecording) {
                 StartSpriteBatch();
@@ -106,10 +108,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             
-            if (currentPath == null) return;
+            if (currentPath == null || currentStats == null) return;
 
             if (settings.ShowCCTRoomNamesOnDebugMap) {
                 StartSpriteBatch();
+                
+                var chokeRateData = ChokeRateStat.GetRoomData(currentPath, currentStats);
 
                 foreach (LevelTemplate template in levels) {
                     string name = template.Name;
@@ -126,6 +130,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     string formattedName;
                     int scaleDivider = 6;
 
+                    //ROOM NAME
                     if (settings.LiveDataCustomNameBehavior == CustomNameBehavior.Override || settings.LiveDataCustomNameBehavior == CustomNameBehavior.Ignore) {
                         formattedName = rInfo.GetFormattedRoomName(settings.LiveDataRoomNameDisplayType);
                     } else {
@@ -136,6 +141,18 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                         }
                     }
 
+                    //ROOM DIFFICULTIES
+                    if (settings.ShowRoomDifficultiesOnDebugMap) {
+                        int roomDifficulty = rInfo.DifficultyWeight;
+                        string tilde = "";
+                        if (roomDifficulty == -1) {
+                            roomDifficulty = ConsoleCommands.GetRoomDifficultyBasedOnStats(chokeRateData, rInfo);
+                            tilde = "~";
+                        }
+                        formattedName += $"\n{tilde}{roomDifficulty}";
+                    }
+
+                    //PACE PING NOTICES
                     foreach (var manager in Mod.MultiPacePingManager.GetManagers()) {
                         PacePingManager.PaceTiming paceTiming = manager.GetPaceTiming(currentPath.ChapterSID, rInfo.DebugRoomName, dontLog: true);
                         string pingName = manager.State.PingName;

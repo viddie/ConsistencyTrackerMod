@@ -52,9 +52,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("goldenPoints")]
         public int GoldenPoints { get; set; } = -1; //-1 means not set and should be automatically determined throught the tier
         [JsonProperty("enduranceFactor")]
-        public int EnduranceFactor { get; set; } = 13; // 1 + x / 10
+        public int EnduranceFactor { get; set; } = 3; // 1 + x / 10 | default: 1.3
         [JsonProperty("endurancePower")]
-        public int EndurancePower { get; set; } = 15; // x / 10
+        public int EndurancePower { get; set; } = 15; // x / 10 | default: 1.5
         
 
         [JsonIgnore]

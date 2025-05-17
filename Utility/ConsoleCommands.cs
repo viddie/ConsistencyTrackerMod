@@ -204,9 +204,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return;
             }
 
-            targetRoom.DifficultyWeight = difficulty;
-            Mod.SavePathToFile();
-            Mod.SaveChapterStats();
+            Mod.ChangeRoomDifficultyWeight(difficulty, targetRoom);
+            
             ConsolePrint($"Set difficulty of room '{targetRoom.GetFormattedRoomName(Mod.ModSettings.LiveDataRoomNameDisplayType)}' to {difficulty}");
         }
 
@@ -247,12 +246,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return;
             }
 
-            foreach (RoomInfo rInfo in path.WalkPath()) {
-                rInfo.DifficultyWeight = difficulty;
-            }
-            
-            Mod.SavePathToFile();
-            Mod.SaveChapterStats();
+            Mod.ChangeAllRoomDifficultyWeights(difficulty);
             ConsolePrint($"Set difficulty of all rooms to {difficulty}");
         }
         

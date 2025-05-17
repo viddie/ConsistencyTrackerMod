@@ -26,7 +26,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             if (withFrac) {
                 string paddedFraction = Fraction.ToString("0.00").Substring(1);
                 if (Fraction >= 0.99f) paddedFraction = ".99"; //Edge case: rounding puts it at 1.00, substring would make it .00
-                else if (Math.Abs(Fraction - 0.5f) < 0.00001f) paddedFraction = ""; //Special case: Dont show fraction if its exactly the center
+                
+                //Ignore this case for now
+                //else if (Math.Abs(Fraction - 0.5f) < 0.00001f) paddedFraction = ""; //Special case: Dont show fraction if its exactly the center
+                
                 return $"Tier {Sort}{paddedFraction}";
             }
             return $"Tier {Sort}";
