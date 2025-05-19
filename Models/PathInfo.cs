@@ -444,6 +444,24 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return toReturn;
         }
 
+        public override bool Equals(object obj) {
+            if (obj == null) return false;
+            if (!(obj is RoomInfo)) return false;
+            RoomInfo other = (RoomInfo)obj;
+            return other.DebugRoomName == DebugRoomName 
+                   && other.IsNonGameplayRoom == IsNonGameplayRoom 
+                   && other.CustomRoomName == CustomRoomName
+                   && other.DifficultyWeight == DifficultyWeight;
+        }
+
+        public override int GetHashCode() {
+            int hash = 17;
+            hash = hash * 23 + (DebugRoomName == null ? 0 : DebugRoomName.GetHashCode());
+            hash = hash * 23 + IsNonGameplayRoom.GetHashCode();
+            hash = hash * 23 + (CustomRoomName == null ? 0 : CustomRoomName.GetHashCode());
+            hash = hash * 23 + DifficultyWeight.GetHashCode();
+            return hash;
+        }
     }
 
 

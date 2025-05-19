@@ -1940,6 +1940,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
+        private int _LogEveryN = 0;
+        public void LogEvery(int n, string message, bool isFollowup = false, int frameBack = 2) {
+            _LogEveryN++;
+            if (_LogEveryN >= n) {
+                _LogEveryN = 0;
+                Log(message, isFollowup, frameBack);
+            }
+        }
+
         public void LogVerbose(string message, bool isFollowup = false, int frameBack = 2) {
             if (ModSettings.VerboseLogging) { 
                 Log(message, isFollowup, frameBack);
