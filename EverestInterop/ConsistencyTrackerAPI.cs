@@ -39,6 +39,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
             mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
             Events.Events.InvokeGoldenDeath();
+            mod.UpdatePlayerHoldingGolden();
             mod.SaveChapterStats(); //Call events to notify pace ping, physics logger, external listeners...
 
             mod.Log($"Added golden death to '{roomName}'");
@@ -74,6 +75,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             }
 
             mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
+            mod.UpdatePlayerHoldingGolden();
             mod.SaveChapterStats();
             //Don't invoke event
 

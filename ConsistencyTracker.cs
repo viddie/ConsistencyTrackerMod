@@ -487,7 +487,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
             string newCurrentRoom = SanitizeRoomName(level.Session.LevelData.Name);
-            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
+            UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
 
@@ -926,6 +926,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             _CurrentRoomCompletedResetOnDeath = resetOnDeath;
         }
 
+        public void UpdatePlayerHoldingGolden(Player player = null) {
+            if (player == null && Engine.Scene is Level level) {
+                player = level.Tracker.GetEntity<Player>();
+            }
+            if (player == null) return;
+            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
+        }
         private bool PlayerIsHoldingGoldenBerry(Player player) {
             if (player == null || player.Leader == null || player.Leader.Followers == null || player.Leader.Followers.Count == 0) {
                 //Log($"player '{player}', player.Leader '{player?.Leader}', player.Leader.Followers '{player?.Leader?.Followers}', follower count '{player?.Leader?.Followers?.Count}'");
@@ -988,11 +995,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if (PlayerIsHoldingGolden && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
                     Events.Events.InvokeGoldenDeath();
-
-                    Player player = level.Tracker.GetEntity<Player>();
-                    if (player != null) {
-                        PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
-                    }
+                    UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
                 }
             }
 
@@ -1790,22 +1793,25 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            if (CurrentChapterPath.CurrentRoom == null) {
-                Log($"Room '{CurrentRoomName}' is not on path!");
+            if (targetRoom == null) {
+                targetRoom = CurrentChapterPath.CurrentRoom;
+            }
+
+            if (targetRoom == null) {
+                Log($"Current room is not on path!");
                 return;
             }
             
-            Log($"Changing rooms difficulty for '{CurrentRoomName}' to '{newDifficulty}'");
+            Log($"Changing rooms difficulty for '{targetRoom.GetFormattedRoomName(ModSettings.LiveDataRoomNameDisplayType)}' to '{newDifficulty}'");
 
             bool applyToAllSegments = ModSettings.RoomDifficultyAllSegments;
 
-            RoomInfo room = CurrentChapterPath.CurrentRoom;
             if (applyToAllSegments) {
                 foreach (PathSegment segment in CurrentChapterPathSegmentList.Segments) {
                     if (segment.Path == null) continue;
                     foreach (CheckpointInfo cpInfo in segment.Path.Checkpoints) {
                         foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                            if (rInfo.DebugRoomName == room.DebugRoomName) {
+                            if (rInfo.DebugRoomName == targetRoom.DebugRoomName) {
                                 rInfo.DifficultyWeight = newDifficulty;
                             }
                         }
@@ -1817,7 +1823,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
-            SetNewRoom(CurrentRoomName, false);
+            //SetNewRoom(CurrentRoomName, false);
 
             SavePathToFile();
             SaveChapterStats();
@@ -1849,7 +1855,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
-            SetNewRoom(CurrentRoomName, false);
+            //SetNewRoom(CurrentRoomName, false);
 
             SavePathToFile();
             SaveChapterStats();
