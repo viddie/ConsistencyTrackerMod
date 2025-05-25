@@ -118,25 +118,18 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             string runStatusPercentStr, runStatusPercentSessionStr;
             string topXPercentStr, topXPercentSessionStr;
 
-            if (totalGoldenRuns == 0) {
-                runStatusPercentStr = "100%";
-                topXPercentStr = "0%";
-            } else {
-                double runStatusPercent = (double)goldenDeathsUntilRoom / totalGoldenRuns;
 
-                runStatusPercentStr = $"{StatManager.FormatPercentage(runStatusPercent)}";
-                topXPercentStr = $"{StatManager.FormatPercentage(1 - runStatusPercent)}";
-            }
+            double runStatusPercent = (double)goldenDeathsUntilRoom / (totalGoldenRuns + 1);
 
-            if (totalGoldenRunsSession == 0) {
-                runStatusPercentSessionStr = "100%";
-                topXPercentSessionStr = "0%";
-            } else {
-                double runStatusPercentSession = (double)goldenDeathsUntilRoomSession / totalGoldenRunsSession;
+            runStatusPercentStr = $"{StatManager.FormatPercentage(runStatusPercent)}";
+            topXPercentStr = $"{StatManager.FormatPercentage(1 - runStatusPercent)}";
+            
 
-                runStatusPercentSessionStr = $"{StatManager.FormatPercentage(runStatusPercentSession)}";
-                topXPercentSessionStr = $"{StatManager.FormatPercentage(1 - runStatusPercentSession)}";
-            }
+            double runStatusPercentSession = (double)goldenDeathsUntilRoomSession / (totalGoldenRunsSession + 1);
+
+            runStatusPercentSessionStr = $"{StatManager.FormatPercentage(runStatusPercentSession)}";
+            topXPercentSessionStr = $"{StatManager.FormatPercentage(1 - runStatusPercentSession)}";
+            
 
             format = format.Replace(RunCurrentPbStatusPercent, runStatusPercentStr);
             format = format.Replace(RunCurrentPbStatusPercentSession, runStatusPercentSessionStr);
