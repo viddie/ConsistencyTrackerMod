@@ -1280,7 +1280,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
             string backupPath = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
-            File.WriteAllText(backupPath, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
+            
+            // File.WriteAllText(backupPath, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
+            using (FileStream fs = new FileStream(backupPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (StreamWriter writer = new StreamWriter(fs))
+            {
+                string json = JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented);
+                writer.Write(json);
+                writer.Flush();
+            }
 
             //Delete actual file
             if (File.Exists(path)) {
