@@ -4,19 +4,12 @@ using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
-using Celeste.Mod.UI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Mono.Cecil;
-using Monocle;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Celeste.Mod.ConsistencyTracker.Entities.WidgetLayout;
 using static Celeste.Mod.ConsistencyTracker.Utility.PacePingManager;
 
@@ -2376,6 +2369,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonToggleTextOverlayText2 { get; set; }
         public ButtonBinding ButtonToggleTextOverlayText3 { get; set; }
         public ButtonBinding ButtonToggleTextOverlayText4 { get; set; }
+        
+        public ButtonBinding ButtonToggleDifficultyGraph { get; set; }
 
         public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
         public ButtonBinding ButtonAddRoomSuccess { get; set; }

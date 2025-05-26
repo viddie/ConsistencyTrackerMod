@@ -136,7 +136,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 Mod.Log($"ButtonToggleTextOverlayText4: Toggled text overlay text 4 to {Mod.ModSettings.IngameOverlayText4Enabled}");
             }
             
-
+            if (Mod.ModSettings.ButtonToggleDifficultyGraph.Pressed) {
+                bool currentVisible = Mod.ModSettings.IngameOverlayGraphEnabled;
+                Mod.ModSettings.IngameOverlayGraphEnabled = !currentVisible;
+                Mod.SaveSettings();
+                Mod.Log($"Toggled ingame graph to {Mod.ModSettings.IngameOverlayGraphEnabled}");
+            }
+            
+            
 
             if (Mod.ModSettings.ButtonAddRoomSuccess.Pressed) {
                 if (Mod.CurrentChapterStats != null) {
