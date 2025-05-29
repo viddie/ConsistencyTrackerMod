@@ -3,13 +3,12 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Celeste.Mod.ConsistencyTracker.PhysicsLog.PhysicsLogger;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
     public class PhysicsRecordingsManager {
+        
+        public static Object LogFileLock = new Object();
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
@@ -80,19 +79,22 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
             //logs are stored in numbered files from 0 to MaxLogFiles
             //shift all files up by 1, deleting the last one
 
-            for (int i = MaxLogFiles - 1; i >= 0; i--) {
-                string pathFrom = GetPathToFile(RecordingType.Recent, fileType, i);
-                string pathTo = GetPathToFile(RecordingType.Recent, fileType, i + 1);
+            //Lock in order for the API to not read (and thus prevent move/delete) of the files while we are shifting them
+            lock (LogFileLock) {
+                for (int i = MaxLogFiles - 1; i >= 0; i--) {
+                    string pathFrom = GetPathToFile(RecordingType.Recent, fileType, i);
+                    string pathTo = GetPathToFile(RecordingType.Recent, fileType, i + 1);
 
-                if (File.Exists(pathFrom)) {
-                    File.Move(pathFrom, pathTo);
+                    if (File.Exists(pathFrom)) {
+                        File.Move(pathFrom, pathTo);
+                    }
                 }
-            }
 
-            //delete the last file
-            string pathDelete = GetPathToFile(RecordingType.Recent, fileType, MaxLogFiles);
-            if (File.Exists(pathDelete)) {
-                File.Delete(pathDelete);
+                //delete the last file
+                string pathDelete = GetPathToFile(RecordingType.Recent, fileType, MaxLogFiles);
+                if (File.Exists(pathDelete)) {
+                    File.Delete(pathDelete);
+                }
             }
         }
 

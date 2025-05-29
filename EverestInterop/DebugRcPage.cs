@@ -789,6 +789,8 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "folder");
                     return;
                 }
+
+
                 string subFolderName = GetQueryParameter(c, "subfolder");
                 string fileName = GetQueryParameter(c, "file");
                 if (fileName == null) {
@@ -826,7 +828,17 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                     return;
                 }
 
-                string content = File.ReadAllText(combinedPath);
+                
+                //Lock for specifically the physics recordings
+                Object lockObj = new Object();
+                if (folderName == "physics-recordings") {
+                    lockObj = PhysicsRecordingsManager.LogFileLock;
+                }
+                //--------------------------------------------
+                string content;
+                lock (lockObj) {
+                    content = File.ReadAllText(combinedPath);
+                }
 
                 //Response
                 GetFileContentResponse response = new GetFileContentResponse() {
