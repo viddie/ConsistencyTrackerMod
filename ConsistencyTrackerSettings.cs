@@ -546,36 +546,49 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasPath = Mod.CurrentChapterPath != null;
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
 
-
+            string attemptNote = "Removes practice clears/deaths, NOT golden runs.";
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_TITLE")} ==="));
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT")) {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_ATTEMPT")) {
                 OnPressed = () => {
                     Mod.RemoveLastAttempt();
                 },
                 Disabled = !hasCurrentRoom
             });
+            subMenu.AddDescription(menu, menuItem, attemptNote);
 
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_DEATH_STREAK")) {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_LAST_DEATH_STREAK")) {
                 OnPressed = () => {
                     Mod.RemoveLastDeathStreak();
                 },
                 Disabled = !hasCurrentRoom
             });
+            subMenu.AddDescription(menu, menuItem, attemptNote);
 
-            subMenu.Add(new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_ALL_ATTEMPTS")) {
+            subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_ALL_ATTEMPTS")) {
                 OnPressed = () => {
                     Mod.WipeRoomData();
                 },
                 Disabled = !hasCurrentRoom
             });
+            subMenu.AddDescription(menu, menuItem, attemptNote);
 
-            subMenu.Add(new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATHS")) {
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATH")) {
+                OnDoubleConfirmation = () => {
+                    Mod.RemoveRoomGoldenBerryDeaths(true);
+                },
+                Disabled = !hasCurrentRoom,
+                HighlightColor = Color.Red,
+            });
+            subMenu.AddDescription(menu, menuItem, $"This will not update the session history.");
+            
+            subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_ROOM_REMOVE_REMOVE_GOLDEN_BERRY_DEATHS")) {
                 OnDoubleConfirmation = () => {
                     Mod.RemoveRoomGoldenBerryDeaths();
                 },
                 Disabled = !hasCurrentRoom,
                 HighlightColor = Color.Red,
             });
+            subMenu.AddDescription(menu, menuItem, $"This will not update the session history.");
 
 
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_CHAPTER_TITLE")} ==="));

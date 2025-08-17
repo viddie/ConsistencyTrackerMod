@@ -1539,17 +1539,24 @@ namespace Celeste.Mod.ConsistencyTracker {
             WipeRoomData();
         }
 
-        public void RemoveRoomGoldenBerryDeaths() {
+        public void RemoveRoomGoldenBerryDeaths(bool removeOne = false) {
             if (CurrentChapterStats == null) {
                 Log($"Aborting wiping room golden berry deaths as '{nameof(CurrentChapterStats)}' is null");
                 return;
             }
 
-            Log($"Wiping golden berry death data for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+            if (removeOne) {
+                Log($"Removing 1 golden death for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+                CurrentChapterStats.CurrentRoom.GoldenBerryDeaths = Math.Max(0, CurrentChapterStats.CurrentRoom.GoldenBerryDeaths - 1);
+                CurrentChapterStats.CurrentRoom.GoldenBerryDeathsSession = Math.Max(0, CurrentChapterStats.CurrentRoom.GoldenBerryDeathsSession - 1);
+            } else {
+                Log($"Wiping golden berry death data for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
+                CurrentChapterStats.CurrentRoom.GoldenBerryDeaths = 0;
+                CurrentChapterStats.CurrentRoom.GoldenBerryDeathsSession = 0;
+            }
 
-            CurrentChapterStats.CurrentRoom.GoldenBerryDeaths = 0;
-            CurrentChapterStats.CurrentRoom.GoldenBerryDeathsSession = 0;
-
+            //Reset cached choke rate data for graph
+            ChokeRateStat.ChokeRateData = null;
             SaveChapterStats();
         }
         public void WipeChapterGoldenBerryDeaths() {
@@ -1846,7 +1853,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
-            //SetNewRoom(CurrentRoomName, false);
 
             SavePathToFile();
             SaveChapterStats();
