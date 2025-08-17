@@ -372,18 +372,28 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private readonly List<EntityID> TouchedBerries = new List<EntityID>();
+        private readonly List<EntityID> IgnoreBerryCollects = new List<EntityID>();
         // All touched berries need to be reset on death, since they either:
         // - already collected
         // - disappeared on death
         private void Strawberry_OnPlayer(On.Celeste.Strawberry.orig_OnPlayer orig, Strawberry self, Player player) {
-            orig(self, player);
-
-            if (TouchedBerries.Contains(self.ID)) return; //to not spam the log
+            //to not spam the log
+            if (TouchedBerries.Contains(self.ID)) {
+                orig(self, player);
+                return;
+            }
             TouchedBerries.Add(self.ID);
 
             LogVerbose($"Strawberry on player | self.Type: {self.GetType().Name}, self.Golden: {self.Golden}");
             SetRoomCompleted(resetOnDeath: true);
-
+            
+            if (self.Winged) {
+                if(!IgnoreBerryCollects.Contains(self.ID))
+                    IgnoreBerryCollects.Add(self.ID);
+                LogVerbose($"Ignoring winged berry pickup.");
+                return;
+            }
+            
             GoldenType goldenType = GoldenType.Golden;
             bool isSpeedBerry = false;
             switch (self.GetType().Name) {
@@ -401,17 +411,23 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && !self.Winged && !isSpeedBerry) {
+            if (self.Golden && !isSpeedBerry) {
                 PlayerIsHoldingGolden = true;
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 SaveChapterStats();
-                
                 Events.Events.InvokeGoldenPickup(goldenType);
             }
+            
+            orig(self, player);
         }
 
         private void On_Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
             orig(self);
+
+            if (IgnoreBerryCollects.Contains(self.ID)) {
+                LogVerbose($"Ignoring winged berry collect.");
+                return;
+            }
 
             Log($"Berry collected! Type Name: '{self.GetType().Name}', Golden: '{self.Golden}', Winged: '{self.Winged}'");
             
@@ -432,7 +448,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"Golden collected! GG :catpog:");
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
-                
                 Events.Events.InvokeGoldenCollect(goldenType);
             }
         }
