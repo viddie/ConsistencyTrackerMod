@@ -115,8 +115,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             int barsDrawn = 0;
             bool visitedCurrent = false;
             bool gotGolden = stats.GoldenCollectedCount > 0;
+            bool isFirstCheckpoint = true;
             
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                int roomNumberInCp = 0;
                 bool breakout = false;
                 foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     //Dont display this room if its not within the room range to display
@@ -140,6 +142,21 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     if (!visitedCurrent) {
                         barColor = Color.Gray;
                     }
+                    
+                    //Draw checkpoint indicator over the empty space before this bar
+                    if (!isFirstCheckpoint && rInfo.RoomNumberInCP == 1 && Mod.ModSettings.IngameOverlayGraphShowCheckpointIndicator) {
+                        //Position of the indicator: It should occupy the gap between the last drawn bar and this one. Center it in the gap.
+                        //Width: If there is no space, omit the indicator. If there is any space, occupy: 1 pixel, or 2 pixels if the available space is an even number of pixels
+                        //Height: full height of the graph. Including drawing over the golden PB bar if it exists.
+                        int lastBarX = (int)(paddingX + position.X + (barWidth * (barsDrawn)) + (BarSpacing * (barsDrawn - 1)) + beforeBarsOffset);
+                        if (BarSpacing > 0) {
+                            int indicatorWidth = BarSpacing % 2 == 0 ? 2 : 1;
+                            int indicatorX = lastBarX + (BarSpacing - indicatorWidth) / 2;
+                            Draw.Rect(indicatorX, position.Y, indicatorWidth, availableBarHeight + (ShowGoldenPbBar ? 3 + 1 : 0), Color.Gold);
+                        }
+                    }
+                    
+                    //Draw bar
                     Draw.Rect(paddingX + position.X + (barWidth * barsDrawn) + (BarSpacing * barsDrawn) + beforeBarsOffset, 
                               position.Y + (availableBarHeight - barHeight),
                               barWidth,
@@ -171,6 +188,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     
                     barsDrawn++;
                 }
+
+                isFirstCheckpoint = false;
 
                 if (breakout) break;
             }

@@ -1109,6 +1109,9 @@ namespace Celeste.Mod.ConsistencyTracker
         public int IngameOverlayGraphRoomsPadding { get; set; } = 50;
         
         [SettingIgnore]
+        public bool IngameOverlayGraphShowCheckpointIndicator { get; set; } = true;
+        
+        [SettingIgnore]
         public bool IngameOverlayGraphShowGoldenPbBar { get; set; } = true;
         
         [SettingIgnore]
@@ -1321,26 +1324,49 @@ namespace Celeste.Mod.ConsistencyTracker
                     IngameOverlayGraphBarSpacing = value;
                 }
             });
-            subMenu.Add(new TextMenu.Slider("Graph Room Padding", (i) => $"{i} Room(s)", 0, 1000, IngameOverlayGraphRoomsPadding) {
+            subMenu.Add(menuItem = new TextMenu.Slider("Graph Room Padding", (i) => $"{i} Room(s)", 0, 1000, IngameOverlayGraphRoomsPadding) {
                 OnValueChange = (value) => {
                     IngameOverlayGraphRoomsPadding = value;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Graph Show Golden PB Bar", IngameOverlayGraphShowGoldenPbBar) {
+            subMenu.AddDescription(menu, menuItem, "The amount of rooms to show on the graph AROUND the current room." +
+                                                   "\nExample: If set to 10 it will show the current room + 20 rooms (10 before and 10 after)." +
+                                                   "\nIf you are less than 10 rooms away from the start or end of the chapter, it will still show 21 rooms.");
+            
+            subMenu.Add(menuItem = new TextMenu.OnOff("Graph Show Checkpoint Indicator", IngameOverlayGraphShowCheckpointIndicator) {
+                OnValueChange = v => {
+                    IngameOverlayGraphShowCheckpointIndicator = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Shows a small indicator between checkpoints in the graph." +
+                                                   "\nIt will be either 1 or 2 pixels in width (to make it nice and even)" +
+                                                   "\nand be placed inbetween the two rooms that it connects." +
+                                                   "\nIf the Bar Spacing is set to 0, it will not show up.");
+            
+            subMenu.Add(menuItem = new TextMenu.OnOff("Graph Show Golden PB Bar", IngameOverlayGraphShowGoldenPbBar) {
                 OnValueChange = v => {
                     IngameOverlayGraphShowGoldenPbBar = v;
                 }
             });
-            subMenu.Add(new TextMenu.OnOff("Graph Current Room Indicator Explicit", IngameOverlayGraphCurrentRoomExplicit) {
+            subMenu.AddDescription(menu, menuItem, "Shows your PB room as a golden bar at the bottom of the graph.");
+            
+            subMenu.Add(menuItem = new TextMenu.OnOff("Graph Current Room Indicator Explicit", IngameOverlayGraphCurrentRoomExplicit) {
                 OnValueChange = v => {
                     IngameOverlayGraphCurrentRoomExplicit = v;
                 }
             });
-            subMenu.Add(new TextMenu.Slider("Graph Hidden Rooms Indicator Width", (i) => $"{i} Pixel(s)", 0, 20, IngameOverlayGraphHiddenRoomsIndicatorWidth) {
+            subMenu.AddDescription(menu, menuItem, "If enabled, no longer colors the current room red," +
+                                                   "\nbut instead shows a small indicator on the bottom of the graph.");
+            
+            subMenu.Add(menuItem = new TextMenu.Slider("Graph Hidden Rooms Indicator Width", (i) => $"{i} Pixel(s)", 0, 20, IngameOverlayGraphHiddenRoomsIndicatorWidth) {
                 OnValueChange = (value) => {
                     IngameOverlayGraphHiddenRoomsIndicatorWidth = value;
                 }
             });
+            subMenu.AddDescription(menu, menuItem, "If greater than 0 and if there are any rooms that aren't already visible on the graph," +
+                                                   "\nan indicator will be shown on the sides of the graph where more rooms are available." +
+                                                   "\nThe height of the bar is proportional to how many rooms are hidden.");
+            
             subMenu.Add(new TextMenu.Slider("Graph Background Dim", (i) => $"{i*10} %", 0, 10, IngameOverlayGraphBackgroundDim) {
                 OnValueChange = (value) => {
                     IngameOverlayGraphBackgroundDim = value;
