@@ -371,7 +371,7 @@ function fetchPhysicsLogFileList(then) {
     // OnShowMainView();
   }
 
-  performRequest(url, afterFetch, "Failed to fetch physics log file list (is CCT running?)", onError);
+  performRequest(url, afterFetch, "Failed to fetch physics log file list (is CCT running? is debug mode enabled?)", onError);
 }
 
 function afterFetchPhysicsLogFileList() {

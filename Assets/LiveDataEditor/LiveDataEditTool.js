@@ -94,7 +94,7 @@ function fetchAvailableFormats(then){
             }
 
             then();
-        }).catch(error => showError(-1, "Could not fetch formats (is CCT running?)"));
+        }).catch(error => showError(-1, "Could not fetch formats (is CCT running? is debug mode enabled?)"));
 }
 function afterFetchRoomLayout(){
     fetchPhysicsLog(goToInspectorView);
