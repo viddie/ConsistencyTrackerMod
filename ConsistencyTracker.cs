@@ -391,6 +391,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if(!IgnoreBerryCollects.Contains(self.ID))
                     IgnoreBerryCollects.Add(self.ID);
                 LogVerbose($"Ignoring winged berry pickup.");
+                orig(self, player);
                 return;
             }
             
