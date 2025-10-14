@@ -28,10 +28,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Versions
         public class VersionsNewest {
-            public static string Mod => "2.9.7";
+            public static string Mod => "2.9.8";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.1";
-            public static string PhysicsInspector => "1.4.2";
+            public static string PhysicsInspector => "1.4.3";
         }
         public class VersionsCurrent {
             public static string Overlay {
@@ -462,22 +462,25 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Checkpoint_TurnOn(On.Celeste.Checkpoint.orig_TurnOn orig, Checkpoint cp, bool animate) {
             orig(cp, animate);
 
-            if (Engine.Scene is Level level) {
-                LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
-            } else {
+            if (!(Engine.Scene is Level)) {
                 LogVerbose($"Engine.Scene is not Level...");
                 return;
             }
 
-            if (level.Session == null) {
+            Level level = Engine.Scene as Level;
+            if (level == null) {
+                LogVerbose($"level is null");
+                return;
+            } else if (level.Session == null) {
                 LogVerbose($"level.Session is null");
                 return;
-            }
-            if (level.Session.LevelData == null) {
+            } else if (level.Session.LevelData == null) {
                 LogVerbose($"level.Session.LevelData is null");
                 return;
+            } else {
+                LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
             }
-
+            
             string roomName = SanitizeRoomName(level.Session.LevelData.Name);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
@@ -492,7 +495,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
 
-            string roomName = SanitizeRoomName(level.Session.LevelData.Name);
+            string roomName = SanitizeRoomName(level.Session.LevelData?.Name);
             Log($"level.Session.LevelData.Name={roomName}");
 
             //if (ModSettings.CountTeleportsForRoomTransitions && CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -502,6 +505,10 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
+            if (level.Session.LevelData == null) {
+                Log($"level.Session.LevelData is null...");
+                return;
+            }
             string newCurrentRoom = SanitizeRoomName(level.Session.LevelData.Name);
             UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
 
@@ -700,6 +707,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region State Management
 
         private string SanitizeRoomName(string name) {
+            if (name == null) return null;
             name = name.Replace(";", "");
             return name;
         }
@@ -744,7 +752,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Another stats calculation, accounting for reset session
             SaveChapterStats();
 
-            if (session.LevelData.HasCheckpoint) {
+            if (session.LevelData != null && session.LevelData.HasCheckpoint) {
                 LastRoomWithCheckpoint = CurrentRoomName;
             } else {
                 LastRoomWithCheckpoint = null;

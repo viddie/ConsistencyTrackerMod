@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 {
@@ -662,9 +663,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             float wallSpeedRetentionTimer = Util.GetPrivateProperty<float>(player, "wallSpeedRetentionTimer");
             float maxFall = Util.GetPrivateProperty<float>(player, "maxFall");
 
-            //Log($"Selected player fields: onGround '{onGround}', jumpGraceTimer '{jumpGraceTimer}', forceMoveX '{forceMoveX}', forceMoveXTimer '{forceMoveXTimer}', dashCooldownTimer '{dashCooldownTimer}', " +
-            //        $"wallSpeedRetained '{wallSpeedRetained}', wallSpeedRetentionTimer '{wallSpeedRetentionTimer}', maxFall '{maxFall}', Stamina '{player.Stamina}'");
-
             if (player.Ducking) {
                 flags.Add("Ducking");
             }
@@ -676,7 +674,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 if (dashCooldownTimer <= 0 && player.Dashes > 0) {
                     flags.Add("CanDash");
                 } else if (dashCooldownTimer > 0) {
-                    flags.Add($"DashCD({dashCooldownTimer.ToCeilingFrames()})");
+                    int frames = dashCooldownTimer.ToCeilingFrames() - 1; // We are 1f ahead of CelesteTAS
+                    if (frames > 0) {
+                        flags.Add($"DashCD({frames})");
+                    }
                 }
 
                 int coyote = jumpGraceTimer.ToFloorFrames();
@@ -716,6 +717,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             })) {
                 flags.Add("Grab");
             }
+            
+            // Get private method from player: WallJumpCheck(int) -> bool
+            try {
+                MethodInfo method = typeof(Player).GetMethod("WallJumpCheck", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null) {
+                    // Check wall R first, then wall L
+                    if ((bool)method.Invoke(player, new object[] { 1 })) {
+                        flags.Add("Wall-R");
+                    }
+                    if ((bool)method.Invoke(player, new object[] { -1 })) {
+                        flags.Add("Wall-L");
+                    }
+                }
+            } catch (Exception) {
+                // Don't log, it happens naturally in certain situations, like when the player is dead.
+            }
+            
 
             if (Settings.FlagDashes) {
                 string maxDashesAddition = Settings.FlagMaxDashes ? $"/{player.MaxDashes}" : "";
