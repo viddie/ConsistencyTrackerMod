@@ -264,10 +264,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
         private static ConsistencyTrackerSettings ModSettings => Mod.ModSettings;
+        
+        // Mask for the mod settings option LogPhysicsEnabled, since we dont ever want to change that from here.
+        private static bool _IsRecording = true;
+        
         public static class Settings {
             public static bool IsRecording {
-                get => ModSettings.LogPhysicsEnabled;
-                set => ModSettings.LogPhysicsEnabled = value;
+                get => _IsRecording && ModSettings.LogPhysicsEnabled;
+                set => _IsRecording = value;
             }
             public static bool SegmentOnDeath {
                 get => ModSettings.LogSegmentOnDeath;
@@ -733,7 +737,6 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             } catch (Exception) {
                 // Don't log, it happens naturally in certain situations, like when the player is dead.
             }
-            
 
             if (Settings.FlagDashes) {
                 string maxDashesAddition = Settings.FlagMaxDashes ? $"/{player.MaxDashes}" : "";
