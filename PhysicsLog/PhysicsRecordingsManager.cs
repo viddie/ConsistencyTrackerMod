@@ -85,6 +85,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog {
                     string pathFrom = GetPathToFile(RecordingType.Recent, fileType, i);
                     string pathTo = GetPathToFile(RecordingType.Recent, fileType, i + 1);
 
+                    // Get rid of excess files if any exist, e.g. from a previous higher setting of MaxLogFiles
+                    if (File.Exists(pathTo)) {
+                        File.Delete(pathTo);
+                    }
                     if (File.Exists(pathFrom)) {
                         File.Move(pathFrom, pathTo);
                     }
