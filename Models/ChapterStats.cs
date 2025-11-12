@@ -115,6 +115,20 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             rStats.GoldenBerryDeathsSession++;
         }
 
+        public void RemoveLastGoldenBerryDeath() {
+            if (LastGoldenRuns.Count < 1) {
+                ConsistencyTrackerModule.Instance.Log($"No golden death to delete");
+                return;
+            }
+
+            RoomStats rStats = Rooms[LastGoldenRuns.Last()];
+
+            LastGoldenRuns.RemoveAt(LastGoldenRuns.Count - 1);
+            rStats.GoldenBerryDeaths--;
+            rStats.GoldenBerryDeathsSession--;
+            ConsistencyTrackerModule.Instance.Log($"Deleted last golden death");
+        }
+
         public void CollectedGolden(GoldenType type) {
             GoldenCollectedCount++;
             GoldenCollectedCountSession++;

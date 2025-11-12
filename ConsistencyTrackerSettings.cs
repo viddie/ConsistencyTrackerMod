@@ -2415,6 +2415,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public ButtonBinding ButtonAddRoomSuccess { get; set; }
         public ButtonBinding ButtonRemoveRoomLastAttempt { get; set; }
         public ButtonBinding ButtonRemoveRoomDeathStreak { get; set; }
+
+        public ButtonBinding ButtonRemoveLastGoldenBerryDeath { get; set; }
         
         public ButtonBinding ButtonImportCustomRoomNameFromClipboard { get; set; }
 
