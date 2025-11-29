@@ -549,7 +549,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             File.WriteAllText(outPath, sb.ToString());
         }
 
-
+        public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo) {
+            ChapterDebugName = chapterInfo.ChapterDebugName;
+            CampaignName = chapterInfo.CampaignName;
+            ChapterName = chapterInfo.ChapterName;
+            MapBin = chapterInfo.MapBin;
+            ChapterSID = chapterInfo.ChapterSID;
+            ChapterSIDDialogSanitized = chapterInfo.ChapterSIDDialogSanitized;
+            SideName = chapterInfo.SideName;
+        }
 
         /*
          Format for Sankey Diagram (https://sankeymatic.com/build/)

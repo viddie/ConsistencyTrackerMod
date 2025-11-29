@@ -130,6 +130,8 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool CustomRoomNameAllSegments { get; set; } = true;
         [SettingIgnore]
         public bool RoomDifficultyAllSegments { get; set; } = true;
+        [SettingIgnore]
+        public int SelectedFgr { get; set; } = 0;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
@@ -141,6 +143,22 @@ namespace Celeste.Mod.ConsistencyTracker
                 return;
             }
 
+            int highestFgr = ConsistencyTrackerModule.GetHighestFgrWithPath();
+            subMenu.Add(menuItem = new TextMenu.Slider("Selected Full Game Run Path", i => {
+                if (i == 0) {
+                    return "None";
+                } else {
+                    return $"FGR {i}";
+                }
+            }, 0,  Math.Max(1, highestFgr), SelectedFgr) {
+                OnValueChange = value => {
+                    SelectedFgr = value;
+                    Mod.ChangedSelectedFgr();
+                },
+                Disabled = highestFgr == -1
+            });
+            subMenu.AddDescription(menu, menuItem, "When a full game run (FGR) is selected, the path recorder will be unavailable." +
+                                                   "\nCreate an FGR path through the console command 'cct-fgr'");
             
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
@@ -319,7 +337,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     if (Mod.CurrentChapterPath == null) return;
                     if (Mod.CurrentChapterPath.CurrentRoom == null) return;
                     Mod.CurrentChapterPath.CurrentRoom.IsNonGameplayRoom = newValue;
-                    Mod.SavePathToFile();
+                    Mod.SaveActivePath();
                     Mod.StatsManager.AggregateStatsPassOnce(Mod.CurrentChapterPath);
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                 },
@@ -366,7 +384,7 @@ namespace Celeste.Mod.ConsistencyTracker
                     try {
                         PathInfo path = JsonConvert.DeserializeObject<PathInfo>(text);
                         Mod.SetCurrentChapterPath(path);
-                        Mod.SavePathToFile();
+                        Mod.SaveActivePath();
                         Mod.SaveChapterStats();
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import path from clipboard: {ex}");
@@ -477,7 +495,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenuExt.EnumerableSlider<GoldenTier>("Golden Tier", GoldenTier.GetTiers(), chapterTier) {
                 OnValueChange = (newValue) => {
                     Mod.CurrentChapterPath.Tier = newValue;
-                    Mod.SavePathToFile();
+                    Mod.SaveActivePath();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     gpSubHeader.Title = FormatGpHelpString(newValue, gpValue);
                     double calcMaxGP = hasPath ? (gpValue == -1 ? newValue.GetGp() : gpValue) : -1;
@@ -488,7 +506,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenuExt.IntSlider("GP Value", -1, 99999, gpValue) {
                 OnValueChange = (value) => {
                     Mod.CurrentChapterPath.GoldenPoints = value;
-                    Mod.SavePathToFile();
+                    Mod.SaveActivePath();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     gpSubHeader.Title = FormatGpHelpString(chapterTier, value);
                     double calcMaxGP = hasPath ? (value == -1 ? chapterTier.GetGp() : value) : -1;
@@ -500,7 +518,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Slider enduranceSlider = new TextMenu.Slider("Endurance Slope", i => Math.Round(i / 10f + 1, 1).ToString(), 0, 100, enduranceFactor) {
                 OnValueChange = (value) => {
                     Mod.CurrentChapterPath.EnduranceFactor = value;
-                    Mod.SavePathToFile();
+                    Mod.SaveActivePath();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     enduranceGraph.TargetSlope = 1 + value / 10f;
                 },
@@ -514,7 +532,7 @@ namespace Celeste.Mod.ConsistencyTracker
             TextMenu.Slider endurancePowerSlider = new TextMenu.Slider("Endurance Power", i => Math.Round(i / 10f, 2).ToString(), 1, 100, endurancePower) {
                 OnValueChange = (value) => {
                     Mod.CurrentChapterPath.EndurancePower = value;
-                    Mod.SavePathToFile();
+                    Mod.SaveActivePath();
                     Mod.SaveChapterStats();//Path changed, so force a stat recalculation
                     enduranceGraph.TargetPower = value / 10f;
                 },

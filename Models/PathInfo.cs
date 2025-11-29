@@ -22,6 +22,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("chapterSID")]
         public string ChapterSID { get; set; }
 
+        [JsonProperty("chapterUID")]
+        public string ChapterUID { get; set; }
+
         [JsonProperty("sideName")]
         public string SideName { get; set; }
         [JsonProperty("sideNameDecoration")]
@@ -162,6 +165,14 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 cpInfo.Chapter = this;
                 cpInfo.SetCheckpointRefs();
             }
+        }
+
+        public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo) {
+            CampaignName = chapterInfo.CampaignName;
+            ChapterName = chapterInfo.ChapterName;
+            ChapterSID = chapterInfo.ChapterSID;
+            ChapterUID = chapterInfo.ChapterDebugName;
+            SideName = chapterInfo.SideName;
         }
     }
 

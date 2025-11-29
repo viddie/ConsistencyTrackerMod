@@ -380,7 +380,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 
                 PathInfo pathInfo = null;
                 try {
-                    PathSegmentList pathList = Mod.GetPathInfo(map);
+                    PathSegmentList pathList = Mod.GetPathSegmentList(ConsistencyTrackerModule.PathsFolder, map);
                     pathInfo = pathList.CurrentPath;
                 } catch (Exception) {
                     WriteErrorResponseWithDetails(c, RCErrorCode.ExceptionOccurred, requestedJson, $"Couldn't parse contents of path file '{map}'");

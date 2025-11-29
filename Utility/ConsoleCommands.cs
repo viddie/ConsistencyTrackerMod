@@ -12,6 +12,7 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
+using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class ConsoleCommands {
@@ -71,7 +72,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     foundRoom.CustomRoomName = newName;
                     ConsolePrint($"{cpString} - Room '{foundRoomName}' custom name set to '{newName}'");
                 }
-                Mod.SavePathToFile();
+                Mod.SaveActivePath();
                 Mod.SaveChapterStats();
             }
         }
@@ -276,7 +277,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             toPrint = toPrint.Substring(0, toPrint.Length - 1);
             
-            Mod.SavePathToFile();
+            Mod.SaveActivePath();
             Mod.SaveChapterStats();
             ConsolePrint($"Auto assigned room difficulties based on your stats:\n{toPrint}");
         }
@@ -330,6 +331,141 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
 
             ConsolePrint($"\nTotal predicted run length: {TicksToString(totalPredictedRunLength)}");
+        }
+        
+        [Command("cct-fgr", "Transforms a list of chapter UIDs into an FGR path. Call without parameters to get a more in-depth explanation.")]
+        public static void CctFgr(string input = null) {
+            string[] uids;
+            if (string.IsNullOrEmpty(input)) {
+                ConsolePrint($"This command is used to create a full game run (FGR) path. You need to provide a list of chapter UIDs (separated by spaces) that should be included in the FGR path.");
+                ConsolePrint("Example: cct-fgr tom_0_1-space_Normal tom_0_2-city_Normal tom_0_3-temple_Normal");
+                ConsolePrint("This will create an FGR path of the 3 maps in the campaign 'Lunar Ruins'");
+                ConsolePrint("");
+                ConsolePrint("Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign.");
+                ConsolePrint(
+                    "You can create an FGR path automatically for all maps in your current campaign using 'cct-fgr default'. (WARNING: This command only sees maps that you have played at least once on this save file!)");
+                ConsolePrint("");
+                ConsolePrint("Disclaimer: FGR support in CCT is experimental. There will be many places where things won't work as expected.");
+                return;
+            } else if (input == "default") {
+                uids = GetAllChapterUidsInCampaign();
+                if (uids == null) {
+                    ConsolePrint("Please enter a map first to get UIDs of all maps in the campaign.");
+                    return;
+                }
+            } else {
+                uids = input.Split(' ');
+            }
+
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile("fgr"));
+            
+            List<PathSegmentList> segments = uids.Select(sid => ConsistencyTrackerModule.Instance.GetPathSegmentList(ConsistencyTrackerModule.PathsFolder, sid)).Where(p => p != null).ToList();
+            if (segments.Count != uids.Length) {
+                List<string> notFoundUids = new List<string>();
+                foreach (string uid in uids) {
+                    if (!segments.Any(p => p.CurrentPath.ChapterUID == uid)) {
+                        notFoundUids.Add(uid);
+                    }
+                }
+                ConsolePrint($"Could not find path for the following UIDs: {string.Join(", ", notFoundUids)}");
+                return;
+            }
+            
+            // Create FGR path: Loop through all paths, rename all rooms to FGR format (prefix the sid to the debug room name).
+            // Then, concatenate all checkpoints from all paths into a new PathInfo.
+            // PathSegmentList contains many segments, but we only care about the currently selected PathInfo in each list.
+
+            PathSegmentList fgrList = segments[0];
+            PathInfo fgr = fgrList.CurrentPath; // Write all to the first path's PathInfo
+
+            foreach (PathSegmentList list in segments) {
+                PathInfo path = list.CurrentPath;
+                string chapterName = path.ChapterDisplayName;
+                string chapterNameAbbr = PathRecorder.AbbreviateName(chapterName);
+                // Rename rooms
+                foreach (RoomInfo rInfo in path.WalkPath()) {
+                    rInfo.DebugRoomName = ConsistencyTrackerModule.ResolveRoomName(rInfo.DebugRoomName, true, path.ChapterUID);
+                }
+                
+                // Rename checkpoints
+                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                    cpInfo.Name = $"{chapterNameAbbr}-{cpInfo.Name}";
+                    cpInfo.Abbreviation = $"{chapterNameAbbr}-{cpInfo.Abbreviation}";
+                }
+                
+                // Append all checkpoints from this path to the FGR path
+                if (path != fgr) {
+                    foreach (CheckpointInfo cpInfo in path.Checkpoints) {
+                        fgr.Checkpoints.Add(cpInfo);
+                    }
+                }
+            }
+            
+            // Output result to folder "fgr", file name "fgr_[number].json", where number is the next available number starting at 1.
+            int fileNumber = 1;
+            string pathPath = null;
+            while (pathPath == null) {
+                string checkPath = ConsistencyTrackerModule.GetPathToFile("fgr", $"fgr_{fileNumber}_path.json");
+                if (!File.Exists(checkPath)) {
+                    pathPath = checkPath;
+                } else {
+                    fileNumber++;
+                }
+            }
+            
+            // Remove all other segments from the fgrList
+            for (int i = 1; i < fgrList.Segments.Count; i++) {
+                fgrList.RemoveSegment(i);
+            }
+                
+            ConsolePrint("Total rooms on new path: " + fgr.GameplayRoomCount);
+            fgrList.CurrentPath = fgr;
+            
+            File.WriteAllText(pathPath, JsonConvert.SerializeObject(fgrList, Formatting.Indented));
+        }
+
+        [Command("cct-list-uids", "List all chapter UIDs of the current campaign (that have been played yet).")]
+        public static void CctListUids() {
+            if (SaveData.Instance.CurrentSession == null) {
+                ConsolePrint("Please enter a map first to list UIDs of all maps in the campaign.");
+                return;
+            }
+
+            string[] uids = GetAllChapterUidsInCampaign();
+            if (uids == null || uids.Length == 0) {
+                ConsolePrint("No chapters played yet in this campaign.");
+                return;
+            }
+            ConsolePrint($"Chapters played in current campaign:\n- {string.Join("\n- ", uids)}");
+        }
+
+        private static string[] GetAllChapterUidsInCampaign() {
+            if (SaveData.Instance.CurrentSession == null) {
+                return null;
+            }
+            
+            List<string> toReturn = new List<string>();
+            AreaKey areaKey = SaveData.Instance.CurrentSession.Area;
+            LevelSetStats lss = SaveData.Instance.GetLevelSetStatsFor(areaKey.LevelSet);
+            foreach (AreaStats stats in lss.AreasIncludingCeleste) {
+                string sid = stats.SID;
+                for (int i = 0; i < stats.Modes.Length; i++) {
+                    AreaModeStats ams = stats.Modes[i];
+                    if (ams.TimePlayed == 0) continue;
+                    
+                    AreaMode mode = GetAreaMode(i);
+                    string uid = ChapterMetaInfo.GetChapterDebugName(sid, mode);
+                    toReturn.Add(uid);
+                }
+            }
+            return toReturn.ToArray();
+        }
+        
+        private static AreaMode GetAreaMode(int index) {
+            if (index == 0) return AreaMode.Normal;
+            else if (index == 1) return AreaMode.BSide;
+            else if (index == 2) return AreaMode.CSide;
+            else return AreaMode.Normal;
         }
 
         #endregion

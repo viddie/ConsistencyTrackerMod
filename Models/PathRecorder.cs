@@ -164,7 +164,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return toRet;
         }
 
-        public string AbbreviateName(string name, int letterCount=2) {
+        public static string AbbreviateName(string name, int letterCount=2) {
             string[] words = name.Split(' ');
 
             if (words.Length == 1) {

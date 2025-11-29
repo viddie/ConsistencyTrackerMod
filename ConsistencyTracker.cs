@@ -57,6 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static readonly string LogsFolder = "logs";
         public static readonly string PathsFolder = "paths";
         public static readonly string StatsFolder = "stats";
+        public static readonly string FgrFolder = "fgr";
         public static readonly string SummariesFolder = "summaries";
 
 
@@ -97,6 +98,13 @@ namespace Celeste.Mod.ConsistencyTracker {
         public List<Tuple<ChapterStatsList, PathSegmentList>> LastVisitedChapters = new List<Tuple<ChapterStatsList, PathSegmentList>>();
         public static readonly int MAX_LAST_VISITED_CHAPTERS = 10;
 
+        public bool IsInFgrMode {
+            get {
+                if (ModSettings.SelectedFgr == 0) return false;
+                return FgrPathExists(ModSettings.SelectedFgr);
+            }
+        }
+
         public PathSegmentList CurrentChapterPathSegmentList { get; set; }
         public PathInfo CurrentChapterPath {
             get => CurrentChapterPathSegmentList?.CurrentPath;
@@ -116,6 +124,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             set => CurrentChapterStatsList?.SetStats(SelectedPathSegmentIndex, value);
         }
 
+        public ChapterMetaInfo ActualChapterMetaInfo { get; set; }
         public string CurrentChapterDebugName;
         public string PreviousRoomName;
         public string CurrentRoomName;
@@ -177,6 +186,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CheckPrepackagedPaths(reset:false);
             
             CheckFolderExists(GetPathToFile(StatsFolder));
+            CheckFolderExists(GetPathToFile(FgrFolder));
             CheckFolderExists(GetPathToFile(SummariesFolder));
 
 
@@ -481,7 +491,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
             }
             
-            string roomName = SanitizeRoomName(level.Session.LevelData.Name);
+            string roomName = ResolveRoomName(level.Session.LevelData.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
             if (DoRecordPath) {
@@ -495,7 +505,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
 
-            string roomName = SanitizeRoomName(level.Session.LevelData?.Name);
+            string roomName = ResolveRoomName(level.Session.LevelData?.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
             Log($"level.Session.LevelData.Name={roomName}");
 
             //if (ModSettings.CountTeleportsForRoomTransitions && CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -509,7 +519,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"level.Session.LevelData is null...");
                 return;
             }
-            string newCurrentRoom = SanitizeRoomName(level.Session.LevelData.Name);
+
+            ChapterMetaInfo chapterInfo = new ChapterMetaInfo(level.Session);
+            string newCurrentRoom = ResolveRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterDebugName);
             UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
@@ -604,7 +616,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
 
-            string roomName = SanitizeRoomName(levelDataNext.Name);
+            string roomName = ResolveRoomName(levelDataNext.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
             Log($"levelData.Name->{roomName}");
 
             if (CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -706,12 +718,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region State Management
 
-        private string SanitizeRoomName(string name) {
-            if (name == null) return null;
-            name = name.Replace(";", "");
-            return name;
-        }
-
         private void ChangeChapter(Session session) {
             bool isLastSession = LastSession == session;
             Log($"Called chapter change | isLastSession: {isLastSession}");
@@ -720,16 +726,23 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             Log($"Level->{session.Level}, chapterInfo->'{chapterInfo}'");
 
+            ActualChapterMetaInfo = chapterInfo;
             CurrentChapterDebugName = chapterInfo.ChapterDebugName;
 
             PreviousRoomName = null;
-            CurrentRoomName = session.Level;
+            CurrentRoomName = ResolveRoomName(session.Level, IsInFgrMode, chapterInfo.ChapterDebugName);
 
-            CurrentChapterStatsList = GetCurrentChapterStats();
-            SetCurrentChapterPathList(GetPathInfo(), chapterInfo);
-
-            //Set the meta info after the path has been read, to ensure the selected segment (which might not be 0) has correct meta info
-            SetChapterMetaInfo(chapterInfo);
+            // Resolve active path and stats. Respects FGR mode.
+            var statsPathInfo = ResolveActiveChapterStatsListPath();
+            CurrentChapterStatsList = GetChapterStatsList(statsPathInfo.Item1, statsPathInfo.Item2);
+            
+            var pathPathInfo = ResolveActivePathSegmentListPath();
+            PathSegmentList psl = GetPathSegmentList(pathPathInfo.Item1, pathPathInfo.Item2);
+            CurrentChapterPathSegmentList = psl;
+            
+            // Add meta info to path and stats
+            FixChapterPathInfo(psl.CurrentPath, chapterInfo);
+            CurrentChapterStats.SetChapterMetaInfo(chapterInfo);
 
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
@@ -761,33 +774,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             Events.Events.InvokeResetSession(isLastSession);
         }
 
-        public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo, ChapterStats stats = null) {
-            if (stats == null) stats = CurrentChapterStats;
-            if (stats == null) return;
-
-            CurrentChapterStats.ChapterDebugName = CurrentChapterDebugName;
-            CurrentChapterStats.CampaignName = chapterInfo.CampaignName;
-            CurrentChapterStats.ChapterName = chapterInfo.ChapterName;
-            CurrentChapterStats.MapBin = chapterInfo.MapBin;
-            CurrentChapterStats.ChapterSID = chapterInfo.ChapterSID;
-            CurrentChapterStats.ChapterSIDDialogSanitized = chapterInfo.ChapterSIDDialogSanitized;
-            CurrentChapterStats.SideName = chapterInfo.SideName;
-        }
-
-        public void SetCurrentChapterPathList(PathSegmentList pathList, ChapterMetaInfo chapterInfo = null) {
-            CurrentChapterPathSegmentList = pathList;
-            if (CurrentChapterPath != null) {
-                CurrentChapterPath.SegmentList = CurrentChapterPathSegmentList;
-                
-                CurrentChapterPath.SetCheckpointRefs();
-
-                if (CurrentChapterPath.ChapterName == null && chapterInfo != null) {
-                    CurrentChapterPath.CampaignName = chapterInfo.CampaignName;
-                    CurrentChapterPath.ChapterName = chapterInfo.ChapterName;
-                    CurrentChapterPath.ChapterSID = chapterInfo.ChapterSID;
-                    CurrentChapterPath.SideName = chapterInfo.SideName;
-                    SavePathToFile();
-                }
+        public void FixChapterPathInfo(PathInfo pathInfo, ChapterMetaInfo chapterInfo = null) {
+            if (pathInfo == null) return;
+            
+            pathInfo.SegmentList = CurrentChapterPathSegmentList;
+            pathInfo.SetCheckpointRefs();
+            if (chapterInfo != null && (pathInfo.ChapterName == null || pathInfo.ChapterUID == null)) {
+                pathInfo.SetChapterMetaInfo(chapterInfo);
+                SaveActivePath();
             }
         }
         public void SetCurrentChapterPath(PathInfo path, ChapterMetaInfo chapterInfo = null) {
@@ -796,7 +790,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             CurrentChapterPath = path;
-            SetCurrentChapterPathList(CurrentChapterPathSegmentList, chapterInfo);
+            FixChapterPathInfo(path, chapterInfo);
         }
 
         public void SetCurrentChapterPathSegment(int segmentIndex) {
@@ -809,7 +803,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             SetCurrentChapterPath(CurrentChapterPath, chapterInfo);//To set checkpoint refs and stuff
             
-            SavePathToFile();
+            SaveActivePath();
             if (CurrentChapterPath != null) {
                 StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
             }
@@ -819,7 +813,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return false;
 
             CurrentChapterPathSegmentList.CurrentSegment.Name = name;
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();
             return true;
         }
@@ -831,7 +825,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Path = null,
             };
             CurrentChapterPathSegmentList.Segments.Add(segment);
-            SavePathToFile();
+            SaveActivePath();
             return segment;
         }
         public bool DeleteCurrentChapterPathSegment() {
@@ -842,12 +836,25 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPathSegmentList.RemoveSegment(segmentIndex);
             CurrentChapterStatsList.RemoveSegment(segmentIndex);
             
-            SavePathToFile();
+            SaveActivePath();
             if (CurrentChapterPath != null) {
                 StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
             }
             SetNewRoom(CurrentRoomName, false);
             return true;
+        }
+
+        public string ResolveRoomNameInActiveChapter(string roomName) {
+            if (!IsInFgrMode) return roomName;
+            return $"{ActualChapterMetaInfo.ChapterDebugName}:{roomName}";
+        }
+        public static string ResolveRoomName(string roomName, bool isFgrMode, string uid) {
+            if (!isFgrMode) return roomName;
+            return $"{uid}:{roomName}";
+        }
+        public static string InverseRoomName(string roomName) {
+            if (!roomName.Contains(":")) return roomName;
+            return roomName.Split(':')[1];
         }
 
         public string ResolveGroupedRoomName(string roomName) {
@@ -1075,6 +1082,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             return true;
         }
+        
+        /// <summary>
+        /// Checks the root folder for the mod data, creates it if it doesn't exist.
+        /// </summary>
         public void CheckRootFolder() {
             string dataRootFolder = ModSettings.DataRootFolderLocation;
             if (dataRootFolder == null) {
@@ -1095,15 +1106,30 @@ namespace Celeste.Mod.ConsistencyTracker {
             BaseFolderPath = dataRootFolder;
         }
 
-        
-        public PathSegmentList GetPathInfo(string pathName = null) {
-            if(pathName == null) {
-                pathName = CurrentChapterDebugName;
+        /// <summary>
+        /// Resolves the active path segment list, depending on whether FGR mode is active or not.
+        /// </summary>
+        /// <returns>The folder and fileName of the active path segment list.</returns>
+        public Tuple<string, string> ResolveActivePathSegmentListPath() {
+            if (!IsInFgrMode) {
+                return Tuple.Create(PathsFolder, CurrentChapterDebugName);
             }
+            string pathFileName = $"fgr_{ModSettings.SelectedFgr}_path";
+            return Tuple.Create(FgrFolder, pathFileName);
+        }
+        
+        /// <summary>
+        /// Core function to load a path segment list from file. Will create a new one if neither JSON nor TXT file
+        /// is found. Also handles conversion from old formats to new format.
+        /// </summary>
+        /// <param name="folder">The subfolder to look in.</param>
+        /// <param name="pathName">The base name of the path file (without extension).</param>
+        /// <returns>>The loaded path segment list, or null if not found or failed to parse.</returns>
+        public PathSegmentList GetPathSegmentList(string folder = null, string pathName = null) {
             Log($"Fetching path info for chapter '{pathName}'");
 
-            string pathTXT = GetPathToFile(PathsFolder, $"{pathName}.txt");
-            string pathJSON = GetPathToFile(PathsFolder, $"{pathName}.json");
+            string pathTXT = GetPathToFile(folder, $"{pathName}.txt");
+            string pathJSON = GetPathToFile(folder, $"{pathName}.json");
             Log($"\tSearching for path '{pathJSON}' or .txt equiv", true);
 
             if (!File.Exists(pathJSON) && !File.Exists(pathTXT)) {
@@ -1161,10 +1187,15 @@ namespace Celeste.Mod.ConsistencyTracker {
             PathSegmentList pathList = PathSegmentList.Create();
             pathList.Segments[0].Path = oldPathFormat;
 
-            SavePathToFile(pathList, pathName); //Save in new format (json)
+            SavePathToFile(pathList, pathName, folder); //Save in new format (json)
             return pathList;
         }
 
+        /// <summary>
+        /// Moves a file to a safe backup location by appending .bak.# to the filename. Triggered when a stats file
+        /// corruption is detected, but a backup file exists.
+        /// </summary>
+        /// <param name="path">The path to move.</param>
         public void MoveFileToSaveLocation(string path) {
             string destPath = null;
             int backupNum = 1;
@@ -1180,12 +1211,34 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"\tMoving backup stats file to safe location: "+destPath, true);
             File.Move(path, destPath);
         }
-        public ChapterStatsList GetCurrentChapterStats() {
-            string pathTXT = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.txt");
-            string pathJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
-            string backupJSON = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
 
-            Log($"CurrentChapterName: '{CurrentChapterDebugName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
+        /// <summary>
+        /// Resolves the active chapter stats list, depending on whether FGR mode is active or not.
+        /// </summary>
+        /// <returns></returns>
+        public Tuple<string, string> ResolveActiveChapterStatsListPath() {
+            if (!IsInFgrMode) {
+                return Tuple.Create(StatsFolder, CurrentChapterDebugName);
+            }
+            //In FGR mode, the folder is FgrFolder and the name is based on the selected fgr index
+            string statsFileName = $"fgr_{ModSettings.SelectedFgr}_stats";
+            return Tuple.Create(FgrFolder, statsFileName);
+        }
+        
+        /// <summary>
+        /// Core function to load a chapter stats list from file. Will create a new one if neither JSON nor TXT file
+        /// is found. Also handles conversion from old formats to new format.
+        /// </summary>
+        /// <param name="folder">The subfolder to look in.</param>
+        /// <param name="fileBaseName">The base name of the stats file (without extension).</param>
+        /// <returns>>The loaded chapter stats list.</returns>
+        /// <exception cref="Exception">Thrown when the stats file couldn't be parsed.</exception>
+        public ChapterStatsList GetChapterStatsList(string folder, string fileBaseName) {
+            string pathTXT = GetPathToFile(folder, $"{fileBaseName}.txt");
+            string pathJSON = GetPathToFile(folder, $"{fileBaseName}.json");
+            string backupJSON = GetPathToFile(folder, $"{fileBaseName}_backup.json");
+
+            Log($"fileBaseName: '{fileBaseName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
 
             ChapterStatsList toRet = null;
@@ -1260,6 +1313,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             return toRet;
         }
 
+        /// <summary>
+        /// Core function to save the currently loaded chapter stats to file.
+        /// </summary>
         public void SaveChapterStats() {
             Events.Events.InvokeBeforeSavingStats();
             
@@ -1275,7 +1331,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (CurrentChapterStats.ChapterName == null) {
                 if (Engine.Scene is Level level && level.Session != null) {
                     ChapterMetaInfo chapterInfo = new ChapterMetaInfo(level.Session);
-                    SetChapterMetaInfo(chapterInfo);
+                    CurrentChapterStats.SetChapterMetaInfo(chapterInfo);
                     Log($"Fixed missing meta info on '{nameof(CurrentChapterStats)}'");
                 } else {
                     Log($"Aborting saving chapter stats as '{nameof(CurrentChapterStats)}' doesn't have meta info set.");
@@ -1302,8 +1358,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.GameData.FullClear = modeStats.FullClear;
             }
 
-            string path = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}.json");
-            string backupPath = GetPathToFile(StatsFolder, $"{CurrentChapterDebugName}_backup.json");
+            var statsPathInfo = ResolveActiveChapterStatsListPath();
+            string path = GetPathToFile(statsPathInfo.Item1, $"{statsPathInfo.Item2}.json");
+            string backupPath = GetPathToFile(statsPathInfo.Item1, $"{statsPathInfo.Item2}_backup.json");
             
             // File.WriteAllText(backupPath, JsonConvert.SerializeObject(CurrentChapterStatsList, Formatting.Indented));
             using (FileStream fs = new FileStream(backupPath, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -1321,10 +1378,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Move backup to actual file
             File.Copy(backupPath, path);
 
-            string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
-
-            string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterDebugName};{CurrentChapterStats.ModState}\n";
-            File.WriteAllText(modStatePath, content);
+            //string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
+            //string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterDebugName};{CurrentChapterStats.ModState}\n";
+            //File.WriteAllText(modStatePath, content);
 
             StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
             
@@ -1653,6 +1709,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Path Management
+
+        public void ChangedSelectedFgr() {
+            if (SaveData.Instance.CurrentSession != null) {
+                ChangeChapter(SaveData.Instance.CurrentSession);
+            }
+        }
         
         public void SaveRecordedRoomPath() {
             Log($"Saving recorded path...");
@@ -1676,19 +1738,27 @@ namespace Celeste.Mod.ConsistencyTracker {
             DisabledInRoomName = CurrentRoomName;
             SetCurrentChapterPath(path, chapterInfo);
             Log($"Recorded path:\n{JsonConvert.SerializeObject(CurrentChapterPath)}", isFollowup: true);
-            SavePathToFile();
+            SaveActivePath();
             
             SaveChapterStats();//Output stats with updated path
         }
-        public void SavePathToFile(PathSegmentList pathList = null, string pathName = null) {
+
+        public void SaveActivePath() {
+            var pathPathInfo = ResolveActivePathSegmentListPath();
+            SavePathToFile(CurrentChapterPathSegmentList, pathPathInfo.Item2, pathPathInfo.Item1);
+        }
+        public void SavePathToFile(PathSegmentList pathList = null, string pathName = null, string folder = null) {
             if (pathList == null) {
                 pathList = CurrentChapterPathSegmentList;
             }
             if (pathName == null) {
                 pathName = CurrentChapterDebugName;
             }
+            if (folder == null) {
+                folder = PathsFolder;
+            }
 
-            string outPath = GetPathToFile(PathsFolder, $"{pathName}.json");
+            string outPath = GetPathToFile(folder, $"{pathName}.json");
             File.WriteAllText(outPath, JsonConvert.SerializeObject(pathList, Formatting.Indented));
             Log($"Wrote path data to '{outPath}'");
         }
@@ -1715,7 +1785,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (foundRoom) {
-                SavePathToFile();
+                SaveActivePath();
                 SaveChapterStats();
             } else {
                 Log($"Could not find room '{CurrentRoomName}' in path");
@@ -1767,7 +1837,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
             SetNewRoom(previousRoomR.DebugRoomName, false);
             
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();
         }
 
@@ -1822,7 +1892,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to fix room numbering
             SetNewRoom(actualRoomName, false);
 
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();
         }
 
@@ -1863,7 +1933,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
 
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();
         }
 
@@ -1895,7 +1965,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterPath.Stats = null; //Call a new aggregate stats pass to weights
             //SetNewRoom(CurrentRoomName, false);
 
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();
         }
 
@@ -1930,7 +2000,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             Log($"Set custom room name of room '{CurrentChapterPath.CurrentRoom.DebugRoomName}' to '{name}' (Count: {count})");
-            SavePathToFile();
+            SaveActivePath();
             SaveChapterStats();//Recalc stats
         }
 
@@ -2053,6 +2123,24 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             Level level = (Level)scene;
             return level.Tracker.GetEntity<Player>();
+        }
+        
+        private static bool FgrPathExists(int fgrNumber) {
+            string fgrPathName = $"fgr_{fgrNumber}_path";
+            string pathJSON = GetPathToFile(FgrFolder, $"{fgrPathName}.json");
+            return File.Exists(pathJSON);
+        }
+        
+        public static int GetHighestFgrWithPath() {
+            int highestFgr = -1;
+            for (int i = 1; i < 100; i++) {
+                if (FgrPathExists(i)) {
+                    highestFgr = i;
+                } else {
+                    break;
+                }
+            }
+            return highestFgr;
         }
         #endregion
     }

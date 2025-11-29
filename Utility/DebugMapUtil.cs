@@ -54,7 +54,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             Mod.SetCurrentChapterPath(path, chapterInfo);
             Mod.Log($"Recorded path:\n{JsonConvert.SerializeObject(Mod.CurrentChapterPath)}", isFollowup: true);
-            Mod.SavePathToFile();
+            Mod.SaveActivePath();
             Mod.SaveChapterStats();//Output stats with updated path
             
             IsRecording = false;
@@ -83,7 +83,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 foreach (LevelTemplate template in levels) {
                     for (int cpIndex = 0; cpIndex < PathRec.Checkpoints.Count; cpIndex++) {
                         for (int rIndex = 0; rIndex < PathRec.Checkpoints[cpIndex].Count; rIndex++) {
-                            string rDebugName = PathRec.Checkpoints[cpIndex][rIndex];
+                            string rDebugName = ConsistencyTrackerModule.InverseRoomName(PathRec.Checkpoints[cpIndex][rIndex]);
                             if (template.Name != rDebugName) continue;
 
                             bool isTransition = PathRec.IsTransitionRoom(template.Name);
@@ -116,7 +116,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 var chokeRateData = ChokeRateStat.GetRoomData(currentPath, currentStats);
 
                 foreach (LevelTemplate template in levels) {
-                    string name = template.Name;
+                    string name = Mod.ResolveRoomNameInActiveChapter(template.Name);
                     RoomInfo rInfo = currentPath.GetRoom(name);
                     if (rInfo == null) {
                         string resolvedName = Mod.ResolveGroupedRoomName(name);
@@ -174,7 +174,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 StartSpriteBatch();
 
                 foreach (LevelTemplate template in levels) {
-                    string name = template.Name;
+                    string name = Mod.ResolveRoomNameInActiveChapter(template.Name);
                     RoomInfo rInfo = currentPath.GetRoom(name);
                     if (rInfo == null) {
                         string resolvedName = Mod.ResolveGroupedRoomName(name);

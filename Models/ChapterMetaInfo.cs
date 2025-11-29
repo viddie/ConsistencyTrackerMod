@@ -27,8 +27,12 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string GetCampaignNameClean(AreaData area) {
             return DialogExt.CleanLevelSet(area.GetLevelSet());
         }
-        public string GetChapterDebugName(Session session) {
-            return $"{session.MapData.Data.SID}_{session.Area.Mode}".Replace("/", "_");
+        public static string GetChapterDebugName(Session session) {
+            return GetChapterDebugName(session.MapData.Data.SID, session.Area.Mode);
+        }
+
+        public static string GetChapterDebugName(string sid, AreaMode mode) {
+            return $"{sid}_{mode}".Replace("/", "_");
         }
 
         public ChapterMetaInfo(Session session) {
