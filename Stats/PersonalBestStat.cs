@@ -40,7 +40,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public PersonalBestStat() : base(IDs) { }
 
         public override bool ContainsIdentificator(string format) {
-            if (format.Contains(PBBest) || format.Contains(PBBestSession)) return true;
+            if (IDs.Find(pattern => format.Contains(pattern)) != null) return true;
 
             return Regex.IsMatch(format, BestPattern) || Regex.IsMatch(format, BestPatternSession) || Regex.IsMatch(format, RoomNumberPattern) || Regex.IsMatch(format, RoomNumberPatternSession);
         }

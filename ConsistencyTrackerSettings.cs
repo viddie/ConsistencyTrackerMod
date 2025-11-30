@@ -22,23 +22,11 @@ namespace Celeste.Mod.ConsistencyTracker
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         #region General Settings
-        //public bool Enabled {
-        //    get => _Enabled;
-        //    set {
-        //        _Enabled = value;
-        //        Mod.Log($"Mod is now {(value ? "enabled" : "disabled")}.");
-        //        //Other hooks
-        //        if (Mod.IngameOverlay != null) { 
-        //            Mod.IngameOverlay.Visible = value;
-        //        }
-        //    }
-        //}
-
-        //[SettingIgnore]
-        //private bool _Enabled { get; set; } = true;
 
         [SettingIgnore]
-        public bool PauseDeathTracking { get; set; } = false;
+        public bool IsInRun { get; set; }
+        [SettingIgnore]
+        public bool PauseDeathTracking { get; set; }
         public void CreatePauseDeathTrackingEntry(TextMenu menu, bool inGame) {
             menu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PAUSE_DEATH_TRACKING"), PauseDeathTracking) {
                 OnValueChange = v => {
@@ -144,6 +132,19 @@ namespace Celeste.Mod.ConsistencyTracker
             }
 
             int highestFgr = ConsistencyTrackerModule.GetHighestFgrWithPath();
+            TextMenu.OnOff isInRunItem = new TextMenu.OnOff("Is In Run", IsInRun) {
+                OnValueChange = v => {
+                    if (v) {
+                        Mod.StartNewRun();
+                    } else {
+                        Mod.EndRun();
+                    }
+
+                    Mod.SaveChapterStats();
+                },
+                Disabled = !Mod.IsInFgrMode
+            };
+            
             subMenu.Add(menuItem = new TextMenu.Slider("Selected Full Game Run Path", i => {
                 if (i == 0) {
                     return "None";
@@ -154,11 +155,14 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnValueChange = value => {
                     SelectedFgr = value;
                     Mod.ChangedSelectedFgr();
+                    isInRunItem.Disabled = !Mod.IsInFgrMode;
+                    isInRunItem.Index = Mod.IsInGoldenRun ? 1 : 0;
                 },
                 Disabled = highestFgr == -1
             });
             subMenu.AddDescription(menu, menuItem, "When a full game run (FGR) is selected, the path recorder will be unavailable." +
                                                    "\nCreate an FGR path through the console command 'cct-fgr'");
+            subMenu.Add(isInRunItem);
             
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
@@ -637,7 +641,7 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_TITLE")} ==="));
             subMenu.Add(menuItem = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_DATA_WIPE_VANILLA_PATHS_RESET_ALL_VANILLA_PATHS")) {
                 OnDoubleConfirmation = () => {
-                    Mod.CheckPrepackagedPaths(reset:true);
+                    ResourceUnpacker.CheckPrepackagedPaths(reset:true);
                 },
                 HighlightColor = Color.Red,
             });
@@ -2421,6 +2425,13 @@ namespace Celeste.Mod.ConsistencyTracker
         #endregion
 
         #region Hotkeys
+        [SettingSubHeader("Full-Game-Run Hotkeys")]
+        public ButtonBinding ButtonFgrToggleInRun { get; set; }
+        public ButtonBinding ButtonFgrTeleportToPreviousMap { get; set; }
+        public ButtonBinding ButtonFgrTeleportToNextMap { get; set; }
+        public ButtonBinding ButtonFgrReset { get; set; }
+        
+        [SettingSubHeader("In-Game Overlay Hotkeys")]
         public ButtonBinding ButtonToggleTextOverlayEnabled { get; set; }
         public ButtonBinding ButtonToggleTextOverlayText1 { get; set; }
         public ButtonBinding ButtonToggleTextOverlayText2 { get; set; }
@@ -2429,6 +2440,7 @@ namespace Celeste.Mod.ConsistencyTracker
         
         public ButtonBinding ButtonToggleDifficultyGraph { get; set; }
 
+        [SettingSubHeader("Tracking/Data Hotkeys")]
         public ButtonBinding ButtonTogglePauseDeathTracking { get; set; }
         public ButtonBinding ButtonAddRoomSuccess { get; set; }
         public ButtonBinding ButtonRemoveRoomLastAttempt { get; set; }
@@ -2436,12 +2448,14 @@ namespace Celeste.Mod.ConsistencyTracker
         
         public ButtonBinding ButtonImportCustomRoomNameFromClipboard { get; set; }
 
+        [SettingSubHeader("Misc Hotkeys")]
         public ButtonBinding ButtonToggleRecordPhysics { get; set; }
 
         public ButtonBinding ButtonToggleSummaryHud { get; set; }
         public ButtonBinding ButtonSummaryHudNextTab { get; set; }
         public ButtonBinding ButtonSummaryHudNextStat { get; set; }
         public ButtonBinding ButtonSummaryHudPreviousStat { get; set; }
+        
         #endregion
 
         #region Test

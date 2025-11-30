@@ -11,24 +11,23 @@ namespace Celeste.Mod.ConsistencyTracker.Events {
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
 
-        public delegate void GoldenPickup(GoldenType type);
-        public static event GoldenPickup OnGoldenPickup;
-        public static void InvokeGoldenPickup(GoldenType type) {
-            OnGoldenPickup?.Invoke(type);
+        public delegate void RunStarted();
+        /// <summary>
+        /// Denotes the start of a run.
+        /// </summary>
+        public static event RunStarted OnRunStarted;
+        public static void InvokeRunStarted() {
+            OnRunStarted?.Invoke();
         }
 
-        public delegate void GoldenDeath();
-        public static event GoldenDeath OnGoldenDeath;
-        public static void InvokeGoldenDeath() {
-            OnGoldenDeath?.Invoke();
+        public delegate void RunEnded(bool died, bool won);
+        /// <summary>
+        /// Denotes the end of a run.
+        /// </summary>
+        public static event RunEnded OnRunEnded;
+        public static void InvokeRunEnded(bool died, bool won) {
+            OnRunEnded?.Invoke(died, won);
         }
-
-        public delegate void GoldenCollect(GoldenType type);
-        public static event GoldenCollect OnGoldenCollect;
-        public static void InvokeGoldenCollect(GoldenType type) {
-            OnGoldenCollect?.Invoke(type);
-        }
-
 
         public delegate void ChangedRoom(string roomName, bool isPreviousRoom);
         public static event ChangedRoom OnChangedRoom;

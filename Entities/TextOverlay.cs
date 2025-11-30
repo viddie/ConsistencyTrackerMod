@@ -24,6 +24,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public TextOverlay() {
             Depth = -101;
             Tag = Tags.HUD | Tags.Global | Tags.PauseUpdate | Tags.TransitionUpdate;
+            
+            Events.Events.OnRunStarted += EventsOnOnRunStarted;
+            Events.Events.OnRunEnded += EventsOnOnRunEnded;
 
             StatText1 = new StatTextComponent(true, true, StatTextPosition.TopLeft);
             StatText2 = new StatTextComponent(true, true, StatTextPosition.TopRight);
@@ -32,6 +35,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             InitStatTextOptions();
 
             ApplyModSettings();
+        }
+
+        private void EventsOnOnRunEnded(bool died, bool won) {
+            SetGoldenState(false);
+        }
+
+        private void EventsOnOnRunStarted() {
+            SetGoldenState(true);
         }
 
         public void ApplyModSettings() {
@@ -199,41 +210,34 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             StatTextComponent statText = GetStatText(textNum);
             statText.OptionVisible = visible;
             UpdateTextVisibility();
-            Mod.LogVerbose($"Text '{textNum}' -> Set text visibility to '{visible}'");
         }
         public void SetTextHideInGolden(int textNum, bool visible) {
             StatTextComponent statText = GetStatText(textNum);
             statText.HideInGolden = visible;
-            Mod.LogVerbose($"Text '{textNum}' -> Set text hide in golden run to '{visible}'");
         }
         public void SetText(int textNum, string text) {
             StatTextComponent statText = GetStatText(textNum);
             statText.Text = text.Replace("\\n", "\n");
-            Mod.LogVerbose($"Text '{textNum}' -> Set text to '{text.Replace("\n", "\\n")}'");
         }
         public void SetTextPosition(int textNum, StatTextPosition pos) {
             StatTextComponent statText = GetStatText(textNum);
             statText.SetPosition(pos);
-            Mod.LogVerbose($"Text '{textNum}' -> Set text position to '{pos}'");
         }
         public void SetTextOffsetX(int textNum, int offset) {
             StatTextComponent statText = GetStatText(textNum);
             statText.OffsetX = offset;
             statText.SetPosition();
-            Mod.LogVerbose($"Text '{textNum}' -> Set text X offset to '{offset}'");
         }
         public void SetTextOffsetY(int textNum, int offset)
         {
             StatTextComponent statText = GetStatText(textNum);
             statText.OffsetY = offset;
             statText.SetPosition();
-            Mod.LogVerbose($"Text '{textNum}' -> Set text Y offset to '{offset}'");
         }
         //size in percent as int
         public void SetTextSize(int textNum, int size) {
             StatTextComponent statText = GetStatText(textNum);
             statText.Scale = (float)size / 100;
-            Mod.LogVerbose($"Text '{textNum}' -> Set text size to '{size}%'");
         }
         
         //size in percent as int
@@ -257,7 +261,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             }
         }
         public void UpdateTextVisibility() {
-            bool holdingGolden = Mod.PlayerIsHoldingGolden;
+            bool holdingGolden = Mod.IsInGoldenRun;
             SetGoldenState(holdingGolden);
         }
 

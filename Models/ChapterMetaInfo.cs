@@ -46,7 +46,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CampaignName = campaignName;
             ChapterName = chapNameClean;
             ChapterSID = session.MapData.Data.SID;
-            ChapterSIDDialogSanitized = ConsistencyTrackerModule.SanitizeSIDForDialog(session.MapData.Data.SID);
+            ChapterSIDDialogSanitized = ConsistencyTrackerModule.SanitizeSidForDialog(session.MapData.Data.SID);
             MapBin = session.MapData.Filename;
             SideName = session.Area.Mode.ToReadableString();
         }

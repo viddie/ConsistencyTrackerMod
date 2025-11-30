@@ -22,6 +22,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
 
             RoomStats selectedRoom;
             if (!string.IsNullOrEmpty(roomName)) {
+                if (mod.IsInFgrMode) roomName = mod.ResolveRoomNameInActiveChapter(roomName);
                 selectedRoom = mod.CurrentChapterStats.GetRoom(roomName);
 
                 if (selectedRoom == null) {
@@ -38,8 +39,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             }
 
             mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
-            Events.Events.InvokeGoldenDeath();
-            mod.UpdatePlayerHoldingGolden();
+            mod.EndRun(true);
             mod.SaveChapterStats(); //Call events to notify pace ping, physics logger, external listeners...
 
             mod.Log($"Added golden death to '{roomName}'");
@@ -47,7 +47,7 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
         }
 
         /// <summary>
-        /// Adds a golden death to the specified room without triggering CCT Event 'OnGoldenDeath'
+        /// Adds a golden death to the specified room without triggering CCT Events for the run ending
         /// </summary>
         /// <param name="roomName">The room to add a golden death to. null adds to the current room</param>
         /// <returns>True if success, False if there was some issue</returns>
@@ -75,7 +75,6 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop {
             }
 
             mod.CurrentChapterStats.AddGoldenBerryDeath(selectedRoom.DebugRoomName);
-            mod.UpdatePlayerHoldingGolden();
             mod.SaveChapterStats();
             //Don't invoke event
 

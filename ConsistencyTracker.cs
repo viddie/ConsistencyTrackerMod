@@ -16,15 +16,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using On.Celeste.Editor;
 using GameData = Celeste.Mod.ConsistencyTracker.Utility.GameData;
 
 namespace Celeste.Mod.ConsistencyTracker {
     public class ConsistencyTrackerModule : EverestModule {
 
         public static ConsistencyTrackerModule Instance;
-        private static readonly int LOG_FILE_COUNT = 10;
+        private const int LOG_FILE_COUNT = 10;
 
-        public static Object LogLock = new Object();
+        public static object LogLock = new object();
 
         #region Versions
         public class VersionsNewest {
@@ -50,7 +51,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         public override Type SettingsType => typeof(ConsistencyTrackerSettings);
-        public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)this._Settings;
+        public ConsistencyTrackerSettings ModSettings => (ConsistencyTrackerSettings)_Settings;
 
         public static string BaseFolderPath = "./ConsistencyTracker/";
         public static readonly string ExternalToolsFolder = "external-tools";
@@ -61,13 +62,13 @@ namespace Celeste.Mod.ConsistencyTracker {
         public static readonly string SummariesFolder = "summaries";
 
 
-        private bool DidRestart { get; set; } = false;
+        private bool DidRestart { get; set; }
         private HashSet<string> ChaptersThisSession { get; set; } = new HashSet<string>();
 
         #region Path Recording Variables
 
         public bool DoRecordPath {
-            get => _DoRecordPath;
+            get => DoRecordPathInternal;
             set {
                 if (value) {
                     if (DisabledInRoomName != CurrentRoomName) {
@@ -79,14 +80,14 @@ namespace Celeste.Mod.ConsistencyTracker {
                     SaveRecordedRoomPath();
                 }
 
-                _DoRecordPath = value;
-                Log($"DoRecordPath is now '{_DoRecordPath}'");
+                DoRecordPathInternal = value;
+                Log($"DoRecordPath is now '{DoRecordPathInternal}'");
             }
         }
-        private bool _DoRecordPath = false;
+        private bool DoRecordPathInternal;
         public PathRecorder PathRec;
         private string DisabledInRoomName;
-        public bool AbortPathRecording = false;
+        public bool AbortPathRecording;
         
         #endregion
 
@@ -96,7 +97,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public long CurrentUpdateFrame;
 
         public List<Tuple<ChapterStatsList, PathSegmentList>> LastVisitedChapters = new List<Tuple<ChapterStatsList, PathSegmentList>>();
-        public static readonly int MAX_LAST_VISITED_CHAPTERS = 10;
+        public const int MAX_LAST_VISITED_CHAPTERS = 10;
 
         public bool IsInFgrMode {
             get {
@@ -104,6 +105,14 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return FgrPathExists(ModSettings.SelectedFgr);
             }
         }
+
+        public bool IsInOrPastFinal => CurrentChapterPath != null 
+                                       && CurrentChapterPath.CurrentRoom != null
+                                       && CurrentChapterPath.CurrentRoom.RoomNumberInChapter >= CurrentChapterPath.GameplayRoomCount;
+        
+        public bool IsInFirstRoom => CurrentChapterPath != null 
+                                    && CurrentChapterPath.CurrentRoom != null
+                                    && CurrentChapterPath.CurrentRoom.DebugRoomName == CurrentChapterPath.WalkPath().First().DebugRoomName;
 
         public PathSegmentList CurrentChapterPathSegmentList { get; set; }
         public PathInfo CurrentChapterPath {
@@ -114,9 +123,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
             }
         }
-        public int SelectedPathSegmentIndex {
-            get => CurrentChapterPathSegmentList?.SelectedIndex ?? 0;
-        }
+        public int SelectedPathSegmentIndex => CurrentChapterPathSegmentList?.SelectedIndex ?? 0;
 
         public ChapterStatsList CurrentChapterStatsList { get; set; }
         public ChapterStats CurrentChapterStats { 
@@ -129,32 +136,27 @@ namespace Celeste.Mod.ConsistencyTracker {
         public string PreviousRoomName;
         public string CurrentRoomName;
         public string SpeedrunToolSaveStateRoomName;
-        public Session LastSession = null;
+        public Session LastSession;
 
-        private string LastRoomWithCheckpoint = null;
+        private string LastRoomWithCheckpoint;
 
-        private bool _CurrentRoomCompleted = false;
-        private bool _CurrentRoomCompletedResetOnDeath = false;
-        public bool PlayerIsHoldingGolden {
-            get => _PlayerIsHoldingGolden; 
-            set { 
-                _PlayerIsHoldingGolden = value;
-                if (IngameOverlay != null) {
-                    IngameOverlay.SetGoldenState(value);
-                }
-            } 
+        private bool CurrentRoomCompleted;
+        private bool CurrentRoomCompletedResetOnDeath;
+
+        public bool IsInGoldenRun {
+            get => ModSettings.IsInRun;
+            set => ModSettings.IsInRun = value;
         }
-        private bool _PlayerIsHoldingGolden = false;
 
-        public bool HasTriggeredPbEvent { get; set; } = false;
-        public bool HasTriggeredAfterPbEvent { get; set; } = false;
-
+        public bool HasTriggeredPbEvent { get; set; }
+        public bool HasTriggeredAfterPbEvent { get; set; }
+        
         #endregion
 
         #region Mod Options State Variables
         //For combining multiple mod options settings into one logical state
         public bool SettingsTrackGoldens => !ModSettings.PauseDeathTracking || ModSettings.TrackingAlwaysGoldenDeaths;
-        public bool SettingsTrackAttempts => !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || PlayerIsHoldingGolden);
+        public bool SettingsTrackAttempts => !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || IsInGoldenRun);
         #endregion
 
         public StatManager StatsManager;
@@ -183,7 +185,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             GameData.Load();
             
             CheckFolderExists(GetPathToFile(PathsFolder));
-            CheckPrepackagedPaths(reset:false);
+            ResourceUnpacker.CheckPrepackagedPaths(reset:false);
             
             CheckFolderExists(GetPathToFile(StatsFolder));
             CheckFolderExists(GetPathToFile(FgrFolder));
@@ -191,7 +193,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
             CheckFolderExists(GetPathToFile(ExternalToolsFolder));
-            UpdateExternalTools();
+            ResourceUnpacker.UpdateExternalTools();
 
 
             Log($"Mod Settings -> \n{JsonConvert.SerializeObject(ModSettings, Formatting.Indented)}");
@@ -221,17 +223,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             LogCleanup();
         }
 
-        private int _CheckFrames = 0;
         private void HookStuff() {
             //Create stats manager
             Everest.Events.MainMenu.OnCreateButtons += MainMenu_OnCreateButtons;
             //Track where the player is
             On.Celeste.Level.Begin += Level_Begin;
+            On.Celeste.Level.End += LevelOnEnd;
             Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Level.OnComplete += Level_OnComplete;
             Everest.Events.Level.OnTransitionTo += Level_OnTransitionTo;
             Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
-            On.Celeste.Level.Update += LevelOnUpdate;
+            // On.Celeste.Level.Update += LevelOnUpdate;
             On.Celeste.Level.TeleportTo += Level_TeleportTo;
             //Track deaths
             Everest.Events.Player.OnDie += Player_OnDie;
@@ -261,6 +263,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen += LockBlock_TryOpen; //works
             
             On.Celeste.Level.UpdateTime += Level_UpdateTime;
+            On.Celeste.Level.Update += LevelOnUpdate;
+            MapEditor.ctor += MapEditorOnCtor;
 
             //Self hooks
             HookCustom();
@@ -271,31 +275,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             MultiPacePingManager.Hook();
         }
 
-        private void LevelOnUpdate(On.Celeste.Level.orig_Update orig, Level self) {
-            orig(self);
-
-            if (_CheckFrames <= 0) {
-                return;
-            }
-            _CheckFrames--;
-            
-            LogVerbose($"Checking frames after room transition ({_CheckFrames})...");
-            Player player = self.Tracker.GetEntity<Player>();
-            bool newHoldingGolden = PlayerIsHoldingGoldenBerry(player);
-            if (PlayerIsHoldingGolden == newHoldingGolden) {
-                return;
-            }
-            
-            PlayerIsHoldingGolden = newHoldingGolden;
-            
-            //Save stats to ensure the golden berry is counted
-            SaveChapterStats();
-            if (newHoldingGolden) {
-                //Check pace pings, since golden berry state changed
-                CheckPaceEvents(CurrentRoomName);
-            }
-        }
-
         private void UnHookStuff() {
             Everest.Events.MainMenu.OnCreateButtons -= MainMenu_OnCreateButtons;
             On.Celeste.Level.Begin -= Level_Begin;
@@ -303,7 +282,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             Everest.Events.Level.OnComplete -= Level_OnComplete;
             Everest.Events.Level.OnTransitionTo -= Level_OnTransitionTo;
             Everest.Events.Level.OnLoadLevel -= Level_OnLoadLevel;
-            On.Celeste.Level.Update -= LevelOnUpdate;
+            // On.Celeste.Level.Update -= LevelOnUpdate;
             On.Celeste.Level.TeleportTo -= Level_TeleportTo;
 
             //Track deaths
@@ -332,6 +311,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             On.Celeste.Level.UpdateTime -= Level_UpdateTime;
+            On.Celeste.Editor.MapEditor.ctor -= MapEditorOnCtor;
 
             //Self hooks
             UnHookCustom();
@@ -351,7 +331,88 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Hooks
-        private void MainMenu_OnCreateButtons(OuiMainMenu menu, System.Collections.Generic.List<MenuButton> buttons) {
+
+        /// <summary>
+        /// Hook to check button bindings which should only be active when the level is unpaused.
+        /// </summary>
+        /// <param name="orig"></param>
+        /// <param name="self"></param>
+        private void LevelOnUpdate(On.Celeste.Level.orig_Update orig, Level self) {
+            orig(self);
+
+            if (self.Paused) return;
+            
+            if (ModSettings.ButtonFgrToggleInRun.Pressed) {
+                IsInGoldenRun = !IsInGoldenRun;
+                SaveSettings();
+            }
+
+            if (ModSettings.ButtonFgrTeleportToNextMap.Pressed && CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && IsInFgrMode) {
+                RoomInfo nextMap = CurrentChapterPath.CurrentRoom;
+                bool found = false;
+                while (!found) {
+                    nextMap = nextMap.NextGameplayRoomInChapter;
+                    if (nextMap == null || nextMap.UID != CurrentChapterDebugName) {
+                        found = true;
+                    }
+                }
+                if (nextMap == null) {
+                    Log($"There is no next map to load into.");
+                    return;
+                }
+                ConsoleCommands.LoadRoom(nextMap);
+            }
+
+            if (ModSettings.ButtonFgrTeleportToPreviousMap.Pressed && CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && IsInFgrMode) {
+                RoomInfo previousMap = CurrentChapterPath.CurrentRoom;
+                Log($"Check from current room backwards: {previousMap.DebugRoomName}");
+                bool found = false;
+                while (!found) {
+                    previousMap = previousMap.PreviousGameplayRoomInChapter;
+                    Log($"Checking previous room: {previousMap?.DebugRoomName}");
+                    if (previousMap == null || previousMap.UID != CurrentChapterDebugName) {
+                        found = true;
+                    }
+                }
+                if (previousMap == null) {
+                    Log($"There is no previous map to load into.");
+                    return;
+                }
+                
+                // As opposed to next map, we want to load into not the first room found, but the first room of the map
+                // So we need to keep searching until we find a room with a different UID again, then use the next one.
+                RoomInfo firstRoomOfMap = previousMap;
+                found = false;
+                while (!found) {
+                    RoomInfo temp = firstRoomOfMap.PreviousGameplayRoomInChapter;
+                    if (temp == null || temp.UID != previousMap.UID) {
+                        found = true;
+                    } else {
+                        firstRoomOfMap = temp;
+                    }
+                }
+                
+                ConsoleCommands.LoadRoom(firstRoomOfMap);
+            }
+            
+            if (ModSettings.ButtonFgrReset.Pressed && CurrentChapterPath != null && IsInFgrMode) {
+                RoomInfo rInfo = CurrentChapterPath.WalkPath().First();
+                if (rInfo == null) {
+                    Log($"There is no initial room to load into.");
+                    return;
+                }
+                ConsoleCommands.LoadRoom(rInfo);
+            }
+        }
+
+        private void MapEditorOnCtor(MapEditor.orig_ctor orig, Editor.MapEditor self, AreaKey area, bool reloadmapdata) {
+            orig(self, area, reloadmapdata);
+            // Opening the debug map should reset the run. Only relevant in FGR mode, as the normal ChangeChapter
+            // would end the run anyway and double calling is fine. The IsInFgrMode check is expensive, so skip it.
+            EndRun();
+        }
+        
+        private void MainMenu_OnCreateButtons(OuiMainMenu menu, List<MenuButton> buttons) {
             if (StatsManager == null) {
                 StatsManager = new StatManager();
             }
@@ -423,10 +484,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             if (self.Golden && !isSpeedBerry) {
-                PlayerIsHoldingGolden = true;
                 CurrentChapterStats.GoldenBerryType = goldenType;
+                StartNewRun();
                 SaveChapterStats();
-                Events.Events.InvokeGoldenPickup(goldenType);
+                Events.Events.InvokeRunStarted();
             }
             
             orig(self, player);
@@ -455,11 +516,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && !self.Winged && SettingsTrackGoldens) {
+            if (self.Golden && !self.Winged && SettingsTrackGoldens && !IsInFgrMode) { // In fgr mode, goldens dont exist, so they cant mark the end of the challenge.
                 Log($"Golden collected! GG :catpog:");
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
-                Events.Events.InvokeGoldenCollect(goldenType);
+                EndRun(won:true);
             }
         }
 
@@ -491,7 +552,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
             }
             
-            string roomName = ResolveRoomName(level.Session.LevelData.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
             if (DoRecordPath) {
@@ -505,7 +566,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
 
-            string roomName = ResolveRoomName(level.Session.LevelData?.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(level.Session.LevelData?.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
             Log($"level.Session.LevelData.Name={roomName}");
 
             //if (ModSettings.CountTeleportsForRoomTransitions && CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -521,12 +582,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             ChapterMetaInfo chapterInfo = new ChapterMetaInfo(level.Session);
-            string newCurrentRoom = ResolveRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterDebugName);
-            UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
+            string newCurrentRoom = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterDebugName);
 
-            Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{PlayerIsHoldingGolden}'");
-
-            _CheckFrames = 5;
+            Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{IsInGoldenRun}'");
 
             //Change room if we're not in the same room as before
             if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
@@ -534,7 +592,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
-                SetNewRoom(newCurrentRoom, success, PlayerIsHoldingGolden);
+                SetNewRoom(newCurrentRoom, success);
             }
 
             if (DidRestart) {
@@ -543,7 +601,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
                 Log($"\tRequested reset of PreviousRoomName to null", true);
                 DidRestart = false;
-                SetNewRoom(newCurrentRoom, false, PlayerIsHoldingGolden);
+                SetNewRoom(newCurrentRoom, false);
                 PreviousRoomName = null;
             }
 
@@ -560,25 +618,33 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
+        private void LevelOnEnd(On.Celeste.Level.orig_End orig, Level self) {
+            orig(self);
+            Log($"Level ended.");
+        }
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
             Log($"mode={mode}, snow={snow}");
             if (mode == LevelExit.Mode.Restart) {
                 DidRestart = true;
-                if (PlayerIsHoldingGolden 
+                if (IsInGoldenRun 
                     && ModSettings.TrackingRestartChapterCountsForGoldenDeath
                     && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    Events.Events.InvokeGoldenDeath();
+                    EndRun(died:true);
                 }
-
             } else if (mode == LevelExit.Mode.GoldenBerryRestart) {
                 DidRestart = true;
-                Log($"GoldenBerryRestart -> PlayerIsHoldingGolden: {PlayerIsHoldingGolden}");
+                Log($"GoldenBerryRestart -> PlayerIsHoldingGolden: {IsInGoldenRun}");
 
-                if (SettingsTrackGoldens && PlayerIsHoldingGolden) { //Only count golden berry deaths when enabled
+                if (SettingsTrackGoldens && IsInGoldenRun) { //Only count golden berry deaths when enabled
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    Events.Events.InvokeGoldenDeath();
+                    EndRun(died:true);
                 }
+            }
+
+            // Calling it again is safe, as it cannot double-end a run.
+            if (!IsInFgrMode) {
+                EndRun();
             }
 
             if (DoRecordPath) { //Abort path recording when exiting level
@@ -591,16 +657,26 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void Level_OnComplete(Level level) {
-            Log($"Incrementing {CurrentChapterStats?.CurrentRoom.DebugRoomName}");
+            if (CurrentChapterStats == null) return;
+            Log($"Incrementing {CurrentChapterStats.CurrentRoom.DebugRoomName}");
             if(SettingsTrackAttempts)
-                CurrentChapterStats?.AddAttempt(true);
+                CurrentChapterStats.AddAttempt(true);
             CurrentChapterStats.ModState.ChapterCompleted = true;
-            SaveChapterStats();
-
-            if (DoRecordPath) { //Auto disable path recording when completing level
+            
+            // Auto disable path recording when completing level
+            if (DoRecordPath) { 
                 DoRecordPath = false;
                 ModSettings.RecordPath = false;
             }
+            
+            // End the run. If in fgr and in last room, count as win.
+            if (IsInOrPastFinal && IsInFgrMode) {
+                EndRun(won:true);
+            } else {
+                EndRun();
+            }
+            
+            SaveChapterStats();
         }
 
         private void Level_Begin(On.Celeste.Level.orig_Begin orig, Level level) {
@@ -616,21 +692,20 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
 
-            string roomName = ResolveRoomName(levelDataNext.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(levelDataNext.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
             Log($"levelData.Name->{roomName}");
 
             if (CurrentRoomName != null && roomName != CurrentRoomName) {
-                bool holdingGolden = PlayerIsHoldingGoldenBerry(level.Tracker.GetEntity<Player>());
-                SetNewRoom(roomName, true, holdingGolden);
+                SetNewRoom(roomName);
             }
         }
 
         private void Player_OnDie(Player player) {
             TouchedBerries.Clear();
             
-            Log($"Player died. (holdingGolden: {PlayerIsHoldingGolden})");
-            if (_CurrentRoomCompletedResetOnDeath) {
-                _CurrentRoomCompleted = false;
+            Log($"Player died. (holdingGolden: {IsInGoldenRun})");
+            if (CurrentRoomCompletedResetOnDeath) {
+                CurrentRoomCompleted = false;
             }
 
             if (SettingsTrackAttempts)
@@ -638,6 +713,15 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if(CurrentChapterStats != null)
                 CurrentChapterStats.CurrentRoom.DeathsInCurrentRun++;
+
+            if (IsInGoldenRun && IsInFgrMode) {
+                CurrentChapterStats?.AddGoldenBerryDeath();
+                EndRun(died:true);
+
+                if (IsInFirstRoom) {
+                    StartNewRun();
+                }
+            }
 
             SaveChapterStats();
         }
@@ -655,7 +739,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             long ticks = TimeSpan.FromSeconds(Engine.RawDeltaTime).Ticks;
             CurrentChapterStats.CurrentRoom.TimeSpentInRoom += ticks;
-            if (PlayerIsHoldingGolden) {
+            if (IsInGoldenRun) {
                 CurrentChapterStats.CurrentRoom.TimeSpentInRoomInRuns += ticks;
             } else {
                 //Track first playthrough (FILE DEPENDENT)
@@ -671,17 +755,15 @@ namespace Celeste.Mod.ConsistencyTracker {
         #region Custom Hooks
         private void HookCustom() {
             Events.Events.OnResetSession += Events_OnResetSession;
-            Events.Events.OnGoldenPickup += Events_OnGoldenPickup;
-            Events.Events.OnGoldenDeath += Events_OnGoldenDeath;
-            Events.Events.OnGoldenCollect += Events_OnGoldenCollect;
+            Events.Events.OnRunStarted += EventsOnRunStarted;
+            Events.Events.OnRunEnded += EventsOnRunEnded;
             Events.Events.OnChangedRoom += Events_OnChangedRoom;
         }
 
         private void UnHookCustom() {
             Events.Events.OnResetSession -= Events_OnResetSession;
-            Events.Events.OnGoldenPickup -= Events_OnGoldenPickup;
-            Events.Events.OnGoldenDeath -= Events_OnGoldenDeath;
-            Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
+            Events.Events.OnRunStarted -= EventsOnRunStarted;
+            Events.Events.OnRunEnded -= EventsOnRunEnded;
             Events.Events.OnChangedRoom -= Events_OnChangedRoom;
         }
 
@@ -700,14 +782,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             HasTriggeredAfterPbEvent = false;
         }
 
-        private void Events_OnGoldenPickup(GoldenType type) {
+        private void EventsOnRunStarted() {
 
         }
-        private void Events_OnGoldenDeath() {
+        private void EventsOnRunEnded(bool died, bool won) {
             ChokeRateStat.ChokeRateData = null; //Reset caching
-        }
-        private void Events_OnGoldenCollect(GoldenType type) {
-
         }
         private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
             if (DoRecordPath) {
@@ -718,7 +797,34 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region State Management
 
+        /// <summary>
+        /// Starts a new run.
+        /// </summary>
+        public void StartNewRun() {
+            if (IsInGoldenRun) return;
+            IsInGoldenRun = true;
+            Log($"Starting new run");
+            Events.Events.InvokeRunStarted();
+        }
+
+        /// <summary>
+        /// Ends the current run. Invokes necessary events and resets states.
+        /// <param name="died">Whether the run ended due to death.</param>
+        /// <param name="won">Whether the run ended due to winning.</param>
+        /// </summary>
+        public void EndRun(bool died = false, bool won = false) {
+            if (!IsInGoldenRun) return; // Only invoke events if we were actually in a run
+            IsInGoldenRun = false;
+            Log($"Ending run | died: {died}, won: {won}");
+            Events.Events.InvokeRunEnded(died, won);
+        }
+
         private void ChangeChapter(Session session) {
+            // Firstly, if we arent in FGR mode, end the run
+            if (!IsInFgrMode) {
+                EndRun();
+            }
+            
             bool isLastSession = LastSession == session;
             Log($"Called chapter change | isLastSession: {isLastSession}");
             LastSession = session;
@@ -730,7 +836,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterDebugName = chapterInfo.ChapterDebugName;
 
             PreviousRoomName = null;
-            CurrentRoomName = ResolveRoomName(session.Level, IsInFgrMode, chapterInfo.ChapterDebugName);
+            CurrentRoomName = GetRoomName(session.Level, IsInFgrMode, chapterInfo.ChapterDebugName);
 
             // Resolve active path and stats. Respects FGR mode.
             var statsPathInfo = ResolveActiveChapterStatsListPath();
@@ -751,11 +857,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             ChokeRateStat.ChokeRateData = null;
             
             //Cause initial stats calculation
-            SetNewRoom(CurrentRoomName, false, false);
+            SetNewRoom(CurrentRoomName, false);
 
             if (!isLastSession) {
-                bool hasEnteredThisSession = ChaptersThisSession.Contains(CurrentChapterDebugName);
-                ChaptersThisSession.Add(CurrentChapterDebugName);
+                bool hasEnteredThisSession = ChaptersThisSession.Contains(psl.CurrentPath.ChapterUID);
+                ChaptersThisSession.Add(psl.CurrentPath.ChapterUID);
                 if (!hasEnteredThisSession) {
                     CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
                 }
@@ -801,7 +907,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (Engine.Scene is Level level) {
                 chapterInfo = new ChapterMetaInfo(level.Session);
             }
-            SetCurrentChapterPath(CurrentChapterPath, chapterInfo);//To set checkpoint refs and stuff
+            FixChapterPathInfo(CurrentChapterPath, chapterInfo);
             
             SaveActivePath();
             if (CurrentChapterPath != null) {
@@ -846,9 +952,9 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public string ResolveRoomNameInActiveChapter(string roomName) {
             if (!IsInFgrMode) return roomName;
-            return $"{ActualChapterMetaInfo.ChapterDebugName}:{roomName}";
+            return GetRoomName(roomName, true, ActualChapterMetaInfo.ChapterDebugName);
         }
-        public static string ResolveRoomName(string roomName, bool isFgrMode, string uid) {
+        public static string GetRoomName(string roomName, bool isFgrMode, string uid) {
             if (!isFgrMode) return roomName;
             return $"{uid}:{roomName}";
         }
@@ -876,10 +982,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             return roomName;
         }
 
-        public void SetNewRoom(string newRoomName, bool countSuccess=true, bool? holdingGolden=null) {
-            if (holdingGolden != null) { 
-                PlayerIsHoldingGolden = holdingGolden.Value;
-            }
+        public void SetNewRoom(string newRoomName, bool countSuccess=true) {
+            if (CurrentChapterStats == null) return;
+            
             CurrentChapterStats.ModState.ChapterCompleted = false;
 
             //Resolve grouped room name
@@ -898,7 +1003,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             //Don't complete if entering previous room and current room was not completed
-            if (PreviousRoomName == newRoomName && !_CurrentRoomCompleted) {
+            if (PreviousRoomName == newRoomName && !CurrentRoomCompleted) {
                 Log($"Entered previous room '{PreviousRoomName}'");
                 PreviousRoomName = CurrentRoomName;
                 CurrentRoomName = newRoomName;
@@ -916,30 +1021,33 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"Entered new room '{newRoomName}' | Holding golden: '{holdingGolden}'");
+            Log($"Entered new room '{newRoomName}' | Is in run: '{IsInGoldenRun}'");
 
             PreviousRoomName = CurrentRoomName;
             CurrentRoomName = newRoomName;
-            _CurrentRoomCompleted = false;
+            CurrentRoomCompleted = false;
 
-            if (CurrentChapterStats != null) {
-                if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || holdingGolden.Value)) {
-                    CurrentChapterStats.AddAttempt(true);
-                }
-                CurrentChapterStats.SetCurrentRoom(newRoomName);
-                SaveChapterStats();
+            if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || IsInGoldenRun)) {
+                CurrentChapterStats.AddAttempt(true);
             }
+            CurrentChapterStats.SetCurrentRoom(newRoomName);
 
+            // When in FGR mode, consider the run to start when you touched the first room.
+            if (IsInFirstRoom && IsInFgrMode) {
+                StartNewRun();
+            }
+            
+            SaveChapterStats();
             CheckPaceEvents(newRoomName);
         }
 
         private void CheckPaceEvents(string newRoomName) {
             //PB state tracking
-            if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && PlayerIsHoldingGolden) {
+            if (CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && IsInGoldenRun) {
                 RoomInfo currentRoom = CurrentChapterPath.CurrentRoom;
                 RoomInfo pbRoom = PersonalBestStat.GetFurthestDeathRoom(CurrentChapterPath, CurrentChapterStats);
                 if (pbRoom != null && CurrentChapterStats.GoldenCollectedCount == 0) { //Don't call events if no PB or if golden has been collected
-                    if (!HasTriggeredPbEvent && currentRoom == pbRoom) {
+                    if (!HasTriggeredPbEvent && currentRoom.DebugRoomName == pbRoom.DebugRoomName) {
                         HasTriggeredPbEvent = true;
                         Events.Events.InvokeEnteredPbRoomWithGolden();
                     } else if (HasTriggeredPbEvent && !HasTriggeredAfterPbEvent && currentRoom.RoomNumberInChapter > pbRoom.RoomNumberInChapter) {
@@ -953,25 +1061,16 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void SetRoomCompleted(bool resetOnDeath=false) {
-            _CurrentRoomCompleted = true;
-            _CurrentRoomCompletedResetOnDeath = resetOnDeath;
+            CurrentRoomCompleted = true;
+            CurrentRoomCompletedResetOnDeath = resetOnDeath;
         }
 
-        public void UpdatePlayerHoldingGolden(Player player = null) {
-            if (player == null && Engine.Scene is Level level) {
-                player = level.Tracker.GetEntity<Player>();
-            }
-            if (player == null) return;
-            PlayerIsHoldingGolden = PlayerIsHoldingGoldenBerry(player);
-        }
         private bool PlayerIsHoldingGoldenBerry(Player player) {
             if (player == null || player.Leader == null || player.Leader.Followers == null || player.Leader.Followers.Count == 0) {
-                //Log($"player '{player}', player.Leader '{player?.Leader}', player.Leader.Followers '{player?.Leader?.Followers}', follower count '{player?.Leader?.Followers?.Count}'");
                 return false;
             }
             
             return player.Leader.Followers.Any((f) => {
-                //Log($"Follower class: '{f.Entity.GetType().Name}'", isFollowup:true);
                 if (f.Entity.GetType().Name == "PlatinumBerry") {
                     return true;
                 } else if (f.Entity.GetType().Name == "SpeedBerry") {
@@ -1001,13 +1100,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 savedvalues.Add(type, new Dictionary<string, object>());
                 savedvalues[type].Add(nameof(PreviousRoomName), PreviousRoomName);
                 savedvalues[type].Add(nameof(CurrentRoomName), CurrentRoomName);
-                savedvalues[type].Add(nameof(_CurrentRoomCompleted), _CurrentRoomCompleted);
-                savedvalues[type].Add(nameof(_CurrentRoomCompletedResetOnDeath), _CurrentRoomCompletedResetOnDeath);
+                savedvalues[type].Add(nameof(CurrentRoomCompleted), CurrentRoomCompleted);
+                savedvalues[type].Add(nameof(CurrentRoomCompletedResetOnDeath), CurrentRoomCompletedResetOnDeath);
             } else {
                 savedvalues[type][nameof(PreviousRoomName)] = PreviousRoomName;
                 savedvalues[type][nameof(CurrentRoomName)] = CurrentRoomName;
-                savedvalues[type][nameof(_CurrentRoomCompleted)] = _CurrentRoomCompleted;
-                savedvalues[type][nameof(_CurrentRoomCompletedResetOnDeath)] = _CurrentRoomCompletedResetOnDeath;
+                savedvalues[type][nameof(CurrentRoomCompleted)] = CurrentRoomCompleted;
+                savedvalues[type][nameof(CurrentRoomCompletedResetOnDeath)] = CurrentRoomCompletedResetOnDeath;
             }
 
             SpeedrunToolSaveStateRoomName = CurrentRoomName;
@@ -1023,11 +1122,14 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             //Register the death if setting is enabled
             if (ModSettings.TrackingSaveStateCountsForGoldenDeath && CurrentChapterStats != null) {
-                if (PlayerIsHoldingGolden && SettingsTrackGoldens) {
+                if (IsInGoldenRun && SettingsTrackGoldens) {
                     CurrentChapterStats?.AddGoldenBerryDeath();
-                    Events.Events.InvokeGoldenDeath();
-                    UpdatePlayerHoldingGolden(level.Tracker.GetEntity<Player>());
+                    EndRun(died:true);
+                } else {
+                    EndRun();
                 }
+            } else {
+                EndRun();
             }
 
             IngameOverlay = level.Tracker.GetEntity<TextOverlay>();
@@ -1036,10 +1138,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
             CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];
-            _CurrentRoomCompleted = (bool) savedvalues[type][nameof(_CurrentRoomCompleted)];
-            _CurrentRoomCompletedResetOnDeath = (bool) savedvalues[type][nameof(_CurrentRoomCompletedResetOnDeath)];
+            CurrentRoomCompleted = (bool) savedvalues[type][nameof(CurrentRoomCompleted)];
+            CurrentRoomCompletedResetOnDeath = (bool) savedvalues[type][nameof(CurrentRoomCompletedResetOnDeath)];
 
-            CurrentChapterStats.SetCurrentRoom(CurrentRoomName);
+            if (CurrentChapterStats != null) CurrentChapterStats.SetCurrentRoom(CurrentRoomName);
             SaveChapterStats();
 
             if (PhysicsLogger.Settings.SegmentOnLoadState) {
@@ -1060,16 +1162,6 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Data Import/Export
-
-        public static string GetPathToFile(string file) {
-            return Path.Combine(BaseFolderPath, file);
-        }
-        public static string GetPathToFile(string folder, string file) {
-            return Path.Combine(BaseFolderPath, Path.Combine(folder, file));
-        }
-        public static string GetPathToFile(string folder, string subfolder, string file) {
-            return Path.Combine(BaseFolderPath, Path.Combine(folder, Path.Combine(subfolder, file)));
-        }
         
         /// <summary>Checks the folder exists.</summary>
         /// <param name="folderPath">The folder path.</param>
@@ -1128,26 +1220,26 @@ namespace Celeste.Mod.ConsistencyTracker {
         public PathSegmentList GetPathSegmentList(string folder = null, string pathName = null) {
             Log($"Fetching path info for chapter '{pathName}'");
 
-            string pathTXT = GetPathToFile(folder, $"{pathName}.txt");
-            string pathJSON = GetPathToFile(folder, $"{pathName}.json");
-            Log($"\tSearching for path '{pathJSON}' or .txt equiv", true);
+            string pathTxt = GetPathToFile(folder, $"{pathName}.txt");
+            string pathJson = GetPathToFile(folder, $"{pathName}.json");
+            Log($"\tSearching for path '{pathJson}' or .txt equiv", true);
 
-            if (!File.Exists(pathJSON) && !File.Exists(pathTXT)) {
-                Log($"\tDidn't find file at '{pathJSON}', returned null.", true);
+            if (!File.Exists(pathJson) && !File.Exists(pathTxt)) {
+                Log($"\tDidn't find file at '{pathJson}', returned null.", true);
                 return null;
             }
             
             
             string content = null;
-            bool readAsTXT = false;
-            if (File.Exists(pathJSON)) {
-                content = File.ReadAllText(pathJSON);
-            } else if (File.Exists(pathTXT)) {
-                content = File.ReadAllText(pathTXT);
-                readAsTXT = true;
+            bool readAsTxt = false;
+            if (File.Exists(pathJson)) {
+                content = File.ReadAllText(pathJson);
+            } else if (File.Exists(pathTxt)) {
+                content = File.ReadAllText(pathTxt);
+                readAsTxt = true;
             }
 
-            string logExt = readAsTXT ? "txt" : "json";
+            string logExt = readAsTxt ? "txt" : "json";
             Log($"\tFound '.{logExt}' version of file, parsing...", true);
 
             try {
@@ -1164,8 +1256,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //[Try 1] New file format: JSON
             try {
                 PathInfo pathInfo = JsonConvert.DeserializeObject<PathInfo>(content);
-                if (readAsTXT) { //Move file to json format
-                    File.Move(pathTXT, pathJSON);
+                if (readAsTxt) { //Move file to json format
+                    File.Move(pathTxt, pathJson);
                 }
                 oldPathFormat = pathInfo;
             } catch (Exception) {
@@ -1197,7 +1289,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// </summary>
         /// <param name="path">The path to move.</param>
         public void MoveFileToSaveLocation(string path) {
-            string destPath = null;
+            string destPath;
             int backupNum = 1;
             
             while (true) {
@@ -1234,17 +1326,17 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// <returns>>The loaded chapter stats list.</returns>
         /// <exception cref="Exception">Thrown when the stats file couldn't be parsed.</exception>
         public ChapterStatsList GetChapterStatsList(string folder, string fileBaseName) {
-            string pathTXT = GetPathToFile(folder, $"{fileBaseName}.txt");
-            string pathJSON = GetPathToFile(folder, $"{fileBaseName}.json");
-            string backupJSON = GetPathToFile(folder, $"{fileBaseName}_backup.json");
+            string pathTxt = GetPathToFile(folder, $"{fileBaseName}.txt");
+            string pathJson = GetPathToFile(folder, $"{fileBaseName}.json");
+            string backupJson = GetPathToFile(folder, $"{fileBaseName}_backup.json");
 
             Log($"fileBaseName: '{fileBaseName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
 
 
-            ChapterStatsList toRet = null;
-            if (!File.Exists(pathTXT) && !File.Exists(pathJSON)) { //Create new
-                if (File.Exists(backupJSON)) {
-                    MoveFileToSaveLocation(backupJSON);
+            ChapterStatsList toRet;
+            if (!File.Exists(pathTxt) && !File.Exists(pathJson)) { //Create new
+                if (File.Exists(backupJson)) {
+                    MoveFileToSaveLocation(backupJson);
                 }
                 toRet = new ChapterStatsList();
                 toRet.GetStats(0).SetCurrentRoom(CurrentRoomName);
@@ -1252,12 +1344,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             string content = null;
-            bool readAsTXT = false;
-            if (File.Exists(pathJSON)) {
-                content = File.ReadAllText(pathJSON);
-            } else if (File.Exists(pathTXT)) {
-                content = File.ReadAllText(pathTXT);
-                readAsTXT = true;
+            bool readAsTxt = false;
+            if (File.Exists(pathJson)) {
+                content = File.ReadAllText(pathJson);
+            } else if (File.Exists(pathTxt)) {
+                content = File.ReadAllText(pathTxt);
+                readAsTxt = true;
             }
 
             try {
@@ -1268,8 +1360,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return toRet;
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats list, trying older stats formats...", true);
-                if (File.Exists(backupJSON)) {
-                    MoveFileToSaveLocation(backupJSON);
+                if (File.Exists(backupJson)) {
+                    MoveFileToSaveLocation(backupJson);
                 }
             }
 
@@ -1282,8 +1374,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
             } catch (Exception) {
                 Log($"\tCouldn't read chapter stats as JSON, trying old stats format...", true);
-                if (File.Exists(backupJSON)) {
-                    MoveFileToSaveLocation(backupJSON);
+                if (File.Exists(backupJson)) {
+                    MoveFileToSaveLocation(backupJson);
                 }
             }
 
@@ -1302,8 +1394,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 }
             }
 
-            if (readAsTXT) { //Try to move file from TXT to JSON path 
-                File.Move(pathTXT, pathJSON);
+            if (readAsTxt) { //Try to move file from TXT to JSON path 
+                File.Move(pathTxt, pathJson);
             }
 
             //When a stats file was parsed from an old format, the path segment is always 0 (default)
@@ -1341,8 +1433,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             CurrentUpdateFrame++;
 
-            CurrentChapterStats.ModState.PlayerIsHoldingGolden = PlayerIsHoldingGolden;
-            CurrentChapterStats.ModState.GoldenDone = PlayerIsHoldingGolden && CurrentChapterStats.ModState.ChapterCompleted;
+            CurrentChapterStats.ModState.PlayerIsHoldingGolden = IsInGoldenRun;
+            CurrentChapterStats.ModState.GoldenDone = IsInGoldenRun && CurrentChapterStats.ModState.ChapterCompleted;
 
             CurrentChapterStats.ModState.DeathTrackingPaused = ModSettings.PauseDeathTracking;
             CurrentChapterStats.ModState.RecordingPath = ModSettings.RecordPath || DebugMapUtil.IsRecording;
@@ -1378,12 +1470,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             //Move backup to actual file
             File.Copy(backupPath, path);
 
-            //string modStatePath = GetPathToFile(StatsFolder, $"modState.txt");
-            //string content = $"{CurrentChapterStats.CurrentRoom}\n{CurrentChapterStats.ChapterDebugName};{CurrentChapterStats.ModState}\n";
-            //File.WriteAllText(modStatePath, content);
-
             StatsManager.OutputFormats(CurrentChapterPath, CurrentChapterStats);
-            
             Events.Events.InvokeAfterSavingStats();
         }
 
@@ -1391,190 +1478,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Attempting to create tracker summary, attemptCount = '{attemptCount}'");
             string outPath = GetPathToFile(SummariesFolder, $"{CurrentChapterDebugName}.txt");
             CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
-        }
-
-        #endregion
-
-        #region Default Path Creation
-
-        public void CheckPrepackagedPaths(bool reset=false) {
-            string assetPath = "Assets/DefaultPaths";
-            List<string> sideNames = new List<string>() { "Normal", "BSide", "CSide" };
-            List<string> levelNames = new List<string>() {
-                "1-ForsakenCity",
-                "2-OldSite",
-                "3-CelestialResort",
-                "4-GoldenRidge",
-                "5-MirrorTemple",
-                "6-Reflection",
-                "7-Summit",
-                "9-Core",
-            };
-            string farewellLevelName = "Celeste_LostLevels_Normal";
-
-            foreach (string level in levelNames) {
-                foreach (string side in sideNames) {
-                    string levelName = $"Celeste_{level}_{side}";
-                    LogVerbose($"Checking path file '{levelName}'...");
-                    CheckDefaultPathFile(levelName, $"{assetPath}/{levelName}.json", reset);
-                }
-            }
-
-            CheckDefaultPathFile(farewellLevelName, $"{assetPath}/{farewellLevelName}.json", reset);
-        }
-        private void CheckDefaultPathFile(string levelName, string assetPath, bool reset=false) {
-            string nameTXT = $"{levelName}.txt";
-            string nameJSON = $"{levelName}.json";
-            string pathTXT = GetPathToFile(PathsFolder, nameTXT);
-            string pathJSON = GetPathToFile(PathsFolder, nameJSON);
-
-            if (File.Exists(pathTXT) && !File.Exists(pathJSON)) {
-                File.Move(pathTXT, pathJSON);
-            }
-            if (File.Exists(pathTXT) && File.Exists(pathJSON)) {
-                File.Delete(pathTXT);
-            }
-
-            if (!File.Exists(pathJSON) || reset) {
-                CreatePathFileFromStream(nameJSON, assetPath);
-            } else {
-                LogVerbose($"Path file '{nameJSON}' already exists, skipping");
-            }
-        }
-
-        public void UpdateExternalTools() {
-            Log($"Checking for external tool updates...");
-
-            string basePath = "Assets";
-
-            string commonJsName = "common.js";
-            List<string> externalOverlayFiles = new List<string>() {
-                    "CCTOverlay.html",
-                    "CCTOverlay.js",
-                    "CCTOverlay.css",
-                    "img/goldberry.gif"
-            };
-            string externalOverlayFolder = $"ExternalOverlay";
-
-            List<string> livedataEditorFiles = new List<string>() {
-                    "LiveDataEditTool.html",
-                    "LiveDataEditTool.js",
-                    "LiveDataEditTool.css",
-            };
-            string livedataEditorFolder = $"LiveDataEditor";
-
-            List<string> physicsInspectorFiles = new List<string>() {
-                    "PhysicsInspector.html",
-                    "PhysicsInspector.js",
-                    "PhysicsInspector.css",
-                    "PhysicsInspectorCanvas.js",
-                    "PhysicsInspectorData.js",
-                    "PhysicsInspectorSettings.js",
-                    "konva.min.js",
-            };
-            string physicsInspectorFolder = $"PhysicsInspector";
-            
-            
-            //Delete the old files, that are NOT yet sorted into the new folders
-            foreach (string file in externalOverlayFiles) {
-                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
-                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
-                }
-            }
-            if (Directory.Exists(GetPathToFile(ExternalToolsFolder, "img"))) {
-                Directory.Delete(GetPathToFile(ExternalToolsFolder, "img"));
-            }
-            
-            foreach (string file in livedataEditorFiles) {
-                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
-                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
-                }
-            }
-            foreach (string file in physicsInspectorFiles) {
-                if (File.Exists(GetPathToFile(ExternalToolsFolder, file))) {
-                    File.Delete(GetPathToFile(ExternalToolsFolder, file));
-                }
-            }
-            
-
-            // common.js
-            string alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, commonJsName);
-            if (!File.Exists(alreadyGeneratedPath)) {
-                CreateExternalToolFileFromStream(commonJsName, $"{basePath}/{commonJsName}");
-            }
-            
-            //Overlay files
-            CheckFolderExists(GetPathToFile(ExternalToolsFolder, externalOverlayFolder));
-            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, externalOverlayFolder, "CCTOverlay.html");
-            if (Util.IsUpdateAvailable(VersionsCurrent.Overlay, VersionsNewest.Overlay) || !File.Exists(alreadyGeneratedPath)) {
-                Log($"Updating External Overlay from version {VersionsCurrent.Overlay ?? "null"} to version {VersionsNewest.Overlay}");
-                VersionsCurrent.Overlay = VersionsNewest.Overlay;
-
-                CheckFolderExists(GetPathToFile(ExternalToolsFolder, externalOverlayFolder, "img"));
-
-                foreach (string file in externalOverlayFiles) {
-                    CreateExternalToolFileFromStream(file, $"{basePath}/{externalOverlayFolder}/{file}", externalOverlayFolder);
-                }
-            } else {
-                Log($"External Overlay is up to date at version {VersionsCurrent.Overlay}");
-            }
-
-            //Path Edit Tool files
-
-            //Format Edit Tool files
-            CheckFolderExists(GetPathToFile(ExternalToolsFolder, livedataEditorFolder));
-            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, livedataEditorFolder, "LiveDataEditTool.html");
-            if (Util.IsUpdateAvailable(VersionsCurrent.LiveDataEditor, VersionsNewest.LiveDataEditor) || !File.Exists(alreadyGeneratedPath)) {
-                Log($"Updating LiveData Editor from version {VersionsCurrent.LiveDataEditor ?? "null"} to version {VersionsNewest.LiveDataEditor}");
-                VersionsCurrent.LiveDataEditor = VersionsNewest.LiveDataEditor;
-
-                foreach (string file in livedataEditorFiles) {
-                    CreateExternalToolFileFromStream(file, $"{basePath}/{livedataEditorFolder}/{file}", livedataEditorFolder);
-                }
-            } else {
-                Log($"LiveData Editor is up to date at version {VersionsCurrent.LiveDataEditor}");
-            }
-
-            //Physics Inspector Tool files
-            CheckFolderExists(GetPathToFile(ExternalToolsFolder, physicsInspectorFolder));
-            alreadyGeneratedPath = GetPathToFile(ExternalToolsFolder, physicsInspectorFolder, "PhysicsInspector.html");
-            if (Util.IsUpdateAvailable(VersionsCurrent.PhysicsInspector, VersionsNewest.PhysicsInspector) || !File.Exists(alreadyGeneratedPath)) {
-                Log($"Updating Physics Inspector from version {VersionsCurrent.PhysicsInspector ?? "null"} to version {VersionsNewest.PhysicsInspector}");
-                VersionsCurrent.PhysicsInspector = VersionsNewest.PhysicsInspector;
-
-                foreach (string file in physicsInspectorFiles) {
-                    CreateExternalToolFileFromStream(file, $"{basePath}/{physicsInspectorFolder}/{file}", physicsInspectorFolder);
-                }
-            } else {
-                Log($"Physics Inspector is up to date at version {VersionsCurrent.PhysicsInspector}");
-            }
-        }
-
-        private void CreateExternalToolFileFromStream(string fileName, string assetPath, string subFolder = null) {
-            string path = subFolder != null ? Path.Combine(ExternalToolsFolder, subFolder) : ExternalToolsFolder;
-
-            if (!Directory.Exists(path)) {
-                Directory.CreateDirectory(path);
-            }
-            
-            CreateFileFromStream(path, fileName, assetPath);
-        }
-        private void CreatePathFileFromStream(string fileName, string assetPath) {
-            CreateFileFromStream(PathsFolder, fileName, assetPath);
-        }
-        private void CreateFileFromStream(string folder, string fileName, string assetPath) {
-            string path = GetPathToFile(folder, fileName);
-
-            LogVerbose($"Trying to access asset at '{assetPath}'");
-            if (Everest.Content.TryGet(assetPath, out ModAsset value, true)) {
-                using (var fileStream = File.Create(path)) {
-                    value.Stream.Seek(0, SeekOrigin.Begin);
-                    value.Stream.CopyTo(fileStream);
-                    LogVerbose($"Wrote file '{fileName}' to path '{path}'");
-                }
-            } else {
-                Log($"No asset found with content path '{assetPath}'");
-            }
         }
 
         #endregion
@@ -1646,17 +1549,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             Log($"Wiping golden berry collection data for chapter '{CurrentChapterDebugName}'");
-
-            foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
-                CurrentChapterStats.GoldenCollectedCount = 0;
-                CurrentChapterStats.GoldenCollectedCountSession = 0;
-            }
+            CurrentChapterStats.GoldenCollectedCount = 0;
+            CurrentChapterStats.GoldenCollectedCountSession = 0;
 
             SaveChapterStats();
         }
-
-
-
 
         public void WipeRoomData() {
             if (CurrentChapterStats == null) {
@@ -1800,7 +1697,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            CheckpointInfo previousRoomCp = null;
             RoomInfo previousRoomR = null;
 
             CheckpointInfo currentRoomCp = null;
@@ -1814,7 +1710,6 @@ namespace Celeste.Mod.ConsistencyTracker {
                         break;
                     } else { 
                         previousRoomR = rInfo;
-                        previousRoomCp = cpInfo;
                     }
                 }
 
@@ -1846,9 +1741,9 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"CurrentChapterPath was null");
                 return;
             }
-            
-            Level level = Engine.Scene as Level;
-            string actualRoomName = level.Session.Level;
+
+            if (!(Engine.Scene is Level level)) return;
+            string actualRoomName = ResolveRoomNameInActiveChapter(level.Session.Level);
             Log($"Ungrouping room '{actualRoomName}' from room '{CurrentRoomName}' on path");
             
             if (actualRoomName == CurrentRoomName) {
@@ -2007,8 +1902,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Logging
-        private bool LogInitialized = false;
-        private StreamWriter LogFileWriter = null;
+        private bool LogInitialized;
+        private StreamWriter LogFileWriter;
         public void LogInit() {
             string logFileMax = GetPathToFile(LogsFolder, $"log_old{LOG_FILE_COUNT}.txt");
             if (File.Exists(logFileMax)) {
@@ -2025,7 +1920,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             string lastFile = GetPathToFile(LogsFolder, $"log.txt");
             if (File.Exists(lastFile)) {
-                string logFileNewPath = GetPathToFile(LogsFolder, $"log_old{1}.txt");
+                string logFileNewPath = GetPathToFile(LogsFolder, $"log_old1.txt");
                 File.Move(lastFile, logFileNewPath);
             }
 
@@ -2043,7 +1938,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 if (!isFollowup) {
                     StackFrame frame = new StackTrace().GetFrame(frameBack);
                     string methodName = frame.GetMethod().Name;
-                    string typeName = frame.GetMethod().DeclaringType.Name;
+                    string typeName = frame.GetMethod().DeclaringType?.Name ?? "<NoType>";
 
                     string time = DateTime.Now.ToString("HH:mm:ss.ffff");
 
@@ -2054,11 +1949,11 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
         }
 
-        private int _LogEveryN = 0;
+        private int LogEveryN;
         public void LogEvery(int n, string message, bool isFollowup = false, int frameBack = 2) {
-            _LogEveryN++;
-            if (_LogEveryN >= n) {
-                _LogEveryN = 0;
+            LogEveryN++;
+            if (LogEveryN >= n) {
+                LogEveryN = 0;
                 Log(message, isFollowup, frameBack);
             }
         }
@@ -2076,7 +1971,18 @@ namespace Celeste.Mod.ConsistencyTracker {
         #endregion
 
         #region Util
-        public static string SanitizeSIDForDialog(string sid) {
+
+        public static string GetPathToFile(string file) {
+            return Path.Combine(BaseFolderPath, file);
+        }
+        public static string GetPathToFile(string folder, string file) {
+            return Path.Combine(BaseFolderPath, Path.Combine(folder, file));
+        }
+        public static string GetPathToFile(string folder, string subfolder, string file) {
+            return Path.Combine(BaseFolderPath, Path.Combine(folder, Path.Combine(subfolder, file)));
+        }
+        
+        public static string SanitizeSidForDialog(string sid) {
             return sid.DialogKeyify();
         }
 
@@ -2098,21 +2004,17 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public AreaModeStats GetCurrentAreaModeStats() {
-            string details = "saveData";
             try {
                 SaveData saveData = SaveData.Instance;
                 Session session = saveData.CurrentSession;
-                details += "->session";
                 AreaKey area = session.Area;
-                details += "->area";
                 AreaStats areaStats = saveData.Areas_Safe[area.ID];
-                details += $"->areaStats(areas count:{saveData.Areas_Safe.Count}, area ID:{area.ID})";
                 AreaModeStats modeStats = areaStats.Modes[(int)area.Mode];
-                details += "->modeStats";
                 return modeStats;
-            } catch (Exception) {}
-            
-            LogUtils.LogEveryN($"Failed to get area stats: {details}", 60);
+            } catch (Exception) {
+                // ignored
+            }
+
             return null;
         }
 
@@ -2127,8 +2029,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         
         private static bool FgrPathExists(int fgrNumber) {
             string fgrPathName = $"fgr_{fgrNumber}_path";
-            string pathJSON = GetPathToFile(FgrFolder, $"{fgrPathName}.json");
-            return File.Exists(pathJSON);
+            string pathJson = GetPathToFile(FgrFolder, $"{fgrPathName}.json");
+            return File.Exists(pathJson);
         }
         
         public static int GetHighestFgrWithPath() {

@@ -357,16 +357,32 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonIgnore]
         public RoomInfo PreviousGameplayRoomInChapter {
             get {
-                RoomInfo prevRoom = PreviousRoomInCheckpoint;
+                RoomInfo prevRoom = PreviousRoomInChapter;
                 while (prevRoom != null && prevRoom.IsNonGameplayRoom) {
-                    prevRoom = prevRoom.PreviousRoomInCheckpoint;
+                    prevRoom = prevRoom.PreviousRoomInChapter;
                 }
                 if (prevRoom == null || prevRoom.IsNonGameplayRoom) return null;
                 return prevRoom;
             }
         }
+        
+        [JsonIgnore]
+        public string UID {
+            get {
+                string[] split = DebugRoomName.Split(':');
+                if (split.Length != 2) return null;
+                return split[0];
+            }
+        }
 
-
+        public string ActualRoomName {
+            get {
+                string[] split = DebugRoomName.Split(':');
+                if (split.Length != 2) return DebugRoomName;
+                return split[1];
+            }
+        }
+        
 
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }

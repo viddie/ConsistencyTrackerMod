@@ -7,7 +7,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         //A full tier is centered around the 0.5 mark
         //So Tier 5.0 is very low in Tier 5, Tier 5.5 is the center, and Tier 5.99 is very high in Tier 5
         
-        public int Sort { get; set; }
+        public int Sort { get; }
         public double Fraction { get; set; }
         public double FullSort => Sort + Fraction;
 
@@ -57,7 +57,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         
         public static List<GoldenTier> GetTiers() {
             List<GoldenTier> tiers = new List<GoldenTier>();
-            for (int i = -1; i <= 19; i++) {
+            for (int i = -1; i <= 21; i++) {
                 tiers.Add(new GoldenTier(i));
             }
             return tiers;
@@ -67,6 +67,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             return obj != null && 
                    obj is GoldenTier other && 
                    Sort == other.Sort;
+        }
+        
+        public override int GetHashCode() {
+            return Sort.GetHashCode();
         }
     }
 }

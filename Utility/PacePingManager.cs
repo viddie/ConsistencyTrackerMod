@@ -203,8 +203,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Events.Events.OnEnteredPbRoomWithGolden += Events_OnEnteredPbRoomWithGolden;
             Events.Events.OnExitedPbRoomWithGolden += Events_OnExitedPbRoomWithGolden;
             Events.Events.OnResetSession += Events_OnResetSession;
-            Events.Events.OnGoldenDeath += Events_OnGoldenDeath;
-            Events.Events.OnGoldenCollect += Events_OnGoldenCollect;
+            Events.Events.OnRunEnded += EventsOnRunEnded;
         }
         
         public void UnHook() {
@@ -212,8 +211,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Events.Events.OnEnteredPbRoomWithGolden -= Events_OnEnteredPbRoomWithGolden;
             Events.Events.OnExitedPbRoomWithGolden -= Events_OnExitedPbRoomWithGolden;
             Events.Events.OnResetSession -= Events_OnResetSession;
-            Events.Events.OnGoldenDeath -= Events_OnGoldenDeath;
-            Events.Events.OnGoldenCollect -= Events_OnGoldenCollect;
+            Events.Events.OnRunEnded -= EventsOnRunEnded;
         }
 
 
@@ -251,14 +249,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private void Events_OnResetSession(bool sameSession) {
             ResetRun(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
         }
-        private void Events_OnGoldenDeath() {
-            DiedWithGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
-        }
-        private void Events_OnGoldenCollect(Enums.GoldenType type) {
-            try { //we DONT want to crash when winning
-                CollectedGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
-            } catch (Exception ex) {
-                Mod.Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
+        private void EventsOnRunEnded(bool died, bool won) {
+            if (died) {
+                DiedWithGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+            } else if (won) {
+                try { //we DONT want to crash when winning
+                    CollectedGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
+                } catch (Exception ex) {
+                    Mod.Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
+                }
             }
         }
         #endregion
