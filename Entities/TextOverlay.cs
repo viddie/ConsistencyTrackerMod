@@ -190,6 +190,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     Mod.Log($"Couldn't import custom room name from clipboard: {ex}");
                 }
             }
+            
+            if(Mod.ModSettings.ButtonRemoveLastGoldenBerryDeath.Pressed) {
+                Mod.CurrentChapterStats.RemoveLastGoldenBerryDeath();
+            }
         }
 
         public void InitStatTextOptions() {
