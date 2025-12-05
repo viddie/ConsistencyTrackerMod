@@ -311,7 +311,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             On.Celeste.LockBlock.TryOpen -= LockBlock_TryOpen;
 
             On.Celeste.Level.UpdateTime -= Level_UpdateTime;
-            On.Celeste.Editor.MapEditor.ctor -= MapEditorOnCtor;
+            MapEditor.ctor -= MapEditorOnCtor;
 
             //Self hooks
             UnHookCustom();
@@ -341,7 +341,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             orig(self);
 
             if (self.Paused) return;
-            
+
             if (ModSettings.ButtonFgrToggleInRun.Pressed) {
                 IsInGoldenRun = !IsInGoldenRun;
                 SaveSettings();
@@ -378,7 +378,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     Log($"There is no previous map to load into.");
                     return;
                 }
-                
+
                 // As opposed to next map, we want to load into not the first room found, but the first room of the map
                 // So we need to keep searching until we find a room with a different UID again, then use the next one.
                 RoomInfo firstRoomOfMap = previousMap;
@@ -391,10 +391,10 @@ namespace Celeste.Mod.ConsistencyTracker {
                         firstRoomOfMap = temp;
                     }
                 }
-                
+
                 ConsoleCommands.LoadRoom(firstRoomOfMap);
             }
-            
+
             if (ModSettings.ButtonFgrReset.Pressed && CurrentChapterPath != null && IsInFgrMode) {
                 RoomInfo rInfo = CurrentChapterPath.WalkPath().First();
                 if (rInfo == null) {
@@ -402,6 +402,54 @@ namespace Celeste.Mod.ConsistencyTracker {
                     return;
                 }
                 ConsoleCommands.LoadRoom(rInfo);
+            }
+
+            if (ModSettings.ButtonTogglePauseDeathTracking.Pressed) {
+                ModSettings.PauseDeathTracking = !ModSettings.PauseDeathTracking;
+                Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {ModSettings.PauseDeathTracking}");
+            }
+
+            if (ModSettings.ButtonToggleDifficultyGraph.Pressed) {
+                bool currentVisible = ModSettings.IngameOverlayGraphEnabled;
+                ModSettings.IngameOverlayGraphEnabled = !currentVisible;
+                SaveSettings();
+                Log($"Toggled ingame graph to {ModSettings.IngameOverlayGraphEnabled}");
+            }
+
+            if (ModSettings.ButtonAddRoomSuccess.Pressed) {
+                if (CurrentChapterStats != null) {
+                    Log($"ButtonAddRoomSuccess: Adding room attempt success");
+                    AddRoomAttempt(true);
+                }
+            }
+
+            if (ModSettings.ButtonRemoveRoomLastAttempt.Pressed) {
+                if (CurrentChapterStats != null) {
+                    Log($"ButtonRemoveRoomLastAttempt: Removing last room attempt");
+                    RemoveLastAttempt();
+                }
+            }
+
+            if (ModSettings.ButtonRemoveRoomDeathStreak.Pressed) {
+                if (CurrentChapterStats != null) {
+                    Log($"ButtonRemoveRoomDeathStreak: Removing room death streak");
+                    RemoveLastDeathStreak();
+                }
+            }
+
+            if (ModSettings.ButtonToggleRecordPhysics.Pressed) {
+                PhysicsLogger.Settings.IsRecording = !PhysicsLogger.Settings.IsRecording;
+                Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
+            }
+
+            if (ModSettings.ButtonImportCustomRoomNameFromClipboard.Pressed) {
+                string text = TextInput.GetClipboardText().Trim();
+                Log($"Importing custom room name from clipboard...");
+                try {
+                    SetCustomRoomName(text);
+                } catch (Exception ex) {
+                    Log($"Couldn't import custom room name from clipboard: {ex}");
+                }
             }
         }
 

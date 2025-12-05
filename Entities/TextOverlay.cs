@@ -16,10 +16,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
         private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
-        public StatTextComponent StatText1 { get; set; }
-        public StatTextComponent StatText2 { get; set; }
-        public StatTextComponent StatText3 { get; set; }
-        public StatTextComponent StatText4 { get; set; }
+        private StatTextComponent StatText1 { get; set; }
+        private StatTextComponent StatText2 { get; set; }
+        private StatTextComponent StatText3 { get; set; }
+        private StatTextComponent StatText4 { get; set; }
 
         public TextOverlay() {
             Depth = -101;
@@ -45,7 +45,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetGoldenState(true);
         }
 
-        public void ApplyModSettings() {
+        private void ApplyModSettings() {
             ConsistencyTrackerSettings settings = Mod.ModSettings;
 
             Visible = settings.IngameOverlayTextEnabled;
@@ -78,11 +78,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetTextOffsetY(4, settings.IngameOverlayText4OffsetY);
             SetTextSize(4, settings.IngameOverlayText4Size);
         }
-        public void ApplyTexts() {
-
-        }
         
-        public void SetVisibility(bool visible) {
+        private void SetVisibility(bool visible) {
             bool prev = Visible;
             Visible = visible;
             
@@ -90,7 +87,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 Mod.LogVerbose($"Set text overlay visibility to '{visible}'");
             }
         }
-        public void CheckVisibility() {
+        private void CheckVisibility() {
             if (Mod.ModSettings.IngameOverlayTextEnabled 
                 && (!Mod.ModSettings.IngameOverlayOnlyShowInPauseMenu 
                     || (Engine.Scene is Level level && (level.PauseMainMenuOpen || level.Entities.FindFirst<TextMenu>() != null)))) {
@@ -105,23 +102,21 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             base.Update();
 
             CheckVisibility();
-            if (Engine.Scene is Level level && (level.PauseMainMenuOpen || level.Entities.FindFirst<TextMenu>() != null)) {
+            if (Engine.Scene is Level level && (level.Paused || level.PauseMainMenuOpen || level.Entities.FindFirst<TextMenu>() != null)) {
                 return;
             }
 
-            if (Mod.ModSettings.ButtonTogglePauseDeathTracking.Pressed) {
-                Mod.ModSettings.PauseDeathTracking = !Mod.ModSettings.PauseDeathTracking;
-                Mod.Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {Mod.ModSettings.PauseDeathTracking}");
-            }
-
-            
             if (Mod.ModSettings.ButtonToggleTextOverlayEnabled.Pressed) {
                 bool currentVisible = Mod.ModSettings.IngameOverlayTextEnabled;
                 Mod.ModSettings.IngameOverlayTextEnabled = !currentVisible;
                 Mod.SaveSettings();
-
                 Mod.Log($"ButtonToggleTextOverlayEnabled: Toggled text overlay to {Mod.ModSettings.IngameOverlayTextEnabled}");
             }
+
+            if (!Visible) {
+                return;
+            }
+
             if (Mod.ModSettings.ButtonToggleTextOverlayText1.Pressed) {
                 Mod.ModSettings.IngameOverlayText1Enabled = !Mod.ModSettings.IngameOverlayText1Enabled;
                 Mod.SaveSettings();
@@ -146,53 +141,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 SetTextVisible(4, Mod.ModSettings.IngameOverlayText4Enabled);
                 Mod.Log($"ButtonToggleTextOverlayText4: Toggled text overlay text 4 to {Mod.ModSettings.IngameOverlayText4Enabled}");
             }
-            
-            if (Mod.ModSettings.ButtonToggleDifficultyGraph.Pressed) {
-                bool currentVisible = Mod.ModSettings.IngameOverlayGraphEnabled;
-                Mod.ModSettings.IngameOverlayGraphEnabled = !currentVisible;
-                Mod.SaveSettings();
-                Mod.Log($"Toggled ingame graph to {Mod.ModSettings.IngameOverlayGraphEnabled}");
-            }
-            
-            
-
-            if (Mod.ModSettings.ButtonAddRoomSuccess.Pressed) {
-                if (Mod.CurrentChapterStats != null) {
-                    Mod.Log($"ButtonAddRoomSuccess: Adding room attempt success");
-                    Mod.AddRoomAttempt(true);
-                }
-            }
-
-            if (Mod.ModSettings.ButtonRemoveRoomLastAttempt.Pressed) {
-                if (Mod.CurrentChapterStats != null) {
-                    Mod.Log($"ButtonRemoveRoomLastAttempt: Removing last room attempt");
-                    Mod.RemoveLastAttempt();
-                }
-            }
-
-            if (Mod.ModSettings.ButtonRemoveRoomDeathStreak.Pressed) {
-                if (Mod.CurrentChapterStats != null) {
-                    Mod.Log($"ButtonRemoveRoomDeathStreak: Removing room death streak");
-                    Mod.RemoveLastDeathStreak();
-                }
-            }
-
-            if (Mod.ModSettings.ButtonToggleRecordPhysics.Pressed) {
-                PhysicsLogger.Settings.IsRecording = !PhysicsLogger.Settings.IsRecording;
-                Mod.Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
-            }
-            if (Mod.ModSettings.ButtonImportCustomRoomNameFromClipboard.Pressed) {
-                string text = TextInput.GetClipboardText().Trim();
-                Mod.Log($"Importing custom room name from clipboard...");
-                try {
-                    Mod.SetCustomRoomName(text);
-                } catch (Exception ex) {
-                    Mod.Log($"Couldn't import custom room name from clipboard: {ex}");
-                }
-            }
         }
 
-        public void InitStatTextOptions() {
+        private void InitStatTextOptions() {
             StatText1.Font = Dialog.Language.Font;
             StatText1.FontFaceSize = Dialog.Language.FontFaceSize;
 
@@ -247,7 +198,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
 
 
-        public StatTextComponent GetStatText(int textNum) {
+        private StatTextComponent GetStatText(int textNum) {
             if (textNum == 1) {
                 return StatText1;
             } else if (textNum == 2) {
@@ -260,12 +211,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                 return null;
             }
         }
-        public void UpdateTextVisibility() {
+        private void UpdateTextVisibility() {
             bool holdingGolden = Mod.IsInGoldenRun;
             SetGoldenState(holdingGolden);
         }
 
-        public void SetGoldenState(bool playerHasGolden) {
+        private void SetGoldenState(bool playerHasGolden) {
             if (playerHasGolden) {
                 GetStatText(1).Visible = GetStatText(1).OptionVisible && !(GetStatText(1).HideInGolden);
                 GetStatText(2).Visible = GetStatText(2).OptionVisible && !(GetStatText(2).HideInGolden);
