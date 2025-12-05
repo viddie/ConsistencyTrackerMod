@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Models {
     public class GoldenTier {
@@ -7,8 +8,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         //A full tier is centered around the 0.5 mark
         //So Tier 5.0 is very low in Tier 5, Tier 5.5 is the center, and Tier 5.99 is very high in Tier 5
         
-        public int Sort { get; }
+        public int Sort { get; set; }
         public double Fraction { get; set; }
+        [JsonIgnore]
         public double FullSort => Sort + Fraction;
 
         public GoldenTier(int sort) {

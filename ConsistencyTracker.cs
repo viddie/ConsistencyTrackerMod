@@ -351,7 +351,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 RoomInfo nextMap = CurrentChapterPath.CurrentRoom;
                 bool found = false;
                 while (!found) {
-                    nextMap = nextMap.NextGameplayRoomInChapter;
+                    nextMap = nextMap.NextRoomInChapter;
                     if (nextMap == null || nextMap.UID != CurrentChapterDebugName) {
                         found = true;
                     }
@@ -368,15 +368,17 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"Check from current room backwards: {previousMap.DebugRoomName}");
                 bool found = false;
                 while (!found) {
-                    previousMap = previousMap.PreviousGameplayRoomInChapter;
+                    previousMap = previousMap.PreviousRoomInChapter;
                     Log($"Checking previous room: {previousMap?.DebugRoomName}");
                     if (previousMap == null || previousMap.UID != CurrentChapterDebugName) {
                         found = true;
                     }
                 }
                 if (previousMap == null) {
-                    Log($"There is no previous map to load into.");
-                    return;
+                    // No previous map exists on the path. Instead of doing nothing, fall back to
+                    // teleporting to the first room of the current map (expected behavior).
+                    Log($"There is no previous map to load into. Falling back to first room of current map.");
+                    previousMap = CurrentChapterPath.CurrentRoom;
                 }
 
                 // As opposed to next map, we want to load into not the first room found, but the first room of the map
@@ -384,7 +386,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 RoomInfo firstRoomOfMap = previousMap;
                 found = false;
                 while (!found) {
-                    RoomInfo temp = firstRoomOfMap.PreviousGameplayRoomInChapter;
+                    RoomInfo temp = firstRoomOfMap.PreviousRoomInChapter;
                     if (temp == null || temp.UID != previousMap.UID) {
                         found = true;
                     } else {

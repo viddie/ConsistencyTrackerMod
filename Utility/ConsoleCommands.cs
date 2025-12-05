@@ -577,16 +577,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public static void LoadRoom(RoomInfo rInfo) {
+            if (Equals(Mod.CurrentChapterPath.CurrentRoom, rInfo)) {
+                Mod.Log("Already in the requested room.");
+                return;
+            }
             string roomName = rInfo.DebugRoomName;
             string[] split = roomName.Split(':');
             string uid = split[0];
-            if (uid == Mod.CurrentChapterDebugName) {
-                Mod.Log($"Target room is in the same chapter.");
-                return;
-            }
-                            
             string level = split[1];
-            var parsed = ConsoleCommands.ParseUid(uid);
+            var parsed = ParseUid(uid);
             bool success = Enum.TryParse(parsed.Item2, false, out AreaMode mode);
             if (!success) {
                 Mod.Log($"Failed to parse area mode from '{parsed.Item2}'");
