@@ -548,7 +548,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return new Tuple<string, string>(normalSid, areaMode);
         }
 
-        public static void LoadLevel(string sid, AreaMode mode = AreaMode.Normal, string level = null) {
+        public static void LoadLevel(string sid, AreaMode mode = AreaMode.Normal, string level = null, bool endRun = true) {
             Mod.Log($"Loading level: {sid} Mode: {mode} Level: {level}");
             AreaData areaData = AreaData.Get(sid);
             if (areaData == null) {
@@ -572,11 +572,13 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 session.StartedFromBeginning = flag;
             }
 
-            Mod.EndRun();
+            if (endRun) {
+                Mod.EndRun();
+            }
             Engine.Scene = new LevelLoader(session);
         }
 
-        public static void LoadRoom(RoomInfo rInfo) {
+        public static void LoadRoom(RoomInfo rInfo, bool endRun = true) {
             if (Equals(Mod.CurrentChapterPath.CurrentRoom, rInfo)) {
                 Mod.Log("Already in the requested room.");
                 return;
@@ -592,7 +594,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return;
             }
                             
-            LoadLevel(parsed.Item1, mode, level);
+            LoadLevel(parsed.Item1, mode, level, endRun:endRun);
         }
         #endregion
     }

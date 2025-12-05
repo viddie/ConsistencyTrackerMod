@@ -109,6 +109,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         public bool IsInOrPastFinal => CurrentChapterPath != null 
                                        && CurrentChapterPath.CurrentRoom != null
                                        && CurrentChapterPath.CurrentRoom.RoomNumberInChapter >= CurrentChapterPath.GameplayRoomCount;
+
+        public bool IsInFinalRoomOfMap => CurrentChapterPath != null
+                                          && CurrentChapterPath.CurrentRoom != null
+                                          && (CurrentChapterPath.CurrentRoom.NextRoomInChapter == null || CurrentChapterPath.CurrentRoom.UID !=
+                                              CurrentChapterPath.CurrentRoom.NextRoomInChapter.UID);
         
         public bool IsInFirstRoom => CurrentChapterPath != null 
                                     && CurrentChapterPath.CurrentRoom != null
@@ -360,7 +365,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     Log($"There is no next map to load into.");
                     return;
                 }
-                ConsoleCommands.LoadRoom(nextMap);
+                ConsoleCommands.LoadRoom(nextMap, IsInGoldenRun && !IsInFinalRoomOfMap);
             }
 
             if (ModSettings.ButtonFgrTeleportToPreviousMap.Pressed && CurrentChapterPath != null && CurrentChapterPath.CurrentRoom != null && IsInFgrMode) {
@@ -656,7 +661,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             // After handling room change
-            if (isGoldenDeathOrDebugTeleport && IsInFgrMode) {
+            if (!isFromLoader && isGoldenDeathOrDebugTeleport && IsInFgrMode) {
                 EndRun();
                 if (IsInFirstRoom) {
                     StartNewRun();
@@ -729,11 +734,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             
             // End the run. If in fgr and in last room, count as win.
-            if (IsInOrPastFinal && IsInFgrMode) {
-                EndRun(won:true);
+            if (IsInFgrMode) {
+                if (IsInOrPastFinal) {
+                    EndRun(won:true);
+                }
             } else {
                 EndRun();
             }
+            
             
             SaveChapterStats();
         }
