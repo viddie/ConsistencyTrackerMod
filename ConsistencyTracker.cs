@@ -531,7 +531,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && !isSpeedBerry) {
+            if (self.Golden && !isSpeedBerry && !IsInFgrMode) {
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 StartNewRun();
                 SaveChapterStats();
@@ -633,14 +633,14 @@ namespace Celeste.Mod.ConsistencyTracker {
             string newCurrentRoom = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterDebugName);
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{IsInGoldenRun}'");
+            bool isGoldenDeathOrDebugTeleport = playerIntro == Player.IntroTypes.Respawn;
 
             //Change room if we're not in the same room as before
             if (CurrentRoomName != null && newCurrentRoom != CurrentRoomName) {
-                bool success = playerIntro != Player.IntroTypes.Respawn; //Changing room via golden berry death or debug map teleport
                 if (level.Session.LevelData.HasCheckpoint) {
                     LastRoomWithCheckpoint = newCurrentRoom;
                 }
-                SetNewRoom(newCurrentRoom, success);
+                SetNewRoom(newCurrentRoom, !isGoldenDeathOrDebugTeleport);
             }
 
             if (DidRestart) {
@@ -651,6 +651,15 @@ namespace Celeste.Mod.ConsistencyTracker {
                 DidRestart = false;
                 SetNewRoom(newCurrentRoom, false);
                 PreviousRoomName = null;
+            }
+
+            // After handling room change
+            if (isGoldenDeathOrDebugTeleport && IsInFgrMode) {
+                EndRun();
+                if (IsInFirstRoom) {
+                    StartNewRun();
+                }
+                SaveChapterStats(); //Necessary to update stats after changing run state
             }
 
             if (isFromLoader) {
