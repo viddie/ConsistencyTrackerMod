@@ -31,7 +31,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             SegmentStats[index] = stats;
         }
 
-
         /// <summary>
         /// Removes the segment at the given index, unless it's the only segment
         /// </summary>

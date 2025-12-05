@@ -72,7 +72,6 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonIgnore]
         public RoomInfo SpeedrunToolSaveStateRoom { get; set; } = null;
         
-
         public RoomInfo GetRoom(RoomStats roomStats) {
             return GetRoom(roomStats.DebugRoomName);
         }
@@ -83,6 +82,10 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
 
             return null;
+        }
+        
+        public void SetCurrentRoom(string roomName) {
+            CurrentRoom = GetRoom(roomName);
         }
         
         public IEnumerable<RoomInfo> WalkPath(bool includeTransitionRooms = false) {
@@ -173,6 +176,19 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             ChapterSID = chapterInfo.ChapterSID;
             ChapterUID = chapterInfo.ChapterDebugName;
             SideName = chapterInfo.SideName;
+        }
+
+        public void MakeFgrChanges(string uid) {
+            string chapterNameAbbr = PathRecorder.AbbreviateName(ChapterDisplayName);
+            // Rename rooms
+            foreach (RoomInfo rInfo in WalkPath()) {
+                rInfo.DebugRoomName = ConsistencyTrackerModule.GetRoomName(rInfo.DebugRoomName, true, uid);
+            }
+            // Rename checkpoints
+            foreach (CheckpointInfo cpInfo in Checkpoints) {
+                cpInfo.Name = $"{chapterNameAbbr}-{cpInfo.Name}";
+                cpInfo.Abbreviation = $"{chapterNameAbbr}-{cpInfo.Abbreviation}";
+            }
         }
     }
 

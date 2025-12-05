@@ -325,20 +325,23 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
         
         [Command("cct-fgr", "Transforms a list of chapter UIDs into an FGR path. Call without parameters to get a more in-depth explanation.")]
-        public static void CctFgr(string input = null) {
+        public static void CctFgr(string input = null, bool copyStatsFromFirstMap = false) {
             string[] uids;
             if (string.IsNullOrEmpty(input)) {
-                ConsolePrint($"This command is used to create a full game run (FGR) path. You need to provide a list of chapter UIDs (separated by semi-colons, DONT USE SPACES) that should be included in the FGR path.");
-                ConsolePrint("Example: cct-fgr tom_0_1-space_Normal;tom_0_2-city_Normal;tom_0_3-temple_Normal");
-                ConsolePrint("This will create an FGR path of the 3 maps in the campaign 'Lunar Ruins'");
+                ConsolePrint($"- This command is used to create a full game run (FGR) path. You need to provide a list of chapter UIDs (separated by semi-colons, DONT USE SPACES) that should be included in the FGR path. Example:");
+                ConsolePrint("> cct-fgr tom_0_1-space_Normal;tom_0_2-city_Normal;tom_0_3-temple_Normal");
+                ConsolePrint("- This will create an FGR path of the 3 maps in the campaign 'Lunar Ruins'");
                 ConsolePrint("");
-                ConsolePrint("CCT will take the currently selected segment from each provided path.");
+                ConsolePrint("- You can also let cct copy the stats from the first map to the FGR stats by adding the parameter 'true' at the end. Example:");
+                ConsolePrint("> cct-fgr tom_0_1-space_Normal;tom_0_2-city_Normal;tom_0_3-temple_Normal true");
                 ConsolePrint("");
-                ConsolePrint("Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign.");
+                ConsolePrint("- CCT will take the currently selected segment from each provided path.");
+                ConsolePrint("");
+                ConsolePrint("- Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign.");
                 ConsolePrint(
-                    "You can create an FGR path automatically for all maps in your current campaign using 'cct-fgr default'. (WARNING: This command only sees maps that you have played at least once on this save file!)");
+                    "- You can create an FGR path automatically for all maps in your current campaign by passing 'default' instead of a list of UIDs. (WARNING: This command only sees maps that you have played at least once on this save file!)");
                 ConsolePrint("");
-                ConsolePrint("Disclaimer: FGR support in CCT is experimental. There will be many places where things won't work as expected.");
+                ConsolePrint("!! Disclaimer: FGR support in CCT is experimental. There will be many places where things won't work as expected. !!");
                 return;
             } else if (input == "default") {
                 uids = GetAllChapterUidsInCampaign();
@@ -390,18 +393,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 PathInfo path = list.CurrentPath;
                 Mod.Log($"Processing path for UID {uid}...");
                 
-                string chapterName = path.ChapterDisplayName;
-                string chapterNameAbbr = PathRecorder.AbbreviateName(chapterName);
-                // Rename rooms
-                foreach (RoomInfo rInfo in path.WalkPath()) {
-                    rInfo.DebugRoomName = ConsistencyTrackerModule.GetRoomName(rInfo.DebugRoomName, true, uid);
-                }
-                
-                // Rename checkpoints
-                foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                    cpInfo.Name = $"{chapterNameAbbr}-{cpInfo.Name}";
-                    cpInfo.Abbreviation = $"{chapterNameAbbr}-{cpInfo.Abbreviation}";
-                }
+                path.MakeFgrChanges(uid);
                 
                 // Append all checkpoints from this path to the FGR path
                 if (path != fgr) {
@@ -424,16 +416,27 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             
             // Remove all other segments from the fgrList
-            for (int i = 1; i < fgrList.Segments.Count; i++) {
-                fgrList.RemoveSegment(i);
-            }
+            int selectedIndex = fgrList.SelectedIndex;
+            fgrList.SelectedIndex = 0;
+            fgrList.Segments.Clear();
+            fgrList.Segments.Add(new PathSegment() {
+                Name = "FGR",
+                Path = fgr
+            });
+            File.WriteAllText(pathPath, JsonConvert.SerializeObject(fgrList, Formatting.Indented));
+            
+            // Create stats file from first chapter's stats as a base
+            string statsPath = pathPath.Replace("_path.json", "_stats.json");
+            ChapterStatsList statsList = ConsistencyTrackerModule.Instance.GetChapterStatsList(ConsistencyTrackerModule.StatsFolder, uids[0]);
+            ChapterStats stats = statsList.GetStats(selectedIndex);
+            stats.MakeFgrChanges(uids[0]);
+            statsList.SegmentStats.Clear();
+            statsList.SegmentStats.Add(stats);
+            File.WriteAllText(statsPath, JsonConvert.SerializeObject(statsList, Formatting.Indented));
                 
             ConsolePrint("Total rooms on new path: " + fgr.GameplayRoomCount);
             ConsolePrint($"Creation of FGR path complete! Saved to: {pathPath}.");
             ConsolePrint($"To use this path, go to Mod Settings -> Path Management -> Selected FGR -> FGR {fileNumber}");
-            fgrList.CurrentPath = fgr;
-            
-            File.WriteAllText(pathPath, JsonConvert.SerializeObject(fgrList, Formatting.Indented));
         }
 
         [Command("cct-list-uids", "List all chapter UIDs of the current campaign (that have been played yet). Copies the list to clipboard.")]
@@ -568,6 +571,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 session.FirstLevel = flag;
                 session.StartedFromBeginning = flag;
             }
+
+            Mod.EndRun();
             Engine.Scene = new LevelLoader(session);
         }
 

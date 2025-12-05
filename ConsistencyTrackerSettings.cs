@@ -151,14 +151,14 @@ namespace Celeste.Mod.ConsistencyTracker
                 } else {
                     return $"FGR {i}";
                 }
-            }, 0,  Math.Max(1, highestFgr), SelectedFgr) {
+            }, 0,  Math.Max(0, highestFgr), SelectedFgr) {
                 OnValueChange = value => {
                     SelectedFgr = value;
                     Mod.ChangedSelectedFgr();
                     isInRunItem.Disabled = !Mod.IsInFgrMode;
                     isInRunItem.Index = Mod.IsInGoldenRun ? 1 : 0;
                 },
-                Disabled = highestFgr == -1
+                // Disabled = highestFgr == -1
             });
             subMenu.AddDescription(menu, menuItem, "When a full game run (FGR) is selected, the path recorder will be unavailable." +
                                                    "\nCreate an FGR path through the console command 'cct-fgr'");

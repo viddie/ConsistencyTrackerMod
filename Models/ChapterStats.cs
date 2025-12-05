@@ -576,6 +576,51 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 3000m [45] Death
 3000m [1] Golden Berry
          */
+        public void MakeFgrChanges(string uid) {
+            var newRooms = new Dictionary<string, RoomStats>();
+            foreach (var roomEntry in Rooms) {
+                string name = roomEntry.Key;
+                RoomStats rStats = roomEntry.Value;
+                
+                // Just to make sure the same object is used in case of recent deserialization
+                if (rStats.DebugRoomName == CurrentRoom.DebugRoomName) {
+                    CurrentRoom = rStats;
+                }
+                
+                string newName = ConsistencyTrackerModule.GetRoomName(name, true, uid);
+                rStats.DebugRoomName = newName;
+                newRooms[newName] = rStats;
+            }
+            Rooms = newRooms;
+            
+            // Reset golden collects
+            GoldenCollectedCount = 0;
+            GoldenCollectedCountSession = 0;
+            
+            // Fix old sessions
+            foreach (OldSession oldSession in OldSessions) {
+                var newLastGoldenRuns = new List<string>();
+                foreach (string run in oldSession.LastGoldenRuns) {
+                    // Ignore winning runs in old sessions.
+                    if (run != null) {
+                        string newRunName = ConsistencyTrackerModule.GetRoomName(run, true, uid);
+                        newLastGoldenRuns.Add(newRunName);
+                    }
+                }
+                oldSession.LastGoldenRuns = newLastGoldenRuns;
+                oldSession.TotalGoldenCollections = 0;
+                oldSession.TotalGoldenCollectionsSession = 0;
+                
+                // Adjust pb room names
+                if (oldSession.PBRoomName != null) {
+                    oldSession.PBRoomName = ConsistencyTrackerModule.GetRoomName(oldSession.PBRoomName, true, uid);
+                }
+                if (oldSession.SessionPBRoomName != null) {
+                    oldSession.SessionPBRoomName =
+                        ConsistencyTrackerModule.GetRoomName(oldSession.SessionPBRoomName, true, uid);
+                }
+            }
+        }
     }
 
     public class RoomStats {

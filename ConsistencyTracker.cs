@@ -821,7 +821,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void ChangeChapter(Session session) {
             // Firstly, if we arent in FGR mode, end the run
-            if (!IsInFgrMode) {
+            bool isInFgrMode = IsInFgrMode;
+            if (!isInFgrMode) {
                 EndRun();
             }
             
@@ -866,6 +867,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
                 }
                 CurrentChapterStats.ResetCurrentRun();
+            }
+            
+            // If we are in fgr mode, check if we are in the first room of the path. If yes, start a new run
+            if (isInFgrMode && IsInFirstRoom) {
+                StartNewRun();
             }
             
             //Another stats calculation, accounting for reset session
@@ -1030,7 +1036,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             if (countSuccess && !ModSettings.PauseDeathTracking && (!ModSettings.TrackingOnlyWithGoldenBerry || IsInGoldenRun)) {
                 CurrentChapterStats.AddAttempt(true);
             }
+            
+            // Set current room references
             CurrentChapterStats.SetCurrentRoom(newRoomName);
+            if (CurrentChapterPath != null) {
+                CurrentChapterPath.SetCurrentRoom(newRoomName);
+            }
 
             // When in FGR mode, consider the run to start when you touched the first room.
             if (IsInFirstRoom && IsInFgrMode) {
@@ -1158,7 +1169,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         #endregion
-
+        
         #endregion
 
         #region Data Import/Export
