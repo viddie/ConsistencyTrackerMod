@@ -22,42 +22,18 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             Saved,
         }
 
-        public class Direction { //Flag for dash direction, UP/DOWN/LEFT/RIGHT have bits, diagonals are combinations of those
-            public const int UP = 1;
-            public const int DOWN = 2;
-            public const int LEFT = 4;
-            public const int RIGHT = 8;
-
-            public const int UP_LEFT = UP | LEFT;
-            public const int UP_RIGHT = UP | RIGHT;
-            public const int DOWN_LEFT = DOWN | LEFT;
-            public const int DOWN_RIGHT = DOWN | RIGHT;
-
-            public static string ToString(int dir) {
-                if (dir == UP) return "UP";
-                if (dir == DOWN) return "DOWN";
-                if (dir == LEFT) return "LEFT";
-                if (dir == RIGHT) return "RIGHT";
-                if (dir == UP_LEFT) return "UP_LEFT";
-                if (dir == UP_RIGHT) return "UP_RIGHT";
-                if (dir == DOWN_LEFT) return "DOWN_LEFT";
-                if (dir == DOWN_RIGHT) return "DOWN_RIGHT";
-                return "NONE";
-            }
-        }
-
         public enum EntityList {
             Static,
             Movable
         }
 
-        private static List<string> EntityNamesSpinners = new List<string>() {
+        private static readonly List<string> EntityNamesSpinners = new List<string>() {
             "CrystalStaticSpinner",
             "DustStaticSpinner",
             "CustomSpinner",
             "DustTrackSpinner", "DustRotateSpinner",
         };
-        private static List<string> EntityNamesHitboxColliders = new List<string>() {
+        private static readonly List<string> EntityNamesHitboxColliders = new List<string>() {
             "Spikes", "RainbowSpikes", "BouncySpikes",
             "TriggerSpikes", "GroupedTriggerSpikes", "GroupedDustTriggerSpikes", "TriggerSpikesOriginal", "RainbowTriggerSpikes", "TimedTriggerSpikes",
             "Lightning",
@@ -104,15 +80,15 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             //Modded Entities
             "Portal",
         };
-        private static List<string> EntityNamesHitcircleColliders = new List<string>() {
+        private static readonly List<string> EntityNamesHitcircleColliders = new List<string>() {
             "Booster", "BlueBooster",
             "Bumper", "StaticBumper", "VortexBumper",
             "Shield",
         };
-        private static List<string> EntityNamesOther = new List<string>() {
+        private static readonly List<string> EntityNamesOther = new List<string>() {
             "ConnectedMoveBlock", "AngryOshiro"
         };
-        private static List<string> IgnoreEntityNames = new List<string>() {
+        private static readonly List<string> IgnoreEntityNames = new List<string>() {
             //UI Entities
             "Player",
             "InputHistoryListener", "InputHistoryListEntity",
@@ -238,7 +214,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private static List<string> EntityNamesToTest = new List<string>() {
             
         };
-        private static List<string> EntityNamesMovables = new List<string>() {
+        private static readonly List<string> EntityNamesMovables = new List<string>() {
             "DustTrackSpinner", "DustRotateSpinner",
             "SinkingPlatform", "AngryOshiro",
             "SwapBlock", "ToggleSwapBlock", "ReskinnableSwapBlock",
@@ -266,46 +242,22 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private static ConsistencyTrackerSettings ModSettings => Mod.ModSettings;
         
         // Mask for the mod settings option LogPhysicsEnabled, since we dont ever want to change that from here.
-        private static bool _IsRecording = true;
+        private static bool LocalIsRecording = true;
         
         public static class Settings {
             public static bool IsRecording {
-                get => _IsRecording && ModSettings.LogPhysicsEnabled;
-                set => _IsRecording = value;
+                get => LocalIsRecording && ModSettings.LogPhysicsEnabled;
+                set => LocalIsRecording = value;
             }
-            public static bool SegmentOnDeath {
-                get => ModSettings.LogSegmentOnDeath;
-                set => ModSettings.LogSegmentOnDeath = value;
-            }
-            public static bool SegmentOnLoadState {
-                get => ModSettings.LogSegmentOnLoadState;
-                set => ModSettings.LogSegmentOnLoadState = value;
-            }
-            public static bool InputsToTasFile {
-                get => ModSettings.LogPhysicsInputsToTasFile;
-                set => ModSettings.LogPhysicsInputsToTasFile = value;
-            }
-            public static bool FlipY {
-                get => ModSettings.LogFlipY;
-                set => ModSettings.LogFlipY = value;
-            }
+            public static bool SegmentOnDeath => ModSettings.LogSegmentOnDeath;
+            public static bool SegmentOnLoadState => ModSettings.LogSegmentOnLoadState;
+            public static bool InputsToTasFile => ModSettings.LogPhysicsInputsToTasFile;
+            public static bool FlipY => ModSettings.LogFlipY;
 
-            public static bool FlagDashes {
-                get => ModSettings.LogFlagDashes;
-                set => ModSettings.LogFlagDashes = value;
-            }
-            public static bool FlagMaxDashes {
-                get => ModSettings.LogFlagMaxDashes;
-                set => ModSettings.LogFlagMaxDashes = value;
-            }
-            public static bool FlagDashDir {
-                get => ModSettings.LogFlagDashDir;
-                set => ModSettings.LogFlagDashDir = value;
-            }
-            public static bool FlagFacing {
-                get => ModSettings.LogFlagFacing;
-                set => ModSettings.LogFlagFacing = value;
-            }
+            public static bool FlagDashes => ModSettings.LogFlagDashes;
+            public static bool FlagMaxDashes => ModSettings.LogFlagMaxDashes;
+            public static bool FlagDashDir => ModSettings.LogFlagDashDir;
+            public static bool FlagFacing => ModSettings.LogFlagFacing;
         }
 
         private DateTime RecordingStarted;
@@ -314,20 +266,20 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private string RecordingStartedInChapterName;
         private string RecordingStartedInSideName;
         private Vector2 LastExactPos = Vector2.Zero;
-        private bool LastFrameEnabled = false;
+        private bool LastFrameEnabled;
         private int FrameNumber = -1;
         private long RTAFrameOffset = -1;
-        private Player LastPlayer = null;
+        private Player LastPlayer;
 
-        private int TasFrameCount = 0;
-        private string TasInputs = null;
-        private string TasFileContent = null;
+        private int TasFrameCount;
+        private string TasInputs;
+        private string TasFileContent;
         
         
         public bool IsInMap { get; set; }
-        private bool playerMarkedDead = false;
-        private bool doSegmentRecording = false;
-        private bool skipFrameOnSegment = false;
+        private bool PlayerMarkedDead;
+        private bool DoSegmentRecording;
+        private bool SkipFrameOnSegment;
 
         
         public PhysicsRecordingsManager RecordingsManager { get; set; }
@@ -347,26 +299,23 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             LoadEntityNamesList(ref CustomIgnoredEntityNames, "ignored-entities");
         }
 
-        private static readonly string _FileExplanation = "# Put 1 entity name (case sensitive!) per line\n" +
-                                                          "# The lists do the following:\n" +
-                                                          "# - movable-entities: Entities on this list will be tracked every frame for position changes\n" +
-                                                          "# - ignored-entities: Entities on this list will be ignored entirely\n";
-        private void LoadEntityNamesList(ref List<string> list, string listName) {
+        private const string FILE_EXPLANATION = "# Put 1 entity name (case sensitive!) per line" +
+                                                "\n# The lists do the following:" +
+                                                "\n# - movable-entities: Entities on this list will be tracked every frame for position changes" +
+                                                "\n# - ignored-entities: Entities on this list will be ignored entirely\n";
+
+        private static void LoadEntityNamesList(ref List<string> list, string listName) {
             string filePath =
                 ConsistencyTrackerModule.GetPathToFile(PhysicsLogFolder, EntityListsFolder, listName + ".txt");
             if (!File.Exists(filePath)) {
-                File.WriteAllText(filePath, _FileExplanation);
+                File.WriteAllText(filePath, FILE_EXPLANATION);
                 return;
             }
 
             list.Clear();
             string[] lines = File.ReadAllLines(filePath);
-            foreach (string line in lines) {
-                if (line.Length > 0 && !line.StartsWith("#")) {
-                    list.Add(line);
-                }
-            }
-            
+            list.AddRange(lines.Where(line => line.Length > 0 && !line.StartsWith("#")));
+
             Mod.Log($"Loaded {list.Count} custom entity names from '{listName}.txt'");
         }
 
@@ -374,24 +323,22 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         public void Hook() {
             On.Monocle.Engine.Update += Engine_Update;
             Everest.Events.Level.OnExit += Level_OnExit;
-            Events.Events.OnResetSession += Events_OnResetSession;
+            Events.Events.OnResetRun += Events_OnResetRun;
         }
 
         public void UnHook() {
             On.Monocle.Engine.Update -= Engine_Update;
             Everest.Events.Level.OnExit -= Level_OnExit;
-            Events.Events.OnResetSession -= Events_OnResetSession;
+            Events.Events.OnResetRun -= Events_OnResetRun;
         }
 
         public void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime) {
             orig(self, gameTime);
-
-            if (Engine.Scene is Level level) {
-                Player player = level.Tracker.GetEntity<Player>();
-                LogPhysicsUpdate(player, level);
-            }
+            if (!(Engine.Scene is Level level)) return;
+            Player player = level.Tracker.GetEntity<Player>();
+            LogPhysicsUpdate(player, level);
         }
-        private void Events_OnResetSession(bool sameSession) {
+        private void Events_OnResetRun() {
             if (Settings.IsRecording && IsInMap) {
                 SegmentLog(true);
             }
@@ -407,8 +354,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         #region Recording
         public void SegmentLog(bool skipFrame) {
             Mod.Log($"Segmenting log... (FrameNumber: {FrameNumber})");
-            doSegmentRecording = true;
-            skipFrameOnSegment = skipFrame;
+            DoSegmentRecording = true;
+            SkipFrameOnSegment = skipFrame;
         }
 
         public void LogPhysicsUpdate(Player player, Level level) {
@@ -418,13 +365,13 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             }
             LastPlayer = player;
 
-            if (player.Dead && Settings.SegmentOnDeath && !playerMarkedDead) {
+            if (player.Dead && Settings.SegmentOnDeath && !PlayerMarkedDead) {
                 Mod.Log($"Player died and recording should segment!");
-                playerMarkedDead = true;
-                doSegmentRecording = true;
-            } else if (!doSegmentRecording && !player.Dead) {
-                playerMarkedDead = false;
-            } else if (playerMarkedDead && player.Dead) {
+                PlayerMarkedDead = true;
+                DoSegmentRecording = true;
+            } else if (!DoSegmentRecording && !player.Dead) {
+                PlayerMarkedDead = false;
+            } else if (PlayerMarkedDead && player.Dead) {
                 return;
             }
 
@@ -444,10 +391,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 //do nothing
 
                 //Disables recording
-                if (doSegmentRecording) {
+                if (DoSegmentRecording) {
                     Mod.Log($"Logged last frame and should continue, but should segment!");
                     Settings.IsRecording = false;
-                    if (skipFrameOnSegment) {
+                    if (SkipFrameOnSegment) {
                         return;
                     }
                 }
@@ -499,13 +446,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             if (Mod.ModSettings.LogMovableEntities) {
                 if (!IsFirstFrameInRoom) {
-                    HashSet<int> entities = new HashSet<int>(); //Have this be empty, as we dont mind duplicates here
-                    Dictionary<int, LoggedEntity> newRoomEntities  = GetEntitiesFromLevel(level, EntityList.Movable, ref entities);
+                    var entities = new HashSet<int>(); //Have this be empty, as we dont mind duplicates here
+                    var newRoomEntities  = GetEntitiesFromLevel(level, EntityList.Movable, ref entities);
                     
-                    Dictionary<int, LoggedEntity> changes = new Dictionary<int, LoggedEntity>();
+                    var changes = new Dictionary<int, LoggedEntity>();
                     //Compare these entities to the ones in the room
-                    foreach (KeyValuePair<int, LoggedEntity> pair in newRoomEntities) {
-                        LoggedEntity entity = pair.Value;
+                    foreach (LoggedEntity entity in newRoomEntities.Select(pair => pair.Value)) {
                         if (RoomEntities.TryGetValue(entity.ID, out LoggedEntity roomEntity)) {
                             if (!entity.Position.Equals(roomEntity.Position) && entity.AttachedTo == -1) {
                                 //Only note down the position difference as change
@@ -526,12 +472,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
                     
                     //Check for removed entities
-                    foreach (KeyValuePair<int, LoggedEntity> roomEntity in RoomEntities) {
+                    foreach (var roomEntity in RoomEntities) {
                         if (!newRoomEntities.ContainsKey(roomEntity.Key)) {
                             //Entity was removed
-                            changes.Add(roomEntity.Key, new LoggedEntity() {
+                            changes.Add(roomEntity.Key, new LoggedEntity {
                                 ID = roomEntity.Key,
-                                Properties = new Dictionary<string, object>() {
+                                Properties = new Dictionary<string, object> {
                                     ["removed"] = true
                                 }
                             });
@@ -603,9 +549,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             RecordingsManager.SaveRoomLayoutsToFile(VisitedRoomsLayouts, RecordingStartedInSID, RecordingStartedInMapBin, RecordingStartedInChapterName, RecordingStartedInSideName, RecordingStarted, FrameNumber);
 
             //Turns recording back on after storing segment
-            if (doSegmentRecording) {
-                doSegmentRecording = false;
-                skipFrameOnSegment = false;
+            if (DoSegmentRecording) {
+                DoSegmentRecording = false;
+                SkipFrameOnSegment = false;
                 Settings.IsRecording = true;
             }
         }
@@ -616,7 +562,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             return "Frame,Frame (RTA),Position X,Position Y,Speed X,Speed Y,Velocity X,Velocity Y,LiftBoost X,LiftBoost Y,Retained,Stamina,Flags,Inputs,Analog X,Analog Y,Entities";
         }
 
-        private Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
+        private readonly Dictionary<int, string> PhysicsLogStatesToCheck = new Dictionary<int, string>() {
             [Player.StAttract] = nameof(Player.StAttract),
             [Player.StBoost] = nameof(Player.StBoost),
             [Player.StCassetteFly] = nameof(Player.StCassetteFly),
@@ -638,12 +584,12 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             [Player.StTempleFall] = nameof(Player.StTempleFall),
         };
         public List<string> GetPlayerFlags(Player player, Level level, bool firstFrameInRoom = false) {
-            List<string> flags = new List<string>();
+            var flags = new List<string>();
             if (player.Dead) {
                 flags.Add("Dead");
             }
-            if (PhysicsLogStatesToCheck.ContainsKey(player.StateMachine.State)) {
-                flags.Add($"{PhysicsLogStatesToCheck[player.StateMachine.State]}");
+            if (PhysicsLogStatesToCheck.TryGetValue(player.StateMachine.State, out string value)) {
+                flags.Add($"{value}");
             } else {
                 flags.Add($"StOther");
             }
@@ -694,7 +640,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     flags.Add($"Jump({jumpTimer})");
                 }
 
-                if (player.StateMachine.State == Player.StNormal && (player.Speed.Y > 0f || (player.Holding != null && player.Holding.SlowFall == true))) {
+                if (player.StateMachine.State == Player.StNormal && (player.Speed.Y > 0f || (player.Holding != null && player.Holding.SlowFall))) {
                     flags.Add($"MaxFall({Math.Round(maxFall, 2)})");
                 }
 
@@ -717,14 +663,14 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
             if (player.Holding == null && level.Tracker.GetComponents<Holdable>().Any(comp => {
                 Holdable holdable = comp as Holdable;
-                return holdable.Check(player);
+                return holdable != null && holdable.Check(player);
             })) {
                 flags.Add("Grab");
             }
             
             // Get private method from player: WallJumpCheck(int) -> bool
             try {
-                MethodInfo method = typeof(Player).GetMethod("WallJumpCheck", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                MethodInfo method = typeof(Player).GetMethod("WallJumpCheck", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (method != null) {
                     // Check wall R first, then wall L
                     if ((bool)method.Invoke(player, new object[] { 1 })) {
@@ -758,8 +704,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         }
 
 
-        private bool PhysicsLogHeldJumpLastFrame = false;
-        private bool PhysicsLogHoldingSecondJump = false;
+        private bool PhysicsLogHeldJumpLastFrame;
+        private bool PhysicsLogHoldingSecondJump;
         private void UpdateJumpState() {
             //Log($"Pre frame: Jump.Check -> {Input.Jump.Check}, Jump.Pressed -> {Input.Jump.Pressed}, Held Jump Last Frame -> {PhysicsLogHeldJumpLastFrame}, Holding Second Jump -> {PhysicsLogHoldingSecondJump}");
             if (Input.Jump.Check) {
@@ -847,8 +793,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private List<PhysicsLogRoomLayout> VisitedRoomsLayouts;
         private HashSet<int> LoggedEntitiesRaw;
 
-        private string LastRoomName = null;
-        private bool IsFirstFrameInRoom = false;
+        private string LastRoomName;
+        private bool IsFirstFrameInRoom;
         public void SaveRoomLayout() {
             if (!(Engine.Scene is Level)) return;
             Level level = (Level)Engine.Scene;
@@ -864,27 +810,24 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             RoomEntities = GetEntitiesFromLevel(level, EntityList.Movable, ref LoggedEntitiesRaw);
 
             //Save the static entities in the room
-            if (VisitedRooms.Contains(debugRoomName)) {
+            if (!VisitedRooms.Add(debugRoomName)) {
                 Mod.Log($"Room '{debugRoomName}' has already been visited! (LastRoomName: {LastRoomName})");
                 return;
             }
-            VisitedRooms.Add(debugRoomName);
 
             Mod.Log($"Saving room layout for room '{debugRoomName}'");
             
-            Dictionary<int, LoggedEntity> entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
+            var entities = GetEntitiesFromLevel(level, EntityList.Static, ref LoggedEntitiesRaw);
             
             int offsetX = level.LevelSolidOffset.X;
             int offsetY = level.LevelSolidOffset.Y;
             int width = level.Bounds.Width / 8;
             int height = level.Bounds.Height / 8;
-            List<int[]> solidTileData = new List<int[]>();
+            var solidTileData = new List<int[]>();
             for (int y = 0; y < height; y++) {
                 int[] row = new int[width];
-                string line = "";
                 for (int x = 0; x < width; x++) {
                     row[x] = level.SolidTiles.Grid.Data[x + offsetX, y + offsetY] ? 1 : 0;
-                    line += row[x] == 1 ? "1" : " ";
                 }
                 solidTileData.Add(row);
             }
@@ -902,9 +845,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         #endregion
 
         public static Dictionary<int, LoggedEntity> GetEntitiesFromLevel(Level level, EntityList list, ref HashSet<int> loggedEntitiesRaw) {
-            Dictionary<int, LoggedEntity> entities = new Dictionary<int, LoggedEntity>();
+            var entities = new Dictionary<int, LoggedEntity>();
             foreach (Entity outerEntity in level.Entities) {
-                List<Entity> subEntities = new List<Entity>() {
+                var subEntities = new List<Entity>() {
                     outerEntity
                 };
                 LoggedEntity loggedOuterEntity = null;
@@ -948,8 +891,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                     }
 
                     int entityHash = entity.GetHashCode();
-                    if (loggedEntitiesRaw.Contains(entityHash)) continue;
-                    loggedEntitiesRaw.Add(entityHash);
+                    if (!loggedEntitiesRaw.Add(entityHash)) continue;
 
                     LoggedEntity loggedEntity = new LoggedEntity() {
                         Type = entityName,
@@ -994,7 +936,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                             Mod.Log($"Entity '{entityName}' has no collider!");
                             continue;
                         }
-                        if (entity.Collider is Hitbox == false) {
+                        if (!(entity.Collider is Hitbox)) {
                             Mod.Log($"Entity '{entityName}' has a collider that is not a Hitbox!");
                             continue;
                         }
@@ -1068,11 +1010,8 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                         }
 
                         if (entityName == "MovingTouchSwitch") {
-                            Vector2[] nodes = Util.GetPrivateProperty<Vector2[]>(entity, "touchSwitchNodes");
-                            List<JsonVector2> jsonNodes = new List<JsonVector2>();
-                            foreach (Vector2 node in nodes) {
-                                jsonNodes.Add(node.ToJsonVector2());
-                            }
+                            var nodes = Util.GetPrivateProperty<Vector2[]>(entity, "touchSwitchNodes");
+                            var jsonNodes = nodes.Select(node => node.ToJsonVector2()).ToList();
                             loggedEntity.Properties.Add("nodes", jsonNodes);
                         }
 
@@ -1194,12 +1133,7 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
 
                         } else if (entityName == "FlingBird") {
                             FlingBird bird = entity as FlingBird;
-                            List<Vector2> allNodes = new List<Vector2>();
-                            for (int i = 0; i < bird.NodeSegments.Count; i++) {
-                                Vector2[] segment = bird.NodeSegments[i];
-                                allNodes.Add(segment[0]);
-                            }
-                            nodesEntity = allNodes.ToArray();
+                            nodesEntity = bird.NodeSegments.Select(segment => segment[0]).ToArray();
                         }
 
                         for (int i = startIndex; i < nodesEntity.Length; i++) {
@@ -1248,10 +1182,9 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 loggedEntity.Properties.Add("b", GetBasicColliderInfo(collider));
             } else if (collider is Circle) {
                 loggedEntity.Properties.Add("c", GetBasicColliderInfo(collider));
-            } else if (collider is ColliderList) {
-                List<object> colliderList = new List<object>();
-                
-                ColliderList entityColliders = collider as ColliderList;
+            } else if (collider is ColliderList entityColliders) {
+                var colliderList = new List<object>();
+
                 foreach (Collider actualCollider in entityColliders.colliders) {
                     if (actualCollider is Hitbox) {
                         colliderList.Add(new JsonColliderHitbox() {
@@ -1271,17 +1204,17 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
         private static object GetBasicColliderInfo(Collider collider) {
             if (collider == null) return null;
             
-            if (collider is Hitbox) {
-                Hitbox hitbox = collider as Hitbox;
-                return new JsonRectangle() {
+            if (collider is Hitbox hitbox) {
+                return new JsonRectangle {
                     X = hitbox.Position.X,
                     Y = hitbox.Position.Y,
                     Width = hitbox.Width,
                     Height = hitbox.Height,
                 };
-            } else if (collider is Circle) {
-                Circle hitcircle = collider as Circle;
-                return new JsonCircle() {
+            }
+
+            if (collider is Circle hitcircle) {
+                return new JsonCircle {
                     X = hitcircle.Position.X,
                     Y = hitcircle.Position.Y,
                     Radius = hitcircle.Radius,

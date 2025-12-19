@@ -427,11 +427,17 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             
             // Create stats file from first chapter's stats as a base
             string statsPath = pathPath.Replace("_path.json", "_stats.json");
-            ChapterStatsList statsList = ConsistencyTrackerModule.Instance.GetChapterStatsList(ConsistencyTrackerModule.StatsFolder, uids[0]);
-            ChapterStats stats = statsList.GetStats(selectedIndex);
-            stats.MakeFgrChanges(uids[0]);
-            statsList.SegmentStats.Clear();
-            statsList.SegmentStats.Add(stats);
+            ChapterStatsList statsList;
+
+            if (copyStatsFromFirstMap) {
+                statsList = ConsistencyTrackerModule.Instance.GetChapterStatsList(ConsistencyTrackerModule.StatsFolder, uids[0]);
+                ChapterStats stats = statsList.GetStats(selectedIndex);
+                stats.MakeFgrChanges(uids[0]);
+                statsList.SegmentStats.Clear();
+                statsList.SegmentStats.Add(stats);
+            } else {
+                statsList = new ChapterStatsList();
+            }
             File.WriteAllText(statsPath, JsonConvert.SerializeObject(statsList, Formatting.Indented));
                 
             ConsolePrint("Total rooms on new path: " + fgr.GameplayRoomCount);

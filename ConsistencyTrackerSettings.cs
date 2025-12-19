@@ -1,4 +1,4 @@
-﻿﻿using Celeste.Mod.ConsistencyTracker.Entities;
+﻿using Celeste.Mod.ConsistencyTracker.Entities;
 using Celeste.Mod.ConsistencyTracker.Entities.Menu;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
@@ -1889,8 +1889,8 @@ namespace Celeste.Mod.ConsistencyTracker
             bool hasCurrentRoom = Mod.CurrentChapterPath?.CurrentRoom != null;
             PacePingManager manager = Mod.MultiPacePingManager.GetSelectedPing();
             if (sliderCurrentPing != null) {
-                sliderCurrentPing.Values[Mod.MultiPacePingManager.currSelected] = Tuple.Create(manager.State.PingName, Mod.MultiPacePingManager.currSelected);
-                sliderCurrentPing.Index = Mod.MultiPacePingManager.currSelected;
+                sliderCurrentPing.Values[Mod.MultiPacePingManager.CurrSelected] = Tuple.Create(manager.State.PingName, Mod.MultiPacePingManager.CurrSelected);
+                sliderCurrentPing.Index = Mod.MultiPacePingManager.CurrSelected;
             }
 
             PaceTiming timing = null;
@@ -1972,7 +1972,7 @@ namespace Celeste.Mod.ConsistencyTracker
             };
 
 
-            int pingCount = Mod.MultiPacePingManager.pacePingManagers.Count;
+            int pingCount = Mod.MultiPacePingManager.PacePingManagers.Count;
             List<KeyValuePair<int, string>> PingList = new List<KeyValuePair<int, string>>() { 
                 new KeyValuePair<int, string>(0, "Default"),
             };
@@ -1980,8 +1980,8 @@ namespace Celeste.Mod.ConsistencyTracker
             // Probably unnecessary, but including in case I missed an edge case 
             if (pingCount > 0) {
                 PingList.Clear();
-                for (int i = 0; i < Mod.MultiPacePingManager.pacePingManagers.Count; i++) {
-                    PacePingManager manager = Mod.MultiPacePingManager.pacePingManagers[i];
+                for (int i = 0; i < Mod.MultiPacePingManager.PacePingManagers.Count; i++) {
+                    PacePingManager manager = Mod.MultiPacePingManager.PacePingManagers[i];
                     PingList.Add(new KeyValuePair<int, string>(i, manager.State.PingName));
                 }
             }
@@ -2016,7 +2016,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 Disabled = !hasCurrentRoom
             };
 
-            TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_CURRENT_PING"), PingList, Mod.MultiPacePingManager.currSelected) {
+            TextMenuExt.EnumerableSlider<int> sliderCurrentPing = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PACE_PING_GENERAL_CURRENT_PING"), PingList, Mod.MultiPacePingManager.CurrSelected) {
                 OnValueChange = (newValue) => {
                     Mod.MultiPacePingManager.SetSelectedPing(newValue);
                     PacePingLiveUpdate(null,
@@ -2047,8 +2047,8 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnPressed = () => {
                     PacePingManager newPing = Mod.MultiPacePingManager.AddNewPing();
                     if (newPing != null) {
-                        sliderCurrentPing.Values.Add(Tuple.Create(newPing.State.PingName, Mod.MultiPacePingManager.pacePingManagers.Count - 1));
-                        Mod.MultiPacePingManager.SetSelectedPing(Mod.MultiPacePingManager.pacePingManagers.Count-1);
+                        sliderCurrentPing.Values.Add(Tuple.Create(newPing.State.PingName, Mod.MultiPacePingManager.PacePingManagers.Count - 1));
+                        Mod.MultiPacePingManager.SetSelectedPing(Mod.MultiPacePingManager.PacePingManagers.Count-1);
                     }
                     PacePingLiveUpdate(sliderCurrentPing,
                                         togglePacePingButton,
@@ -2182,12 +2182,12 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_TITLE")} ==="));
             DoubleConfirmButton deleteButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE"))
             {
-                Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1,
+                Disabled = Mod.MultiPacePingManager.PacePingManagers.Count <= 1,
                 HighlightColor = Color.Red,
             };
             deleteButton.OnDoubleConfirmation = () =>
             {
-                int index = Mod.MultiPacePingManager.currSelected;
+                int index = Mod.MultiPacePingManager.CurrSelected;
                 bool didDelete = Mod.MultiPacePingManager.DeleteCurrentPing();
 
                 if (didDelete)
@@ -2202,7 +2202,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
                 }
 
-                deleteButton.Disabled = Mod.MultiPacePingManager.pacePingManagers.Count <= 1;
+                deleteButton.Disabled = Mod.MultiPacePingManager.PacePingManagers.Count <= 1;
             };
             subMenu.Add(deleteButton);
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE_HINT_1"));

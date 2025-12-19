@@ -34,19 +34,25 @@ namespace Celeste.Mod.ConsistencyTracker.Events {
         public static void InvokeChangedRoom(string roomName, bool isPreviousRoom) {
             OnChangedRoom?.Invoke(roomName, isPreviousRoom);
         }
-        public delegate void ResetSession(bool sameSession);
-        /// <summary>
-        /// Same session means that the player used the debug map to teleport to a different room. It keeps the session alive, while resetting many other things.
-        /// </summary>
+        
+        public delegate void ResetSession();
         public static event ResetSession OnResetSession;
-        public static void InvokeResetSession(bool sameSession) {
-            OnResetSession?.Invoke(sameSession);
+        public static void InvokeResetSession() {
+            OnResetSession?.Invoke();
         }
+        
+        public delegate void ResetRun();
+        public static event ResetRun OnResetRun;
+        public static void InvokeResetRun() {
+            OnResetRun?.Invoke();
+        }
+        
         public delegate void BeforeSavingStats();
         public static event BeforeSavingStats OnBeforeSavingStats;
         public static void InvokeBeforeSavingStats() {
             OnBeforeSavingStats?.Invoke();
         }
+        
         public delegate void AfterSavingStats();
         public static event AfterSavingStats OnAfterSavingStats;
         public static void InvokeAfterSavingStats() {
@@ -59,6 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.Events {
         public static void InvokeEnteredPbRoomWithGolden() {
             OnEnteredPbRoomWithGolden?.Invoke();
         }
+        
         public delegate void ExitedPbRoomWithGolden();
         public static event ExitedPbRoomWithGolden OnExitedPbRoomWithGolden;
         public static void InvokeExitedPbRoomWithGolden() {

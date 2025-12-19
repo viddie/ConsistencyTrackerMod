@@ -20,21 +20,21 @@ using On.Celeste.Editor;
 using GameData = Celeste.Mod.ConsistencyTracker.Utility.GameData;
 
 namespace Celeste.Mod.ConsistencyTracker {
-    public class ConsistencyTrackerModule : EverestModule {
+    public abstract class ConsistencyTrackerModule : EverestModule {
 
         public static ConsistencyTrackerModule Instance;
         private const int LOG_FILE_COUNT = 10;
 
-        public static object LogLock = new object();
+        private static readonly object LogLock = new object();
 
         #region Versions
-        public class VersionsNewest {
+        public static class VersionsNewest {
             public static string Mod => "2.9.8";
             public static string Overlay => "2.0.0";
             public static string LiveDataEditor => "1.0.1";
             public static string PhysicsInspector => "1.4.2";
         }
-        public class VersionsCurrent {
+        public static class VersionsCurrent {
             public static string Overlay {
                 get => Instance.ModSettings.OverlayVersion;
                 set => Instance.ModSettings.OverlayVersion = value;
@@ -96,6 +96,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         //Used to cache and prevent unnecessary operations via DebugRC
         public long CurrentUpdateFrame;
 
+        // For DebugRC endpoint "recentChapters"
         public List<Tuple<ChapterStatsList, PathSegmentList>> LastVisitedChapters = new List<Tuple<ChapterStatsList, PathSegmentList>>();
         public const int MAX_LAST_VISITED_CHAPTERS = 10;
 
@@ -821,20 +822,20 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         #region Custom Hooks
         private void HookCustom() {
-            Events.Events.OnResetSession += Events_OnResetSession;
+            Events.Events.OnResetRun += Events_OnResetRun;
             Events.Events.OnRunStarted += EventsOnRunStarted;
             Events.Events.OnRunEnded += EventsOnRunEnded;
             Events.Events.OnChangedRoom += Events_OnChangedRoom;
         }
 
         private void UnHookCustom() {
-            Events.Events.OnResetSession -= Events_OnResetSession;
+            Events.Events.OnResetRun -= Events_OnResetRun;
             Events.Events.OnRunStarted -= EventsOnRunStarted;
             Events.Events.OnRunEnded -= EventsOnRunEnded;
             Events.Events.OnChangedRoom -= Events_OnChangedRoom;
         }
 
-        private void Events_OnResetSession(bool sameSession) {
+        private void Events_OnResetRun() {
             //Track previously entered chapters
             if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
                 LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
@@ -893,9 +894,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                 EndRun();
             }
             
+            // Its the same session if you teleport within a chapter through external means (debug map, LevelLoader when passing the current session)
             bool isLastSession = LastSession == session;
             Log($"Called chapter change | isLastSession: {isLastSession}");
             LastSession = session;
+            
             ChapterMetaInfo chapterInfo = new ChapterMetaInfo(session);
 
             Log($"Level->{session.Level}, chapterInfo->'{chapterInfo}'");
@@ -911,11 +914,13 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStatsList = GetChapterStatsList(statsPathInfo.Item1, statsPathInfo.Item2);
             
             var pathPathInfo = ResolveActivePathSegmentListPath();
-            PathSegmentList psl = GetPathSegmentList(pathPathInfo.Item1, pathPathInfo.Item2);
+            PathSegmentList psl = pathPathInfo == null ? null : GetPathSegmentList(pathPathInfo.Item1, pathPathInfo.Item2);
             CurrentChapterPathSegmentList = psl;
             
             // Add meta info to path and stats
-            FixChapterPathInfo(psl.CurrentPath, chapterInfo);
+            if (psl != null) {
+                FixChapterPathInfo(psl.CurrentPath, chapterInfo);
+            }
             CurrentChapterStats.SetChapterMetaInfo(chapterInfo);
 
             //fix for SpeedrunTool savestate inconsistency
@@ -926,14 +931,17 @@ namespace Celeste.Mod.ConsistencyTracker {
             
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false);
-
+            
             if (!isLastSession) {
-                bool hasEnteredThisSession = ChaptersThisSession.Contains(psl.CurrentPath.ChapterUID);
-                ChaptersThisSession.Add(psl.CurrentPath.ChapterUID);
+                string targetChapterUID = psl?.CurrentPath?.ChapterUID ?? CurrentChapterDebugName;
+                bool hasEnteredThisSession = ChaptersThisSession.Contains(targetChapterUID);
+                ChaptersThisSession.Add(targetChapterUID);
                 if (!hasEnteredThisSession) {
                     CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
+                    Events.Events.InvokeResetSession();
                 }
                 CurrentChapterStats.ResetCurrentRun();
+                Events.Events.InvokeResetRun();
             }
             
             // If we are in fgr mode, check if we are in the first room of the path. If yes, start a new run
@@ -949,8 +957,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else {
                 LastRoomWithCheckpoint = null;
             }
-
-            Events.Events.InvokeResetSession(isLastSession);
         }
 
         public void FixChapterPathInfo(PathInfo pathInfo, ChapterMetaInfo chapterInfo = null) {
@@ -1155,19 +1161,11 @@ namespace Celeste.Mod.ConsistencyTracker {
                     return false;
                 }
                 
-                if (!(f.Entity is Strawberry)) {
+                if (!(f.Entity is Strawberry berry)) {
                     return false;
                 }
 
-                Strawberry berry = (Strawberry)f.Entity;
-
-                if (!berry.Golden || berry.Winged) {
-                    //Log($"Follower wasn't either a Golden '{berry.Golden}' or a Winged '{berry.Winged}' berry");
-                    return false;
-                }
-
-                //Log($"Follower was a Golden!");
-                return true;
+                return berry.Golden && !berry.Winged;
             });
         }
         
@@ -1258,11 +1256,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// </summary>
         public void CheckRootFolder() {
             string dataRootFolder = ModSettings.DataRootFolderLocation;
-            if (dataRootFolder == null) {
-                dataRootFolder = BaseFolderPath;
-            } else {
-                dataRootFolder = Path.Combine(dataRootFolder, "ConsistencyTracker");
-            }
+            dataRootFolder = dataRootFolder == null ? BaseFolderPath : Path.Combine(dataRootFolder, "ConsistencyTracker");
 
             if (!Directory.Exists(dataRootFolder)) {
                 try { 
@@ -2065,7 +2059,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public void InsertCheckpointIntoPath(Checkpoint cp, string roomName) {
-            Vector2 pos = cp == null ? Vector2.Zero : cp.Position;
+            Vector2 pos = cp?.Position ?? Vector2.Zero;
             if (roomName == null) {
                 PathRec.AddCheckpoint(pos, PathRecorder.DefaultCheckpointName);
                 return;
@@ -2098,10 +2092,10 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public Player GetPlayer() {
             Scene scene = Engine.Scene;
-            if (!(scene is Level)) {
+            if (!(scene is Level level)) {
                 return null;
             }
-            Level level = (Level)scene;
+
             return level.Tracker.GetEntity<Player>();
         }
         

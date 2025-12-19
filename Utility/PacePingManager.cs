@@ -1,5 +1,4 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Models;
-using Celeste.Mod.ConsistencyTracker.PhysicsLog;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Newtonsoft.Json;
 using System;
@@ -7,19 +6,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public class PacePingManager {
+        private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
-        private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
-
-        private const string FolderName = "pace-ping";
-        private const string SavedStateFileNameBase = "state";
-        public const string SaveStateSecretFileNameBase = "state-secret_DONT_SHOW_ON_STREAM";
+        private const string FOLDER_NAME = "pace-ping";
+        private const string SAVED_STATE_FILE_NAME_BASE = "state";
+        private const string SAVE_STATE_SECRET_FILE_NAME_BASE = "state-secret_DONT_SHOW_ON_STREAM";
 
         private string SavedStateFileName;
         public string SaveStateSecretFileName;
@@ -34,9 +29,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const string CHAR_TROPHY = ":trophy:";
 
 
-        private bool PBPingedThisRun { get; set; } = false;
-        private bool PBPingedSkipRegularCheck { get; set; } = false;
-        private bool UpdatedMessageWithDeath { get; set; } = false;
+        private bool PBPingedThisRun { get; set; }
+        private bool PBPingedSkipRegularCheck { get; set; }
+        private bool UpdatedMessageWithDeath { get; set; }
         private DiscordWebhookResponse EmbedMessage { get; set; }
         private RoomDetails LastRoomDetails { get; set; }
 
@@ -74,10 +69,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         public class PaceStateSecret {
             [JsonProperty("webhookUrl")]
-            public string WebhookUrl { get; set; } = null;
+            public string WebhookUrl { get; set; }
 
             [JsonProperty("webhookUrlAllDeaths")]
-            public string WebhookUrlAllDeaths { get; set; } = null;
+            public string WebhookUrlAllDeaths { get; set; }
         }
 
         public class PaceState {
@@ -133,14 +128,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             public string AdditionEmbed2Content { get; set; } = "{pb:bestSession} | {pb:bestSession#2} | {pb:bestSession#3} | {pb:bestSession#4} | {pb:bestSession#5}";
 
             [JsonProperty("additionalEmbed3Title")]
-            public string AdditionEmbed3Title { get; set; } = null;
+            public string AdditionEmbed3Title { get; set; }
             [JsonProperty("additionalEmbed3Content")]
-            public string AdditionEmbed3Content { get; set; } = null;
+            public string AdditionEmbed3Content { get; set; }
 
             [JsonProperty("additionalEmbed4Title")]
-            public string AdditionEmbed4Title { get; set; } = null;
+            public string AdditionEmbed4Title { get; set; }
             [JsonProperty("additionalEmbed4Content")]
-            public string AdditionEmbed4Content { get; set; } = null;
+            public string AdditionEmbed4Content { get; set; }
 
 
         }
@@ -173,16 +168,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             get {
                 if (Mod.CurrentChapterStats == null || Mod.CurrentChapterPath == null) return new MapSettings(); //Not in a map
                 string currentMap = Mod.CurrentChapterStats.ChapterSID;
-                if (State.MapSpecificSettings == null) return new MapSettings();
-                if (!State.MapSpecificSettings.ContainsKey(currentMap)) return new MapSettings();
-                return State.MapSpecificSettings[currentMap];
+                if (State.MapSpecificSettings == null || !State.MapSpecificSettings.TryGetValue(currentMap, out MapSettings settings)) return new MapSettings();
+                return settings;
             }
             set {
                 if (Mod.CurrentChapterStats == null || Mod.CurrentChapterPath == null) return; //Not in a map
                 string currentMap = Mod.CurrentChapterStats.ChapterSID;
                 if (State.MapSpecificSettings == null) State.MapSpecificSettings = new Dictionary<string, MapSettings>();
-                if (!State.MapSpecificSettings.ContainsKey(currentMap)) State.MapSpecificSettings.Add(currentMap, value);
-                else State.MapSpecificSettings[currentMap] = value;
+                State.MapSpecificSettings[currentMap] = value;
                 SaveState();
             }
         }
@@ -192,8 +185,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         public PacePingManager(int iteration) {
-            SavedStateFileName = SavedStateFileNameBase + "_" + iteration + ".json";
-            SaveStateSecretFileName = SaveStateSecretFileNameBase + "_" + iteration + ".json";
+            SavedStateFileName = SAVED_STATE_FILE_NAME_BASE + "_" + iteration + ".json";
+            SaveStateSecretFileName = SAVE_STATE_SECRET_FILE_NAME_BASE + "_" + iteration + ".json";
             LoadState();
         }
 
@@ -202,7 +195,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Events.Events.OnChangedRoom += Events_OnChangedRoom;
             Events.Events.OnEnteredPbRoomWithGolden += Events_OnEnteredPbRoomWithGolden;
             Events.Events.OnExitedPbRoomWithGolden += Events_OnExitedPbRoomWithGolden;
-            Events.Events.OnResetSession += Events_OnResetSession;
+            Events.Events.OnResetSession += Events_OnResetRun;
             Events.Events.OnRunEnded += EventsOnRunEnded;
         }
         
@@ -210,7 +203,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Events.Events.OnChangedRoom -= Events_OnChangedRoom;
             Events.Events.OnEnteredPbRoomWithGolden -= Events_OnEnteredPbRoomWithGolden;
             Events.Events.OnExitedPbRoomWithGolden -= Events_OnExitedPbRoomWithGolden;
-            Events.Events.OnResetSession -= Events_OnResetSession;
+            Events.Events.OnResetRun -= Events_OnResetRun;
             Events.Events.OnRunEnded -= EventsOnRunEnded;
         }
 
@@ -218,6 +211,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
             CheckPacePing(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
         }
+        
         private void Events_OnEnteredPbRoomWithGolden() {
             Mod.Log($"Triggered PB Entered event");
             if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun) {
@@ -232,6 +226,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             PBPingedThisRun = true;
             PBPingedSkipRegularCheck = true;
         }
+        
         private void Events_OnExitedPbRoomWithGolden() {
             Mod.Log($"Triggered PB Exited event");
             if (!Mod.ModSettings.PacePingEnabled || PBPingedThisRun) {
@@ -246,14 +241,16 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             PBPingedThisRun = true;
             PBPingedSkipRegularCheck = true;
         }
-        private void Events_OnResetSession(bool sameSession) {
+        
+        private void Events_OnResetRun() {
             ResetRun(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
         }
+        
         private void EventsOnRunEnded(bool died, bool won) {
             if (died) {
                 DiedWithGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
             } else if (won) {
-                try { //we DONT want to crash when winning
+                try { //we DONT want to crash when winning, just in case
                     CollectedGolden(Mod.CurrentChapterPath, Mod.CurrentChapterStats);
                 } catch (Exception ex) {
                     Mod.Log($"An exception occurred on CollectedGoldenBerry: {ex}", isFollowup: true);
@@ -264,11 +261,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
         #region State IO
         private void LoadState() {
-            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FolderName));
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME));
             bool doSave = false;
 
-            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
-            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SaveStateSecretFileName);
 
             if (File.Exists(stateFilePath)) {
                 string stateFileContents = File.ReadAllText(stateFilePath);
@@ -292,56 +289,52 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         private void SaveState() {
-            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
-            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SaveStateSecretFileName);
             File.WriteAllText(stateFilePath, JsonConvert.SerializeObject(State, Formatting.Indented));
             File.WriteAllText(stateSecretFilePath, JsonConvert.SerializeObject(StateSecret));
         }
-        #endregion
 
         private bool DeleteState() {
-            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
-            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
-            if (File.Exists(stateFilePath) && File.Exists(stateSecretFilePath)) {
-                try {
-                    File.Delete(stateFilePath);
-                    File.Delete(stateSecretFilePath);
-                } catch (Exception) {
-                    return false;
-                }
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SaveStateSecretFileName);
+            if (!File.Exists(stateFilePath) || !File.Exists(stateSecretFilePath)) return false;
+            try {
+                File.Delete(stateFilePath);
+                File.Delete(stateSecretFilePath);
                 return true;
+            } catch (Exception) {
+                return false;
             }
-            return false;
         }
 
         public bool RenameState(int iteration) {
-            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName);
-            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName);
-            SavedStateFileName = SavedStateFileNameBase + "_" + iteration + ".json";
-            SaveStateSecretFileName = SaveStateSecretFileNameBase + "_" + iteration + ".json";
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SavedStateFileName);
+            string stateSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SaveStateSecretFileName);
+            SavedStateFileName = SAVED_STATE_FILE_NAME_BASE + "_" + iteration + ".json";
+            SaveStateSecretFileName = SAVE_STATE_SECRET_FILE_NAME_BASE + "_" + iteration + ".json";
             SaveState();
-            if (File.Exists(stateFilePath) && File.Exists(stateSecretFilePath)) {
-                try {
-                    File.Delete(stateFilePath);
-                    File.Delete(stateSecretFilePath);
-                    return true;
-                } catch (Exception) {
-                    return false;
-                }
+            if (!File.Exists(stateFilePath) || !File.Exists(stateSecretFilePath)) return false;
+            try {
+                File.Delete(stateFilePath);
+                File.Delete(stateSecretFilePath);
+                return true;
+            } catch (Exception) {
+                return false;
             }
-            return false;
         }
+        #endregion
 
         #region Mod Options Actions
-        public bool SetCurrentRoomPacePingEnabled(bool isEnabled) {
+        public bool SetCurrentRoomPacePingEnabled(bool setEnabled) {
             bool isNowEnabled = false;
             PathInfo path = Mod.CurrentChapterPath;
-            if (path == null || path.CurrentRoom == null) return isNowEnabled;
+            if (path?.CurrentRoom == null) return false;
 
             string id = path.ChapterSID;
 
             PaceTiming paceTiming = GetPaceTiming(id, path.CurrentRoom.DebugRoomName);
-            if (paceTiming == null && isEnabled) {
+            if (paceTiming == null && setEnabled) {
                 if (!State.PacePingTimings.ContainsKey(id)) {
                     State.PacePingTimings.Add(id, new List<PaceTiming>());
                 }
@@ -353,10 +346,12 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 });
 
                 isNowEnabled = true;
-            } else if (paceTiming != null && isEnabled) {
-                isNowEnabled = true;
-            } else if (paceTiming != null && !isEnabled) {
-                State.PacePingTimings[id].Remove(paceTiming);
+            } else if (paceTiming != null) {
+                if (setEnabled) {
+                    isNowEnabled = true;
+                } else {
+                    State.PacePingTimings[id].Remove(paceTiming);
+                }
             }
 
             SaveState();
@@ -429,7 +424,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (currentRoom == null) return; //Not on path = no ping
             if (!Mod.ModSettings.PacePingEnabled) return;
 
-            if (!stats.ModState.PlayerIsHoldingGolden && ignoreGolden == false) return; //No golden = no ping
+            if (!stats.ModState.PlayerIsHoldingGolden && !ignoreGolden) return; //No golden = no ping
 
             if (EmbedMessage != null) {
                 SendUpdatePing(path, stats);
@@ -485,7 +480,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     Content = EmbedMessage.Content + " -> " + message,
                     Embeds = GetEmbedsForRoom(path, stats, false, true, reset),
                 }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
-            } catch (Exception) { }
+            } catch (Exception) {
+                // ignored
+            }
         }
 
         public void CollectedGolden(PathInfo path, ChapterStats stats) {
@@ -498,7 +495,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 SendDiscordWebhookMessage(new DiscordWebhookRequest() {
                     Username = State.WebhookUsername,
                     Content = EmbedMessage.Content + " -> " + message,
-                    Embeds = GetEmbedsForRoom(path, stats, true, false),
+                    Embeds = GetEmbedsForRoom(path, stats, true),
                 }, StateSecret.WebhookUrl, DiscordWebhookAction.SendFinal);
             } catch (Exception ex) {
                 Mod.Log($"An exception occurred while trying to send win message: {ex}", isFollowup: true);
@@ -672,7 +669,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     Username = State.WebhookUsername,
                     Content = message,
                 }, StateSecret.WebhookUrlAllDeaths, DiscordWebhookAction.Separate);
-            } catch (Exception) { }
+            } catch (Exception) {
+                // ignored
+            }
         }
 
         public enum DiscordWebhookAction {
@@ -697,9 +696,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     response = client.UploadString(url + "/messages/" + localMessage.Id + "?wait=true", "PATCH", payload);
                 }
 
-                if (response != null) {
-                    Mod.Log($"Discord webhook response: {response}", isFollowup: true);
-                }
+                Mod.Log($"Discord webhook response: {response}", isFollowup: true);
 
                 DiscordWebhookResponse webhookResponse = JsonConvert.DeserializeObject<DiscordWebhookResponse>(response);
                 if (webhookResponse == null) {
@@ -707,10 +704,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     return;
                 }
 
-                if (action == DiscordWebhookAction.SendUpdate) {
-                    EmbedMessage = webhookResponse;
-                } else if (action == DiscordWebhookAction.SendFinal) {
-                    EmbedMessage = null;
+                switch (action) {
+                    case DiscordWebhookAction.SendUpdate:
+                        EmbedMessage = webhookResponse;
+                        break;
+                    case DiscordWebhookAction.SendFinal:
+                    default:
+                        EmbedMessage = null;
+                        break;
                 }
             });
         }
@@ -722,11 +723,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 State.PacePingTimings = new Dictionary<string, List<PaceTiming>>();
             }
             if (chapterSID == null) {
-                Mod.Log($"{nameof(chapterSID)} '{chapterSID}' is was null");
+                Mod.Log($"{nameof(chapterSID)} was null");
                 return null;
             }
 
-            if (!State.PacePingTimings.TryGetValue(chapterSID, out List<PaceTiming> timings)) {
+            if (!State.PacePingTimings.TryGetValue(chapterSID, out var timings)) {
                 if (!dontLog) {
                     Mod.Log($"Didn't find room timings for chapter {chapterSID}");
                 }
@@ -739,32 +740,30 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
     }
 
     public class MultiPacePingManager {
-        private ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
+        private const string FOLDER_NAME = "pace-ping";
+        private const string SAVED_STATE_FILE_NAME = "state";
+        private const string SAVE_STATE_SECRET_FILE_NAME = "state-secret_DONT_SHOW_ON_STREAM";
 
-        private const string FolderName = "pace-ping";
-        private const string SavedStateFileName = "state";
-        public const string SaveStateSecretFileName = "state-secret_DONT_SHOW_ON_STREAM";
-
-        public List<PacePingManager> pacePingManagers { get; set; }
-        public int currSelected;
+        public List<PacePingManager> PacePingManagers { get; }
+        public int CurrSelected;
 
         public MultiPacePingManager() {
-            pacePingManagers = new List<PacePingManager>();
+            PacePingManagers = new List<PacePingManager>();
             LoadState();
-            currSelected = 0;
+            CurrSelected = 0;
         }
 
         private void LoadState() {
-            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FolderName));
+            ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME));
 
             int currIteration = 0;
-            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + "_" + currIteration + ".json");
-            string oldStateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + ".json");
+            string stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SAVED_STATE_FILE_NAME + "_" + currIteration + ".json");
+            string oldStateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SAVED_STATE_FILE_NAME + ".json");
 
             // Migration logic
             if (!File.Exists(stateFilePath) && File.Exists(oldStateFilePath)) {
-                string secretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName + "_" + currIteration + ".json");
-                string oldSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SaveStateSecretFileName + ".json");
+                string secretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SAVE_STATE_SECRET_FILE_NAME + "_" + currIteration + ".json");
+                string oldSecretFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SAVE_STATE_SECRET_FILE_NAME + ".json");
 
                 File.Copy(oldStateFilePath, stateFilePath);
                 File.Copy(oldSecretFilePath, secretFilePath);
@@ -772,59 +771,57 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
 
             do {
                 PacePingManager manager = new PacePingManager(currIteration);
-                pacePingManagers.Add(manager);
+                PacePingManagers.Add(manager);
                 currIteration++;
-                stateFilePath = ConsistencyTrackerModule.GetPathToFile(FolderName, SavedStateFileName + "_" + currIteration + ".json");
+                stateFilePath = ConsistencyTrackerModule.GetPathToFile(FOLDER_NAME, SAVED_STATE_FILE_NAME + "_" + currIteration + ".json");
             } while (File.Exists(stateFilePath));
         }
 
         public void Hook() {
-            foreach (var manager in pacePingManagers) {
+            foreach (var manager in PacePingManagers) {
                 manager.Hook();
             }
         }
 
         public void UnHook() {
-            foreach (PacePingManager manager in pacePingManagers) {
+            foreach (PacePingManager manager in PacePingManagers) {
                 manager.UnHook();
             }
         }        
 
         public IEnumerable<PacePingManager> GetManagers() {
-            foreach (var manager in pacePingManagers) {
-                yield return manager;
-            }
+            return PacePingManagers;
         }
 
         public void SetSelectedPing(int idx) {
-            currSelected = idx;
+            CurrSelected = idx;
         }
 
         public PacePingManager GetSelectedPing() {
-            return pacePingManagers[currSelected];
+            return PacePingManagers[CurrSelected];
         }
 
         public PacePingManager AddNewPing() {
-            PacePingManager newManager = new PacePingManager(pacePingManagers.Count);
+            PacePingManager newManager = new PacePingManager(PacePingManagers.Count);
             newManager.Hook();
-            pacePingManagers.Add(newManager);
+            PacePingManagers.Add(newManager);
             return newManager;
         }
 
         public bool DeleteCurrentPing() {
-            if (pacePingManagers.Count <= 1) {
+            if (PacePingManagers.Count <= 1) {
                 return false;
             }
             bool deleted = GetSelectedPing().DeletePing();
 
             if(deleted) {
                 GetSelectedPing().UnHook();
-                pacePingManagers.RemoveAt(currSelected);
-                if (currSelected >= pacePingManagers.Count) {
-                    currSelected = pacePingManagers.Count - 1;
+                PacePingManagers.RemoveAt(CurrSelected);
+                if (CurrSelected >= PacePingManagers.Count) {
+                    CurrSelected = PacePingManagers.Count - 1;
                 } else {
-                    for (int i = currSelected; i < pacePingManagers.Count; i++) {
-                        pacePingManagers[i].RenameState(i);
+                    for (int i = CurrSelected; i < PacePingManagers.Count; i++) {
+                        PacePingManagers[i].RenameState(i);
                     }
                 }
                 return true;
