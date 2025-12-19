@@ -20,7 +20,7 @@ using On.Celeste.Editor;
 using GameData = Celeste.Mod.ConsistencyTracker.Utility.GameData;
 
 namespace Celeste.Mod.ConsistencyTracker {
-    public abstract class ConsistencyTrackerModule : EverestModule {
+    public class ConsistencyTrackerModule : EverestModule {
 
         public static ConsistencyTrackerModule Instance;
         private const int LOG_FILE_COUNT = 10;
