@@ -627,6 +627,15 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("debugRoomName")]
         public string DebugRoomName { get; set; }
 
+        [JsonIgnore]
+        public string ActualDebugRoomName {
+            get {
+                string[] split = DebugRoomName.Split(':');
+                if (split.Length != 2) return DebugRoomName;
+                return split[1];
+            }
+        }
+
         [JsonProperty("goldenBerryDeaths")]
         public int GoldenBerryDeaths { get; set; } = 0;
 

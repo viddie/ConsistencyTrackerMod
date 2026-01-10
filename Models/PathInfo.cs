@@ -181,7 +181,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public void MakeFgrChanges(string uid) {
             string chapterNameAbbr = PathRecorder.AbbreviateName(ChapterDisplayName);
             // Rename rooms
-            foreach (RoomInfo rInfo in WalkPath()) {
+            foreach (RoomInfo rInfo in WalkPath(true)) {
                 rInfo.DebugRoomName = ConsistencyTrackerModule.GetRoomName(rInfo.DebugRoomName, true, uid);
             }
             // Rename checkpoints
@@ -391,7 +391,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
         }
 
-        public string ActualRoomName {
+        public string ActualDebugRoomName {
             get {
                 string[] split = DebugRoomName.Split(':');
                 if (split.Length != 2) return DebugRoomName;

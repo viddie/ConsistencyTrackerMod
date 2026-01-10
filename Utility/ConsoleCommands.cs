@@ -12,6 +12,8 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
+using Celeste.Mod.ConsistencyTracker.Entities;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
@@ -307,21 +309,45 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         [Command("cct-test", "A test command used in development of CCT. Effect can change at random and is not known. Use at your own risk.")]
-        public static void CctTest(string sid = null, string level = null) {
-            PathInfo path = Mod.CurrentChapterPath;
-            ChapterStats stats = Mod.CurrentChapterStats;
+        public static void CctTest(int index) {
+            Color[] colors = {
+                new Color(1f, 0f, 0f),   // red
+                new Color(0f, 1f, 0f),   // green
+                new Color(0f, 0f, 1f),   // blue
 
-            if (stats == null || path == null) {
-                ConsolePrint("No stats available. Please enter a map with a path first.");
-                return;
-            }
+                new Color(1f, 1f, 0f),   // yellow
+                new Color(0f, 1f, 1f),   // cyan
+                new Color(1f, 0f, 1f),   // magenta
 
-            if (string.IsNullOrEmpty(sid)) {
-                ConsolePrint("Please provide a SID to test the level loader. Example: cct-test tom/0/1-space");
+                new Color(1f, 0.5f, 0f), // orange
+                new Color(0.5f, 0f, 1f), // purple
+                new Color(0.6f, 0.3f, 0.1f), // brown
+
+                new Color(1f, 0.75f, 0.8f), // pink
+                new Color(0.5f, 1f, 0.5f),  // light green
+                new Color(0.5f, 0.5f, 1f),  // light blue
+
+                new Color(0f, 0f, 0f),   // black
+                new Color(0.25f, 0.25f, 0.25f), // dark gray
+                new Color(0.5f, 0.5f, 0.5f),    // gray
+                new Color(0.75f, 0.75f, 0.75f), // light gray
+                new Color(1f, 1f, 1f),   // white
+
+                new Color(0.1f, 0.1f, 0.1f), // near black
+                new Color(0.9f, 0.9f, 0.9f), // near white
+
+                new Color(0.2f, 0.8f, 0.6f), // teal-ish
+                new Color(0.8f, 0.2f, 0.6f), // odd magenta
+                new Color(0.6f, 0.8f, 0.2f), // lime-ish
+            };
+            
+            if (index < 0 || index >= colors.Length) {
+                ConsolePrint($"Index out of bounds. Please provide an index between 0 and {colors.Length - 1}.");
                 return;
             }
             
-            LoadLevel(sid, level:level);
+            GraphOverlay.testColor = colors[index];
+            ConsolePrint($"Set test color to index {index}.");
         }
         
         [Command("cct-fgr", "Transforms a list of chapter UIDs into an FGR path. Call without parameters to get a more in-depth explanation.")]
@@ -335,13 +361,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 ConsolePrint("- You can also let cct copy the stats from the first map to the FGR stats by adding the parameter 'true' at the end. Example:");
                 ConsolePrint("> cct-fgr tom_0_1-space_Normal;tom_0_2-city_Normal;tom_0_3-temple_Normal true");
                 ConsolePrint("");
-                ConsolePrint("- CCT will take the currently selected segment from each provided path.");
+                ConsolePrint("- YOU NEED TO HAVE RECORDED A PATH FOR EVERY MAP YOU PROVIDE HERE. CCT will take the currently selected path segment for all maps you provided.");
                 ConsolePrint("");
                 ConsolePrint("- Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign.");
                 ConsolePrint(
-                    "- You can create an FGR path automatically for all maps in your current campaign by passing 'default' instead of a list of UIDs. (WARNING: This command only sees maps that you have played at least once on this save file!)");
-                ConsolePrint("");
-                ConsolePrint("!! Disclaimer: FGR support in CCT is experimental. There will be many places where things won't work as expected. !!");
+                    "- You can create an FGR path automatically for all maps in your current campaign by passing 'default' instead of a list of UIDs. (WARNING: This command only sees maps that you have played at least once on this save file! >> Some big campaigns can fail due to weird campaign/lobby structure. <<)");
                 return;
             } else if (input == "default") {
                 uids = GetAllChapterUidsInCampaign();
@@ -591,6 +615,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             string roomName = rInfo.DebugRoomName;
             string[] split = roomName.Split(':');
+            if (split.Length != 2) {
+                Mod.Log($"Malformed DebugRoomName for FGR mode: '{roomName}'");
+                return;
+            }
             string uid = split[0];
             string level = split[1];
             var parsed = ParseUid(uid);

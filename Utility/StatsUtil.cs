@@ -13,6 +13,17 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             return toRet;
         }
+
+        public static RoomInfo GetFurthestGoldenRunSession(PathInfo path, ChapterStats stats) {
+            RoomInfo toRet = null;
+            foreach (RoomInfo rInfo in path.WalkPath()) {
+                RoomStats rStats = stats.GetRoom(rInfo);
+                if (rStats.GoldenBerryDeathsSession > 0) {
+                    toRet = rInfo;
+                }
+            }
+            return toRet;
+        }
         
     }
 }

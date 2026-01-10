@@ -120,17 +120,32 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RoomDifficultyAllSegments { get; set; } = true;
         [SettingIgnore]
         public int SelectedFgr { get; set; } = 0;
+        public bool FgrContinuousSessionTimer { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu fgrSubMenu = new TextMenuExt.SubMenu("FGR Path Settings", false);
             TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_TITLE"), false);
+            menu.Add(fgrSubMenu);
             menu.Add(subMenu);
             TextMenu.Item menuItem;
 
             if (!inGame) {
+                fgrSubMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
                 subMenu.Add(new TextMenu.SubHeader(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_NOT_IN_GAME_HINT"), false));
                 return;
             }
-
+            
+            // Path recorder button definitions need to be up here so FGR slider can control them
+            ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
+                HighlightColor = Color.Yellow,
+                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording || SelectedFgr != 0,
+            }; 
+            ColoredButton altStartPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START")) {
+                HighlightColor = Color.Yellow,
+                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording || SelectedFgr != 0,
+            };
+            
+            // FGR settings
             int highestFgr = ConsistencyTrackerModule.GetHighestFgrWithPath();
             TextMenu.OnOff isInRunItem = new TextMenu.OnOff("Is In Run", IsInRun) {
                 OnValueChange = v => {
@@ -144,40 +159,46 @@ namespace Celeste.Mod.ConsistencyTracker
                 },
                 Disabled = !Mod.IsInFgrMode
             };
-            
-            subMenu.Add(menuItem = new TextMenu.Slider("Selected Full Game Run Path", i => {
-                if (i == 0) {
-                    return "None";
-                } else {
-                    return $"FGR {i}";
-                }
-            }, 0,  Math.Max(0, highestFgr), SelectedFgr) {
+
+            TextMenu.Slider fgrSelector = new TextMenu.Slider("Selected Full Game Run Path", i => {
+                return i == 0 ? "None" : $"FGR {i}";
+            }, 0, Math.Max(0, highestFgr), SelectedFgr) {
                 OnValueChange = value => {
                     SelectedFgr = value;
                     Mod.ChangedSelectedFgr();
                     isInRunItem.Disabled = !Mod.IsInFgrMode;
                     isInRunItem.Index = Mod.IsInGoldenRun ? 1 : 0;
+                    startPathRecordingButton.Disabled = value != 0;
+                    altStartPathRecordingButton.Disabled = value != 0;
                 },
-                // Disabled = highestFgr == -1
-            });
-            subMenu.AddDescription(menu, menuItem, "When a full game run (FGR) is selected, the path recorder will be unavailable." +
+                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
+            };
+            fgrSubMenu.Add(fgrSelector);
+            fgrSubMenu.AddDescription(menu, fgrSelector, "When a full game run (FGR) is selected, the path recorder will be unavailable." +
                                                    "\nCreate an FGR path through the console command 'cct-fgr'");
-            subMenu.Add(isInRunItem);
+            fgrSubMenu.Add(isInRunItem);
+            fgrSubMenu.Add(menuItem = new TextMenu.OnOff("Continuous Session Timer", FgrContinuousSessionTimer) {
+                OnValueChange = value => {
+                    FgrContinuousSessionTimer = value;
+                }
+            });
+            fgrSubMenu.AddDescription(menu, menuItem, "When enabled and in a run, the session timer will keep running between chapters.");
             
+            // Path management section
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_TITLE")} ==="));
             bool hasPathList = Mod.CurrentChapterPathSegmentList != null;
             int segmentCount = hasPathList ? Mod.CurrentChapterPathSegmentList.Segments.Count : 0;
-            List<KeyValuePair<int, string>> SegmentList = new List<KeyValuePair<int, string>>() { 
+            var segmentList = new List<KeyValuePair<int, string>>() { 
                 new KeyValuePair<int, string>(0, "Default"),
             };
             if (hasPathList) {
-                SegmentList.Clear();
+                segmentList.Clear();
                 for (int i = 0; i < Mod.CurrentChapterPathSegmentList.Segments.Count; i++) {
                     PathSegment segment = Mod.CurrentChapterPathSegmentList.Segments[i];
-                    SegmentList.Add(new KeyValuePair<int, string>(i, segment.Name));
+                    segmentList.Add(new KeyValuePair<int, string>(i, segment.Name));
                 }
             }
-            TextMenuExt.EnumerableSlider<int> sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), SegmentList, Mod.SelectedPathSegmentIndex) {
+            var sliderCurrentSegment = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_CURRENT_SEGMENT"), segmentList, Mod.SelectedPathSegmentIndex) {
                 OnValueChange = (newValue) => {
                     Mod.SetCurrentChapterPathSegment(newValue);
                 },
@@ -188,10 +209,9 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_ADD_SEGMENT")) {
                 OnPressed = () => {
                     PathSegment segment = Mod.AddCurrentChapterPathSegment();
-                    if (segment != null) {
-                        sliderCurrentSegment.Values.Add(Tuple.Create(segment.Name, Mod.CurrentChapterPathSegmentList.Segments.Count - 1));
-                        sliderCurrentSegment.SelectWiggler.Start();
-                    }
+                    if (segment == null) return;
+                    sliderCurrentSegment.Values.Add(Tuple.Create(segment.Name, Mod.CurrentChapterPathSegmentList.Segments.Count - 1));
+                    sliderCurrentSegment.SelectWiggler.Start();
                 },
                 Disabled = !hasPathList
             });
@@ -199,13 +219,12 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(menuItem = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_GENERAL_IMPORT_SEGMENT")) { 
                 OnPressed = () => {
                     string text = TextInput.GetClipboardText();
-                    Mod.Log($"Importing segment name from clipboard...");
+                    Mod.Log("Importing segment name from clipboard...");
                     try {
                         bool renamed = Mod.SetCurrentChapterPathSegmentName(text);
-                        if (renamed) {
-                            sliderCurrentSegment.Values[Mod.SelectedPathSegmentIndex] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
-                            sliderCurrentSegment.SelectWiggler.Start();
-                        }
+                        if (!renamed) return;
+                        sliderCurrentSegment.Values[Mod.SelectedPathSegmentIndex] = Tuple.Create(text, Mod.SelectedPathSegmentIndex);
+                        sliderCurrentSegment.SelectWiggler.Start();
                     } catch (Exception ex) {
                         Mod.Log($"Couldn't import segment name from clipboard: {ex}");
                     }
@@ -214,14 +233,6 @@ namespace Celeste.Mod.ConsistencyTracker
 
             
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_TITLE")} ==="));
-            ColoredButton startPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_START")) {
-                HighlightColor = Color.Yellow,
-                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
-            }; 
-            ColoredButton altStartPathRecordingButton = new ColoredButton(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_ALT_RECORDING_START")) {
-                HighlightColor = Color.Yellow,
-                Disabled = Mod.DoRecordPath || Mod.DebugMapUtil.IsRecording,
-            };
 
             string recorderStateTitle = Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF");
             if (Mod.DoRecordPath) {
@@ -249,6 +260,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 altStartPathRecordingButton.Disabled = true;
                 savePathRecordingButton.Disabled = false;
                 abortPathRecordingButton.Disabled = false;
+                fgrSelector.Disabled = true;
 
                 recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
             };
@@ -261,6 +273,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 altStartPathRecordingButton.Disabled = true;
                 savePathRecordingButton.Disabled = false;
                 abortPathRecordingButton.Disabled = false;
+                fgrSelector.Disabled = true;
 
                 recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_ON")}";
             };
@@ -276,6 +289,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 altStartPathRecordingButton.Disabled = false;
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
+                fgrSelector.Disabled = false;
 
                 recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };
@@ -292,6 +306,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 altStartPathRecordingButton.Disabled = false;
                 savePathRecordingButton.Disabled = true;
                 abortPathRecordingButton.Disabled = true;
+                fgrSelector.Disabled = false;
 
                 recorderStateHeader.Title = $"{Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_RECORDING_STATE")}: {Dialog.Clean("MODOPTION_CCT_TRACKING_SETTINGS_OFF")}";
             };

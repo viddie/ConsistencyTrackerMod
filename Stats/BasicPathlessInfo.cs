@@ -101,7 +101,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ModOverlayVersion, $"{chapterStats.ModState.OverlayVersion}");
 
 
-            format = format.Replace(RoomDebugName, $"{chapterStats.CurrentRoom.DebugRoomName}");
+            format = format.Replace(RoomDebugName, $"{chapterStats.CurrentRoom.ActualDebugRoomName}");
             format = format.Replace(RoomGoldenDeaths, $"{chapterStats.CurrentRoom.GoldenBerryDeaths}");
             format = format.Replace(RoomGoldenDeathsSession, $"{chapterStats.CurrentRoom.GoldenBerryDeathsSession}");
 

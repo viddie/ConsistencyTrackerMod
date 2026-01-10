@@ -63,7 +63,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
 
         private bool DidRestart { get; set; }
-        private HashSet<string> ChaptersThisSession { get; set; } = new HashSet<string>();
+        private HashSet<string> PathsThisSession { get; set; } = new HashSet<string>();
 
         #region Path Recording Variables
 
@@ -897,7 +897,6 @@ namespace Celeste.Mod.ConsistencyTracker {
             // Its the same session if you teleport within a chapter through external means (debug map, LevelLoader when passing the current session)
             bool isLastSession = LastSession == session;
             Log($"Called chapter change | isLastSession: {isLastSession}");
-            LastSession = session;
             
             ChapterMetaInfo chapterInfo = new ChapterMetaInfo(session);
 
@@ -931,15 +930,12 @@ namespace Celeste.Mod.ConsistencyTracker {
             
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false);
-            
+
             if (!isLastSession) {
-                string targetChapterUID = psl?.CurrentPath?.ChapterUID ?? CurrentChapterDebugName;
-                bool hasEnteredThisSession = ChaptersThisSession.Contains(targetChapterUID);
-                ChaptersThisSession.Add(targetChapterUID);
-                if (!hasEnteredThisSession) {
-                    CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
-                    Events.Events.InvokeResetSession();
+                if (LastSession != null && isInFgrMode && IsInGoldenRun && !IsInFirstRoom && ModSettings.FgrContinuousSessionTimer) {
+                    session.Time = LastSession.Time;
                 }
+                CheckResetSessionStats();
                 CurrentChapterStats.ResetCurrentRun();
                 Events.Events.InvokeResetRun();
             }
@@ -957,6 +953,31 @@ namespace Celeste.Mod.ConsistencyTracker {
             } else {
                 LastRoomWithCheckpoint = null;
             }
+            LastSession = session;
+        }
+
+        public void CheckResetSessionStats() {
+            PathSegmentList psl = CurrentChapterPathSegmentList;
+            if (psl?.CurrentPath == null) return;
+            
+            string pathKey = GetPathKey(psl);
+            bool firstEntry = PathsThisSession.Add(pathKey);
+            if (!firstEntry) return;
+
+            IsInGoldenRun = IsInFgrMode && IsInFirstRoom; //Reset flag between sessions.
+            CurrentChapterStats.ResetCurrentSession(CurrentChapterPath);
+            Events.Events.InvokeResetSession();
+        }
+
+        public string GetPathKey(PathSegmentList psl) {
+            if (psl == null) return null;
+            string uid = psl.CurrentPath?.ChapterUID ?? CurrentChapterDebugName;
+            int index = psl.SelectedIndex;
+            if (IsInFgrMode) {
+                uid = "FGR";
+                index = ModSettings.SelectedFgr;
+            }
+            return $"{uid}|{index}";
         }
 
         public void FixChapterPathInfo(PathInfo pathInfo, ChapterMetaInfo chapterInfo = null) {
@@ -991,42 +1012,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             SaveActivePath();
             if (CurrentChapterPath != null) {
                 StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
+                CheckResetSessionStats();
             }
             SetNewRoom(CurrentRoomName, false);
-        }
-        public bool SetCurrentChapterPathSegmentName(string name) {
-            if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return false;
-
-            CurrentChapterPathSegmentList.CurrentSegment.Name = name;
-            SaveActivePath();
-            SaveChapterStats();
-            return true;
-        }
-        public PathSegment AddCurrentChapterPathSegment() {
-            if (CurrentChapterPathSegmentList == null) return null;
-
-            PathSegment segment = new PathSegment() {
-                Name = $"Segment {CurrentChapterPathSegmentList.Segments.Count + 1}",
-                Path = null,
-            };
-            CurrentChapterPathSegmentList.Segments.Add(segment);
-            SaveActivePath();
-            return segment;
-        }
-        public bool DeleteCurrentChapterPathSegment() {
-            if (CurrentChapterPathSegmentList == null) return false;
-            int segmentIndex = CurrentChapterPathSegmentList.SelectedIndex;
-            if (segmentIndex >= CurrentChapterPathSegmentList.Segments.Count || CurrentChapterPathSegmentList.Segments.Count <= 1) return false;
-            
-            CurrentChapterPathSegmentList.RemoveSegment(segmentIndex);
-            CurrentChapterStatsList.RemoveSegment(segmentIndex);
-            
-            SaveActivePath();
-            if (CurrentChapterPath != null) {
-                StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
-            }
-            SetNewRoom(CurrentRoomName, false);
-            return true;
         }
 
         public string ResolveRoomNameInActiveChapter(string roomName) {
@@ -1402,7 +1390,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             string pathJson = GetPathToFile(folder, $"{fileBaseName}.json");
             string backupJson = GetPathToFile(folder, $"{fileBaseName}_backup.json");
 
-            Log($"fileBaseName: '{fileBaseName}', ChaptersThisSession: '{string.Join(", ", ChaptersThisSession)}'");
+            Log($"fileBaseName: '{fileBaseName}', ChaptersThisSession: '{string.Join(", ", PathsThisSession)}'");
 
 
             ChapterStatsList toRet;
@@ -1730,6 +1718,41 @@ namespace Celeste.Mod.ConsistencyTracker {
             string outPath = GetPathToFile(folder, $"{pathName}.json");
             File.WriteAllText(outPath, JsonConvert.SerializeObject(pathList, Formatting.Indented));
             Log($"Wrote path data to '{outPath}'");
+        }
+        
+        public bool SetCurrentChapterPathSegmentName(string name) {
+            if (string.IsNullOrEmpty(name) || CurrentChapterPathSegmentList == null) return false;
+
+            CurrentChapterPathSegmentList.CurrentSegment.Name = name;
+            SaveActivePath();
+            SaveChapterStats();
+            return true;
+        }
+        public PathSegment AddCurrentChapterPathSegment() {
+            if (CurrentChapterPathSegmentList == null) return null;
+
+            PathSegment segment = new PathSegment() {
+                Name = $"Segment {CurrentChapterPathSegmentList.Segments.Count + 1}",
+                Path = null,
+            };
+            CurrentChapterPathSegmentList.Segments.Add(segment);
+            SaveActivePath();
+            return segment;
+        }
+        public bool DeleteCurrentChapterPathSegment() {
+            if (CurrentChapterPathSegmentList == null) return false;
+            int segmentIndex = CurrentChapterPathSegmentList.SelectedIndex;
+            if (segmentIndex >= CurrentChapterPathSegmentList.Segments.Count || CurrentChapterPathSegmentList.Segments.Count <= 1) return false;
+            
+            CurrentChapterPathSegmentList.RemoveSegment(segmentIndex);
+            CurrentChapterStatsList.RemoveSegment(segmentIndex);
+            
+            SaveActivePath();
+            if (CurrentChapterPath != null) {
+                StatsManager.AggregateStatsPassOnce(CurrentChapterPath);
+            }
+            SetNewRoom(CurrentRoomName, false);
+            return true;
         }
 
         public void RemoveRoomFromChapterPath() {
