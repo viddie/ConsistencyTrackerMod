@@ -127,7 +127,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             bool isFirstCheckpoint = true;
             
             foreach (CheckpointInfo cpInfo in path.Checkpoints) {
-                int roomNumberInCp = 0;
                 bool breakout = false;
                 foreach (RoomInfo rInfo in cpInfo.GameplayRooms) {
                     //Dont display this room if its not within the room range to display
@@ -147,14 +146,15 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     int barHeight = (int)(availableBarHeight * ((double)roomDifficulty / HighestDifficulty));
                     barHeight = Math.Max(1, barHeight);
                     Color barColor = !currentRoomIndicatorExplicit && rInfo.RoomNumberInChapter == currentRoomNumber ? Color.Red : Color.White;
-                    visitedCurrent = rInfo.RoomNumberInChapter == currentRoomNumber ? true : visitedCurrent;
+                    visitedCurrent = rInfo.RoomNumberInChapter == currentRoomNumber || visitedCurrent;
                     if (!visitedCurrent) {
                         barColor = Color.Gray;
                     }
                     
                     //Draw checkpoint indicator over the empty space before this bar
                     if (!isFirstCheckpoint && rInfo.RoomNumberInCP == 1 && Mod.ModSettings.IngameOverlayGraphShowCheckpointIndicator) {
-                        bool isSameMap = rInfo.UID == rInfo.PreviousRoomInChapter.UID;
+                        RoomInfo previousRoom = rInfo.PreviousRoomInChapter;
+                        bool isSameMap = previousRoom == null || rInfo.UID == previousRoom.UID;
                         Color color = isSameMap ? Color.Gold : Color.Cyan;
                         //Position of the indicator: It should occupy the gap between the last drawn bar and this one. Center it in the gap.
                         //Width: If there is no space, omit the indicator. If there is any space, occupy: 1 pixel, or 2 pixels if the available space is an even number of pixels
