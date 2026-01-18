@@ -138,7 +138,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         public ChapterMetaInfo ActualChapterMetaInfo { get; set; }
-        public string CurrentChapterDebugName;
+        public string CurrentChapterUID;
+        public string CurrentChapterUIDForPath => ChapterMetaInfo.GetChapterUIDForPath(CurrentChapterUID);
         public string PreviousRoomName;
         public string CurrentRoomName;
         public string SpeedrunToolSaveStateRoomName;
@@ -358,7 +359,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 bool found = false;
                 while (!found) {
                     nextMap = nextMap.NextRoomInChapter;
-                    if (nextMap == null || nextMap.UID != CurrentChapterDebugName) {
+                    if (nextMap == null || nextMap.UID != CurrentChapterUID) {
                         found = true;
                     }
                 }
@@ -376,7 +377,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 while (!found) {
                     previousMap = previousMap.PreviousRoomInChapter;
                     Log($"Checking previous room: {previousMap?.DebugRoomName}");
-                    if (previousMap == null || previousMap.UID != CurrentChapterDebugName) {
+                    if (previousMap == null || previousMap.UID != CurrentChapterUID) {
                         found = true;
                     }
                 }
@@ -414,6 +415,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             if (ModSettings.ButtonTogglePauseDeathTracking.Pressed) {
                 ModSettings.PauseDeathTracking = !ModSettings.PauseDeathTracking;
+                SaveSettings();
                 Log($"ButtonTogglePauseDeathTracking: Toggled pause death tracking to {ModSettings.PauseDeathTracking}");
             }
 
@@ -608,7 +610,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LogVerbose($"Checkpoint in room '{level.Session.LevelData.Name}'");
             }
             
-            string roomName = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterUID);
 
             Log($"cp.Position={cp.Position}, Room Name='{roomName}'");
             if (DoRecordPath) {
@@ -622,7 +624,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         private void Level_TeleportTo(On.Celeste.Level.orig_TeleportTo orig, Level level, Player player, string nextLevel, Player.IntroTypes introType, Vector2? nearestSpawn) {
             orig(level, player, nextLevel, introType, nearestSpawn);
 
-            string roomName = GetRoomName(level.Session.LevelData?.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(level.Session.LevelData?.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterUID);
             Log($"level.Session.LevelData.Name={roomName}");
 
             //if (ModSettings.CountTeleportsForRoomTransitions && CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -638,7 +640,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             ChapterMetaInfo chapterInfo = new ChapterMetaInfo(level.Session);
-            string newCurrentRoom = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterDebugName);
+            string newCurrentRoom = GetRoomName(level.Session.LevelData.Name, IsInFgrMode, chapterInfo.ChapterUID);
 
             Log($"level.Session.LevelData.Name={newCurrentRoom}, playerIntro={playerIntro} | CurrentRoomName: '{CurrentRoomName}', PreviousRoomName: '{PreviousRoomName}', holdingGolden: '{IsInGoldenRun}'");
             bool isGoldenDeathOrDebugTeleport = playerIntro == Player.IntroTypes.Respawn;
@@ -760,7 +762,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 LastRoomWithCheckpoint = levelDataNext.Name;
             }
 
-            string roomName = GetRoomName(levelDataNext.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterDebugName);
+            string roomName = GetRoomName(levelDataNext.Name, IsInFgrMode, ActualChapterMetaInfo.ChapterUID);
             Log($"levelData.Name->{roomName}");
 
             if (CurrentRoomName != null && roomName != CurrentRoomName) {
@@ -837,8 +839,8 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Events_OnResetRun() {
             //Track previously entered chapters
-            if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName)) {
-                LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterDebugName == CurrentChapterDebugName);
+            if (LastVisitedChapters.Any(t => t.Item1.SegmentStats[0].ChapterUID == CurrentChapterUID)) {
+                LastVisitedChapters.RemoveAll(t => t.Item1.SegmentStats[0].ChapterUID == CurrentChapterUID);
             }
             LastVisitedChapters.Add(Tuple.Create(CurrentChapterStatsList, CurrentChapterPathSegmentList));
             if (LastVisitedChapters.Count > MAX_LAST_VISITED_CHAPTERS) {
@@ -903,10 +905,10 @@ namespace Celeste.Mod.ConsistencyTracker {
             Log($"Level->{session.Level}, chapterInfo->'{chapterInfo}'");
 
             ActualChapterMetaInfo = chapterInfo;
-            CurrentChapterDebugName = chapterInfo.ChapterDebugName;
+            CurrentChapterUID = chapterInfo.ChapterUID;
 
             PreviousRoomName = null;
-            CurrentRoomName = GetRoomName(session.Level, IsInFgrMode, chapterInfo.ChapterDebugName);
+            CurrentRoomName = GetRoomName(session.Level, IsInFgrMode, chapterInfo.ChapterUID);
 
             // Resolve active path and stats. Respects FGR mode.
             var statsPathInfo = ResolveActiveChapterStatsListPath();
@@ -971,7 +973,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public string GetPathKey(PathSegmentList psl) {
             if (psl == null) return null;
-            string uid = psl.CurrentPath?.ChapterUID ?? CurrentChapterDebugName;
+            string uid = psl.CurrentPath?.ChapterUID ?? CurrentChapterUID;
             int index = psl.SelectedIndex;
             if (IsInFgrMode) {
                 uid = "FGR";
@@ -985,7 +987,9 @@ namespace Celeste.Mod.ConsistencyTracker {
             
             pathInfo.SegmentList = CurrentChapterPathSegmentList;
             pathInfo.SetCheckpointRefs();
-            if (chapterInfo != null && (pathInfo.ChapterName == null || pathInfo.ChapterUID == null)) {
+            if (chapterInfo != null && (pathInfo.ChapterName == null
+                                        || pathInfo.ChapterUID == null
+                                        || (!IsInFgrMode && ChapterMetaInfo.GetChapterUIDForPath(pathInfo.ChapterUID) == pathInfo.ChapterUID))) {
                 pathInfo.SetChapterMetaInfo(chapterInfo);
                 SaveActivePath();
             }
@@ -1019,7 +1023,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public string ResolveRoomNameInActiveChapter(string roomName) {
             if (!IsInFgrMode) return roomName;
-            return GetRoomName(roomName, true, ActualChapterMetaInfo.ChapterDebugName);
+            return GetRoomName(roomName, true, ActualChapterMetaInfo.ChapterUID);
         }
         public static string GetRoomName(string roomName, bool isFgrMode, string uid) {
             if (!isFgrMode) return roomName;
@@ -1264,7 +1268,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// <returns>The folder and fileName of the active path segment list.</returns>
         public Tuple<string, string> ResolveActivePathSegmentListPath() {
             if (!IsInFgrMode) {
-                return Tuple.Create(PathsFolder, CurrentChapterDebugName);
+                return Tuple.Create(PathsFolder, CurrentChapterUIDForPath);
             }
             string pathFileName = $"fgr_{ModSettings.SelectedFgr}_path";
             return Tuple.Create(FgrFolder, pathFileName);
@@ -1370,7 +1374,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// <returns></returns>
         public Tuple<string, string> ResolveActiveChapterStatsListPath() {
             if (!IsInFgrMode) {
-                return Tuple.Create(StatsFolder, CurrentChapterDebugName);
+                return Tuple.Create(StatsFolder, CurrentChapterUIDForPath);
             }
             //In FGR mode, the folder is FgrFolder and the name is based on the selected fgr index
             string statsFileName = $"fgr_{ModSettings.SelectedFgr}_stats";
@@ -1446,7 +1450,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     if (chapterStats == null) {
                         throw new Exception();
                     }
-                    Log($"\tSaving chapter stats for map '{CurrentChapterDebugName}' in new format!", true);
+                    Log($"\tSaving chapter stats for map '{CurrentChapterUID}' in new format!", true);
                 } catch (Exception) {
                     Log($"\tCouldn't read old chapter stats, created new ChapterStats. Old chapter stats content:\n{content}", true);
                     chapterStats = new ChapterStats();
@@ -1536,7 +1540,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         public void CreateChapterSummary(int attemptCount) {
             Log($"Attempting to create tracker summary, attemptCount = '{attemptCount}'");
-            string outPath = GetPathToFile(SummariesFolder, $"{CurrentChapterDebugName}.txt");
+            string outPath = GetPathToFile(SummariesFolder, $"{CurrentChapterUIDForPath}.txt");
             CurrentChapterStats?.OutputSummary(outPath, CurrentChapterPath, attemptCount);
         }
 
@@ -1550,7 +1554,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"Wiping death data for chapter '{CurrentChapterDebugName}'");
+            Log($"Wiping death data for chapter '{CurrentChapterUID}'");
 
             RoomStats currentRoom = CurrentChapterStats.CurrentRoom;
             List<string> toRemove = new List<string>();
@@ -1593,7 +1597,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"Wiping golden berry death data for chapter '{CurrentChapterDebugName}'");
+            Log($"Wiping golden berry death data for chapter '{CurrentChapterUID}'");
 
             foreach (string debugName in CurrentChapterStats.Rooms.Keys) {
                 CurrentChapterStats.Rooms[debugName].GoldenBerryDeaths = 0;
@@ -1608,7 +1612,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 return;
             }
 
-            Log($"Wiping golden berry collection data for chapter '{CurrentChapterDebugName}'");
+            Log($"Wiping golden berry collection data for chapter '{CurrentChapterUID}'");
             CurrentChapterStats.GoldenCollectedCount = 0;
             CurrentChapterStats.GoldenCollectedCountSession = 0;
 
@@ -1709,7 +1713,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 pathList = CurrentChapterPathSegmentList;
             }
             if (pathName == null) {
-                pathName = CurrentChapterDebugName;
+                pathName = CurrentChapterUIDForPath;
             }
             if (folder == null) {
                 folder = PathsFolder;

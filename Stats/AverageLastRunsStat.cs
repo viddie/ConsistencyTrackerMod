@@ -253,10 +253,10 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         public Dictionary<int, double> GetCurrentChapterRollingAverages(ChapterStats stats) {
-            if (!HighestRollingAverages.ContainsKey(stats.ChapterDebugName)) {
-                HighestRollingAverages.Add(stats.ChapterDebugName, new Dictionary<int, double>());
+            if (!HighestRollingAverages.ContainsKey(stats.ChapterUID)) {
+                HighestRollingAverages.Add(stats.ChapterUID, new Dictionary<int, double>());
             }
-            return HighestRollingAverages[stats.ChapterDebugName];
+            return HighestRollingAverages[stats.ChapterUID];
         }
 
         /// <summary>

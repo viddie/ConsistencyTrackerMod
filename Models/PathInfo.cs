@@ -174,15 +174,23 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             CampaignName = chapterInfo.CampaignName;
             ChapterName = chapterInfo.ChapterName;
             ChapterSID = chapterInfo.ChapterSID;
-            ChapterUID = chapterInfo.ChapterDebugName;
+            ChapterUID = chapterInfo.ChapterUID;
             SideName = chapterInfo.SideName;
         }
 
-        public void MakeFgrChanges(string uid) {
+        /// <summary>
+        /// Transforms the path into fullgame-run compatible format.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If ChapterSID is not set.</exception>
+        public void MakeFgrChanges() {
+            if (ChapterSID == null) {
+                throw new InvalidOperationException();
+            }
+            
             string chapterNameAbbr = PathRecorder.AbbreviateName(ChapterDisplayName);
             // Rename rooms
             foreach (RoomInfo rInfo in WalkPath(true)) {
-                rInfo.DebugRoomName = ConsistencyTrackerModule.GetRoomName(rInfo.DebugRoomName, true, uid);
+                rInfo.DebugRoomName = ConsistencyTrackerModule.GetRoomName(rInfo.DebugRoomName, true, ChapterUID);
             }
             // Rename checkpoints
             foreach (CheckpointInfo cpInfo in Checkpoints) {
@@ -398,6 +406,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
                 return split[1];
             }
         }
+
+        [JsonIgnore]
+        public bool IsFGR => DebugRoomName != ActualDebugRoomName;
         
 
         [JsonProperty("debugRoomName")]

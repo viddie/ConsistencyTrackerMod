@@ -71,7 +71,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         public static string ChapterSideName = "{chapter:sideName}";
         public static string ChapterSID = "{chapter:sid}";
         public static string ChapterSanitizedSID = "{chapter:sidSanitized}";
-        public static string ChapterDebugName = "{chapter:debugName}";
+        public static string ChapterUID = "{chapter:uid}";
         public static string ChapterHasPath = "{chapter:hasPath}";
         //public static string ChapterGoldenDeaths = "{chapter:goldenDeaths}";
         //public static string ChapterGoldenDeathsSession = "{chapter:goldenDeathsSession}";
@@ -84,7 +84,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             PlayerHoldingGolden, PlayerGoldenDone, PlayerChapterCompleted,
             ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion, 
             RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,
-            ChapterName, ChapterSideName, ChapterDebugName, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
+            ChapterName, ChapterSideName, ChapterUID, ChapterSID, ChapterSanitizedSID, ChapterHasPath,
             CampaignName, CampaignGamebananaId
         };
 
@@ -105,7 +105,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(RoomGoldenDeaths, $"{chapterStats.CurrentRoom.GoldenBerryDeaths}");
             format = format.Replace(RoomGoldenDeathsSession, $"{chapterStats.CurrentRoom.GoldenBerryDeathsSession}");
 
-            format = format.Replace(ChapterDebugName, $"{chapterStats.ChapterDebugName}");
+            format = format.Replace(ChapterUID, $"{chapterStats.ChapterUID}");
             format = format.Replace(ChapterName, $"{chapterStats.ChapterName}");
             format = format.Replace(ChapterSideName, $"{chapterStats.SideName}");
             format = format.Replace(ChapterSID, $"{chapterStats.ChapterSID}");

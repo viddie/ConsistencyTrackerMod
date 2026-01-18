@@ -146,7 +146,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_NAME")),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSideName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SIDE_NAME")),
-                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterDebugName, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEBUG_NAME")}"),
+                new KeyValuePair<string, string>(BasicPathlessInfo.ChapterUID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEBUG_NAME")}"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SID")}"),
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID")}"),
                 new KeyValuePair<string, string>(ChapterGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS")),
@@ -196,7 +196,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return new List<StatFormat>() {
                 new StatFormat(Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_TITLE_BASIC_INFO"), 
                     $"{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_1")} {BasicPathlessInfo.ChapterName} " +
-                    $"({BasicPathlessInfo.ChapterDebugName})\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_2")} " +
+                    $"({BasicPathlessInfo.ChapterUID})\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_2")} " +
                     $"{BasicPathlessInfo.ChapterSideName}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_3")} " +
                     $"{BasicPathlessInfo.CampaignName}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_4")} " +
                     $"{BasicPathlessInfo.ChapterHasPath}\n{Dialog.Clean("CCT_STAT_BASIC_INFO_FORMAT_CONTENT_BASIC_INFO_5")} " +

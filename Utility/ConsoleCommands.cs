@@ -352,7 +352,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         
         [Command("cct-fgr", "Transforms a list of chapter UIDs into an FGR path. Call without parameters to get a more in-depth explanation.")]
         public static void CctFgr(string input = null, bool copyStatsFromFirstMap = false) {
-            string[] uids;
+            string[] pathUIDs;
             if (string.IsNullOrEmpty(input)) {
                 ConsolePrint($"- This command is used to create a full game run (FGR) path. You need to provide a list of chapter UIDs (separated by semi-colons, DONT USE SPACES) that should be included in the FGR path. Example:");
                 ConsolePrint("> cct-fgr tom_0_1-space_Normal;tom_0_2-city_Normal;tom_0_3-temple_Normal");
@@ -363,35 +363,35 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 ConsolePrint("");
                 ConsolePrint("- YOU NEED TO HAVE RECORDED A PATH FOR EVERY MAP YOU PROVIDE HERE. CCT will take the currently selected path segment for all maps you provided.");
                 ConsolePrint("");
-                ConsolePrint("- Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign.");
+                ConsolePrint("- Use the command 'cct-list-uids' to get the UIDs of all maps in your current campaign. In bigger campaigns you might need to enter a map first to get a list of all maps in the current lobby.");
                 ConsolePrint(
                     "- You can create an FGR path automatically for all maps in your current campaign by passing 'default' instead of a list of UIDs. (WARNING: This command only sees maps that you have played at least once on this save file! >> Some big campaigns can fail due to weird campaign/lobby structure. <<)");
                 return;
             } else if (input == "default") {
-                uids = GetAllChapterUidsInCampaign();
-                if (uids == null) {
+                pathUIDs = GetAllChapterUidsInCampaign();
+                if (pathUIDs == null) {
                     ConsolePrint("Please enter a map first to get UIDs of all maps in the campaign.");
                     return;
                 }
             } else {
-                uids = input.Split(';');
+                pathUIDs = input.Split(';');
             }
             
             // Give feedback on which UIDs are being used now
-            ConsolePrint($"Creating FGR path with the following UIDs: {string.Join(" -> ", uids)}");
+            ConsolePrint($"Creating FGR path with the following UIDs: {string.Join(" -> ", pathUIDs)}");
             ConsolePrint($"(If this list seems incomplete, make sure you didn't use any spaces when providing the UIDs!)");
             
             ConsistencyTrackerModule.CheckFolderExists(ConsistencyTrackerModule.GetPathToFile("fgr"));
             
-            var uidToPath = new Dictionary<string, PathSegmentList>();
-            foreach (string uid in uids) {
-                Mod.Log($"Requested UID for FGR: {uid}");
-                uidToPath.Add(uid, ConsistencyTrackerModule.Instance.GetPathSegmentList(ConsistencyTrackerModule.PathsFolder, uid));
+            var pathUIDToSegmentList = new Dictionary<string, PathSegmentList>();
+            foreach (string uid in pathUIDs) {
+                Mod.Log($"Requested path UID for FGR: {uid}");
+                pathUIDToSegmentList.Add(uid, ConsistencyTrackerModule.Instance.GetPathSegmentList(ConsistencyTrackerModule.PathsFolder, uid));
             }
             
             // Check if all paths were found
             bool allFound = true;
-            foreach (var pair in uidToPath) {
+            foreach (var pair in pathUIDToSegmentList) {
                 if (pair.Value == null) {
                     ConsolePrint($"Could not find path for UID: {pair.Key}");
                     Mod.Log($"Could not find path for UID: {pair.Key}");
@@ -408,16 +408,22 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             // Then, concatenate all checkpoints from all paths into a new PathInfo.
             // PathSegmentList contains many segments, but we only care about the currently selected PathInfo in each list.
 
-            PathSegmentList fgrList = uidToPath[uids[0]];
+            PathSegmentList fgrList = pathUIDToSegmentList[pathUIDs[0]];
             PathInfo fgr = fgrList.CurrentPath; // Write all to the first path's PathInfo
             Mod.Log("Creating FGR path...");
 
-            foreach (string uid in uids) {
-                PathSegmentList list = uidToPath[uid];
+            foreach (string uid in pathUIDs) {
+                PathSegmentList list = pathUIDToSegmentList[uid];
                 PathInfo path = list.CurrentPath;
                 Mod.Log($"Processing path for UID {uid}...");
-                
-                path.MakeFgrChanges(uid);
+
+                try {
+                    path.MakeFgrChanges();
+                } catch (InvalidOperationException) {
+                    Mod.Log($"Stopping FGR creation due to unset ChapterSID in path for UID {uid}.");
+                    ConsolePrint($"Path for UID '{uid}' does not have a ChapterSID set. Please enter the map once for CCT to fix this automatically.");
+                    return;
+                }
                 
                 // Append all checkpoints from this path to the FGR path
                 if (path != fgr) {
@@ -454,9 +460,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             ChapterStatsList statsList;
 
             if (copyStatsFromFirstMap) {
-                statsList = ConsistencyTrackerModule.Instance.GetChapterStatsList(ConsistencyTrackerModule.StatsFolder, uids[0]);
+                statsList = ConsistencyTrackerModule.Instance.GetChapterStatsList(ConsistencyTrackerModule.StatsFolder, pathUIDs[0]);
                 ChapterStats stats = statsList.GetStats(selectedIndex);
-                stats.MakeFgrChanges(uids[0]);
+                stats.MakeFgrChanges(pathUIDs[0]);
                 statsList.SegmentStats.Clear();
                 statsList.SegmentStats.Add(stats);
             } else {
@@ -492,7 +498,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 return null;
             }
             
-            List<string> toReturn = new List<string>();
+            var toReturn = new List<string>();
             AreaKey areaKey = SaveData.Instance.CurrentSession.Area;
             LevelSetStats lss = SaveData.Instance.GetLevelSetStatsFor(areaKey.LevelSet);
             foreach (AreaStats stats in lss.AreasIncludingCeleste) {
@@ -502,7 +508,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                     if (ams.TimePlayed == 0) continue;
                     
                     AreaMode mode = GetAreaMode(i);
-                    string uid = ChapterMetaInfo.GetChapterDebugName(sid, mode);
+                    string uid = ChapterMetaInfo.GetChapterUIDForPath(sid, mode);
                     toReturn.Add(uid);
                 }
             }
@@ -511,24 +517,19 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         
         private static AreaMode GetAreaMode(int index) {
             if (index == 0) return AreaMode.Normal;
-            else if (index == 1) return AreaMode.BSide;
-            else if (index == 2) return AreaMode.CSide;
-            else return AreaMode.Normal;
+            if (index == 1) return AreaMode.BSide;
+            if (index == 2) return AreaMode.CSide;
+            return AreaMode.Normal;
         }
 
         #endregion
 
         #region Utility
         private static TimeCategory GetSelectedTimeCategory(int selectedTime) {
-            if (selectedTime == 1) {
-                return TimeCategory.FirstPlaythrough;
-            } else if (selectedTime == 2) {
-                return TimeCategory.Practice;
-            } else if (selectedTime == 3) {
-                return TimeCategory.Runs;
-            } else {
-                return TimeCategory.Total;
-            }
+            if (selectedTime == 1) return TimeCategory.FirstPlaythrough;
+            if (selectedTime == 2) return TimeCategory.Practice;
+            if (selectedTime == 3) return TimeCategory.Runs;
+            return TimeCategory.Total;
         }
         private static string FormatTimeItem(string roomName, string timeString) {
             return $"{roomName}: {timeString}";
@@ -562,20 +563,17 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (string.IsNullOrWhiteSpace(uid))
                 throw new ArgumentException("UID cannot be null or empty.", nameof(uid));
 
-            int lastUnderscore = uid.LastIndexOf('_');
-            if (lastUnderscore < 0)
-                throw new FormatException("UID must contain at least one underscore.");
+            int lastSlash = uid.LastIndexOf('/');
+            if (lastSlash < 0)
+                throw new FormatException("UID must contain at least one forward slash.");
 
-            // Everything before last "_" is formatted SID
-            string formattedSid = uid.Substring(0, lastUnderscore);
+            // Everything before last "/" is the SID
+            string sid = uid.Substring(0, lastSlash);
 
             // Everything after is area mode
-            string areaMode = uid.Substring(lastUnderscore + 1);
+            string areaMode = uid.Substring(lastSlash + 1);
 
-            // Convert formatted SID into normal SID
-            string normalSid = formattedSid.Replace('_', '/');
-
-            return new Tuple<string, string>(normalSid, areaMode);
+            return new Tuple<string, string>(sid, areaMode);
         }
 
         public static void LoadLevel(string sid, AreaMode mode = AreaMode.Normal, string level = null, bool endRun = true) {
@@ -613,14 +611,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 Mod.Log("Already in the requested room.");
                 return;
             }
-            string roomName = rInfo.DebugRoomName;
-            string[] split = roomName.Split(':');
-            if (split.Length != 2) {
-                Mod.Log($"Malformed DebugRoomName for FGR mode: '{roomName}'");
-                return;
+
+            string uid = rInfo.Checkpoint.Chapter.ChapterUID;
+            string level = rInfo.DebugRoomName;
+            if (rInfo.IsFGR) {
+                uid = rInfo.UID;
+                level = rInfo.ActualDebugRoomName;
             }
-            string uid = split[0];
-            string level = split[1];
+
             var parsed = ParseUid(uid);
             bool success = Enum.TryParse(parsed.Item2, false, out AreaMode mode);
             if (!success) {

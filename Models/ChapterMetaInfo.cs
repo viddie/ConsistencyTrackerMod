@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.ConsistencyTracker.Models {
     public class ChapterMetaInfo {
-        public string ChapterDebugName { get; set; }
+        public string ChapterUID { get; set; }
         public string CampaignName { get; set; }
         public string ChapterName { get; set; }
         public string ChapterSID { get; set; }
@@ -15,24 +15,27 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string MapBin { get; set; }
         public string SideName { get; set; }
 
-        public string SanitizeRoomName(string name) {
-            name = name.Replace(";", "");
-            return name;
-        }
-
-        public string GetChapterNameClean(AreaData area) {
+        public static string GetChapterNameClean(AreaData area) {
             string chapName = area.Name;
             return chapName.DialogCleanOrNull() ?? chapName.SpacedPascalCase();
         }
-        public string GetCampaignNameClean(AreaData area) {
-            return DialogExt.CleanLevelSet(area.GetLevelSet());
+        public static string GetCampaignNameClean(AreaData area) {
+            return Dialog.CleanLevelSet(area.LevelSet);
         }
-        public static string GetChapterDebugName(Session session) {
-            return GetChapterDebugName(session.MapData.Data.SID, session.Area.Mode);
+        public static string GetChapterUID(Session session) {
+            return GetChapterUID(session.MapData.Data.SID, session.Area.Mode);
         }
 
-        public static string GetChapterDebugName(string sid, AreaMode mode) {
-            return $"{sid}_{mode}".Replace("/", "_");
+        public static string GetChapterUID(string sid, AreaMode mode) {
+            return $"{sid}/{mode}";
+        }
+
+        public static string GetChapterUIDForPath(string uid) {
+            return uid.Replace("/", "_");
+        }
+
+        public static string GetChapterUIDForPath(string sid, AreaMode mode) {
+            return GetChapterUIDForPath(GetChapterUID(sid, mode));
         }
 
         public ChapterMetaInfo(Session session) {
@@ -40,9 +43,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             string chapNameClean = GetChapterNameClean(area);
             string campaignName = GetCampaignNameClean(area);
 
-            string chapterDebugName = GetChapterDebugName(session);
+            string chapterDebugName = GetChapterUID(session);
 
-            ChapterDebugName = chapterDebugName;
+            ChapterUID = chapterDebugName;
             CampaignName = campaignName;
             ChapterName = chapNameClean;
             ChapterSID = session.MapData.Data.SID;

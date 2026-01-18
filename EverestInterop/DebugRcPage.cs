@@ -100,14 +100,14 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
                 if (requestedJson) {
                     StateResponse response = new StateResponse() {
                         currentRoom = mod.CurrentChapterStats.CurrentRoom,
-                        chapterName = mod.CurrentChapterStats.ChapterDebugName,
+                        chapterName = mod.CurrentChapterStats.ChapterUID,
                         modState = mod.CurrentChapterStats.ModState,
                     };
                     responseStr = FormatResponseJson(RCErrorCode.OK, response);
 
                 } else {
                     string currentRoom = mod.CurrentChapterStats.CurrentRoom.ToString();
-                    string modState = $"{mod.CurrentChapterStats.ChapterDebugName};{mod.CurrentChapterStats.ModState}";
+                    string modState = $"{mod.CurrentChapterStats.ChapterUID};{mod.CurrentChapterStats.ModState}";
                     responseStr = FormatResponsePlain(RCErrorCode.OK, currentRoom, modState);
                 }
 

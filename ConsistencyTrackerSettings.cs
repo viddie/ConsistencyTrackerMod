@@ -120,6 +120,7 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool RoomDifficultyAllSegments { get; set; } = true;
         [SettingIgnore]
         public int SelectedFgr { get; set; } = 0;
+        [SettingIgnore]
         public bool FgrContinuousSessionTimer { get; set; } = true;
         
         public void CreateRecordPathEntry(TextMenu menu, bool inGame) {

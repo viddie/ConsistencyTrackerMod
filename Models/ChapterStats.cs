@@ -26,11 +26,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         [JsonProperty("chapterSIDDialogSanitized")]
         public string ChapterSIDDialogSanitized { get; set; }
 
+        [JsonProperty("chapterUID")]
+        public string ChapterUID { get; set; }
+        
         [JsonProperty("mapBin")]
         public string MapBin { get; set; }
-
-        [JsonProperty("chapterDebugName")]
-        public string ChapterDebugName { get; set; }
 
         [JsonProperty("sideName")]
         public string SideName { get; set; }
@@ -150,7 +150,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             try {
                 StoreOldSessionData(chapterPath);
             } catch (Exception ex) {
-                ConsistencyTrackerModule.Instance.Log($"There was an exception when storing old session data for chapter '{ChapterDebugName}': {ex}");
+                ConsistencyTrackerModule.Instance.Log($"There was an exception when storing old session data for chapter '{ChapterUID}': {ex}");
                 ConsistencyTrackerModule.Instance.Log($"Old Session count: {OldSessions.Count}", isFollowup: true);
                 ConsistencyTrackerModule.Instance.Log($"Path is null: {chapterPath == null}", isFollowup: true);
             }
@@ -311,7 +311,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         private Dictionary<string, int> UnvisitedRoomsToRoomNumber = new Dictionary<string, int>();
         public void OutputSummary(string outPath, PathInfo info, int attemptCount) {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Tracker summary for chapter '{ChapterDebugName}'");
+            sb.AppendLine($"Tracker summary for chapter '{ChapterUID}'");
             sb.AppendLine($"");
             sb.AppendLine($"--- Golden Berry Deaths ---"); //Room->Checkpoint->Chapter + 1
 
@@ -550,11 +550,11 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         }
 
         public void SetChapterMetaInfo(ChapterMetaInfo chapterInfo) {
-            ChapterDebugName = chapterInfo.ChapterDebugName;
+            ChapterUID = chapterInfo.ChapterUID;
             CampaignName = chapterInfo.CampaignName;
             ChapterName = chapterInfo.ChapterName;
-            MapBin = chapterInfo.MapBin;
             ChapterSID = chapterInfo.ChapterSID;
+            MapBin = chapterInfo.MapBin;
             ChapterSIDDialogSanitized = chapterInfo.ChapterSIDDialogSanitized;
             SideName = chapterInfo.SideName;
         }
