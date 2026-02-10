@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -39,8 +39,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             public static float FontMultSmall { get; set; } = 0.35f;
             public static float FontMultVerySmall { get; set; } = 0.25f;
             public static float FontMultAnt { get; set; } = 0.18f;
-
-            public static string TitleText { get; set; } = "Summary";
         }
 
         //Track user input
@@ -53,11 +51,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             HudBounds = new Rectangle(Engine.Width / 2 - Settings.Width / 2, Engine.Height / 2 - Settings.Height / 2, Settings.Width, Settings.Height);
 
-            Tabs.Add(new PageCurrentSession("Sessions"));
-            Tabs.Add(new PageOverall("Overall"));
-            Tabs.Add(new PageChartTest("Charts"));
-            Tabs.Add(new PageGoldenRunsGraph("Deaths Graphs"));
-            Tabs.Add(new PageTimeSpent("Time Spent"));
+            Tabs.Add(new PageCurrentSession(Dialog.Clean("CCT_SUMMARY_SESSIONS")));
+            Tabs.Add(new PageOverall(Dialog.Clean("CCT_SUMMARY_OVERALL")));
+            Tabs.Add(new PageChartTest(Dialog.Clean("CCT_SUMMARY_CHARTS")));
+            Tabs.Add(new PageGoldenRunsGraph(Dialog.Clean("CCT_SUMMARY_DEATHS_GRAPHS")));
+            Tabs.Add(new PageTimeSpent(Dialog.Clean("CCT_SUMMARY_TIME_SPENT")));
 
             ApplyModSettings();
 
@@ -133,7 +131,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             //Render Title
             Move(ref pointer, Settings.Margin * 2, Settings.Margin);
             Vector2 origPointer = MoveCopy(pointer, 0, 0);
-            Vector2 titleMeasures = DrawHelper.DrawText(Settings.TitleText, pointer, Settings.FontMultLarge, Color.White);
+            Vector2 titleMeasures = DrawHelper.DrawText(Dialog.Clean("CCT_SUMMARY"), pointer, Settings.FontMultLarge, Color.White);
             Vector2 contentPointer = MoveCopy(pointer, 0, titleMeasures.Y + Settings.ContentYMargin);
 
             //Render Tabs

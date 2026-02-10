@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageChartTest : SummaryHudPage {
@@ -50,18 +51,24 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<string> lastRuns = oldSession?.LastGoldenRuns ?? stats.LastGoldenRuns;
             List<RoomInfo> lastRunsRooms = path.GetRoomsForLastRuns(lastRuns);
 
+            string language = Dialog.Language.Id;
+            CultureInfo cultureInfo = new CultureInfo(language == "schinese" ? "zh_cn" : "en_us");
+
             if (isOverall) {
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Overall)";
+                ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_OVERALL");
             } else if (isCurrentSession) {
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count + 1}: 'Today')";
+                ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_TODAY")
+                .Replace("sessionCount", (stats.OldSessions.Count + 1).ToString());
             } else {
                 string date;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
-                    date = oldSession.SessionStarted.ToLongDateString();
+                    date = oldSession.SessionStarted.ToString("D", cultureInfo);
                 } else {
-                    date = oldSession.SessionStarted.ToString("M");
+                    date = oldSession.SessionStarted.ToString("M", cultureInfo);
                 }
-                ChokeRateChart.Settings.Title = $"Room Entries & Choke Rates (Session #{stats.OldSessions.Count - (SelectedStat - 2)}: '{date}')";
+                ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE")
+                .Replace("sessionCount", (stats.OldSessions.Count - (SelectedStat - 2)).ToString())
+                .Replace("date", date);
             }
 
             UpdateChart(path, stats, lastRunsRooms, isOverall);
@@ -119,8 +126,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 }
             }
 
-            string name1 = "Choke Rates";
-            string name2 = "Room Entries";
+            string name1 = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE");
+            string name2 = Dialog.Clean("CCT_SUMMARY_ROOM_ENTRIES");
 
             LineSeries data1 = new LineSeries() { Data = dataChokeRates, LineColor = Color.LightBlue, Depth = 1, Name = name1, ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.6f };
             LineSeries data2 = new LineSeries() { Data = dataRoomEntries, LineColor = Color.Orange, Depth = 0, Name = name2, ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.6f, IndepedentOfYAxis = true, IndependentYMin = 0f };

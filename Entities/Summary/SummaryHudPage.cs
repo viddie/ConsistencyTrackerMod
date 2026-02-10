@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Stats;
+using Celeste.Mod.ConsistencyTracker.Stats;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -64,7 +64,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             if (MissingPath) {
                 Vector2 middle = Position + new Vector2(SummaryHud.Settings.Width / 2, SummaryHud.Settings.Height / 2 - 100);
-                DrawText("No Path", middle, 4, new Color(0.4f, 0.4f, 0.4f), new Vector2(0.5f, 0.5f));
+                DrawText(Dialog.Clean("CCT_SUMMARY_NO_PATH"), middle, 4, new Color(0.4f, 0.4f, 0.4f), new Vector2(0.5f, 0.5f));
             }
         }
     }
