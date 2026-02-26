@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables;
 using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
@@ -74,7 +74,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 YAxisLabelFontMult = 0.5f,
                 TitleFontMult = 0.75f,
                 LegendFontMult = 0.5f,
-                Title = "Personal Best over all sessions",
+                Title = Dialog.Clean("CCT_SUMMARY_OVERALL_PERSONAL_BEST_CHART"),
             });
 
             AvgRunDistancesChart = new LineChart(new ChartSettings() {
@@ -84,7 +84,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 YAxisLabelFontMult = 0.5f,
                 TitleFontMult = 0.75f,
                 LegendFontMult = 0.5f,
-                Title = "Average Run Distances over all sessions",
+                Title = Dialog.Clean("CCT_SUMMARY_OVERALL_AVG_RUN_DISTANCES_CHART"),
                 YAxisLabelFormatter = (value) => Math.Round(value, 2).ToString(),
             });
 
@@ -96,7 +96,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 YAxisLabelFontMult = 0.5f,
                 TitleFontMult = 0.75f,
                 LegendFontMult = 0.5f,
-                Title = "Total Success Rate over all sessions",
+                Title = Dialog.Clean("CCT_SUMMARY_OVERALL_TOTAL_SUCCESS_RATE_CHART"),
                 YAxisLabelFormatter = (value) => $"{Math.Round(value * 100, 2)}%",
             });
 
@@ -118,18 +118,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 return;
             }
 
-            string format = "Golden Deaths Total: {chapter:goldenDeaths}";
+            string format = Dialog.Clean("CCT_SUMMARY_OVERALL_GOLDENDEATHS_TOTAL").Replace("chapter:goldenDeaths", "{chapter:goldenDeaths}");
             TextAttemptCount = Stats.FormatVariableFormat(format);
 
-            format = "Average Success Rate: {chapter:successRate}" +
-                "\nChapter Golden Chance: {chapter:goldenChance}";
+            format = Dialog.Clean("CCT_SUMMARY_OVERALL_AVG_CHANCE")
+            .Replace("chapter:successRate", "{chapter:successRate}")
+            .Replace("chapter:goldenChance", "{chapter:goldenChance}");
             TextAvgSuccessRate = Stats.FormatVariableFormat(format);
 
 
             //Checkpoint Stats Table
-            DataColumn checkpointName = new DataColumn("Checkpoint", typeof(string));
-            DataColumn cpSuccessRate = new DataColumn("Success Rate", typeof(string));
-            DataColumn cpGoldenChance = new DataColumn("Golden Chance", typeof(string));
+            DataColumn checkpointName = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHECKPOINT_STATS_TABLE_CHECKPOINTNAME"), typeof(string));
+            DataColumn cpSuccessRate = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHECKPOINT_STATS_TABLE_CPSUCCESSRATE"), typeof(string));
+            DataColumn cpGoldenChance = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHECKPOINT_STATS_TABLE_CPGOLDENCHANCE"), typeof(string));
             DataTable cpData = new DataTable();
             cpData.Columns.AddRange(new DataColumn[] { checkpointName, cpSuccessRate, cpGoldenChance });
             CheckpointStatsTable.ColSettings = new Dictionary<DataColumn, ColumnSettings>() {
@@ -296,8 +297,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataOverallPB, LineColor = Color.LightBlue, Depth = 1, Name = "Overall PB", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
-            LineSeries seriesSession = new LineSeries() { Data = dataSessionPB, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session PB", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesOverall = new LineSeries() { Data = dataOverallPB, LineColor = Color.LightBlue, Depth = 1, Name = Dialog.Clean("CCT_SUMMARY_OVERALL_OVERALL_PB"), ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesSession = new LineSeries() { Data = dataSessionPB, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = Dialog.Clean("CCT_SUMMARY_OVERALL_SESSION_PB"), ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
 
             List<LineSeries> series = new List<LineSeries>() { seriesOverall, seriesSession };
 
@@ -365,8 +366,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataOverallAvg, LineColor = Color.LightBlue, Depth = 1, Name = "Overall Avg.", ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
-            LineSeries seriesSession = new LineSeries() { Data = dataSessionAvg, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Session Avg.", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesOverall = new LineSeries() { Data = dataOverallAvg, LineColor = Color.LightBlue, Depth = 1, Name = Dialog.Clean("CCT_SUMMARY_OVERALL_OVERALL_AVG"), ShowLabels = true, LabelPosition = LabelPosition.Bottom, LabelFontMult = LabelFontMult * 1.2f };
+            LineSeries seriesSession = new LineSeries() { Data = dataSessionAvg, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = Dialog.Clean("CCT_SUMMARY_OVERALL_SESSION_AVG"), ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult * 1.2f };
 
             List<LineSeries> series = new List<LineSeries>() { seriesOverall, seriesSession };
 
@@ -418,7 +419,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             
 
             //Make data chart-ready
-            LineSeries seriesOverall = new LineSeries() { Data = dataSuccessRate, LineColor = Color.Green, Depth = 1, Name = "Total Success Rate", ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult };
+            LineSeries seriesOverall = new LineSeries() { Data = dataSuccessRate, LineColor = Color.Green, Depth = 1, Name = Dialog.Clean("CCT_SUMMARY_OVERALL_TOTAL_SUCCESS_RATE"), ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = LabelFontMult };
             List<LineSeries> series = new List<LineSeries>() { seriesOverall };
 
             int pointCount = dataSuccessRate.Count;
@@ -461,10 +462,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 }
             });
 
-            DataColumn roomColumn = new DataColumn("Room", typeof(string));
-            DataColumn successRateColumn = new DataColumn("Choke Rate", typeof(float));
-            DataColumn deathsColumn = new DataColumn("Successes/Entries", typeof(string));
-            DataColumn noteColumn = new DataColumn("Note", typeof(string));
+            DataColumn roomColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_ROOM_COLUMN"), typeof(string));
+            DataColumn successRateColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_SUCCESS_RATE_COLUMN"), typeof(float));
+            DataColumn deathsColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_DEATHS_COLUMN"), typeof(string));
+            DataColumn noteColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_COLUMN"), typeof(string));
 
             DataTable testData = new DataTable() {
                 Columns = { roomColumn, successRateColumn, deathsColumn, noteColumn }
@@ -498,10 +499,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Tuple<int, float, int, float> data = kvPair.Value;
                 List<string> notes = new List<string>();
                 if (rInfo.RoomNumberInChapter <= earlyRoomBoundary) {
-                    notes.Add($"early room");
+                    notes.Add(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_EARLY"));
                 }
                 if (!float.IsNaN(kvPair.Value.Item2) && kvPair.Value.Item1 <= 5) {
-                    notes.Add($"few runs");
+                    notes.Add(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_FEW"));
                 }
                 string note = $"";
                 if (notes.Count > 0) {
@@ -528,7 +529,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [noteColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 100 }
             };
             ChokeRateTable.Data = testData;
-            ChokeRateTable.Settings.Title = $"Rooms By Choke Rate ({tablePage + 1}/{StatCount - (int)SubPage.ChokeRateTable})";
+            ChokeRateTable.Settings.Title = Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_TITLE")
+            .Replace("currentPage", (tablePage + 1).ToString())
+            .Replace("pageCount", (StatCount - (int)SubPage.ChokeRateTable).ToString());
             ChokeRateTable.Update();
         }
 
@@ -557,7 +560,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             Move(ref pointer, 0, CheckpointStatsTable.TotalHeight + BasicMargin * 2);
 
             //===== Best Runs Bars =====
-            measure = DrawText("Best Runs", pointer, FontMultSmall, Color.White);
+            measure = DrawText(Dialog.Clean("CCT_SUMMARY_SESSIONS_BEST_RUNS"), pointer, FontMultSmall, Color.White);
             Move(ref pointer, 0, measure.Y + BasicMargin * 3);
             float maxLabelHeight = 0;
             float maxWidth = 0;

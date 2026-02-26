@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
+using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
@@ -98,7 +98,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             List<Tuple<string, long, long, long>> aggregatedData = new List<Tuple<string, long, long, long>>();
-            aggregatedData.Add(Tuple.Create("Total", totalTime, totalTimeInRuns, totalTimeCasual));
+            aggregatedData.Add(Tuple.Create(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TOTAL"), totalTime, totalTimeInRuns, totalTimeCasual));
             //Sum up all room times for each checkpoint
             if (path != null) {
                 foreach (CheckpointInfo cpInfo in path.Checkpoints) {
@@ -143,7 +143,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             maxTime = (long)Math.Ceiling(timeInSeconds / 3600) * 3600 * 1000 * 10000;
                 
 
-            string name1 = "Time Spent";
+            string name1 = Dialog.Clean("CCT_SUMMARY_TIME_SPENT");
             LineSeries data1 = new LineSeries() { Data = dataChokeRates, LineColor = Color.LightBlue, Depth = 1, Name = name1, ShowLabels = true, LabelPosition = LabelPosition.Top, LabelFontMult = 0.6f };
 
             List<LineSeries> series = new List<LineSeries>() { data1 };
@@ -164,17 +164,17 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
         }
 
         public void UpdateTable(List<Tuple<string, long, long, long>> data, List<Tuple<string, long, long, long>> aggregatedData, int page) {
-            DataColumn roomColumn = new DataColumn("Room", typeof(string));
-            DataColumn timeSpentCasualColumn = new DataColumn("First Playthrough", typeof(long));
-            DataColumn timeSpentPracticeColumn = new DataColumn("Practice", typeof(long));
-            DataColumn timeSpentRunsColumn = new DataColumn("Runs", typeof(long));
-            DataColumn timeSpentTotalColumn = new DataColumn("Total", typeof(long));
+            DataColumn roomColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_ROOMCOLUMN"), typeof(string));
+            DataColumn timeSpentCasualColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_FIRST_PLAYTHROUGH"), typeof(long));
+            DataColumn timeSpentPracticeColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_PRACTICE"), typeof(long));
+            DataColumn timeSpentRunsColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_RUNS"), typeof(long));
+            DataColumn timeSpentTotalColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TOTAL"), typeof(long));
             
-            DataColumn totalLabelColumn = new DataColumn("Room", typeof(string));
-            DataColumn totalTimeSpentCasualColumn = new DataColumn("First Playthrough", typeof(long));
-            DataColumn totalTimeSpentPracticeColumn = new DataColumn("Practice", typeof(long));
-            DataColumn totalTimeSpentRunsColumn = new DataColumn("Runs", typeof(long));
-            DataColumn totalTimeSpentTotalColumn = new DataColumn("Total", typeof(long));
+            DataColumn totalLabelColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TOTALLABELCOLUMN"), typeof(string));
+            DataColumn totalTimeSpentCasualColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_FIRST_PLAYTHROUGH"), typeof(long));
+            DataColumn totalTimeSpentPracticeColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_PRACTICE"), typeof(long));
+            DataColumn totalTimeSpentRunsColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_RUNS"), typeof(long));
+            DataColumn totalTimeSpentTotalColumn = new DataColumn(Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TOTAL"), typeof(long));
 
             DataTable timeDataTable = new DataTable() {
                 Columns = { roomColumn, timeSpentCasualColumn, timeSpentPracticeColumn, timeSpentRunsColumn, timeSpentTotalColumn }
@@ -212,7 +212,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [timeSpentTotalColumn] = colSettings,
             };
             TimeSpentTable.Data = timeDataTable;
-            TimeSpentTable.Settings.Title = $"Time Per Room ({page + 1}/{StatCount - 1})";
+            TimeSpentTable.Settings.Title = Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TIME_PER_ROOM")
+            .Replace("currentPage", (page + 1).ToString())
+            .Replace("pageCount", (StatCount - 1).ToString());
             TimeSpentTable.Update();
 
 
@@ -224,7 +226,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [totalTimeSpentTotalColumn] = colSettings,
             };
             TimeSpentAggregateTable.Data = aggregateDataTable;
-            TimeSpentAggregateTable.Settings.Title = $"Total Stats";
+            TimeSpentAggregateTable.Settings.Title = Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TOTAL_STATS");
             TimeSpentAggregateTable.Update();
         }
 

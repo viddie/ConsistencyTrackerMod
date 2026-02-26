@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.Models;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary.Tables;
 using Monocle;
@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Data;
 using Celeste.Mod.ConsistencyTracker.Entities.Summary.Charts;
 using Celeste.Mod.ConsistencyTracker.Utility;
+using System.Globalization;
 
 namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
     public class PageCurrentSession : SummaryHudPage {
@@ -58,7 +59,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             LastRunsTable = new Table() {
                 Settings = new TableSettings() {
-                    Title = "Last Runs",
+                    Title = Dialog.Clean("CCT_SUMMARY_LAST_RUNS"),
                     FontMultAll = 0.5f,
                 },
             };
@@ -70,7 +71,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 YAxisLabelFontMult = 0.5f,
                 TitleFontMult = 0.5f,
                 LegendFontMult = 0.5f,
-                Title = "Run Distances (+Average)",
+                Title = Dialog.Clean("CCT_SUMMARY_LAST_RUNS_AVERAGE_DISTANCE"),
             });
 
             AverageRunTable = new Table() {
@@ -98,18 +99,24 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             StatCount = stats.OldSessions.Count + 1; //+1 for current session
             bool isCurrentSession = SelectedStat == 0;
+            string language = Dialog.Language.Id;
             OldSession oldSession = isCurrentSession ? null : stats.OldSessions[stats.OldSessions.Count - SelectedStat];
+            CultureInfo cultureInfo = new CultureInfo(language == "schinese" ? "zh_cn" : "en_us");
 
             if (isCurrentSession) {
-                SessionTitle = $"Session #{stats.OldSessions.Count + 1} from 'Today, since {stats.SessionStarted.ToShortTimeString()}'";
+                SessionTitle = Dialog.Clean("CCT_SUMMARY_SESSIONS_TITLE_TODAY")
+                .Replace("sessionCount", (stats.OldSessions.Count + 1).ToString())
+                .Replace("datetime", stats.SessionStarted.ToString(language == "schinese" ? "HH:mm" : "t", cultureInfo));
             } else {
                 string date = null;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
-                    date = oldSession.SessionStarted.ToLongDateString();
+                    date = oldSession.SessionStarted.ToString("D", cultureInfo);
                 } else {
-                    date = oldSession.SessionStarted.ToString("M");
+                    date = oldSession.SessionStarted.ToString("M", cultureInfo);
                 }
-                SessionTitle = $"Session #{stats.OldSessions.Count - SelectedStat + 1} from '{date}'";
+                SessionTitle = Dialog.Clean("CCT_SUMMARY_SESSIONS_TITLE")
+                .Replace("sessionCount", (stats.OldSessions.Count - SelectedStat + 1).ToString())
+                .Replace("datetime", date);
             }
             
             AttemptCount = isCurrentSession ? path.Stats.GoldenBerryDeaths : oldSession.TotalGoldenDeaths;
@@ -169,8 +176,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             //===== Last Runs =====
             DataColumn colLastRunNumber = new DataColumn("", typeof(string));
-            DataColumn colLastRunRoomName = new DataColumn("Room", typeof(string));
-            DataColumn colLastRunDistance = new DataColumn("Distance", typeof(string));
+            DataColumn colLastRunRoomName = new DataColumn(Dialog.Clean("CCT_SUMMARY_SESSIONS_ROOM"), typeof(string));
+            DataColumn colLastRunDistance = new DataColumn(Dialog.Clean("CCT_SUMMARY_SESSIONS_DISTANCE"), typeof(string));
 
             DataTable lastRunsData = new DataTable();
             lastRunsData.Columns.Add(colLastRunNumber);
@@ -182,7 +189,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             LastRunsTable.ColSettings.Add(colLastRunDistance, new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center });
 
             for (int i = 0; i < LastRunCount; i++){
-                string number = i == 0 ? $"Last Run" : $"#{i+1}";
+                string number = i == 0 ? $"{Dialog.Clean("CCT_SUMMARY_SESSIONS_LAST_RUN")}" : $"#{i+1}";
                 string distance = "-";
                 string roomName = "-";
 
@@ -240,11 +247,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             string attemptAddition = GoldenCount > 0 ? $" (+{GoldenCount} {berryType} run"+(GoldenCount == 1 ? "" : "s")+")" : "";
             string attemptAdditionSession = GoldenCountSession > 0 ? $" (+{GoldenCountSession} {berryType} run" + (GoldenCountSession == 1 ? "" : "s") + ")" : "";
 
-            avgData.Rows.Add("Runs Total", $"{AttemptCount}{attemptAddition}");
-            avgData.Rows.Add("Runs this Session", $"{AttemptCountSession}{attemptAdditionSession}");
-            avgData.Rows.Add("Chapter Success Rate", $"{StatManager.FormatPercentage(TotalSuccessRate)}");
-            avgData.Rows.Add("Average Run Distance", $"{StatManager.FormatDouble(AverageRunDistance)}");
-            avgData.Rows.Add("Average Run Distance\n(Session)", $"{StatManager.FormatDouble(AverageRunDistanceSession)}");
+            avgData.Rows.Add(Dialog.Clean("CCT_SUMMARY_SESSIONS_RUNS_TOTAL"), $"{AttemptCount}{attemptAddition}");
+            avgData.Rows.Add(Dialog.Clean("CCT_SUMMARY_SESSIONS_RUNS_THIS_SESSION"), $"{AttemptCountSession}{attemptAdditionSession}");
+            avgData.Rows.Add(Dialog.Clean("CCT_SUMMARY_SESSIONS_CHAPTER_SUCCESS_RATE"), $"{StatManager.FormatPercentage(TotalSuccessRate)}");
+            avgData.Rows.Add(Dialog.Clean("CCT_SUMMARY_SESSIONS_AVERAGE_RUN_DISTANCE"), $"{StatManager.FormatDouble(AverageRunDistance)}");
+            avgData.Rows.Add(Dialog.Clean("CCT_SUMMARY_SESSIONS_AVERAGE_RUN_DISTANCE_SESSION").Replace("\\n", "\n"), $"{StatManager.FormatDouble(AverageRunDistanceSession)}");
 
             AverageRunTable.Data = avgData;
             AverageRunTable.Update();
@@ -298,9 +305,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             int pointCount = dataRollingAvg1.Count;
 
-            LineSeries data1 = new LineSeries() { Data = dataRollingAvg1, LineColor = Color.LightBlue, Depth = 1, Name = "Run Distances", ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.75f };
-            LineSeries data3 = new LineSeries() { Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Avg. over 3", LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
-            LineSeries data10 = new LineSeries() { Data = dataRollingAvg10, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = "Avg. over 10" };
+            LineSeries data1 = new LineSeries() { Data = dataRollingAvg1, LineColor = Color.LightBlue, Depth = 1, Name = Dialog.Clean("CCT_SUMMARY_SESSIONS_RUN_DISTANCES"), ShowLabels = true, LabelPosition = LabelPosition.Middle, LabelFontMult = 0.75f };
+            LineSeries data3 = new LineSeries() { Data = dataRollingAvg3, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = Dialog.Clean("CCT_SUMMARY_SESSIONS_AVERAGE_OVER_3"), LabelPosition = LabelPosition.Top, LabelFontMult = 0.75f };
+            LineSeries data10 = new LineSeries() { Data = dataRollingAvg10, LineColor = new Color(255, 165, 0, 100), Depth = 2, Name = Dialog.Clean("CCT_SUMMARY_SESSIONS_AVERAGE_OVER_10") };
 
             List<LineSeries> series = new List<LineSeries>() { data1 };
 
@@ -343,7 +350,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
 
             //===== Best Runs Bars =====
-            measure = DrawText("Best Runs", pointer, FontMultSmall, Color.White);
+            measure = DrawText(Dialog.Clean("CCT_SUMMARY_SESSIONS_BEST_RUNS"), pointer, FontMultSmall, Color.White);
 
             Move(ref pointer, 0, measure.Y + BasicMargin * 3);
             float maxLabelHeight = 0;
