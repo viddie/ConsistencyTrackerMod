@@ -212,9 +212,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [timeSpentTotalColumn] = colSettings,
             };
             TimeSpentTable.Data = timeDataTable;
-            TimeSpentTable.Settings.Title = Dialog.Clean("CCT_SUMMARY_TIME_SPENT_TIME_PER_ROOM")
-            .Replace("currentPage", (page + 1).ToString())
-            .Replace("pageCount", (StatCount - 1).ToString());
+            TimeSpentTable.Settings.Title = String.Format(
+                Dialog.Get("CCT_SUMMARY_TIME_SPENT_TIME_PER_ROOM"),
+                page + 1,
+                StatCount - 1
+            );
             TimeSpentTable.Update();
 
 

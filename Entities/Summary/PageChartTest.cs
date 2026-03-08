@@ -51,14 +51,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<string> lastRuns = oldSession?.LastGoldenRuns ?? stats.LastGoldenRuns;
             List<RoomInfo> lastRunsRooms = path.GetRoomsForLastRuns(lastRuns);
 
-            string language = Dialog.Language.Id;
-            CultureInfo cultureInfo = new CultureInfo(language == "schinese" ? "zh_cn" : "en_us");
-
+            CultureInfo cultureInfo = new CultureInfo("CCT_CULTURE".DialogCleanOrNull() ?? "en_us");
+            
             if (isOverall) {
                 ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_OVERALL");
             } else if (isCurrentSession) {
-                ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_TODAY")
-                .Replace("sessionCount", (stats.OldSessions.Count + 1).ToString());
+                ChokeRateChart.Settings.Title = String.Format(Dialog.Get("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_TODAY"), stats.OldSessions.Count + 1);
             } else {
                 string date;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
@@ -66,9 +64,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 } else {
                     date = oldSession.SessionStarted.ToString("M", cultureInfo);
                 }
-                ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE")
-                .Replace("sessionCount", (stats.OldSessions.Count - (SelectedStat - 2)).ToString())
-                .Replace("date", date);
+                ChokeRateChart.Settings.Title = String.Format(
+                    Dialog.Get("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE"),
+                    stats.OldSessions.Count - (SelectedStat - 2),
+                    date
+                );
             }
 
             UpdateChart(path, stats, lastRunsRooms, isOverall);

@@ -104,9 +104,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             CultureInfo cultureInfo = new CultureInfo(language == "schinese" ? "zh_cn" : "en_us");
 
             if (isCurrentSession) {
-                SessionTitle = Dialog.Clean("CCT_SUMMARY_SESSIONS_TITLE_TODAY")
-                .Replace("sessionCount", (stats.OldSessions.Count + 1).ToString())
-                .Replace("datetime", stats.SessionStarted.ToString(language == "schinese" ? "HH:mm" : "t", cultureInfo));
+                SessionTitle = String.Format(
+                    Dialog.Get("CCT_SUMMARY_SESSIONS_TITLE_TODAY"),
+                    stats.OldSessions.Count + 1,
+                    stats.SessionStarted.ToString("t", cultureInfo)
+                );
             } else {
                 string date = null;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
@@ -114,9 +116,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 } else {
                     date = oldSession.SessionStarted.ToString("M", cultureInfo);
                 }
-                SessionTitle = Dialog.Clean("CCT_SUMMARY_SESSIONS_TITLE")
-                .Replace("sessionCount", (stats.OldSessions.Count - SelectedStat + 1).ToString())
-                .Replace("datetime", date);
+                SessionTitle = String.Format(
+                    Dialog.Get("CCT_SUMMARY_SESSIONS_TITLE"),
+                    stats.OldSessions.Count - SelectedStat + 1,
+                    date
+                );
             }
             
             AttemptCount = isCurrentSession ? path.Stats.GoldenBerryDeaths : oldSession.TotalGoldenDeaths;

@@ -130,11 +130,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 int cpEntriesCount = cpEntries.Item2;
                 int cpGoldenDeaths = cpEntries.Item3;
 
-                string deathsString = cpGoldenDeaths == 1 ? Dialog.Clean("CCT_SUMMARY_DEATHS_GRAPHS_DEATH") : Dialog.Clean("CCT_SUMMARY_DEATHS_GRAPHS_DEATHS");
+                string deathsString = cpGoldenDeaths == 1 ? "CCT_SUMMARY_DEATHS_GRAPHS_DEATH" : "CCT_SUMMARY_DEATHS_GRAPHS_DEATHS";
 
                 float totalHeight = cpEntriesCount * sliceHeight;
                 Move(ref cpLabelPointer, 0, totalHeight / 2);
-                DrawText($"{cpName} ({deathsString.Replace("deathCount", cpGoldenDeaths.ToString())})", cpLabelPointer, FontMultSmall, Color.White, new Vector2(0f, 0.5f));
+                DrawText($"{cpName} ({String.Format(Dialog.Get(deathsString), cpGoldenDeaths)})", cpLabelPointer, FontMultSmall, Color.White, new Vector2(0f, 0.5f));
                 Move(ref cpLabelPointer, 0, totalHeight / 2);
             }
         }

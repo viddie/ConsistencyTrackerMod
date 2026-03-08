@@ -118,12 +118,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 return;
             }
 
-            string format = Dialog.Clean("CCT_SUMMARY_OVERALL_GOLDENDEATHS_TOTAL").Replace("chapter:goldenDeaths", "{chapter:goldenDeaths}");
+            string format = Dialog.Get("CCT_SUMMARY_OVERALL_GOLDENDEATHS_TOTAL");
             TextAttemptCount = Stats.FormatVariableFormat(format);
 
-            format = Dialog.Clean("CCT_SUMMARY_OVERALL_AVG_CHANCE")
-            .Replace("chapter:successRate", "{chapter:successRate}")
-            .Replace("chapter:goldenChance", "{chapter:goldenChance}");
+            format = Dialog.Get("CCT_SUMMARY_OVERALL_AVG_CHANCE").Replace("{n}", "\n");
             TextAvgSuccessRate = Stats.FormatVariableFormat(format);
 
 
@@ -529,9 +527,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 [noteColumn] = new ColumnSettings() { Alignment = ColumnSettings.TextAlign.Center, MinWidth = 100 }
             };
             ChokeRateTable.Data = testData;
-            ChokeRateTable.Settings.Title = Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_TITLE")
-            .Replace("currentPage", (tablePage + 1).ToString())
-            .Replace("pageCount", (StatCount - (int)SubPage.ChokeRateTable).ToString());
+            ChokeRateTable.Settings.Title = String.Format(
+                Dialog.Get("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_TITLE"),
+                tablePage + 1,
+                StatCount - (int)SubPage.ChokeRateTable
+            );
             ChokeRateTable.Update();
         }
 
