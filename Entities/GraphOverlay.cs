@@ -150,6 +150,35 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     if (!visitedCurrent) {
                         barColor = Color.Gray;
                     }
+
+                    //Color code for success rate display
+                    if (true) {
+                        barHeight = Math.Max(3, barHeight);
+
+                        if (ChokeRateData.ContainsKey(rInfo)) {
+                            var data = ChokeRateData[rInfo];
+                            float successRate = data.Item2;
+                            if (float.IsNaN(successRate)) {
+                                barColor = new Color(0.33f, 0.33f, 0.33f); // #555555
+                            } else if ((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate < 0.0001) {
+                                // Light green
+                                barColor = new Color(0.91f, 1.00f, 0.88f); // #63bd59
+
+                            } else if ((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate < 0.0001) {
+                                // Green
+                                barColor = new Color(0.80f, 1.00f, 0.75f); // #caffbf
+
+                            } else if ((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate < 0.0001) {
+                                // Yellow
+                                barColor = new Color(0.99f, 1.00f, 0.71f); // #fdffb6
+
+                            } else {
+                                // Red
+                                barColor = new Color(1.00f, 0.68f, 0.68f); // #ffadad
+                            }
+
+                        }
+                    }
                     
                     //Draw checkpoint indicator over the empty space before this bar
                     if (!isFirstCheckpoint && rInfo.RoomNumberInCP == 1 && Mod.ModSettings.IngameOverlayGraphShowCheckpointIndicator) {
