@@ -159,22 +159,22 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                             RoomStats data = stats.GetRoom(rInfo);
                             float successRate = data.AverageSuccessOverSelectedN();
                             if (float.IsNaN(successRate)) {
-                                barColor = new Color(0.33f, 0.33f, 0.33f); // #555555
+                                barColor = Color.Gray;
                             } else if ((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate < 0.0001) {
                                 // Light green
-                                barColor = new Color(0.91f, 1.00f, 0.88f); // #63bd59
+                                barColor = Color.LightGreen;
 
                             } else if ((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate < 0.0001) {
                                 // Green
-                                barColor = new Color(0.80f, 1.00f, 0.75f); // #caffbf
+                                barColor = Color.Green;
 
                             } else if ((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate < 0.0001) {
                                 // Yellow
-                                barColor = new Color(0.99f, 1.00f, 0.71f); // #fdffb6
+                                barColor = Color.Yellow;
 
                             } else {
                                 // Red
-                                barColor = new Color(1.00f, 0.68f, 0.68f); // #ffadad
+                                barColor = Color.Red;
                             }
 
                         }
