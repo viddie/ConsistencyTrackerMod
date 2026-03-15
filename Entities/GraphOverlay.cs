@@ -157,21 +157,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
                         if (ChokeRateData.ContainsKey(rInfo)) {
                             RoomStats data = stats.GetRoom(rInfo);
-                            float successRate = data.AverageSuccessOverSelectedN();
+                            int attemptCount = StatManager.AttemptCount;
+                            float successRate = data.AverageSuccessOverN(attemptCount);
                             if (float.IsNaN(successRate)) {
                                 barColor = Color.Gray;
-                            } else if ((double)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - successRate < 0.0001) {
+                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {
                                 // Light green
                                 barColor = Color.LightGreen;
-
-                            } else if ((double)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - successRate < 0.0001) {
+                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - 0.001)) {
                                 // Green
                                 barColor = Color.Green;
-
-                            } else if ((double)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - successRate < 0.0001) {
+                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - 0.001)) {
                                 // Yellow
                                 barColor = Color.Yellow;
-
                             } else {
                                 // Red
                                 barColor = Color.Red;
