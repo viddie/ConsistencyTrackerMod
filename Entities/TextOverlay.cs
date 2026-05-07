@@ -52,6 +52,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
             SetTextVisible(1, settings.IngameOverlayText1Enabled);
             SetTextHideInGolden(1, settings.IngameOverlayText1HideWithGolden);
+            SetTextOutline(1, settings.IngameOverlayText1Outline);
+            SetTextColor(1, settings.IngameOverlayText1Color);
             SetTextPosition(1, settings.IngameOverlayText1Position);
             SetTextOffsetX(1, settings.IngameOverlayText1OffsetX);
             SetTextOffsetY(1, settings.IngameOverlayText1OffsetY);
@@ -59,6 +61,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
             SetTextVisible(2, settings.IngameOverlayText2Enabled);
             SetTextHideInGolden(2, settings.IngameOverlayText2HideWithGolden);
+            SetTextOutline(2, settings.IngameOverlayText2Outline);
+            SetTextColor(2, settings.IngameOverlayText2Color);
             SetTextPosition(2, settings.IngameOverlayText2Position);
             SetTextOffsetX(2, settings.IngameOverlayText2OffsetX);
             SetTextOffsetY(2, settings.IngameOverlayText2OffsetY);
@@ -66,6 +70,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
             SetTextVisible(3, settings.IngameOverlayText3Enabled);
             SetTextHideInGolden(3, settings.IngameOverlayText3HideWithGolden);
+            SetTextOutline(3, settings.IngameOverlayText3Outline);
+            SetTextColor(3, settings.IngameOverlayText3Color);
             SetTextPosition(3, settings.IngameOverlayText3Position);
             SetTextOffsetX(3, settings.IngameOverlayText3OffsetX);
             SetTextOffsetY(3, settings.IngameOverlayText3OffsetY);
@@ -73,6 +79,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
             SetTextVisible(4, settings.IngameOverlayText4Enabled);
             SetTextHideInGolden(4, settings.IngameOverlayText4HideWithGolden);
+            SetTextOutline(4, settings.IngameOverlayText4Outline);
+            SetTextColor(4, settings.IngameOverlayText4Color);
             SetTextPosition(4, settings.IngameOverlayText4Position);
             SetTextOffsetX(4, settings.IngameOverlayText4OffsetX);
             SetTextOffsetY(4, settings.IngameOverlayText4OffsetY);
@@ -157,6 +165,16 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             StatText4.FontFaceSize = Dialog.Language.FontFaceSize;
         }
 
+        public void SetTextColor(int textNum, Color color) {
+            StatTextComponent statText = GetStatText(textNum);
+            statText.TextColor = color;
+        }
+
+        public void SetTextOutline(int textNum, bool outline) {
+            StatTextComponent statText = GetStatText(textNum);
+            statText.TextOutline = outline;
+        }
+
         public void SetTextVisible(int textNum, bool visible) {
             StatTextComponent statText = GetStatText(textNum);
             statText.OptionVisible = visible;
@@ -190,13 +208,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             StatTextComponent statText = GetStatText(textNum);
             statText.Scale = (float)size / 100;
         }
-        
-        //size in percent as int
-        public void SetTextAlpha(int textNum, int alpha) {
-            StatTextComponent statText = GetStatText(textNum);
-            statText.Alpha = (float)alpha / 100;
-        }
-
 
         private StatTextComponent GetStatText(int textNum) {
             if (textNum == 1) {

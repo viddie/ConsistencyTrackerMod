@@ -16,14 +16,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public bool OptionVisible { get; set; }
         public bool HideInGolden { get; set; }
         public float Scale { get; set; } = 1f;
-        public float Alpha {
-            get => _Alpha;
-            set {
-                _Alpha = value;
-                UpdateColor();
-            }
-        }
-        private float _Alpha { get; set; } = 1f;
+
+        public bool TextOutline { get; set; } = true;
+
         public PixelFont Font { get; set; }
         public float FontFaceSize { get; set; }
         public Color TextColor { get; set; } = Color.White;
@@ -112,24 +107,30 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             }
         }
 
-        private void UpdateColor() {
-            TextColor = new Color(1f, 1f, 1f, Alpha);
-            StrokeColor = new Color(0f, 0f, 0f, Alpha);
-        }
-
         public override void Render() {
             base.Render();
             
-            Font.DrawOutline(
-                FontFaceSize,
-                Text,
-                new Vector2(PosX, PosY),
-                Justify,
-                Vector2.One * Scale,
-                TextColor,
-                StrokeSize,
-                StrokeColor
-            );
+            if (TextOutline) {
+                Font.DrawOutline(
+                    FontFaceSize,
+                    Text,
+                    new Vector2(PosX, PosY),
+                    Justify,
+                    Vector2.One * Scale,
+                    TextColor,
+                    StrokeSize,
+                    StrokeColor
+                );
+            } else {
+                Font.Draw(
+                    FontFaceSize,
+                    Text,
+                    new Vector2(PosX, PosY),
+                    Justify,
+                    Vector2.One * Scale,
+                    TextColor
+                );
+            }
 
             if (DebugShowPosition) {
                 Draw.Circle(new Vector2(PosX, PosY), 10, Color.Red, 10);
