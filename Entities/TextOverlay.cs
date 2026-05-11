@@ -167,7 +167,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
         public void SetTextColor(int textNum, Color color) {
             StatTextComponent statText = GetStatText(textNum);
-            statText.TextColor = color;
+            statText.SetTextColor(color);
         }
 
         public void SetTextOutline(int textNum, bool outline) {
@@ -186,7 +186,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
         public void SetText(int textNum, string text) {
             StatTextComponent statText = GetStatText(textNum);
-            statText.Text = text.Replace("\\n", "\n");
+            statText.SetText(text);
         }
         public void SetTextPosition(int textNum, StatTextPosition pos) {
             StatTextComponent statText = GetStatText(textNum);
@@ -206,7 +206,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         //size in percent as int
         public void SetTextSize(int textNum, int size) {
             StatTextComponent statText = GetStatText(textNum);
-            statText.Scale = (float)size / 100;
+            statText.SetSize((float)size / 100);
         }
 
         private StatTextComponent GetStatText(int textNum) {

@@ -38,7 +38,7 @@ public class ColorOption : Item {
     public override void ConfirmPressed() {
         Audio.Play(ConfirmSfx);
 
-        if (TryParseColor(TextInput.GetClipboardText(), out Color color)) {
+        if (Util.TryParseColor(TextInput.GetClipboardText(), out Color color)) {
             Color = color;
             Label = GetLabel(_Label, Color);
             OnValueChange?.Invoke(color);
@@ -60,36 +60,9 @@ public class ColorOption : Item {
     }
 
     private static string GetLabel(string label, Color color) {
-        return $"{label}: {ColorToHex(color)}";
+        return $"{label}: {Util.ColorToHex(color)}";
     }
 
-    private static bool TryParseColor(string hex, out Color color) {
-        color = default;
 
-        if (string.IsNullOrEmpty(hex)) {
-            return false;
-        }
-
-        hex = hex.Replace("#", "").Trim();
-
-        if (hex.Length < 6) {
-            return false;
-        }
-
-        bool flag = int.TryParse(hex.Substring(0, 2), NumberStyles.HexNumber, null, out int r);
-        bool flag1 = int.TryParse(hex.Substring(2, 2), NumberStyles.HexNumber, null, out int g);
-        bool flag2 = int.TryParse(hex.Substring(4, 2), NumberStyles.HexNumber, null, out int b);
-
-        if (flag && flag1 && flag2) {
-            color = new Color(r, g, b);
-            return true;
-        }
-
-        return false;
-    } 
-
-    private static string ColorToHex(Color color) {
-        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-    }
 
 }

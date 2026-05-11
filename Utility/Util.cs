@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 
 namespace Celeste.Mod.ConsistencyTracker.Utility {
     public static class Util {
@@ -157,5 +159,35 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
             return sb.ToString();
         }
+
+        public static bool TryParseColor(string hex, out Color color) {
+            color = default;
+    
+            if (string.IsNullOrEmpty(hex)) {
+                return false;
+            }
+    
+            hex = hex.Replace("#", "").Trim();
+    
+            if (hex.Length < 6) {
+                return false;
+            }
+    
+            bool flag = int.TryParse(hex.Substring(0, 2), NumberStyles.HexNumber, null, out int r);
+            bool flag1 = int.TryParse(hex.Substring(2, 2), NumberStyles.HexNumber, null, out int g);
+            bool flag2 = int.TryParse(hex.Substring(4, 2), NumberStyles.HexNumber, null, out int b);
+    
+            if (flag && flag1 && flag2) {
+                color = new Color(r, g, b);
+                return true;
+            }
+    
+            return false;
+        } 
+    
+        public static string ColorToHex(Color color) {
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
     }
 }
