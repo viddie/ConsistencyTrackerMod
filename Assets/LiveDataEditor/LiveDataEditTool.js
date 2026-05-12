@@ -62,7 +62,10 @@ function showError(errorCode, errorMessage){
     if(CurrentState === ViewStates.MainView){
         Elements.LoadingText.innerText = message;
     }else if(CurrentState === ViewStates.InspectorView){
-        Elements.FormatPreview.value = message;
+        Elements.FormatPreview.innerHTML = "";
+        let previewLine = document.createElement("p");
+        previewLine.textContent = errorMessage;
+        Elements.FormatPreview.appendChild(previewLine);
     }
 }
 //#endregion
@@ -419,11 +422,43 @@ function setPlaceholderExplanationText(name, description){
     Elements.PlaceholderExplanationDescription.innerText = description;
 }
 
+function isValidColor(str) {
+  const s = new Option().style;
+  s.color = str;
+  return s.color !== "";
+}
+
+function parseLine(line) {
+    let color = "#FFFFFF";
+    let text = line;
+
+    if (line.startsWith("[")) {
+        let colorLength = line[1] === "#" ? 7 : 6
+        if (line.length >= colorLength + 2 && line[colorLength + 1] === "]") {
+            let parsedColor = line.substring(1, colorLength + 1);
+
+            if (parsedColor.length === 6 && !parsedColor.startsWith("#")) {
+                parsedColor = "#" + parsedColor;
+            }
+
+            if (isValidColor(color)) {
+                color = parsedColor;
+                text = text.substring(colorLength + 2);
+            }
+        }
+    }
+
+    return {
+        Color: color,
+        Text: text
+    };
+}
+
 //Launch POST request to /cct/parseFormat with the format text as body
 function fetchPreview(){
     let formatText = Elements.FormatText.value;
     if(formatText === null || formatText === undefined || formatText === ""){
-        Elements.FormatPreview.value = "";
+        Elements.FormatPreview.innerHTML = "";
         return;
     }
 
@@ -435,11 +470,22 @@ function fetchPreview(){
         .then(responseObj => {
             if(responseObj.errorCode !== 0){
                 console.log(responseObj.errorMessage);
-                Elements.FormatPreview.value = "Could not fetch preview, error code (" + responseObj.errorCode + "): " + responseObj.errorMessage;
+                
+                Elements.FormatPreview.innerHTML = "";
+                let errorLine = document.createElement("p");
+                errorLine.textContent = "Could not fetch preview, error code (" + responseObj.errorCode + "): " + responseObj.errorMessage;
+                Elements.FormatPreview.appendChild(errorLine);
                 return;
             }
-
-            Elements.FormatPreview.value = responseObj.formats[0];
+            
+            Elements.FormatPreview.innerHTML = "";
+            responseObj.formats[0].split("\n").forEach(line => {
+                let previewLine = document.createElement("p");
+                let parsedLine = parseLine(line);
+                previewLine.textContent = parsedLine.Text;
+                previewLine.style.color = parsedLine.Color;
+                Elements.FormatPreview.appendChild(previewLine);
+            });
         }).catch(error => showError(-1, "Could not fetch preview (is CCT running?)"));
 }
 //#endregion

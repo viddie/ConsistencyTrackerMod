@@ -24,9 +24,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public TextOverlay() {
             Depth = -101;
             Tag = Tags.HUD | Tags.Global | Tags.PauseUpdate | Tags.TransitionUpdate;
-            
-            Events.Events.OnRunStarted += EventsOnOnRunStarted;
-            Events.Events.OnRunEnded += EventsOnOnRunEnded;
 
             StatText1 = new StatTextComponent(true, true, StatTextPosition.TopLeft);
             StatText2 = new StatTextComponent(true, true, StatTextPosition.TopRight);
@@ -35,6 +32,20 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             InitStatTextOptions();
 
             ApplyModSettings();
+        }
+
+        public override void Added(Scene scene) {
+            base.Added(scene);
+
+            Events.Events.OnRunStarted += EventsOnOnRunStarted;
+            Events.Events.OnRunEnded += EventsOnOnRunEnded;
+        }
+
+        public override void Removed(Scene scene) {
+            base.Removed(scene);
+
+            Events.Events.OnRunStarted -= EventsOnOnRunStarted;
+            Events.Events.OnRunEnded -= EventsOnOnRunEnded;
         }
 
         private void EventsOnOnRunEnded(bool died, bool won) {
