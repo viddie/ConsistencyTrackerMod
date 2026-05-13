@@ -34,18 +34,29 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             ApplyModSettings();
         }
 
+        private void SubscribeEvents() {
+            Events.Events.OnRunStarted += EventsOnOnRunStarted;
+            Events.Events.OnRunEnded += EventsOnOnRunEnded;            
+        }
+
+        private void UnsubscribeEvents() {
+            Events.Events.OnRunStarted -= EventsOnOnRunStarted;
+            Events.Events.OnRunEnded -= EventsOnOnRunEnded;            
+        }
+
         public override void Added(Scene scene) {
             base.Added(scene);
-
-            Events.Events.OnRunStarted += EventsOnOnRunStarted;
-            Events.Events.OnRunEnded += EventsOnOnRunEnded;
+            SubscribeEvents();
         }
 
         public override void Removed(Scene scene) {
             base.Removed(scene);
+            UnsubscribeEvents();
+        }
 
-            Events.Events.OnRunStarted -= EventsOnOnRunStarted;
-            Events.Events.OnRunEnded -= EventsOnOnRunEnded;
+        public override void SceneEnd(Scene scene) {
+            base.SceneEnd(scene);
+            UnsubscribeEvents();
         }
 
         private void EventsOnOnRunEnded(bool died, bool won) {
