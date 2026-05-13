@@ -703,20 +703,34 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
             return flags;
         }
 
-
-        private bool PhysicsLogHeldJumpLastFrame;
+        private bool PhysicsLogHoldingJump;
         private bool PhysicsLogHoldingSecondJump;
+
         private void UpdateJumpState() {
-            //Log($"Pre frame: Jump.Check -> {Input.Jump.Check}, Jump.Pressed -> {Input.Jump.Pressed}, Held Jump Last Frame -> {PhysicsLogHeldJumpLastFrame}, Holding Second Jump -> {PhysicsLogHoldingSecondJump}");
-            if (Input.Jump.Check) {
-                if (PhysicsLogHeldJumpLastFrame && Input.Jump.Pressed) {
-                    PhysicsLogHoldingSecondJump = !PhysicsLogHoldingSecondJump;
+            VirtualButton jump = Input.Jump;
+            Binding binding = jump.Binding;
+            int jumpKeysHeld = 0;
+
+            for (int i = 0; i < binding.Keyboard.Count; i++) {
+                if (MInput.Keyboard.Check(binding.Keyboard[i])) {
+                    jumpKeysHeld++;
                 }
-                PhysicsLogHeldJumpLastFrame = true;
-            } else {
-                PhysicsLogHeldJumpLastFrame = false;
-                PhysicsLogHoldingSecondJump = false;
             }
+
+            for (int i = 0; i < binding.Controller.Count; i++) {
+                if (MInput.GamePads[jump.GamepadIndex].Check(binding.Controller[i], jump.Threshold)) {
+                    jumpKeysHeld++;
+                }
+            }
+
+            for (int i = 0; i < binding.Mouse.Count; i++) {
+                if (MInput.Mouse.Check(binding.Mouse[i])) {
+                    jumpKeysHeld++;
+                }
+            }
+
+            PhysicsLogHoldingJump = jumpKeysHeld > 0;
+            PhysicsLogHoldingSecondJump = jumpKeysHeld > 1;
         }
 
         public string GetInputsFormatted(char separator = ' ') {
@@ -731,12 +745,10 @@ namespace Celeste.Mod.ConsistencyTracker.PhysicsLog
                 inputs += $"{updown}{separator}";
             }
 
-            if (Input.Jump.Check) {
-                if (PhysicsLogHoldingSecondJump) {
-                    inputs += $"K{separator}";
-                } else {
-                    inputs += $"J{separator}";
-                }
+            if (PhysicsLogHoldingSecondJump) {
+                inputs += $"K{separator}";
+            } else if (PhysicsLogHoldingJump) {
+                inputs += $"J{separator}";
             }
 
             if (Input.Dash.Check) {
