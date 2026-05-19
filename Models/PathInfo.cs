@@ -48,6 +48,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("ignoredRooms")]
         public List<string> IgnoredRooms { get; set; } = new List<string>();
+
+        [JsonProperty("trackWingedGolden")]
+        public bool TrackWingedGolden { get; set; } = false;
         
         
         [JsonProperty("tier")]

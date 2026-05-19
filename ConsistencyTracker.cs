@@ -516,7 +516,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             LogVerbose($"Strawberry on player | self.Type: {self.GetType().Name}, self.Golden: {self.Golden}");
             SetRoomCompleted(resetOnDeath: true);
             
-            if (self.Winged) {
+            if (self.Winged && !(CurrentChapterPath?.TrackWingedGolden ?? false)) {
                 if(!IgnoreBerryCollects.Contains(self.ID))
                     IgnoreBerryCollects.Add(self.ID);
                 LogVerbose($"Ignoring winged berry pickup.");
@@ -574,7 +574,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                     break;
             }
 
-            if (self.Golden && !self.Winged && SettingsTrackGoldens && !IsInFgrMode) { // In fgr mode, goldens dont exist, so they cant mark the end of the challenge.
+            if (self.Golden && SettingsTrackGoldens && !IsInFgrMode) { // In fgr mode, goldens dont exist, so they cant mark the end of the challenge.
                 Log($"Golden collected! GG :catpog:");
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
@@ -772,6 +772,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
         private void Player_OnDie(Player player) {
             TouchedBerries.Clear();
+            IgnoreBerryCollects.Clear();
             
             Log($"Player died. (holdingGolden: {IsInGoldenRun})");
             if (CurrentRoomCompletedResetOnDeath) {

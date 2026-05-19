@@ -346,6 +346,16 @@ namespace Celeste.Mod.ConsistencyTracker
                 OnPressed = Mod.UngroupRoomsOnChapterPath,
                 Disabled = !hasCurrentRoom
             });
+
+            bool? currentPathTrackWingedGoldens = Mod.CurrentChapterPath?.TrackWingedGolden;
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_PATH_MANAGEMENT_EDITING_TRACK_WINGED_GOLDEN"), currentPathTrackWingedGoldens ?? false) {
+                OnValueChange = v => {
+                    if (Mod.CurrentChapterPath == null) return;
+                    Mod.CurrentChapterPath.TrackWingedGolden = v;
+                    Mod.SaveActivePath();
+                },
+                Disabled = !hasPath
+            });
             
             bool? currentRoomIsTransition = Mod.CurrentChapterPath?.CurrentRoom?.IsNonGameplayRoom;
             List<KeyValuePair<bool, string>> RoomType = new List<KeyValuePair<bool, string>>() {
