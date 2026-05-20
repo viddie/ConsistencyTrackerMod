@@ -34,39 +34,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             ApplyModSettings();
         }
 
-        private void SubscribeEvents() {
-            Events.Events.OnRunStarted += EventsOnOnRunStarted;
-            Events.Events.OnRunEnded += EventsOnOnRunEnded;            
-        }
-
-        private void UnsubscribeEvents() {
-            Events.Events.OnRunStarted -= EventsOnOnRunStarted;
-            Events.Events.OnRunEnded -= EventsOnOnRunEnded;            
-        }
-
-        public override void Added(Scene scene) {
-            base.Added(scene);
-            SubscribeEvents();
-        }
-
-        public override void Removed(Scene scene) {
-            base.Removed(scene);
-            UnsubscribeEvents();
-        }
-
-        public override void SceneEnd(Scene scene) {
-            base.SceneEnd(scene);
-            UnsubscribeEvents();
-        }
-
-        private void EventsOnOnRunEnded(bool died, bool won) {
-            SetGoldenState(false);
-        }
-
-        private void EventsOnOnRunStarted() {
-            SetGoldenState(true);
-        }
-
         private void ApplyModSettings() {
             ConsistencyTrackerSettings settings = Mod.ModSettings;
 
@@ -249,7 +216,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             SetGoldenState(holdingGolden);
         }
 
-        private void SetGoldenState(bool playerHasGolden) {
+        public void SetGoldenState(bool playerHasGolden) {
             if (playerHasGolden) {
                 GetStatText(1).Visible = GetStatText(1).OptionVisible && !(GetStatText(1).HideInGolden);
                 GetStatText(2).Visible = GetStatText(2).OptionVisible && !(GetStatText(2).HideInGolden);

@@ -853,10 +853,12 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void EventsOnRunStarted() {
-
+            IngameOverlay?.SetGoldenState(true);
         }
+
         private void EventsOnRunEnded(bool died, bool won) {
             ChokeRateStat.ChokeRateData = null; //Reset caching
+            IngameOverlay?.SetGoldenState(false);
         }
         private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
             if (DoRecordPath) {
