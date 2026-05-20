@@ -1190,6 +1190,12 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayText1Enabled { get; set; } = true;
 
         [SettingIgnore]
+        public bool IngameOverlayText1Outline { get; set; } = true;
+
+        [SettingIgnore]
+        public Color IngameOverlayText1Color { get; set; } = Color.White;
+
+        [SettingIgnore]
         public StatTextPosition IngameOverlayText1Position { get; set; } = StatTextPosition.TopLeft;
 
         [SettingIgnore]
@@ -1214,6 +1220,12 @@ namespace Celeste.Mod.ConsistencyTracker
         // ======== Text 2 ========
         [SettingIgnore]
         public bool IngameOverlayText2Enabled { get; set; } = true;
+
+        [SettingIgnore]
+        public bool IngameOverlayText2Outline { get; set; } = true;
+
+        [SettingIgnore]
+        public Color IngameOverlayText2Color { get; set; } = Color.White;
 
         [SettingIgnore]
         public StatTextPosition IngameOverlayText2Position { get; set; } = StatTextPosition.TopRight;
@@ -1242,6 +1254,12 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayText3Enabled { get; set; } = false;
 
         [SettingIgnore]
+        public bool IngameOverlayText3Outline { get; set; } = true;
+
+        [SettingIgnore]
+        public Color IngameOverlayText3Color { get; set; } = Color.White;
+
+        [SettingIgnore]
         public StatTextPosition IngameOverlayText3Position { get; set; } = StatTextPosition.BottomLeft;
 
         [SettingIgnore]
@@ -1266,6 +1284,12 @@ namespace Celeste.Mod.ConsistencyTracker
         // ======== Text 4 ========
         [SettingIgnore]
         public bool IngameOverlayText4Enabled { get; set; } = false;
+
+        [SettingIgnore]
+        public bool IngameOverlayText4Outline { get; set; } = true;
+
+        [SettingIgnore]
+        public Color IngameOverlayText4Color { get; set; } = Color.White;
 
         [SettingIgnore]
         public StatTextPosition IngameOverlayText4Position { get; set; } = StatTextPosition.BottomRight;
@@ -1448,7 +1472,7 @@ namespace Celeste.Mod.ConsistencyTracker
             string descAvailableFormats = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_EDIT_HINT")} 'Celeste/ConsistencyTracker/{StatManager.BaseFolder}/{StatManager.FormatFileName}'";
             string descAvailableFormatsGolden = $"{Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_1")} '{noneFormat}' {Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_2")}";
             string descHideWithGolden = Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_FORMAT_GOLDEN_HINT_0");
-
+            string descColorOption = Dialog.Clean("MODOPTION_CCT_COLOR_OPTION_DESCRIPTION");
 
             bool hasStats = Mod.CurrentChapterStats != null;
             bool holdingGolden = Mod.CurrentChapterStats.ModState.PlayerIsHoldingGolden;
@@ -1490,6 +1514,19 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OUTLINE"), IngameOverlayText1Outline) {
+                OnValueChange = v => {
+                    IngameOverlayText1Outline = v;
+                    Mod.IngameOverlay.SetTextOutline(1, v);
+                }
+            });
+            subMenu.Add(menuItem = new ColorOption(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_COLOR"), IngameOverlayText1Color) {
+                OnValueChange = v => {
+                    IngameOverlayText1Color = v;
+                    Mod.IngameOverlay.SetTextColor(1, v);
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, descColorOption);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText1Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText1Size = value;
@@ -1547,6 +1584,19 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OUTLINE"), IngameOverlayText2Outline) {
+                OnValueChange = v => {
+                    IngameOverlayText2Outline = v;
+                    Mod.IngameOverlay.SetTextOutline(2, v);
+                }
+            });
+            subMenu.Add(menuItem = new ColorOption(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_COLOR"), IngameOverlayText2Color) {
+                OnValueChange = v => {
+                    IngameOverlayText2Color = v;
+                    Mod.IngameOverlay.SetTextColor(2, v);
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, descColorOption);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText2Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText2Size = value;
@@ -1603,6 +1653,19 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OUTLINE"), IngameOverlayText3Outline) {
+                OnValueChange = v => {
+                    IngameOverlayText3Outline = v;
+                    Mod.IngameOverlay.SetTextOutline(3, v);
+                }
+            });
+            subMenu.Add(menuItem = new ColorOption(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_COLOR"), IngameOverlayText3Color) {
+                OnValueChange = v => {
+                    IngameOverlayText3Color = v;
+                    Mod.IngameOverlay.SetTextColor(3, v);
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, descColorOption);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText3Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText3Size = value;
@@ -1660,6 +1723,19 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, descHideWithGolden);
+            subMenu.Add(new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_OUTLINE"), IngameOverlayText4Outline) {
+                OnValueChange = v => {
+                    IngameOverlayText4Outline = v;
+                    Mod.IngameOverlay.SetTextOutline(4, v);
+                }
+            });
+            subMenu.Add(menuItem = new ColorOption(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_COLOR"), IngameOverlayText4Color) {
+                OnValueChange = v => {
+                    IngameOverlayText4Color = v;
+                    Mod.IngameOverlay.SetTextColor(4, v);
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, descColorOption);
             subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_IN_GAME_OVERLAY_SETTINGS_TEXT_OVERLAY_TEXT_SIZE"), PercentageSlider(5, 5, 500), IngameOverlayText4Size) {
                 OnValueChange = (value) => {
                     IngameOverlayText4Size = value;

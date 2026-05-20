@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.ConsistencyTracker.Enums;
+using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -12,21 +13,18 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
     public class StatTextComponent : Component {
 
         public StatTextPosition Position { get; set; } = StatTextPosition.TopRight;
-        public string Text { get; set; } = "";
         public bool OptionVisible { get; set; }
         public bool HideInGolden { get; set; }
-        public float Scale { get; set; } = 1f;
-        public float Alpha {
-            get => _Alpha;
-            set {
-                _Alpha = value;
-                UpdateColor();
-            }
-        }
-        private float _Alpha { get; set; } = 1f;
+
+        private float Scale { get; set; } = 1f;
+
+        public bool TextOutline { get; set; } = true;
+
         public PixelFont Font { get; set; }
         public float FontFaceSize { get; set; }
-        public Color TextColor { get; set; } = Color.White;
+
+        private Color TextColor { get; set; } = Color.White;
+
         public float StrokeSize { get; set; } = 2f;
         public Color StrokeColor { get; set; } = Color.Black;
 
@@ -38,6 +36,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public float PosX { get; set; } = 0;
         public float PosY { get; set; } = 0;
 
+        private float YOffset { get; set; } = 0;
+        private float LineHeight { get; set; } = 0;
+
+        // Tuple items:
+        // 1. Line text
+        // 2. Line color
+        private List<Tuple<string, Color?>> TextLines { get; set; }
+
         public bool DebugShowPosition { get; set; }
 
         private static readonly int WIDTH = 1920;
@@ -45,6 +51,44 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
 
         public StatTextComponent(bool active, bool visible, StatTextPosition position) : base(active, visible) {
             Position = position;
+        }
+
+        public void SetText(string text) {
+            text = text.Replace("\\n", "\n");
+            TextLines = text.Split('\n').Select(ParseLineColor).ToList();
+            UpdateText();
+        }
+
+        private void UpdateText() {
+            if (TextLines == null) {
+                return;
+            }
+            
+            LineHeight = Font.Get(FontFaceSize).LineHeight * Scale;
+            YOffset = TextLines.Count * Justify.Y * LineHeight;    
+        }
+
+        private Tuple<string, Color?> ParseLineColor(string line) {
+            Color? color = null;
+
+            if (!string.IsNullOrEmpty(line) && line.Length > 1 && line[0] == '[') {
+                int colorLength = line[1] == '#' ? 7 : 6;
+                if (line.Length >= colorLength + 2 && line[colorLength + 1] == ']' && Util.TryParseColor(line.Substring(1, colorLength), out Color parsedColor)) {
+                    color = parsedColor;
+                    line = line.Substring(colorLength + 2);
+                } 
+            }
+
+            return new Tuple<string, Color?>(line, color);
+        }
+
+        public void SetTextColor(Color color) {
+            TextColor = color;
+        }
+
+        public void SetSize(float size) {
+            Scale = size;
+            UpdateText();
         }
 
         public void SetPosition() {
@@ -110,26 +154,43 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     Justify = new Vector2(1, 1);
                     break;
             }
-        }
 
-        private void UpdateColor() {
-            TextColor = new Color(1f, 1f, 1f, Alpha);
-            StrokeColor = new Color(0f, 0f, 0f, Alpha);
+            UpdateText();
         }
 
         public override void Render() {
-            base.Render();
-            
-            Font.DrawOutline(
-                FontFaceSize,
-                Text,
-                new Vector2(PosX, PosY),
-                Justify,
-                Vector2.One * Scale,
-                TextColor,
-                StrokeSize,
-                StrokeColor
-            );
+            Vector2 pointer = new Vector2(PosX, PosY);
+            pointer.Y -= YOffset;
+
+            for (int i = 0; i < TextLines.Count; i++) {
+                Tuple<string, Color?> line = TextLines[i];
+                string text = line.Item1;
+                Color color = line.Item2.HasValue ? line.Item2.Value : TextColor;
+
+                if (TextOutline) {
+                    Font.DrawOutline(
+                        FontFaceSize,
+                        text,
+                        pointer,
+                        new Vector2(Justify.X, 0),
+                        Vector2.One * Scale,
+                        color,
+                        StrokeSize,
+                        StrokeColor
+                    );
+                } else {
+                    Font.Draw(
+                        FontFaceSize,
+                        text,
+                        pointer,
+                        new Vector2(Justify.X, 0),
+                        Vector2.One * Scale,
+                        color
+                    );
+                }
+
+                pointer.Y += LineHeight;
+            }
 
             if (DebugShowPosition) {
                 Draw.Circle(new Vector2(PosX, PosY), 10, Color.Red, 10);
