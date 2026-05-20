@@ -422,12 +422,6 @@ function setPlaceholderExplanationText(name, description){
     Elements.PlaceholderExplanationDescription.innerText = description;
 }
 
-function isValidColor(str) {
-  const s = new Option().style;
-  s.color = str;
-  return s.color !== "";
-}
-
 function parseLine(line) {
     let color = "#FFFFFF";
     let text = line;
@@ -437,14 +431,12 @@ function parseLine(line) {
         if (line.length >= colorLength + 2 && line[colorLength + 1] === "]") {
             let parsedColor = line.substring(1, colorLength + 1);
 
-            if (parsedColor.length === 6 && !parsedColor.startsWith("#")) {
+            if (!parsedColor.startsWith("#")) {
                 parsedColor = "#" + parsedColor;
             }
 
-            if (isValidColor(color)) {
-                color = parsedColor;
-                text = text.substring(colorLength + 2);
-            }
+            color = parsedColor;
+            text = text.substring(colorLength + 2);
         }
     }
 
