@@ -51,7 +51,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
             List<string> lastRuns = oldSession?.LastGoldenRuns ?? stats.LastGoldenRuns;
             List<RoomInfo> lastRunsRooms = path.GetRoomsForLastRuns(lastRuns);
 
-            CultureInfo cultureInfo = new CultureInfo("CCT_CULTURE".DialogCleanOrNull() ?? "en_us");
+            CultureInfo cultureInfo = new CultureInfo(Dialog.Clean("CCT_CULTURE_CODE"));
             
             if (isOverall) {
                 ChokeRateChart.Settings.Title = Dialog.Clean("CCT_SUMMARY_CHOKE_RATE_CHART_TITLE_OVERALL");

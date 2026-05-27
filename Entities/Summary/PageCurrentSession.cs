@@ -99,9 +99,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
 
             StatCount = stats.OldSessions.Count + 1; //+1 for current session
             bool isCurrentSession = SelectedStat == 0;
-            string language = Dialog.Language.Id;
             OldSession oldSession = isCurrentSession ? null : stats.OldSessions[stats.OldSessions.Count - SelectedStat];
-            CultureInfo cultureInfo = new CultureInfo(language == "schinese" ? "zh_cn" : "en_us");
+            CultureInfo cultureInfo = new CultureInfo(Dialog.Clean("CCT_CULTURE_CODE"));
 
             if (isCurrentSession) {
                 SessionTitle = String.Format(
@@ -110,7 +109,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                     stats.SessionStarted.ToString("t", cultureInfo)
                 );
             } else {
-                string date = null;
+                string date;
                 if (DateTime.Now.Year != oldSession.SessionStarted.Year) {
                     date = oldSession.SessionStarted.ToString("D", cultureInfo);
                 } else {

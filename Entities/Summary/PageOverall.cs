@@ -489,6 +489,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 earlyRoomBoundary = 1;
             }
 
+            string earlyRoomNote = Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_EARLY");
+            string fewRunsNote = Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_FEW");
+
             int startIndex = tablePage * ChokeRateTablePageSize;
             int index = 0;
             foreach (KeyValuePair<RoomInfo, Tuple<int, float, int, float>> kvPair in sortedRoomGoldenSuccessRateData) {
@@ -497,10 +500,10 @@ namespace Celeste.Mod.ConsistencyTracker.Entities.Summary {
                 Tuple<int, float, int, float> data = kvPair.Value;
                 List<string> notes = new List<string>();
                 if (rInfo.RoomNumberInChapter <= earlyRoomBoundary) {
-                    notes.Add(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_EARLY"));
+                    notes.Add(earlyRoomNote);
                 }
                 if (!float.IsNaN(kvPair.Value.Item2) && kvPair.Value.Item1 <= 5) {
-                    notes.Add(Dialog.Clean("CCT_SUMMARY_OVERALL_CHOKERATE_TABLE_NOTE_FEW"));
+                    notes.Add(fewRunsNote);
                 }
                 string note = $"";
                 if (notes.Count > 0) {

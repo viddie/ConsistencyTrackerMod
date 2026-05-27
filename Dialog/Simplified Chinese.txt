@@ -24,7 +24,7 @@
 # |    Mod Options    |
 # +-------------------+
 
-CCT_CULTURE= zh_cn
+CCT_CULTURE_CODE= zh_cn
 
 MODOPTION_CCT_NAME= 稳定性追踪器
 
