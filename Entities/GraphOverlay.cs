@@ -121,6 +121,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             int availableBarHeight = Height - (ShowGoldenPbBar ? 3 + 1 : 0) - (currentRoomIndicatorExplicit ? 3 + 1 : 0);
             int barWidth = (availableBarWidth - ((barCount - 1) * BarSpacing)) / barCount;
             int paddingX = (availableBarWidth - (barWidth * barCount) - ((barCount - 1) * BarSpacing)) / 2;
+
+            bool showSuccessRateColors = Mod.ModSettings.IngameOverlayGraphShowSuccessRateColors;
             
             //Walk path and draw the bars
             int barsDrawn = 0;
@@ -154,7 +156,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     }
 
                     //Color code for success rate display
-                    if (true) {
+                    if (showSuccessRateColors) {
                         barHeight = Math.Max(3, barHeight);
 
                         if (ChokeRateData.ContainsKey(rInfo)) {
