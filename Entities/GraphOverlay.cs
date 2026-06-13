@@ -82,6 +82,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (!Enabled || !(Engine.Scene is Level) || path == null || stats == null) {
                 return;
             }
+            
+            int gameplayRoomCount = path.GameplayRoomCount;
+            if (gameplayRoomCount == 0) return;
 
             //Draw the overlay
             Vector2 position = ResolvePosition(Anchor, Width, Height, OffsetX, OffsetY);
@@ -92,7 +95,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             //the graph area.
             //There should be exactly 1 pixel of space between each bar
             
-            int gameplayRoomCount = path.GameplayRoomCount;
             RoomInfo currentRoom = RoomToDisplay;
             int currentRoomNumber = currentRoom?.RoomNumberInChapter ?? 1;
             int barCount = Math.Min(gameplayRoomCount, 1 + 2 * RoomsPadding);

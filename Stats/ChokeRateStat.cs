@@ -16,24 +16,24 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
          */
 
     public class ChokeRateStat : Stat {
+        public const string RoomChokeRate = "{room:chokeRate}";
+        public const string RoomChokeRateSession = "{room:chokeRateSession}";
+        public const string CheckpointChokeRate = "{checkpoint:chokeRate}";
+        public const string CheckpointChokeRateSession = "{checkpoint:chokeRateSession}";
+        public const string RoomGoldenSuccessRate = "{room:goldenSuccessRate}";
+        public const string RoomGoldenSuccessRateSession = "{room:goldenSuccessRateSession}";
+        public const string CheckpointGoldenSuccessRate = "{checkpoint:goldenSuccessRate}";
+        public const string CheckpointGoldenSuccessRateSession = "{checkpoint:goldenSuccessRateSession}";
 
-        public static string RoomChokeRate = "{room:chokeRate}";
-        public static string RoomChokeRateSession = "{room:chokeRateSession}";
-        public static string CheckpointChokeRate = "{checkpoint:chokeRate}";
-        public static string CheckpointChokeRateSession = "{checkpoint:chokeRateSession}";
-        public static string RoomGoldenSuccessRate = "{room:goldenSuccessRate}";
-        public static string RoomGoldenSuccessRateSession = "{room:goldenSuccessRateSession}";
-        public static string CheckpointGoldenSuccessRate = "{checkpoint:goldenSuccessRate}";
-        public static string CheckpointGoldenSuccessRateSession = "{checkpoint:goldenSuccessRateSession}";
+        public const string RoomGoldenEntries = "{room:goldenEntries}";
+        public const string RoomGoldenEntriesSession = "{room:goldenEntriesSession}";
+        public const string RoomGoldenSuccesses = "{room:goldenSuccesses}";
+        public const string RoomGoldenSuccessesSession = "{room:goldenSuccessesSession}";
 
-        public static string RoomGoldenEntries = "{room:goldenEntries}";
-        public static string RoomGoldenEntriesSession = "{room:goldenEntriesSession}";
-        public static string RoomGoldenSuccesses = "{room:goldenSuccesses}";
-        public static string RoomGoldenSuccessesSession = "{room:goldenSuccessesSession}";
+        public const string RoomGoldenEntryChance = "{room:goldenEntryChance}";
+        public const string RoomGoldenEntryChanceSession = "{room:goldenEntryChanceSession}";
 
-        public static string RoomGoldenEntryChance = "{room:goldenEntryChance}";
-        public static string RoomGoldenEntryChanceSession = "{room:goldenEntryChanceSession}";
-        public static List<string> IDs = new List<string>() {
+        public static readonly List<string> IDs = new List<string>() {
             RoomChokeRate, RoomChokeRateSession,
             CheckpointChokeRate, CheckpointChokeRateSession,
             RoomGoldenSuccessRate, RoomGoldenSuccessRateSession,
@@ -278,8 +278,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
 
                     bool pastRoom = false;
-                    int[] goldenDeathsInRoom = new int[] { 0, 0 };
-                    int[] goldenDeathsAfterRoom = new int[] { 0, 0 };
+                    int[] goldenDeathsInRoom = { 0, 0 };
+                    int[] goldenDeathsAfterRoom = { 0, 0 };
 
                     foreach (CheckpointInfo cpInfoTemp in chapterPath.Checkpoints) {
                         foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
@@ -290,7 +290,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                                 goldenDeathsAfterRoom[1] += rStats.GoldenBerryDeathsSession;
                             }
 
-                            if (rInfo == rInfoTemp) {
+                            if (rInfo.DebugRoomName == rInfoTemp.DebugRoomName) {
                                 pastRoom = true;
                                 goldenDeathsInRoom[0] = rStats.GoldenBerryDeaths;
                                 goldenDeathsInRoom[1] = rStats.GoldenBerryDeathsSession;
@@ -320,51 +320,6 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             ChokeRateData = roomData;
             return roomData;
         }
-
-        /// <summary>
-        /// Gets the following data for every room: Golden Entries, Golden Passes, Golden Entries Session, Golden Passes Session
-        /// </summary>
-        public static Dictionary<RoomInfo, Tuple<int, int, int, int>> GetRoomDataInts(PathInfo chapterPath, ChapterStats chapterStats) {
-            Dictionary<RoomInfo, Tuple<int, int, int, int>> roomData = new Dictionary<RoomInfo, Tuple<int, int, int, int>>();
-
-            foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
-                foreach (RoomInfo rInfo in cpInfo.Rooms) {
-
-                    bool pastRoom = false;
-                    int[] goldenDeathsInRoom = new int[] { 0, 0 };
-                    int[] goldenDeathsAfterRoom = new int[] { 0, 0 };
-
-                    foreach (CheckpointInfo cpInfoTemp in chapterPath.Checkpoints) {
-                        foreach (RoomInfo rInfoTemp in cpInfoTemp.Rooms) {
-                            RoomStats rStats = chapterStats.GetRoom(rInfoTemp);
-
-                            if (pastRoom) {
-                                goldenDeathsAfterRoom[0] += rStats.GoldenBerryDeaths;
-                                goldenDeathsAfterRoom[1] += rStats.GoldenBerryDeathsSession;
-                            }
-
-                            if (rInfo == rInfoTemp) {
-                                pastRoom = true;
-                                goldenDeathsInRoom[0] = rStats.GoldenBerryDeaths;
-                                goldenDeathsInRoom[1] = rStats.GoldenBerryDeathsSession;
-                            }
-                        }
-                    }
-
-                    goldenDeathsAfterRoom[0] += chapterStats.GoldenCollectedCount;
-                    goldenDeathsAfterRoom[1] += chapterStats.GoldenCollectedCountSession;
-
-                    //Format
-                    roomData.Add(rInfo, Tuple.Create(goldenDeathsInRoom[0] + goldenDeathsAfterRoom[0],
-                                                            goldenDeathsAfterRoom[0],
-                                                            goldenDeathsInRoom[1] + goldenDeathsAfterRoom[1],
-                                                            goldenDeathsAfterRoom[1]));
-                }
-            }
-
-            return roomData;
-        }
-
 
         /// <summary>
         /// Gets the following data for every room: Golden Entries Session, Golden Success Rate Session

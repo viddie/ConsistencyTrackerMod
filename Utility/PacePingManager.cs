@@ -203,7 +203,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Events.Events.OnChangedRoom -= Events_OnChangedRoom;
             Events.Events.OnEnteredPbRoomWithGolden -= Events_OnEnteredPbRoomWithGolden;
             Events.Events.OnExitedPbRoomWithGolden -= Events_OnExitedPbRoomWithGolden;
-            Events.Events.OnResetRun -= Events_OnResetRun;
+            Events.Events.OnResetSession -= Events_OnResetRun;
             Events.Events.OnRunEnded -= EventsOnRunEnded;
         }
 
@@ -682,36 +682,43 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         public void SendDiscordWebhookMessage(DiscordWebhookRequest request, string url, DiscordWebhookAction action) {
             DiscordWebhookResponse localMessage = EmbedMessage;
             Task.Run(() => {
-                WebClient client = new WebClient();
-                client.Headers.Add("Content-Type", "application/json");
-                string payload = JsonConvert.SerializeObject(request);
+                try {
+                    WebClient client = new WebClient();
+                    client.Headers.Add("Content-Type", "application/json");
 
-                string response;
-                if (localMessage == null || action == DiscordWebhookAction.Separate) {
-                    response = client.UploadString(url + "?wait=true", payload);
-                } else {
-                    if (request.Embeds == null) {
-                        request.Embeds = localMessage.Embeds;
+                    string response;
+                    if (localMessage == null || action == DiscordWebhookAction.Separate) {
+                        string payload = JsonConvert.SerializeObject(request);
+                        response = client.UploadString(url + "?wait=true", payload);
+                    } else {
+                        if (request.Embeds == null) {
+                            request.Embeds = localMessage.Embeds;
+                        }
+                        string payload = JsonConvert.SerializeObject(request);
+                        response = client.UploadString(url + "/messages/" + localMessage.Id + "?wait=true", "PATCH", payload);
                     }
-                    response = client.UploadString(url + "/messages/" + localMessage.Id + "?wait=true", "PATCH", payload);
-                }
 
-                Mod.Log($"Discord webhook response: {response}", isFollowup: true);
+                    Mod.Log($"Discord webhook response: {response}", isFollowup: true);
 
-                DiscordWebhookResponse webhookResponse = JsonConvert.DeserializeObject<DiscordWebhookResponse>(response);
-                if (webhookResponse == null) {
-                    Mod.Log($"Couldn't parse discord webhook response to DiscordWebhookResponse", isFollowup: true);
-                    return;
-                }
+                    DiscordWebhookResponse webhookResponse = JsonConvert.DeserializeObject<DiscordWebhookResponse>(response);
+                    if (webhookResponse == null) {
+                        Mod.Log($"Couldn't parse discord webhook response to DiscordWebhookResponse", isFollowup: true);
+                        return;
+                    }
 
-                switch (action) {
-                    case DiscordWebhookAction.SendUpdate:
-                        EmbedMessage = webhookResponse;
-                        break;
-                    case DiscordWebhookAction.SendFinal:
-                    default:
-                        EmbedMessage = null;
-                        break;
+                    switch (action) {
+                        case DiscordWebhookAction.SendUpdate:
+                            EmbedMessage = webhookResponse;
+                            break;
+                        case DiscordWebhookAction.SendFinal:
+                            EmbedMessage = null;
+                            break;
+                        case DiscordWebhookAction.Separate:
+                            // Keep the tracked embed so end-of-run can still patch it.
+                            break;
+                    }
+                } catch (Exception ex) {
+                    Mod.Log($"An exception occurred while sending webhook ({action}): {ex}", isFollowup: true);
                 }
             });
         }

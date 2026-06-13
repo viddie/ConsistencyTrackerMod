@@ -48,6 +48,9 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
         [JsonProperty("ignoredRooms")]
         public List<string> IgnoredRooms { get; set; } = new List<string>();
+
+        [JsonProperty("trackWingedGolden")]
+        public bool TrackWingedGolden { get; set; } = false;
         
         
         [JsonProperty("tier")]
@@ -183,7 +186,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         /// </summary>
         /// <exception cref="InvalidOperationException">If ChapterSID is not set.</exception>
         public void MakeFgrChanges() {
-            if (ChapterSID == null) {
+            if (ChapterUID == null) {
                 throw new InvalidOperationException();
             }
             

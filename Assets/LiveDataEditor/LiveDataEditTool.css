@@ -116,12 +116,29 @@ a.button:hover {
     resize: none;
     outline: none;
 }
+
 #main-container > textarea {
     height: 200px;
     resize: vertical;
 }
 
+#format-preview {
+  width: 80%;
+  font-family: monospace;   
+  border-radius: 5px;
+  border: 1px solid rgb(5, 5, 5); 
+  padding: 10px;
+  background: rgb(77, 77, 77);
+  overflow-y: auto;   
+  height: 200px;
+  resize: vertical;
+}
 
+#format-preview p {
+  margin: 0;    
+  padding: 0;       
+  font-size: 0.9rem;
+}
 
 #sidebar-right {
     flex: 30;

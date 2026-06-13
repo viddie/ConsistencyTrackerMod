@@ -420,8 +420,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
                 try {
                     path.MakeFgrChanges();
                 } catch (InvalidOperationException) {
-                    Mod.Log($"Stopping FGR creation due to unset ChapterSID in path for UID {uid}.");
-                    ConsolePrint($"Path for UID '{uid}' does not have a ChapterSID set. Please enter the map once for CCT to fix this automatically.");
+                    Mod.Log($"Stopping FGR creation due to unset ChapterUID in path for UID {uid}.");
+                    ConsolePrint($"Path for UID '{uid}' does not have a ChapterUID set. Please enter the map once for CCT to fix this automatically.");
                     return;
                 }
                 
@@ -491,6 +491,16 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             ConsolePrint($"- {string.Join("\n- ", uids)}");
             ConsolePrint($"The list has also been copied to your clipboard.");
             TextInput.SetClipboardText(string.Join("\n", uids));
+        }
+        
+        [Command("cct-group-rooms", "Groups the current and previous room. Shorthand for the respective Mod Option.")]
+        public static void CctGroupRooms() {
+            ConsistencyTrackerModule.Instance.GroupRoomsOnChapterPath();
+        }
+        
+        [Command("cct-ungroup-rooms", "Ungroups the current and previous room. Shorthand for the respective Mod Option.")]
+        public static void CctUngroupRooms() {
+            ConsistencyTrackerModule.Instance.UngroupRoomsOnChapterPath();
         }
 
         private static string[] GetAllChapterUidsInCampaign() {

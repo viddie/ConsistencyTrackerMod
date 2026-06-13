@@ -23,6 +23,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
      {checkpoint:name} path+
      {checkpoint:abbreviation} path+
+     {checkpoint:number} path+
+     {checkpoint:count} path
      {checkpoint:goldenDeaths} path+
      {checkpoint:goldenDeathsSession} path+
      {checkpoint:goldenChance} path+
@@ -45,6 +47,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public static string CheckpointName = "{checkpoint:name}";
         public static string CheckpointAbbreviation = "{checkpoint:abbreviation}";
+        public static string CheckpointNumber = "{checkpoint:number}";
+        public static string CheckpointCount = "{checkpoint:count}";
         public static string CheckpointGoldenDeaths = "{checkpoint:goldenDeaths}";
         public static string CheckpointGoldenDeathsSession = "{checkpoint:goldenDeathsSession}";
         public static string CheckpointGoldenChance = "{checkpoint:goldenChance}";
@@ -61,7 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             //PlayerHoldingGolden,
             //ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomName, /*RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,*/
-            CheckpointName, CheckpointAbbreviation, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
+            CheckpointName, CheckpointAbbreviation, CheckpointNumber, CheckpointCount, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
             /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
             //CampaignName
             SaveStateRoomName,
@@ -76,6 +80,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = StatManager.MissingPathFormat(format, CheckpointName);
                 format = StatManager.MissingPathFormat(format, CheckpointAbbreviation);
+                format = StatManager.MissingPathFormat(format, CheckpointNumber);
+                format = StatManager.MissingPathFormat(format, CheckpointCount);
                 format = StatManager.MissingPathFormat(format, CheckpointGoldenDeaths);
                 format = StatManager.MissingPathFormat(format, CheckpointGoldenDeathsSession);
                 format = StatManager.MissingPathFormat(format, CheckpointGoldenChance);
@@ -93,12 +99,14 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             format = format.Replace(ChapterGoldenDeaths, $"{chapterPath.Stats.GoldenBerryDeaths}");
             format = format.Replace(ChapterGoldenDeathsSession, $"{chapterPath.Stats.GoldenBerryDeathsSession}");
             format = format.Replace(ChapterGoldenChance, $"{StatManager.FormatPercentage(chapterPath.Stats.GoldenChance)}");
+            format = format.Replace(CheckpointCount, $"{chapterPath.Checkpoints.Count}");
 
             if (chapterPath.CurrentRoom == null) { //Not on path
                 format = StatManager.NotOnPathFormat(format, RoomName, "--");
 
                 format = StatManager.NotOnPathFormat(format, CheckpointName);
                 format = StatManager.NotOnPathFormat(format, CheckpointAbbreviation);
+                format = StatManager.NotOnPathFormat(format, CheckpointNumber);
                 format = StatManager.NotOnPathFormat(format, CheckpointGoldenDeaths);
                 format = StatManager.NotOnPathFormat(format, CheckpointGoldenDeathsSession);
                 format = StatManager.NotOnPathFormatPercent(format, CheckpointGoldenChance);
@@ -112,6 +120,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = format.Replace(CheckpointName, $"{cpInfo.Name}");
                 format = format.Replace(CheckpointAbbreviation, $"{cpInfo.Abbreviation}");
+                format = format.Replace(CheckpointNumber, $"{cpInfo.CPNumberInChapter}");
                 format = format.Replace(CheckpointGoldenDeaths, $"{cpInfo.Stats.GoldenBerryDeaths}");
                 format = format.Replace(CheckpointGoldenDeathsSession, $"{cpInfo.Stats.GoldenBerryDeathsSession}");
                 format = format.Replace(CheckpointGoldenChance, $"{StatManager.FormatPercentage(cpInfo.Stats.GoldenChance)}");
@@ -156,6 +165,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 new KeyValuePair<string, string>(CheckpointName, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_NAME")),
                 new KeyValuePair<string, string>(CheckpointAbbreviation, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_ABBREVIATION")),
+                new KeyValuePair<string, string>(CheckpointNumber, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_NUMBER")),
+                new KeyValuePair<string, string>(CheckpointCount, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_COUNT")),
                 new KeyValuePair<string, string>(CheckpointGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS")),
                 new KeyValuePair<string, string>(CheckpointGoldenDeathsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_DEATHS_SESSION")),
                 new KeyValuePair<string, string>(CheckpointGoldenChance, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHECKPOINT_GOLDEN_CHANCE")),
