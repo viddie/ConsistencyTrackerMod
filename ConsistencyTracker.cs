@@ -1205,7 +1205,6 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             IngameOverlay = level.Tracker.GetEntity<TextOverlay>();
             SummaryOverlay = level.Tracker.GetEntity<SummaryHud>();
-            GraphOverlay = level.Tracker.GetEntity<GraphOverlay>();
 
             PreviousRoomName = (string) savedvalues[type][nameof(PreviousRoomName)];
             CurrentRoomName = (string) savedvalues[type][nameof(CurrentRoomName)];

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Celeste.Mod.ConsistencyTracker.Entities;
 using MonoMod.ModInterop;
 
 namespace Celeste.Mod.ConsistencyTracker.ThirdParty {
@@ -19,6 +20,11 @@ namespace Celeste.Mod.ConsistencyTracker.ThirdParty {
             ConsistencyTrackerModule.Instance.Log("SpeedunTool was loaded!");
             
             Action = SpeedrunToolImport.RegisterSaveLoadAction(SaveState, LoadState, ClearState, null, null, null);
+            AddCustomDeepCloneProcessor((obj) =>
+            {
+                if (obj == null || obj.GetType() != typeof(GraphOverlay)) return null;
+                return obj;
+            });
         }
 
         public static void Unload() {
@@ -40,6 +46,12 @@ namespace Celeste.Mod.ConsistencyTracker.ThirdParty {
             //Logger.Log(nameof(ConsistencyTrackerModule), "clearState called!");
             ConsistencyTrackerModule.Instance.SpeedrunToolClearState();
         }
+
+        public static void AddCustomDeepCloneProcessor(Func<object, object> processor)
+        {
+            if (!SpeedrunToolInstalled) return;
+            SpeedrunToolImport.AddCustomDeepCloneProcessor(processor);
+        }
     }
     
     [ModImportName("SpeedrunTool.SaveLoad")]
@@ -52,5 +64,7 @@ namespace Celeste.Mod.ConsistencyTracker.ThirdParty {
         public static Action<object> Unregister;
     
         public static Func<object, object> DeepClone;
+
+        public static Action<Func<object, object>> AddCustomDeepCloneProcessor;
     }
 }
