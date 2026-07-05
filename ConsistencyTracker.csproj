@@ -39,14 +39,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="$(CelestePrefix)\Celeste.exe">
-      <Private>false</Private>
+    <Reference Include="Celeste">
+      <HintPath>$(CelestePrefix)\Celeste.exe</HintPath>
     </Reference>
-    <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
-      <Private>false</Private>
+    <Reference Include="MMHOOK_Celeste">
+      <HintPath>$(CelestePrefix)\MMHOOK_Celeste.dll</HintPath>
     </Reference>
-    <Reference Include="$(StrippedLibraries)\SpeedrunTool.SpeedrunTool.dll">
-      <Private>false</Private>
+    <Reference Include="SpeedrunTool.SpeedrunTool">
+      <HintPath>$(StrippedLibraries)\SpeedrunTool.SpeedrunTool.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
   </ItemGroup>
