@@ -42,7 +42,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         // Tuple items:
         // 1. Line text
         // 2. Line color
-        private List<Tuple<string, Color?>> TextLines { get; set; }
+        private List<Tuple<string, Color?>> TextLines { get; set; } = new List<Tuple<string, Color?>>();
 
         public bool DebugShowPosition { get; set; }
 
@@ -161,6 +161,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         public override void Render() {
             Vector2 pointer = new Vector2(PosX, PosY);
             pointer.Y -= YOffset;
+
+            if (TextLines == null) return;
 
             for (int i = 0; i < TextLines.Count; i++) {
                 Tuple<string, Color?> line = TextLines[i];
