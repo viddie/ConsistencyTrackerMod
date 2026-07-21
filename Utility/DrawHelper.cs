@@ -54,7 +54,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             //    $"\n{matrix}" +
             //    $"\nEngine.ScreenMatrix.Translation: {m.Translation}");
 
-            DrawVertices(Matrix.Identity, vertices);
+            DrawVertices(m.M11 > 1.0001f ? Engine.ScreenMatrix : Matrix.Identity, vertices);
         }
 
         public static void DrawVertices(Matrix mat, VertexPositionColor[] vertices) {
