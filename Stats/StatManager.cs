@@ -419,6 +419,15 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             Mod.SaveChapterStats();
             return true;
         }
+
+        /// <summary>
+        /// Resets the caches used by stats shown in the graph overlay.
+        /// Currently, resets cache for `ChokeRateStat` and `SuccessRateStat`.
+        /// </summary>
+        public static void InvalidateCachedStats() {
+            ChokeRateStat.InvalidateCache();
+            SuccessRateStat.InvalidateCache();
+        }
         #endregion
 
         #region Format file IO

@@ -161,10 +161,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     if (showSuccessRateColors) {
                         barHeight = Math.Max(3, barHeight);
 
-                        if (ChokeRateData.ContainsKey(rInfo)) {
-                            RoomStats data = stats.GetRoom(rInfo);
-                            int attemptCount = StatManager.AttemptCount;
-                            float successRate = data.AverageSuccessOverN(attemptCount);
+                        if (SuccessRateData.ContainsKey(rInfo)) {
+                            float successRate = SuccessRateData[rInfo];
                             if (float.IsNaN(successRate)) {
                                 barColor = Color.Gray;
                             } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {

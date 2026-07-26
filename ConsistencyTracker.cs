@@ -858,7 +858,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void EventsOnRunEnded(bool died, bool won) {
-            ChokeRateStat.ChokeRateData = null; //Reset caching
+            StatManager.InvalidateCachedStats();
             IngameOverlay?.SetGoldenState(false);
         }
         private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
@@ -930,8 +930,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             //fix for SpeedrunTool savestate inconsistency
             TouchedBerries.Clear();
             
-            //Reset caching of choke rate data
-            ChokeRateStat.ChokeRateData = null;
+            //Reset caching
+            StatManager.InvalidateCachedStats();
             
             //Cause initial stats calculation
             SetNewRoom(CurrentRoomName, false);
@@ -1591,7 +1591,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             //Reset cached choke rate data for graph
-            ChokeRateStat.ChokeRateData = null;
+            ChokeRateStat.InvalidateCache();
             SaveChapterStats();
         }
         public void WipeChapterGoldenBerryDeaths() {
