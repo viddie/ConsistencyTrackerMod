@@ -29,6 +29,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static int BackgroundDim => Mod.ModSettings.IngameOverlayGraphBackgroundDim;
 
         private Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData { get; set; }
+        private Dictionary<RoomInfo, float> SuccessRateData { get; set; }
         private int HighestDifficulty { get; set; }
         private RoomInfo PbRoom { get; set; }
         private RoomInfo PbRoomSession { get; set; }
@@ -55,6 +56,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (path == null || stats == null) return;
             
             ChokeRateData = ChokeRateStat.GetRoomData(path, stats);
+            SuccessRateData = SuccessRateStat.GetRoomData(path, stats);
             PbRoom = StatsUtil.GetFurthestGoldenRun(path, stats);
             PbRoomSession = StatsUtil.GetFurthestGoldenRunSession(path, stats);
             
