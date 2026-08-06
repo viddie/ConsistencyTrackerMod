@@ -44,6 +44,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
 
         private void EventsOnAfterSavingStats() {
+            StatManager.InvalidateCachedStats();
             UpdateOverlay();
         }
 
