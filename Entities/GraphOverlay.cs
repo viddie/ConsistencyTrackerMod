@@ -14,6 +14,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static readonly int WIDTH = 1920;
         private static readonly int HEIGHT = 1080;
 
+        // red, yellow, green, lightgreen, then versions for past rooms.
+        private static readonly Color[] SUCCESS_RATE_COLORS = {
+            Color.Red, Color.Yellow, Color.Green, Color.LightGreen,
+            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0)
+        };
+
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         private static bool Enabled => Mod.ModSettings.IngameOverlayGraphEnabled;
@@ -166,18 +172,24 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                             float successRate = SuccessRateData[rInfo];
                             if (float.IsNaN(successRate)) {
                                 barColor = Color.Gray;
-                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {
-                                // Light green
-                                barColor = Color.LightGreen;
-                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - 0.001)) {
-                                // Green
-                                barColor = Color.Green;
-                            } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - 0.001)) {
-                                // Yellow
-                                barColor = Color.Yellow;
                             } else {
-                                // Red
-                                barColor = Color.Red;
+                                int color_index;
+                                if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {
+                                    color_index = 3;
+                                } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - 0.001)) {
+                                    color_index = 2;
+                                } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - 0.001)) {
+                                    color_index = 1;
+                                } else {
+                                    color_index = 0;
+                                }
+
+                                if (!currentRoomIndicatorExplicit && !visitedCurrent) {
+                                    // Use alternate color for visited rooms.
+                                    color_index += 4;
+                                }
+
+                                barColor = SUCCESS_RATE_COLORS[color_index];
                             }
 
                         }
