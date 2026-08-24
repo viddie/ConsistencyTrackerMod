@@ -14,10 +14,11 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static readonly int WIDTH = 1920;
         private static readonly int HEIGHT = 1080;
 
-        // red, yellow, green, lightgreen, then versions for past rooms.
+        // red, yellow, green, lightgreen
         private static readonly Color[] SUCCESS_RATE_COLORS = {
-            Color.Red, Color.Yellow, Color.Green, Color.LightGreen,
-            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0)
+            Color.Red, Color.Yellow, Color.Green, Color.LightGreen, // STANDARD
+            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // DIM
+            new Color(254, 85, 68), new Color(255, 255, 255), new Color(70, 138, 65), new Color(185, 247, 183) // BRIGHT
         };
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
@@ -163,6 +164,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     if (!visitedCurrent) {
                         barColor = Color.Gray;
                     }
+                    bool isCurrentRoom = currentRoom != null && rInfo.RoomNumberInChapter == currentRoom.RoomNumberInChapter;
 
                     //Color code for success rate display
                     if (showSuccessRateColors) {
@@ -184,9 +186,12 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                                     color_index = 0;
                                 }
 
-                                if (!currentRoomIndicatorExplicit && !visitedCurrent) {
-                                    // Use alternate color for visited rooms.
-                                    color_index += 4;
+                                if (!currentRoomIndicatorExplicit) {
+                                    if (!visitedCurrent) {
+                                        color_index += 4;
+                                    } else if (isCurrentRoom && Scene.RawTimeActive - Math.Truncate(Scene.RawTimeActive) < 0.5) {
+                                        color_index += 8;
+                                    }
                                 }
 
                                 barColor = SUCCESS_RATE_COLORS[color_index];
@@ -237,7 +242,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     }
                     
                     //Current room indicator
-                    if (currentRoom != null && rInfo.RoomNumberInChapter == currentRoom.RoomNumberInChapter && currentRoomIndicatorExplicit) {
+                    if (isCurrentRoom && currentRoomIndicatorExplicit) {
                         int heightOffset = ShowGoldenPbBar ? 3 + 1 : 0;
                         Draw.Rect(paddingX + position.X + (barWidth * barsDrawn) + (BarSpacing * barsDrawn) + beforeBarsOffset, 
                                   position.Y + availableBarHeight + heightOffset + 1,
