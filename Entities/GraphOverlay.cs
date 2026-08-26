@@ -175,29 +175,29 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                             if (float.IsNaN(successRate)) {
                                 barColor = Color.Gray;
                             } else {
-                                int color_index;
+                                int colorIndex;
                                 if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {
-                                    color_index = 3;
+                                    colorIndex = 3;
                                 } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - 0.001)) {
-                                    color_index = 2;
+                                    colorIndex = 2;
                                 } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - 0.001)) {
-                                    color_index = 1;
+                                    colorIndex = 1;
                                 } else {
-                                    color_index = 0;
+                                    colorIndex = 0;
                                 }
 
                                 if (currentRoomIndicatorExplicit) {
-                                    barColor = SUCCESS_RATE_COLORS[color_index];
+                                    barColor = SUCCESS_RATE_COLORS[colorIndex];
                                 } else {
                                     if (isCurrentRoom) {
                                         // Current room; blink
                                         float t = ((float) Math.Sin(Scene.RawTimeActive * 3.14f)) * 0.5f + 0.5f;
-                                        var baseColor = SUCCESS_RATE_COLORS[color_index];
-                                        var brightColor = SUCCESS_RATE_COLORS[color_index + 8];
+                                        var baseColor = SUCCESS_RATE_COLORS[colorIndex];
+                                        var brightColor = SUCCESS_RATE_COLORS[colorIndex + 8];
                                         barColor = Util.LerpColors(baseColor, brightColor, t);
-                                        color_index += 8;
+                                        colorIndex += 8;
                                     } else {
-                                        barColor = SUCCESS_RATE_COLORS[color_index + (visitedCurrent ? 0 : 4)];
+                                        barColor = SUCCESS_RATE_COLORS[colorIndex + (visitedCurrent ? 0 : 4)];
                                     }
                                 }
                             }
