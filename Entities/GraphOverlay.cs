@@ -18,7 +18,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static readonly Color[] SUCCESS_RATE_COLORS = {
             Color.Red, Color.Yellow, Color.Green, Color.LightGreen, // STANDARD
             new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // DIM
-            new Color(254, 85, 68), new Color(255, 255, 255), new Color(70, 138, 65), new Color(185, 247, 183) // BRIGHT
+            new Color(255, 91, 58), new Color(255, 255, 128), new Color(78, 153, 63), new Color(180, 244, 177) // BRIGHT
         };
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
@@ -186,15 +186,20 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                                     color_index = 0;
                                 }
 
-                                if (!currentRoomIndicatorExplicit) {
-                                    if (!visitedCurrent) {
-                                        color_index += 4;
-                                    } else if (isCurrentRoom && Scene.RawTimeActive - Math.Truncate(Scene.RawTimeActive) < 0.5) {
+                                if (currentRoomIndicatorExplicit) {
+                                    barColor = SUCCESS_RATE_COLORS[color_index];
+                                } else {
+                                    if (isCurrentRoom) {
+                                        // Current room; blink
+                                        float t = ((float) Math.Sin(Scene.RawTimeActive * 3.14f)) * 0.5f + 0.5f;
+                                        var baseColor = SUCCESS_RATE_COLORS[color_index];
+                                        var brightColor = SUCCESS_RATE_COLORS[color_index + 8];
+                                        barColor = Util.LerpColors(baseColor, brightColor, t);
                                         color_index += 8;
+                                    } else {
+                                        barColor = SUCCESS_RATE_COLORS[color_index + (visitedCurrent ? 0 : 4)];
                                     }
                                 }
-
-                                barColor = SUCCESS_RATE_COLORS[color_index];
                             }
 
                         }
