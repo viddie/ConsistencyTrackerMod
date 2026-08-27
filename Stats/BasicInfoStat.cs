@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,6 +55,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
         public static string ChapterGoldenDeaths = "{chapter:goldenDeaths}";
         public static string ChapterGoldenDeathsSession = "{chapter:goldenDeathsSession}";
+        public static string ChapterGoldenRuns = "{chapter:goldenRuns}";
+        public static string ChapterGoldenRunsSession = "{chapter:goldenRunsSession}";
         public static string ChapterGoldenChance = "{chapter:goldenChance}";
         
         public static string SaveStateRoomName = "{savestate:roomName}";
@@ -66,7 +68,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             //ModTrackingPaused, ModRecordingPath, ModModVersion, ModOverlayVersion,
             RoomName, /*RoomDebugName, RoomGoldenDeaths, RoomGoldenDeathsSession,*/
             CheckpointName, CheckpointAbbreviation, CheckpointNumber, CheckpointCount, CheckpointGoldenDeaths, CheckpointGoldenDeathsSession, CheckpointGoldenChance,
-            /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenChance,
+            /*ChapterName, ChapterDebugName,*/ ChapterGoldenDeaths, ChapterGoldenDeathsSession, ChapterGoldenRuns, ChapterGoldenRunsSession, ChapterGoldenChance,
             //CampaignName
             SaveStateRoomName,
             PathSegmentName,
@@ -88,6 +90,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
                 format = StatManager.MissingPathFormat(format, ChapterGoldenDeaths);
                 format = StatManager.MissingPathFormat(format, ChapterGoldenDeathsSession);
+                format = StatManager.MissingPathFormat(format, ChapterGoldenRuns);
+                format = StatManager.MissingPathFormat(format, ChapterGoldenRunsSession);
                 format = StatManager.MissingPathFormat(format, ChapterGoldenChance);
 
                 format = StatManager.MissingPathFormat(format, PathSegmentName);
@@ -98,6 +102,9 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             format = format.Replace(ChapterGoldenDeaths, $"{chapterPath.Stats.GoldenBerryDeaths}");
             format = format.Replace(ChapterGoldenDeathsSession, $"{chapterPath.Stats.GoldenBerryDeathsSession}");
+            int currentRunOffset = chapterStats.ModState.PlayerIsHoldingGolden && !chapterStats.GoldenCollectedThisRun ? 1 : 0;
+            format = format.Replace(ChapterGoldenRuns, $"{chapterPath.Stats.GoldenBerryDeaths + chapterStats.GoldenCollectedCount + currentRunOffset}");
+            format = format.Replace(ChapterGoldenRunsSession, $"{chapterPath.Stats.GoldenBerryDeathsSession + chapterStats.GoldenCollectedCountSession + currentRunOffset}");
             format = format.Replace(ChapterGoldenChance, $"{StatManager.FormatPercentage(chapterPath.Stats.GoldenChance)}");
             format = format.Replace(CheckpointCount, $"{chapterPath.Checkpoints.Count}");
 
@@ -160,6 +167,8 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
                 new KeyValuePair<string, string>(BasicPathlessInfo.ChapterSanitizedSID, $"[{Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_DEV")}] {Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID")}"),
                 new KeyValuePair<string, string>(ChapterGoldenDeaths, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS")),
                 new KeyValuePair<string, string>(ChapterGoldenDeathsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS_SESSION")),
+                new KeyValuePair<string, string>(ChapterGoldenRuns, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_RUNS")),
+                new KeyValuePair<string, string>(ChapterGoldenRunsSession, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_RUNS_SESSION")),
                 new KeyValuePair<string, string>(ChapterGoldenChance, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_CHANCE")),
                 new KeyValuePair<string, string>(LiveProgressStat.ChapterRoomCount, Dialog.Clean("CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_ROOM_COUNT")),
 

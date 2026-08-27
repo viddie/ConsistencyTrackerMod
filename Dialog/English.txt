@@ -723,6 +723,8 @@ CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SID= SID of chapter
 CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_SANITIZED_SID= Dialog sanitized SID of chapter
 CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS= Golden Deaths in the chapter
 CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_DEATHS_SESSION= Golden Deaths in the chapter in the current session
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_RUNS= Golden runs in the chapter, including collected goldens and the current run while holding a golden berry
+CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_RUNS_SESSION= Golden runs in the chapter in the current session, including collected goldens and the current run while holding a golden berry
 CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_GOLDEN_CHANCE= Golden Chance of the chapter
 CCT_STAT_BASIC_INFO_EXPLANATIONS_CHAPTER_ROOM_COUNT= Count of rooms in the chapter
 
