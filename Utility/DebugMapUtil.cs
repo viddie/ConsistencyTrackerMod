@@ -214,7 +214,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             LevelTemplate template = FindLevelTemplateByPoint(levels, point);
 
             if (template != null) {
-                Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints and {template.Spawns.Count} respawns");
+                Mod.Log($"Clicked on {template.Name} ({template.X}, {template.Y}): Room contains {template.Checkpoints.Count} checkpoints");
 
                 if (PathRec.ContainsRoom(template.Name)) {
                     if (PathRec.IsTransitionRoom(template.Name)) {
