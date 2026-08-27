@@ -20,7 +20,7 @@
     <CelesteType Condition="'$(CelesteType)' == ''">FNA</CelesteType>
     <XNAPath Condition="'$(XNAPath)' == ''">$(WINDIR)\Microsoft.NET\assembly\GAC_32\{0}\v4.0_4.0.0.0__842cf8be1de50553\{0}.dll</XNAPath>
   </PropertyGroup>
-	
+  
   <Target Name="CheckCoreInstall" BeforeTargets="PrepareForBuild" Condition="$(CelesteIsCore)">
     <Error Condition="!Exists('$(CelestePrefix)')" Text="Detected a .NET Core Everest install without the required legacyRef install needed to build .NET Framework mods - see the Everest wiki (https://github.com/EverestAPI/Resources/wiki/Code-Mod-Core-Migration-Guide) for info on how to set it up" />
     <Message Text="Building against .NET Core Everest legacyRef install" Importance="high" />
@@ -39,14 +39,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Celeste">
-      <HintPath>$(CelestePrefix)\Celeste.exe</HintPath>
+    <Reference Include="$(StrippedLibraries)\Celeste.exe">
+      <Private>false</Private>
     </Reference>
-    <Reference Include="MMHOOK_Celeste">
-      <HintPath>$(CelestePrefix)\MMHOOK_Celeste.dll</HintPath>
-    </Reference>
-    <Reference Include="SpeedrunTool.SpeedrunTool">
-      <HintPath>$(StrippedLibraries)\SpeedrunTool.SpeedrunTool.dll</HintPath>
+    <Reference Include="$(StrippedLibraries)\MMHOOK_Celeste.dll">
+      <Private>false</Private>
     </Reference>
     <Reference Include="System.Web" />
   </ItemGroup>
