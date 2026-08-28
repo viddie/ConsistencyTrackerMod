@@ -1059,8 +1059,8 @@ namespace Celeste.Mod.ConsistencyTracker {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
                     if (rInfo.GroupedRooms == null || !rInfo.GroupedRooms.Contains(splitRoomName.Item2)) continue;
                     if (splitRoomName.Item1 == "Not FGR") return rInfo.DebugRoomName;
-                    Tuple<string, string> splitDebugRoomName = SplitFgrRoomName(rInfo.DebugRoomName);
-                    if (splitDebugRoomName.Item1 == splitRoomName.Item1) {
+                    Tuple<string, string> currentFgrRoomName = SplitFgrRoomName(rInfo.DebugRoomName);
+                    if (currentFgrRoomName.Item1 == splitRoomName.Item1) {
                         return rInfo.DebugRoomName;
                     }
                 }
