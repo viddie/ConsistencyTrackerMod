@@ -1037,17 +1037,30 @@ namespace Celeste.Mod.ConsistencyTracker {
             return roomName.Split(':')[1];
         }
 
+        public static Tuple<string, string> SplitFgrRoomName(string roomName) {
+            if (!roomName.Contains(":")) return Tuple.Create("Not FGR", roomName);
+            string[] splitRoomName = roomName.Split(':');
+            return Tuple.Create(splitRoomName[0], splitRoomName[1]);
+        }
+
         public string ResolveGroupedRoomName(string roomName) {
             if (CurrentChapterPath == null) {
                 return roomName;
             }
 
+            Tuple<string, string> splitRoomName = SplitFgrRoomName(roomName);
+
             //Loop through path and see if any room on the path has the roomName as grouped room
             //If yes, return that room
             //If no, return roomName
+            //Additionally checks if the chapter uids are the same
+            //This prevents grouped rooms named the same appearing in the wrong chapter
             foreach (CheckpointInfo cpInfo in CurrentChapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    if (rInfo.GroupedRooms != null && rInfo.GroupedRooms.Contains(roomName)) {
+                    if (rInfo.GroupedRooms == null || !rInfo.GroupedRooms.Contains(splitRoomName.Item2)) continue;
+                    if (splitRoomName.Item1 == "Not FGR") return rInfo.DebugRoomName;
+                    Tuple<string, string> currentFgrRoomName = SplitFgrRoomName(rInfo.DebugRoomName);
+                    if (currentFgrRoomName.Item1 == splitRoomName.Item1) {
                         return rInfo.DebugRoomName;
                     }
                 }
