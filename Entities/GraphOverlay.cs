@@ -17,8 +17,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         // red, yellow, green, lightgreen
         private static readonly Color[] SUCCESS_RATE_COLORS = {
             Color.Red, Color.Yellow, Color.Green, Color.LightGreen, // STANDARD
-            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // DIM
-            new Color(255, 91, 58), new Color(255, 255, 128), new Color(78, 153, 63), new Color(180, 244, 177) // BRIGHT
+            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // VISITED
         };
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
@@ -193,9 +192,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                                         // Current room; blink
                                         float t = ((float) Math.Sin(Scene.RawTimeActive * 3.14f)) * 0.5f + 0.5f;
                                         var baseColor = SUCCESS_RATE_COLORS[colorIndex];
-                                        var brightColor = SUCCESS_RATE_COLORS[colorIndex + 8];
-                                        barColor = Util.LerpColors(baseColor, brightColor, t);
-                                        colorIndex += 8;
+                                        var brightColor = SUCCESS_RATE_COLORS[colorIndex + 4];
+                                        barColor = Util.LerpColors(brightColor, baseColor, t);
                                     } else {
                                         barColor = SUCCESS_RATE_COLORS[colorIndex + (visitedCurrent ? 0 : 4)];
                                     }
