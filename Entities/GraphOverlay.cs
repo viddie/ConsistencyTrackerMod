@@ -19,6 +19,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             Color.Red, Color.Yellow, Color.Green, Color.LightGreen, // STANDARD
             new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // VISITED
         };
+        private static int roomLastFrame = 0;
+        private static float blinkT = 0.0f;
 
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
@@ -190,10 +192,19 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                                 } else {
                                     if (isCurrentRoom) {
                                         // Current room; blink
-                                        float t = ((float) Math.Sin(Scene.RawTimeActive * 3.14f)) * 0.5f + 0.5f;
+                                        blinkT += Engine.RawDeltaTime * 3.1415f;
+                                        if (roomLastFrame < rInfo.RoomNumberInChapter) {
+                                            // Went backwards.
+                                            blinkT = 0.0f;
+                                        } else if (roomLastFrame > rInfo.RoomNumberInChapter) {
+                                            // Went forwards.
+                                            blinkT = 3.1415f;
+                                        }
+                                        float t = ((float) Math.Cos(blinkT)) * 0.5f + 0.5f;
                                         var baseColor = SUCCESS_RATE_COLORS[colorIndex];
                                         var brightColor = SUCCESS_RATE_COLORS[colorIndex + 4];
                                         barColor = Util.LerpColors(brightColor, baseColor, t);
+                                        roomLastFrame = rInfo.RoomNumberInChapter;
                                     } else {
                                         barColor = SUCCESS_RATE_COLORS[colorIndex + (visitedCurrent ? 0 : 4)];
                                     }
