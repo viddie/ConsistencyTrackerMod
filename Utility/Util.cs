@@ -189,5 +189,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
+        public static Color LerpColors(Color a, Color b, float t) {
+            float am = 1.0f - t;
+            return new Color((int) (a.R * am + b.R * t), (int) (a.G * am + b.G * t), (int) (a.B * am + b.B * t), (int) (a.A * am + b.A * t));
+        }
+
     }
 }

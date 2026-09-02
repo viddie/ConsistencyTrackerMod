@@ -80,6 +80,34 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
+        private static Dictionary<RoomInfo, float> SuccessRateData = null;
+        /// <summary>
+        /// Gets the success rate data (based on fraction of successes in latest `StatManager.AttemptCount` attempts) for each room.
+        /// </summary>
+        public static Dictionary<RoomInfo, float> GetRoomData(PathInfo chapterPath, ChapterStats chapterStats) {
+            if (SuccessRateData != null) return SuccessRateData;
+
+            int attemptCount = StatManager.AttemptCount;
+            var roomData = new Dictionary<RoomInfo, float>();
+
+            foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
+                foreach (RoomInfo rInfo in cpInfo.Rooms) {
+                    RoomStats data = chapterStats.GetRoom(rInfo);
+                    float successRate = data.AverageSuccessOverN(attemptCount);
+                    roomData.Add(rInfo, successRate);
+                }
+            }
+
+            SuccessRateData = roomData;
+            return roomData;
+        }
+        /// <summary>
+        /// Deletes cached room success rate data, resulting in it being recomputed next time it is requested.
+        /// </summary>
+        public static void InvalidateCache() {
+            SuccessRateData = null;
+        }
+
 
         //success-rate;Room SR: {room:successRate} | CP: {checkpoint:successRate} | Total: {chapter:successRate}
         public override List<KeyValuePair<string, string>> GetPlaceholderExplanations() {

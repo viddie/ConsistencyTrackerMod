@@ -14,6 +14,14 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static readonly int WIDTH = 1920;
         private static readonly int HEIGHT = 1080;
 
+        // red, yellow, green, lightgreen
+        private static readonly Color[] SUCCESS_RATE_COLORS = {
+            Color.Red, Color.Yellow, Color.Green, Color.LightGreen, // STANDARD
+            new Color(105, 0, 0), new Color(100, 99, 0), new Color(0, 47, 0), new Color(0, 101, 0), // VISITED
+        };
+        private static int roomLastFrame = 0;
+        private static float blinkT = 0.0f;
+
         private static ConsistencyTrackerModule Mod => ConsistencyTrackerModule.Instance;
 
         private static bool Enabled => Mod.ModSettings.IngameOverlayGraphEnabled;
@@ -29,6 +37,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         private static int BackgroundDim => Mod.ModSettings.IngameOverlayGraphBackgroundDim;
 
         private Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData { get; set; }
+        private Dictionary<RoomInfo, float> SuccessRateData { get; set; }
         private int HighestDifficulty { get; set; }
         private RoomInfo PbRoom { get; set; }
         private RoomInfo PbRoomSession { get; set; }
@@ -43,6 +52,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
 
         private void EventsOnAfterSavingStats() {
+            StatManager.InvalidateCachedStats();
             UpdateOverlay();
         }
 
@@ -55,6 +65,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (path == null || stats == null) return;
             
             ChokeRateData = ChokeRateStat.GetRoomData(path, stats);
+            SuccessRateData = SuccessRateStat.GetRoomData(path, stats);
             PbRoom = StatsUtil.GetFurthestGoldenRun(path, stats);
             PbRoomSession = StatsUtil.GetFurthestGoldenRunSession(path, stats);
             
@@ -121,6 +132,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             int availableBarHeight = Height - (ShowGoldenPbBar ? 3 + 1 : 0) - (currentRoomIndicatorExplicit ? 3 + 1 : 0);
             int barWidth = (availableBarWidth - ((barCount - 1) * BarSpacing)) / barCount;
             int paddingX = (availableBarWidth - (barWidth * barCount) - ((barCount - 1) * BarSpacing)) / 2;
+
+            bool showSuccessRateColors = Mod.ModSettings.IngameOverlayGraphShowSuccessRateColors;
             
             //Walk path and draw the bars
             int barsDrawn = 0;
@@ -151,6 +164,54 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     visitedCurrent = rInfo.RoomNumberInChapter == currentRoomNumber || visitedCurrent;
                     if (!visitedCurrent) {
                         barColor = Color.Gray;
+                    }
+                    bool isCurrentRoom = currentRoom != null && rInfo.RoomNumberInChapter == currentRoom.RoomNumberInChapter;
+
+                    //Color code for success rate display
+                    if (showSuccessRateColors) {
+                        barHeight = Math.Max(3, barHeight);
+
+                        if (SuccessRateData.ContainsKey(rInfo)) {
+                            float successRate = SuccessRateData[rInfo];
+                            if (float.IsNaN(successRate)) {
+                                barColor = Color.Gray;
+                            } else {
+                                int colorIndex;
+                                if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarLightGreenPercent / 100 - 0.001)) {
+                                    colorIndex = 3;
+                                } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarGreenPercent / 100 - 0.001)) {
+                                    colorIndex = 2;
+                                } else if (successRate > ((float)Mod.ModSettings.LiveDataChapterBarYellowPercent / 100 - 0.001)) {
+                                    colorIndex = 1;
+                                } else {
+                                    colorIndex = 0;
+                                }
+
+                                if (currentRoomIndicatorExplicit) {
+                                    barColor = SUCCESS_RATE_COLORS[colorIndex];
+                                } else {
+                                    if (isCurrentRoom) {
+                                        // Current room; blink
+                                        blinkT += Engine.RawDeltaTime * 3.1415f;
+                                        if (roomLastFrame < rInfo.RoomNumberInChapter) {
+                                            // Went backwards.
+                                            blinkT = 0.0f;
+                                        } else if (roomLastFrame > rInfo.RoomNumberInChapter) {
+                                            // Went forwards.
+                                            blinkT = 3.1415f;
+                                        }
+                                        float t = ((float) Math.Cos(blinkT)) * 0.5f + 0.5f;
+                                        var baseColor = SUCCESS_RATE_COLORS[colorIndex];
+                                        var brightColor = SUCCESS_RATE_COLORS[colorIndex + 4];
+                                        barColor = Util.LerpColors(brightColor, baseColor, t);
+                                        roomLastFrame = rInfo.RoomNumberInChapter;
+                                    } else {
+                                        barColor = SUCCESS_RATE_COLORS[colorIndex + (visitedCurrent ? 0 : 4)];
+                                    }
+                                }
+                            }
+
+                        }
                     }
                     
                     //Draw checkpoint indicator over the empty space before this bar
@@ -195,7 +256,7 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     }
                     
                     //Current room indicator
-                    if (currentRoom != null && rInfo.RoomNumberInChapter == currentRoom.RoomNumberInChapter && currentRoomIndicatorExplicit) {
+                    if (isCurrentRoom && currentRoomIndicatorExplicit) {
                         int heightOffset = ShowGoldenPbBar ? 3 + 1 : 0;
                         Draw.Rect(paddingX + position.X + (barWidth * barsDrawn) + (BarSpacing * barsDrawn) + beforeBarsOffset, 
                                   position.Y + availableBarHeight + heightOffset + 1,

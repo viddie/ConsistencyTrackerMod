@@ -1176,6 +1176,9 @@ namespace Celeste.Mod.ConsistencyTracker
         public bool IngameOverlayGraphShowGoldenPbBar { get; set; } = true;
         
         [SettingIgnore]
+        public bool IngameOverlayGraphShowSuccessRateColors { get; set; } = false;
+        
+        [SettingIgnore]
         public bool IngameOverlayGraphCurrentRoomExplicit { get; set; } = true;
         
         [SettingIgnore]
@@ -1434,6 +1437,13 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
             });
             subMenu.AddDescription(menu, menuItem, "Shows your PB room as a golden bar at the bottom of the graph.");
+
+            subMenu.Add(menuItem = new TextMenu.OnOff("Graph Show Success Rate Colors", IngameOverlayGraphShowSuccessRateColors) {
+                OnValueChange = v => {
+                    IngameOverlayGraphShowSuccessRateColors = v;
+                }
+            });
+            subMenu.AddDescription(menu, menuItem, "Colors bars in graph to match room success rate color.");
             
             subMenu.Add(menuItem = new TextMenu.OnOff("Graph Current Room Indicator Explicit", IngameOverlayGraphCurrentRoomExplicit) {
                 OnValueChange = v => {

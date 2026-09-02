@@ -265,7 +265,7 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
             return null;
         }
 
-        public static Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData { get; set; } = null;
+        private static Dictionary<RoomInfo, Tuple<int, float, int, float>> ChokeRateData = null;
         /// <summary>
         /// Gets the following data for every room: Golden Entries, Golden Success Rate, Golden Entries Session, Golden Success Rate Session
         /// </summary>
@@ -319,6 +319,12 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
 
             ChokeRateData = roomData;
             return roomData;
+        }
+        /// <summary>
+        /// Deletes cached room choke rate data, resulting in it being recomputed next time it is requested.
+        /// </summary>
+        public static void InvalidateCache() {
+            ChokeRateData = null;
         }
 
         /// <summary>
