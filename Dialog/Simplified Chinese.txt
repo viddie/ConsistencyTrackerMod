@@ -638,11 +638,6 @@ MODOPTION_CCT_FAQ_PACE_PING_DIFFERENT_PING_A=
     你可以为你想要的任何房间设置进入提醒。每一个房间都可以按照他们的设定（向不同的用户）发送不同的信息
     You can enable Pace Ping on room entry for any room you want. Each room can have a different message (with different roles pinged) and settings.
 
-MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q= How do I ping roles in a Pace Ping message?
-MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A=
-    可以！{n}{n}
-    你可以在任意房间启用进入时的进度提醒。每个房间可以有不同的消息（并提醒不同的用户）和设置。
-
 MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_Q= 我如何在进度提醒消息中提醒用户？
 MODOPTION_CCT_FAQ_PACE_PING_PING_ROLE_A=
     要在提醒消息中添加用户，你需要找到要提醒的用户的ID。操作方法如下：{n}
