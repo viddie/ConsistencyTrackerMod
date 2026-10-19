@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build ConsistencyTracker.csproj --configuration Debug -p:version=${{env.CURRENT_TAG}} --no-restore
+      run: dotnet build ConsistencyTracker.csproj --configuration Release -p:version=${{env.CURRENT_TAG}} --no-restore
     - name: Package Mod
       run: zip -q -r ConsistencyTrackerMod.zip everest.yaml bin/ConsistencyTracker.dll bin/ConsistencyTracker.pdb Assets Dialog
     - name: Create Release

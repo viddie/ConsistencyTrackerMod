@@ -1195,6 +1195,33 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
         };
         #endregion
 
+        #region Goldberries Endpoints
+        // Return URL of the goldberries.net auth flow. The auth page calls this from the browser with the new API key.
+        private static readonly RCEndPoint GoldberriesAuthEndPoint = new RCEndPoint() {
+            Path = GoldberriesSync.AuthEndpointPath,
+            PathHelp = $"{GoldberriesSync.AuthEndpointPath}?api_key={{key}}",
+            Name = "Consistency Tracker Goldberries Auth [GET] [JSON]",
+            InfoHTML = "Receives the goldberries.net API key for the Goldberries Sync.",
+            Handle = c => {
+                bool requestedJson = CheckRequest(c);
+
+                string apiKey = GetQueryParameter(c, "api_key");
+                if (string.IsNullOrWhiteSpace(apiKey)) {
+                    WriteErrorResponseWithDetails(c, RCErrorCode.MissingParamter, requestedJson, "api_key");
+                    return;
+                }
+
+                apiKey = apiKey.Trim();
+                MainThreadHelper.Do(() => Mod.GoldberriesSync.SetApiKey(apiKey));
+
+                TextResponse response = new TextResponse() {
+                    text = "API key received, you can close this page.",
+                };
+                WriteResponse(c, FormatResponseJson(RCErrorCode.OK, response));
+            }
+        };
+        #endregion
+
         #region Load / Unload
         public static void Load() {
             foreach (RCEndPoint endpoint in EndPoints) {
@@ -1366,6 +1393,9 @@ namespace Celeste.Mod.ConsistencyTracker.EverestInterop
         //because of static initialization order, otherwise the list elements are just new RCEndPoint() objects (with null fields)
         private static readonly List<RCEndPoint> EndPoints = new List<RCEndPoint>() {
             InfoEndPoint,
+
+            //Goldberries Sync
+            GoldberriesAuthEndPoint,
 
             //General
             SettingsEndPoint,

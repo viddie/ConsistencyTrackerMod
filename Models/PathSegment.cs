@@ -11,5 +11,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
         public string Name { get; set; }
         [JsonProperty("path")]
         public PathInfo Path { get; set; }
+
+        //Goldberries Sync
+        [JsonProperty("sync_enabled")]
+        public bool SyncEnabled { get; set; } = true;
+        [JsonProperty("challenge_id")]
+        public int? ChallengeId { get; set; }
+        [JsonProperty("challenge_id_auto")]
+        public int? ChallengeIdAuto { get; set; }
     }
 }

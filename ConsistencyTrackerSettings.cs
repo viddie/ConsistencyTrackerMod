@@ -2,6 +2,7 @@
 using Celeste.Mod.ConsistencyTracker.Entities.Menu;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
+using Celeste.Mod.ConsistencyTracker.Models.Goldberries;
 using Celeste.Mod.ConsistencyTracker.Stats;
 using Celeste.Mod.ConsistencyTracker.Utility;
 using Microsoft.Xna.Framework;
@@ -2319,6 +2320,205 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(deleteButton);
             subMenu.AddDescription(menu, deleteButton, Dialog.Clean("MODOPTION_CCT_PACE_PING_SETTINGS_DANGER_ZONE_DELETE_HINT_1"));
 
+            menu.Add(subMenu);
+        }
+        #endregion
+
+        #region Goldberries Sync Settings
+        [JsonIgnore]
+        public bool GoldberriesSyncSettings { get; set; } = false;
+
+        // JsonIgnore keeps the key out of the logged settings, it's still saved with the mod settings
+        [SettingIgnore]
+        [JsonIgnore]
+        public string GoldberriesApiKey { get; set; } = null;
+        [SettingIgnore]
+        public bool GoldberriesSyncEnabled { get; set; } = true;
+        [SettingIgnore]
+        public GoldberriesClearType GoldberriesPreferredClearType { get; set; } = GoldberriesClearType.RegularClear;
+#if DEBUG
+        [SettingIgnore]
+        public bool GoldberriesUseLocalhost { get; set; } = false;
+#endif
+
+        public void CreateGoldberriesSyncSettingsEntry(TextMenu menu, bool inGame) {
+            TextMenuExt.SubMenu subMenu = new TextMenuExt.SubMenu(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_TITLE"), false);
+            TextMenu.Item menuItem;
+            GoldberriesSync sync = Mod.GoldberriesSync;
+            PathSegment segment = inGame ? Mod.CurrentChapterPathSegmentList?.CurrentSegment : null;
+            if (inGame) sync.WatchOptionsMenu(menu);
+
+            // ========= Auth =========
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_TITLE")} ==="));
+            TextMenu.SubHeader authStateHeader = new TextMenu.SubHeader("", topPadding: false);
+            subMenu.Add(authStateHeader);
+
+            TextMenu.Button authorizeButton = new TextMenu.Button("") {
+                OnPressed = () => sync.StartAuthorization(),
+            };
+            subMenu.Add(authorizeButton);
+            subMenu.AddDescription(menu, authorizeButton, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE_HINT"));
+
+            DoubleConfirmButton revokeButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE")) {
+                HighlightColor = Color.Red,
+                OnDoubleConfirmation = () => sync.RevokeAuthorization(),
+            };
+            subMenu.Add(revokeButton);
+            subMenu.AddDescription(menu, revokeButton, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE_HINT"));
+
+            // ========= General =========
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_TITLE")} ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED"), GoldberriesSyncEnabled) {
+                OnValueChange = v => {
+                    if (!v) sync.SendExitBeforeDisabling();
+                    GoldberriesSyncEnabled = v;
+                    if (v) sync.LookupCurrentMap();
+                },
+            });
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED_HINT"));
+
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_SYNC_PATH"), segment?.SyncEnabled ?? true) {
+                OnValueChange = v => {
+                    PathSegment currentSegment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+                    if (currentSegment == null) return;
+                    if (!v) sync.SendExitBeforeDisabling();
+                    currentSegment.SyncEnabled = v;
+                    Mod.SaveActivePath();
+                },
+                Disabled = segment == null,
+            });
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_SYNC_PATH_HINT"));
+
+            // ========= Challenge Selection =========
+            subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_TITLE")} ==="));
+            TextMenu.SubHeader currentChallengeHeader = new TextMenu.SubHeader("", topPadding: false);
+
+            List<KeyValuePair<int, string>> challengeOptions = new List<KeyValuePair<int, string>>() {
+                new KeyValuePair<int, string>(0, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_AUTO")),
+            };
+            TextMenuExt.EnumerableSlider<int> challengeSlider = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_SELECTED"), challengeOptions, 0);
+            TextMenu.Button importButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_IMPORT")) {
+                Disabled = segment == null,
+            };
+
+            // Updates all items that depend on the auth state or the current map's challenges
+            Action refresh = () => {
+                string authState;
+                switch (sync.AuthState) {
+                    case GoldberriesSync.AuthStatus.Authorized:
+                        authState = string.Format(Dialog.Get("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_AUTHORIZED"), sync.AuthPlayerName ?? "?");
+                        break;
+                    case GoldberriesSync.AuthStatus.Checking:
+                        authState = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_CHECKING");
+                        break;
+                    case GoldberriesSync.AuthStatus.Invalid:
+                        authState = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_INVALID");
+                        break;
+                    case GoldberriesSync.AuthStatus.Unreachable:
+                        authState = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_UNREACHABLE");
+                        break;
+                    default:
+                        authState = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_NOT_AUTHORIZED");
+                        break;
+                }
+                authStateHeader.Title = authState;
+
+                bool hasKey = !string.IsNullOrEmpty(GoldberriesApiKey);
+                authorizeButton.Label = Dialog.Clean(hasKey ? "MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REAUTHORIZE" : "MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE");
+                revokeButton.Disabled = !hasKey;
+
+                if (!inGame) {
+                    currentChallengeHeader.Title = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_NOT_IN_GAME_HINT");
+                    challengeSlider.Disabled = true;
+                    return;
+                }
+
+                PathSegment currentSegment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+                List<GbChallenge> challenges = sync.GetCurrentChallenges() ?? new List<GbChallenge>();
+                bool multipleParents = challenges.Select(c => c.ParentName).Distinct().Count() > 1;
+
+                // Rebuild the challenge options, keeping a manually imported ID that isn't on the map
+                int? manualId = currentSegment?.ChallengeId;
+                challengeSlider.Values.RemoveRange(1, challengeSlider.Values.Count - 1);
+                foreach (GbChallenge challenge in challenges) {
+                    challengeSlider.Values.Add(Tuple.Create(challenge.GetDisplayName(multipleParents), challenge.Id));
+                }
+                if (manualId != null && challenges.All(c => c.Id != manualId)) {
+                    challengeSlider.Values.Add(Tuple.Create(string.Format(Dialog.Get("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_IMPORTED"), manualId), manualId.Value));
+                }
+                int index = manualId == null ? 0 : challengeSlider.Values.FindIndex(t => t.Item2 == manualId);
+                challengeSlider.Index = challengeSlider.PreviousIndex = Math.Max(0, index);
+                challengeSlider.Disabled = currentSegment == null || challengeSlider.Values.Count <= 2;
+
+                string currentChallenge;
+                int? effectiveId = sync.GetEffectiveChallengeId();
+                GbChallenge effective = challenges.FirstOrDefault(c => c.Id == effectiveId);
+                if (effective != null) {
+                    currentChallenge = effective.GetDisplayName(multipleParents);
+                } else if (effectiveId != null) {
+                    currentChallenge = $"#{effectiveId}";
+                } else if (sync.IsCurrentLookupPending) {
+                    currentChallenge = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_LOOKUP_PENDING");
+                } else {
+                    currentChallenge = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_NONE");
+                }
+                currentChallengeHeader.Title = string.Format(Dialog.Get("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_CURRENT"), currentChallenge);
+            };
+            sync.OnStateChanged = refresh;
+
+            subMenu.Add(menuItem = new TextMenuExt.EnumerableSlider<GoldberriesClearType>(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_PREFERRED_CLEAR_TYPE"), new List<KeyValuePair<GoldberriesClearType, string>>() {
+                new KeyValuePair<GoldberriesClearType, string>(GoldberriesClearType.RegularClear, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_REGULAR_CLEAR")),
+                new KeyValuePair<GoldberriesClearType, string>(GoldberriesClearType.FullClear, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_FULL_CLEAR")),
+            }, GoldberriesPreferredClearType) {
+                OnValueChange = v => {
+                    GoldberriesPreferredClearType = v;
+                    if (!inGame) return;
+                    sync.UpdateAutoChallengeInSegment();
+                    refresh();
+                },
+            });
+
+            challengeSlider.OnValueChange = v => {
+                PathSegment currentSegment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+                if (currentSegment == null) return;
+                currentSegment.ChallengeId = v == 0 ? (int?)null : v;
+                Mod.SaveActivePath();
+                refresh();
+            };
+            subMenu.Add(challengeSlider);
+            subMenu.AddDescription(menu, challengeSlider, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_SELECTED_HINT"));
+
+            importButton.OnPressed = () => {
+                PathSegment currentSegment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+                if (currentSegment == null) return;
+                string text = TextInput.GetClipboardText()?.Trim();
+                Mod.Log($"Importing goldberries challenge ID from clipboard: '{text}'");
+                if (!int.TryParse(text, out int challengeId) || challengeId < 1) {
+                    Mod.Log($"Clipboard content is not a valid challenge ID", isFollowup: true);
+                    return;
+                }
+                currentSegment.ChallengeId = challengeId;
+                Mod.SaveActivePath();
+                refresh();
+                challengeSlider.SelectWiggler.Start();
+            };
+            subMenu.Add(importButton);
+            subMenu.AddDescription(menu, importButton, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_IMPORT_HINT"));
+            subMenu.Add(currentChallengeHeader);
+
+            // ========= Debug =========
+#if DEBUG
+            subMenu.Add(new TextMenu.SubHeader("=== Debug ==="));
+            subMenu.Add(menuItem = new TextMenu.OnOff("Use Localhost Server", GoldberriesUseLocalhost) {
+                OnValueChange = v => {
+                    GoldberriesUseLocalhost = v;
+                    sync.ChangedServer();
+                },
+            });
+            subMenu.AddDescription(menu, menuItem, $"Sends all goldberries requests to '{GoldberriesSync.LocalhostBaseUrl}' instead of '{GoldberriesSync.ProductionBaseUrl}'.");
+#endif
+
+            refresh();
             menu.Add(subMenu);
         }
         #endregion

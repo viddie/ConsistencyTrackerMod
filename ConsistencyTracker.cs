@@ -172,6 +172,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         public SummaryHud SummaryOverlay;
         public PhysicsLogger PhysicsLog;
         public MultiPacePingManager MultiPacePingManager;
+        public GoldberriesSync GoldberriesSync;
 
         public DebugMapUtil DebugMapUtil;
 
@@ -209,6 +210,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             DebugMapUtil = new DebugMapUtil();
             PhysicsLog = new PhysicsLogger();
             MultiPacePingManager = new MultiPacePingManager();
+            GoldberriesSync = new GoldberriesSync();
             HookStuff();
 
             
@@ -280,6 +282,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             PhysicsLog.Hook();
             DebugMapUtil.Hook();
             MultiPacePingManager.Hook();
+            GoldberriesSync.Hook(); //Last, so its event handlers run after the ones above
         }
 
         private void UnHookStuff() {
@@ -327,6 +330,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             PhysicsLog.UnHook();
             DebugMapUtil.UnHook();
             MultiPacePingManager.UnHook();
+            GoldberriesSync.UnHook();
         }
 
         public override void Initialize()
