@@ -746,7 +746,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
 
             PreviousAttempts.Add(success);
 
-            SuccessRateStat.InvalidateCache();
+            SuccessRateStat.InvalidateCache(this);
         }
 
         public void RemoveLastAttempt() {
@@ -755,7 +755,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models {
             }
             PreviousAttempts.RemoveAt(PreviousAttempts.Count-1);
 
-            SuccessRateStat.InvalidateCache();
+            SuccessRateStat.InvalidateCache(this);
         }
 
         public long GetTimeForCategory(TimeCategory category) {

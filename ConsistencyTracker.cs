@@ -858,7 +858,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         }
 
         private void EventsOnRunEnded(bool died, bool won) {
-            StatManager.InvalidateCachedStats();
+            ChokeRateStat.InvalidateCache();
             IngameOverlay?.SetGoldenState(false);
         }
         private void Events_OnChangedRoom(string roomName, bool isPreviousRoom) {
@@ -1571,6 +1571,7 @@ namespace Celeste.Mod.ConsistencyTracker {
 
             Log($"Wiping death data for chapter '{CurrentChapterUID}'");
 
+            SuccessRateStat.InvalidateCache();
             RoomStats currentRoom = CurrentChapterStats.CurrentRoom;
             List<string> toRemove = new List<string>();
 
@@ -1619,6 +1620,7 @@ namespace Celeste.Mod.ConsistencyTracker {
                 CurrentChapterStats.Rooms[debugName].GoldenBerryDeathsSession = 0;
             }
 
+            ChokeRateStat.InvalidateCache();
             SaveChapterStats();
         }
         public void WipeChapterGoldenBerryCollects() {
@@ -1631,6 +1633,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             CurrentChapterStats.GoldenCollectedCount = 0;
             CurrentChapterStats.GoldenCollectedCountSession = 0;
 
+            ChokeRateStat.InvalidateCache();
             SaveChapterStats();
         }
 
@@ -1641,6 +1644,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
             Log($"Wiping room data for room '{CurrentChapterStats.CurrentRoom.DebugRoomName}'");
 
+            SuccessRateStat.InvalidateCache(CurrentChapterStats.CurrentRoom);
             CurrentChapterStats.CurrentRoom.PreviousAttempts.Clear();
             SaveChapterStats();
         }

@@ -52,7 +52,6 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
         }
 
         private void EventsOnAfterSavingStats() {
-            StatManager.InvalidateCachedStats();
             UpdateOverlay();
         }
 
@@ -65,7 +64,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             if (path == null || stats == null) return;
             
             ChokeRateData = ChokeRateStat.GetRoomData(path, stats);
-            SuccessRateData = SuccessRateStat.GetRoomData(path, stats);
+            SuccessRateData = Mod.ModSettings.IngameOverlayGraphShowSuccessRateColors
+                ? SuccessRateStat.GetRoomData(path, stats)
+                : null;
             PbRoom = StatsUtil.GetFurthestGoldenRun(path, stats);
             PbRoomSession = StatsUtil.GetFurthestGoldenRunSession(path, stats);
             
@@ -134,6 +135,9 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
             int paddingX = (availableBarWidth - (barWidth * barCount) - ((barCount - 1) * BarSpacing)) / 2;
 
             bool showSuccessRateColors = Mod.ModSettings.IngameOverlayGraphShowSuccessRateColors;
+            if (showSuccessRateColors && SuccessRateData == null) {
+                SuccessRateData = SuccessRateStat.GetRoomData(path, stats);
+            }
             
             //Walk path and draw the bars
             int barsDrawn = 0;
@@ -171,8 +175,8 @@ namespace Celeste.Mod.ConsistencyTracker.Entities {
                     if (showSuccessRateColors) {
                         barHeight = Math.Max(3, barHeight);
 
-                        if (SuccessRateData.ContainsKey(rInfo)) {
-                            float successRate = SuccessRateData[rInfo];
+                        float successRate;
+                        if (SuccessRateData != null && SuccessRateData.TryGetValue(rInfo, out successRate)) {
                             if (float.IsNaN(successRate)) {
                                 barColor = Color.Gray;
                             } else {

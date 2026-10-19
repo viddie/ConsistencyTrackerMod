@@ -81,31 +81,70 @@ namespace Celeste.Mod.ConsistencyTracker.Stats {
         }
 
         private static Dictionary<RoomInfo, float> SuccessRateData = null;
+        private static Dictionary<RoomStats, List<RoomInfo>> CachedRoomsByStats = null;
+        private static PathInfo CachedChapterPath = null;
+        private static ChapterStats CachedChapterStats = null;
+        private static int CachedAttemptCount = -1;
+
         /// <summary>
         /// Gets the success rate data (based on fraction of successes in latest `StatManager.AttemptCount` attempts) for each room.
         /// </summary>
         public static Dictionary<RoomInfo, float> GetRoomData(PathInfo chapterPath, ChapterStats chapterStats) {
-            if (SuccessRateData != null) return SuccessRateData;
-
             int attemptCount = StatManager.AttemptCount;
-            var roomData = new Dictionary<RoomInfo, float>();
+            if (SuccessRateData == null
+                || !object.ReferenceEquals(CachedChapterPath, chapterPath)
+                || !object.ReferenceEquals(CachedChapterStats, chapterStats)
+                || CachedAttemptCount != attemptCount) {
+                SuccessRateData = new Dictionary<RoomInfo, float>();
+                CachedRoomsByStats = new Dictionary<RoomStats, List<RoomInfo>>();
+                CachedChapterPath = chapterPath;
+                CachedChapterStats = chapterStats;
+                CachedAttemptCount = attemptCount;
+            }
 
             foreach (CheckpointInfo cpInfo in chapterPath.Checkpoints) {
                 foreach (RoomInfo rInfo in cpInfo.Rooms) {
-                    RoomStats data = chapterStats.GetRoom(rInfo);
-                    float successRate = data.AverageSuccessOverN(attemptCount);
-                    roomData.Add(rInfo, successRate);
+                    if (SuccessRateData.ContainsKey(rInfo)) continue;
+
+                    RoomStats roomStats = chapterStats.GetRoom(rInfo);
+                    SuccessRateData.Add(rInfo, roomStats.AverageSuccessOverN(attemptCount));
+
+                    List<RoomInfo> cachedRooms;
+                    if (!CachedRoomsByStats.TryGetValue(roomStats, out cachedRooms)) {
+                        cachedRooms = new List<RoomInfo>();
+                        CachedRoomsByStats.Add(roomStats, cachedRooms);
+                    }
+                    cachedRooms.Add(rInfo);
                 }
             }
 
-            SuccessRateData = roomData;
-            return roomData;
+            return SuccessRateData;
         }
+
+        /// <summary>
+        /// Invalidates the cached success rate for one room.
+        /// </summary>
+        public static void InvalidateCache(RoomStats roomStats) {
+            if (roomStats == null || SuccessRateData == null) return;
+
+            List<RoomInfo> cachedRooms;
+            if (!CachedRoomsByStats.TryGetValue(roomStats, out cachedRooms)) return;
+
+            foreach (RoomInfo rInfo in cachedRooms) {
+                SuccessRateData.Remove(rInfo);
+            }
+            CachedRoomsByStats.Remove(roomStats);
+        }
+
         /// <summary>
         /// Deletes cached room success rate data, resulting in it being recomputed next time it is requested.
         /// </summary>
         public static void InvalidateCache() {
             SuccessRateData = null;
+            CachedRoomsByStats = null;
+            CachedChapterPath = null;
+            CachedChapterStats = null;
+            CachedAttemptCount = -1;
         }
 
 
