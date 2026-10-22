@@ -1,4 +1,4 @@
-# NOTES:
+﻿# NOTES:
 # The # Symbol at the start of a line counts as a Comment. To include in dialog, use a \#
 # The . Symbol will cause a pause unless escaped with \. (ex: Mr. Oshiro has a pause, Mr\. Oshiro does not)
 # Newlines automatically create a Page Break, unless there is an {n}
@@ -406,6 +406,8 @@ MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE_HINT= Deletes the API key from the ga
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_TITLE= General
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED= Syncing Enabled
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED_HINT= Shows your current map, room and golden run state on the goldberries.net Online page.
+MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ONLY_WITH_PATH= Only Sync With Path
+MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ONLY_WITH_PATH_HINT= Don't send anything while playing a map that has no path recorded.
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_SYNC_PATH= Sync This Path
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_SYNC_PATH_HINT= Saved in the current path segment. Requires a path.
 MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_TITLE= Challenge Selection

@@ -12,6 +12,7 @@ namespace Celeste.Mod.ConsistencyTracker.Models.Goldberries {
         public const string EventReset = "reset";
         public const string EventWin = "win";
         public const string EventExit = "exit";
+        public const string EventClose = "close";
 
         [JsonProperty("event")]
         public string Event { get; set; } = EventStatus;
@@ -47,6 +48,13 @@ namespace Celeste.Mod.ConsistencyTracker.Models.Goldberries {
         public int? StoredAutoChallengeId { get; set; }
         [JsonIgnore]
         public bool IsFgr { get; set; }
+
+        public IngameStatusRequest CopyAsEvent(string eventType, bool inGoldenRun) {
+            IngameStatusRequest copy = (IngameStatusRequest)MemberwiseClone();
+            copy.Event = eventType;
+            copy.InGoldenRun = inGoldenRun;
+            return copy;
+        }
     }
 
     public class GbAccount {

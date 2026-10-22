@@ -2335,6 +2335,8 @@ namespace Celeste.Mod.ConsistencyTracker
         [SettingIgnore]
         public bool GoldberriesSyncEnabled { get; set; } = true;
         [SettingIgnore]
+        public bool GoldberriesOnlySyncWithPath { get; set; } = false;
+        [SettingIgnore]
         public GoldberriesClearType GoldberriesPreferredClearType { get; set; } = GoldberriesClearType.RegularClear;
 #if DEBUG
         [SettingIgnore]
@@ -2369,19 +2371,21 @@ namespace Celeste.Mod.ConsistencyTracker
             // ========= General =========
             subMenu.Add(new TextMenu.SubHeader($"=== {Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_TITLE")} ==="));
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED"), GoldberriesSyncEnabled) {
-                OnValueChange = v => {
-                    if (!v) sync.SendExitBeforeDisabling();
-                    GoldberriesSyncEnabled = v;
-                    if (v) sync.LookupCurrentMap();
-                },
+                OnValueChange = v => sync.SetSyncEnabled(v, deferToMenuClose: inGame),
             });
             subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ENABLED_HINT"));
+
+            subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ONLY_WITH_PATH"), GoldberriesOnlySyncWithPath) {
+                // Sent when the in-game menu closes. Outside of maps there's nothing to send
+                OnValueChange = v => GoldberriesOnlySyncWithPath = v,
+            });
+            subMenu.AddDescription(menu, menuItem, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_ONLY_WITH_PATH_HINT"));
 
             subMenu.Add(menuItem = new TextMenu.OnOff(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_SYNC_PATH"), segment?.SyncEnabled ?? true) {
                 OnValueChange = v => {
                     PathSegment currentSegment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
                     if (currentSegment == null) return;
-                    if (!v) sync.SendExitBeforeDisabling();
+                    // Sent when the in-game menu closes
                     currentSegment.SyncEnabled = v;
                     Mod.SaveActivePath();
                 },
@@ -2493,7 +2497,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 if (currentSegment == null) return;
                 string text = TextInput.GetClipboardText()?.Trim();
                 Mod.Log($"Importing goldberries challenge ID from clipboard: '{text}'");
-                if (!int.TryParse(text, out int challengeId) || challengeId < 1) {
+                if (!GoldberriesSync.TryParseChallengeId(text, out int challengeId)) {
                     Mod.Log($"Clipboard content is not a valid challenge ID", isFollowup: true);
                     return;
                 }
@@ -2762,6 +2766,7 @@ namespace Celeste.Mod.ConsistencyTracker
 
         [SettingSubHeader("Misc Hotkeys")]
         public ButtonBinding ButtonToggleRecordPhysics { get; set; }
+        public ButtonBinding ButtonToggleGoldberriesSync { get; set; }
 
         public ButtonBinding ButtonToggleSummaryHud { get; set; }
         public ButtonBinding ButtonSummaryHudNextTab { get; set; }

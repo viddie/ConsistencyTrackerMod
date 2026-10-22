@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Celeste.Mod.ConsistencyTracker.Enums;
 using Celeste.Mod.ConsistencyTracker.Models;
@@ -36,6 +37,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private const int RequestTimeoutMs = 10000;
         private const int MaxStringLength = 128;
         private const int MaxRoomNumber = 100000;
+        /// <summary>How long closing the game waits for the remaining requests (incl. the close event) to go out.</summary>
+        private const int CloseTimeoutMs = 3000;
 
 #if DEBUG
         public static string BaseUrl => Settings.GoldberriesUseLocalhost ? LocalhostBaseUrl : ProductionBaseUrl;
@@ -81,12 +84,15 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private string LastSentEvent;
         private string LastSentStatusJson;
         private bool HasSentInMap;
+        /// <summary>The last status/event sent this game session, used for the close event when not in a map.</summary>
+        private IngameStatusRequest LastSentStatus;
         /// <summary>A reset payload, built when the run ended. Dropped when the run ended because the player left the map.</summary>
         private IngameStatusRequest PendingReset;
         /// <summary>The in-game mod options menu, watched to send a status when it closes with a different effective challenge.</summary>
         private TextMenu OptionsMenu;
         private bool OptionsMenuShown;
         private int? ChallengeIdOnMenuOpen;
+        private bool CanSyncOnMenuOpen;
         /// <summary>Send a status once the player is alive again after a death/reset that didn't reload the room (e.g. savestates).</summary>
         private bool PendingStatusAfterRunEnd;
 
@@ -108,6 +114,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             On.Celeste.Level.Update += Level_Update;
             Events.Events.OnRunStarted += Events_OnRunStarted;
             Events.Events.OnRunEnded += Events_OnRunEnded;
+            On.Celeste.Celeste.OnExiting += Celeste_OnExiting;
 
             CheckSession();
         }
@@ -118,6 +125,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             On.Celeste.Level.Update -= Level_Update;
             Events.Events.OnRunStarted -= Events_OnRunStarted;
             Events.Events.OnRunEnded -= Events_OnRunEnded;
+            On.Celeste.Celeste.OnExiting -= Celeste_OnExiting;
 
             Jobs?.CompleteAdding();
         }
@@ -244,13 +252,14 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         /// <summary>
-        /// Called when the in-game mod options menu is created. The challenge can be changed many times while navigating
-        /// the options, so a changed challenge is only sent once the menu is closed.
+        /// Called when the in-game mod options menu is created. The challenge and the sync options can be changed many times
+        /// while navigating the options, so the changes are only sent once the menu is closed.
         /// </summary>
         public void WatchOptionsMenu(TextMenu menu) {
             OptionsMenu = menu;
             OptionsMenuShown = false;
             ChallengeIdOnMenuOpen = GetEffectiveChallengeId();
+            CanSyncOnMenuOpen = CanSync;
         }
 
         private void CheckOptionsMenuClosed() {
@@ -263,7 +272,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (!OptionsMenuShown) return;
 
             OptionsMenu = null;
-            if (GetEffectiveChallengeId() != ChallengeIdOnMenuOpen) {
+            bool canSync = CanSync;
+            if (CanSyncOnMenuOpen && !canSync) {
+                // Syncing was disabled (globally, for the path, or because the map has no path)
+                SendClose();
+            } else if (canSync && (!CanSyncOnMenuOpen || GetEffectiveChallengeId() != ChallengeIdOnMenuOpen)) {
                 SendStatus(force: true);
             }
         }
@@ -275,18 +288,51 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             Enqueue(reset);
         }
 
+        private void Celeste_OnExiting(On.Celeste.Celeste.orig_OnExiting orig, Celeste self, object sender, EventArgs args) {
+            try {
+                SendCloseAndWait();
+            } catch (Exception ex) {
+                Mod.Log($"Goldberries sync: exception in OnExiting: {ex}");
+            }
+            orig(self, sender, args);
+        }
+
+        /// <summary>
+        /// Sends a close event as the final message, so the website knows the session ended, and blocks until it's sent
+        /// (or the timeout runs out), since the background worker dies with the process.
+        /// </summary>
+        private void SendCloseAndWait() {
+            if (Jobs == null || Jobs.IsAddingCompleted) return;
+
+            // Syncing being disabled in a still open options menu wasn't sent yet, so that counts as well
+            if (CanSend || (OptionsMenu != null && CanSyncOnMenuOpen)) {
+                SendClose();
+            }
+
+            Jobs.CompleteAdding();
+            if (!Worker.Join(CloseTimeoutMs)) {
+                Mod.Log($"Goldberries sync: pending requests didn't finish within {CloseTimeoutMs}ms of closing the game");
+            }
+        }
+
         #endregion
 
         #region Sending
+
+        /// <summary>
+        /// Whether syncing is enabled and authorized at all, regardless of the current map/path.
+        /// </summary>
+        public bool CanSend => Settings.GoldberriesSyncEnabled
+            && !string.IsNullOrEmpty(Settings.GoldberriesApiKey)
+            && AuthState != AuthStatus.Invalid;
 
         /// <summary>
         /// Whether statuses should be sent for the current state.
         /// </summary>
         public bool CanSync {
             get {
-                if (!Settings.GoldberriesSyncEnabled) return false;
-                if (string.IsNullOrEmpty(Settings.GoldberriesApiKey)) return false;
-                if (AuthState == AuthStatus.Invalid) return false;
+                if (!CanSend) return false;
+                if (Settings.GoldberriesOnlySyncWithPath && Mod.CurrentChapterPath == null) return false;
                 PathSegment segment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
                 return segment == null || segment.SyncEnabled;
             }
@@ -306,25 +352,57 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         private void SendEvent(string eventType, bool? inGoldenRun = null) {
-            if (!InMap || !CanSync) return;
-            // Don't send an exit/death/... to a map the server never heard about
-            if (eventType == IngameStatusRequest.EventExit && !HasSentInMap) return;
+            if (!InMap) return;
+            if (eventType == IngameStatusRequest.EventExit) {
+                // Don't send an exit to a map the server never heard about. If it did, the exit goes out even if the path
+                // stopped being synced in the meantime (e.g. it was deleted), so the player doesn't stay in the map
+                if (!HasSentInMap || !CanSend) return;
+            } else if (!CanSync) {
+                return;
+            }
             Enqueue(BuildStatus(eventType, inGoldenRun));
         }
 
         /// <summary>
-        /// Sends an exit event if the player is in a map, so the website stops showing them as online
-        /// immediately when syncing gets disabled.
+        /// Turns syncing on/off (mod options or hotkey). Turning it off sends a close event.
         /// </summary>
-        public void SendExitBeforeDisabling() {
-            if (!InMap || !HasSentInMap || LastSentEvent == IngameStatusRequest.EventExit) return;
-            Enqueue(BuildStatus(IngameStatusRequest.EventExit));
+        /// <param name="deferToMenuClose">The in-game options menu is open, which sends the change once it's closed.</param>
+        public void SetSyncEnabled(bool enabled, bool deferToMenuClose = false) {
+            if (enabled == Settings.GoldberriesSyncEnabled) return;
+            Settings.GoldberriesSyncEnabled = enabled;
+            if (enabled) LookupCurrentMap();
+            if (deferToMenuClose) return;
+
+            if (enabled) {
+                SendStatus(force: true);
+            } else {
+                SendClose();
+            }
+        }
+
+        /// <summary>
+        /// Sends a close event, so the website immediately stops showing the player as online. Used when the game is closed
+        /// or syncing gets disabled. In a map it carries the current state, otherwise the map of the last update (usually
+        /// its exit), so it lands on the same graph. Only sent if something was sent before.
+        /// </summary>
+        public void SendClose() {
+            if (string.IsNullOrEmpty(Settings.GoldberriesApiKey) || AuthState == AuthStatus.Invalid) return;
+            if (LastSentStatus == null || LastSentStatus.Event == IngameStatusRequest.EventClose) return;
+
+            // A reset that happened before still goes out first
+            FlushPendingReset();
+            IngameStatusRequest close = InMap && HasSentInMap
+                ? BuildStatus(IngameStatusRequest.EventClose, inGoldenRun: false)
+                : LastSentStatus.CopyAsEvent(IngameStatusRequest.EventClose, false);
+            Enqueue(close);
+            // The server considers the session ended, so leaving the map afterwards doesn't send an exit
             HasSentInMap = false;
         }
 
         private void Enqueue(IngameStatusRequest status) {
             LastSentAt = DateTime.UtcNow;
             LastSentEvent = status.Event;
+            LastSentStatus = status;
             HasSentInMap = true;
 
             string apiKey = Settings.GoldberriesApiKey;
@@ -431,7 +509,11 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             // SID for A-Sides). The SID can't be used for other sides: Everest merges e.g. "1H-Map"/"1B-Map"/"Map-X" or
             // meta.yaml-defined sides into the A-Side's AreaData, so the SID + "-B"/"-C" doesn't always name the real file.
             string bin = chapterInfo.MapBin?.Replace('\\', '/');
-            CurrentMapBin = string.IsNullOrEmpty(bin) ? null : $"{bin}.bin";
+            // Vanilla maps aren't on goldberries.net, but modded maps can have the same bin path (e.g. 7A's "7-Summit.bin"),
+            // so they are never looked up
+            bool isVanilla = AreaData.Get(session.Area)?.IsOfficialLevelSet() ?? false;
+            CurrentMapBin = string.IsNullOrEmpty(bin) || isVanilla ? null : $"{bin}.bin";
+            if (isVanilla) ClearAutoChallengeInSegment();
             CurrentMapName = chapterInfo.ChapterName + (session.Area.Mode == AreaMode.Normal ? "" : $" [{chapterInfo.SideName}]");
 
             LookupCurrentMap();
@@ -579,6 +661,35 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         /// <summary>
+        /// Removes an automatically selected challenge from the active path segment, e.g. one found by a wrong lookup for a vanilla map.
+        /// </summary>
+        private void ClearAutoChallengeInSegment() {
+            PathSegment segment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+            if (segment?.ChallengeIdAuto == null || Mod.IsInFgrMode) return;
+            segment.ChallengeIdAuto = null;
+            Mod.SaveActivePath();
+        }
+
+        private static readonly Regex ChallengeUrlRegex = new Regex(@"/challenge/(\d+)/?(?:[?#].*)?$", RegexOptions.IgnoreCase);
+        // The challenge is only in the URL if one is selected on the map page ("/map/<map id>/<challenge id>")
+        private static readonly Regex MapUrlRegex = new Regex(@"/map/\d+/(\d+)/?(?:[?#].*)?$", RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// Parses a challenge ID from a plain number, a challenge link (e.g. "https://goldberries.net/challenge/2402")
+        /// or a map link with a selected challenge (e.g. "https://goldberries.net/map/2358/2449").
+        /// </summary>
+        public static bool TryParseChallengeId(string text, out int challengeId) {
+            challengeId = 0;
+            text = text?.Trim();
+            if (string.IsNullOrEmpty(text)) return false;
+
+            Match match = ChallengeUrlRegex.Match(text);
+            if (!match.Success) match = MapUrlRegex.Match(text);
+            string idText = match.Success ? match.Groups[1].Value : text;
+            return int.TryParse(idText, out challengeId) && challengeId >= 1;
+        }
+
+        /// <summary>
         /// The challenge ID that is sent with the current status, or null if none is known.
         /// </summary>
         public int? GetEffectiveChallengeId() {
@@ -626,7 +737,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         /// Deletes the API key locally. The key stays valid on goldberries.net until revoked there.
         /// </summary>
         public void RevokeAuthorization() {
-            SendExitBeforeDisabling();
+            SendClose();
             Settings.GoldberriesApiKey = null;
             Mod.SaveSettings();
             SetAuthState(AuthStatus.NotAuthorized, null);

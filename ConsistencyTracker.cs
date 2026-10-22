@@ -456,6 +456,12 @@ namespace Celeste.Mod.ConsistencyTracker {
                 Log($"ButtonToggleLogPhysics: Toggled logging of physics to {PhysicsLogger.Settings.IsRecording}");
             }
 
+            if (ModSettings.ButtonToggleGoldberriesSync.Pressed) {
+                GoldberriesSync.SetSyncEnabled(!ModSettings.GoldberriesSyncEnabled);
+                SaveSettings();
+                Log($"ButtonToggleGoldberriesSync: Toggled goldberries sync to {ModSettings.GoldberriesSyncEnabled}");
+            }
+
             if (ModSettings.ButtonImportCustomRoomNameFromClipboard.Pressed) {
                 string text = TextInput.GetClipboardText().Trim();
                 Log($"Importing custom room name from clipboard...");
