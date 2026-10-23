@@ -73,6 +73,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private readonly Dictionary<string, LookupResult> ChallengeCache = new Dictionary<string, LookupResult>();
         private readonly HashSet<string> PendingLookups = new HashSet<string>();
         public string CurrentMapBin { get; private set; }
+        /// <summary>Vanilla maps have no challenges on goldberries.net, so they are never looked up or sent with a challenge.</summary>
+        public bool IsCurrentMapVanilla { get; private set; }
 
         // Tracking state (main thread only)
         private bool InMap;
@@ -235,7 +237,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             }
         }
         private void HandleRunEnded(bool died, bool won) {
-            if (!InMap) return;
+            if (!InMap || !CanSync) return;
 
             if (won) {
                 SendEvent(IngameStatusRequest.EventWin, inGoldenRun: true);
@@ -285,6 +287,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             if (PendingReset == null) return;
             IngameStatusRequest reset = PendingReset;
             PendingReset = null;
+            // Syncing might have been disabled since the run ended
+            if (!InMap || !CanSync) return;
             Enqueue(reset);
         }
 
@@ -354,12 +358,10 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         private void SendEvent(string eventType, bool? inGoldenRun = null) {
             if (!InMap) return;
             if (eventType == IngameStatusRequest.EventExit) {
-                // Don't send an exit to a map the server never heard about. If it did, the exit goes out even if the path
-                // stopped being synced in the meantime (e.g. it was deleted), so the player doesn't stay in the map
-                if (!HasSentInMap || !CanSend) return;
-            } else if (!CanSync) {
-                return;
+                // Don't send an exit to a map the server never heard about
+                if (!HasSentInMap) return;
             }
+            if (!CanSync) return;
             Enqueue(BuildStatus(eventType, inGoldenRun));
         }
 
@@ -399,7 +401,28 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             HasSentInMap = false;
         }
 
+        /// <summary>
+        /// Last line of defense, so no status/event can get past the sync settings, no matter which code path built it.
+        /// </summary>
+        private bool IsAllowedToSend(IngameStatusRequest status) {
+            if (string.IsNullOrEmpty(Settings.GoldberriesApiKey) || AuthState == AuthStatus.Invalid) return false;
+            switch (status.Event) {
+                case IngameStatusRequest.EventClose:
+                    // Also sent as syncing gets disabled, SendClose makes sure something was sent before
+                    return true;
+                case IngameStatusRequest.EventExit:
+                    return InMap && HasSentInMap && CanSync;
+                default:
+                    return InMap && CanSync;
+            }
+        }
+
         private void Enqueue(IngameStatusRequest status) {
+            if (!IsAllowedToSend(status)) {
+                Mod.LogVerbose($"Goldberries sync: blocked '{status.Event}', syncing is disabled for the current state");
+                return;
+            }
+
             LastSentAt = DateTime.UtcNow;
             LastSentEvent = status.Event;
             LastSentStatus = status;
@@ -431,7 +454,8 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         }
 
         private IngameStatusRequest BuildStatus(string eventType, bool? inGoldenRun = null) {
-            PathSegment segment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
+            // A challenge stored in the path (manual or from an old lookup) can't belong to a vanilla map
+            PathSegment segment = IsCurrentMapVanilla ? null : Mod.CurrentChapterPathSegmentList?.CurrentSegment;
             IngameStatusRequest status = new IngameStatusRequest() {
                 Event = eventType,
                 DebugRoomName = Truncate(CurrentDebugRoomName),
@@ -511,9 +535,9 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
             string bin = chapterInfo.MapBin?.Replace('\\', '/');
             // Vanilla maps aren't on goldberries.net, but modded maps can have the same bin path (e.g. 7A's "7-Summit.bin"),
             // so they are never looked up
-            bool isVanilla = AreaData.Get(session.Area)?.IsOfficialLevelSet() ?? false;
-            CurrentMapBin = string.IsNullOrEmpty(bin) || isVanilla ? null : $"{bin}.bin";
-            if (isVanilla) ClearAutoChallengeInSegment();
+            IsCurrentMapVanilla = AreaData.Get(session.Area)?.IsOfficialLevelSet() ?? false;
+            CurrentMapBin = string.IsNullOrEmpty(bin) || IsCurrentMapVanilla ? null : $"{bin}.bin";
+            if (IsCurrentMapVanilla) ClearAutoChallengeInSegment();
             CurrentMapName = chapterInfo.ChapterName + (session.Area.Mode == AreaMode.Normal ? "" : $" [{chapterInfo.SideName}]");
 
             LookupCurrentMap();
@@ -693,6 +717,7 @@ namespace Celeste.Mod.ConsistencyTracker.Utility {
         /// The challenge ID that is sent with the current status, or null if none is known.
         /// </summary>
         public int? GetEffectiveChallengeId() {
+            if (IsCurrentMapVanilla) return null;
             PathSegment segment = Mod.CurrentChapterPathSegmentList?.CurrentSegment;
             return segment?.ChallengeId ?? GetAutoChallenge(CurrentMapBin, Mod.IsInFgrMode)?.Id ?? segment?.ChallengeIdAuto;
         }

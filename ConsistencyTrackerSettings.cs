@@ -2402,7 +2402,8 @@ namespace Celeste.Mod.ConsistencyTracker
             };
             TextMenuExt.EnumerableSlider<int> challengeSlider = new TextMenuExt.EnumerableSlider<int>(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_SELECTED"), challengeOptions, 0);
             TextMenu.Button importButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_IMPORT")) {
-                Disabled = segment == null,
+                // Vanilla maps have no challenges on goldberries.net
+                Disabled = segment == null || sync.IsCurrentMapVanilla,
             };
 
             // Updates all items that depend on the auth state or the current map's challenges
@@ -2452,7 +2453,7 @@ namespace Celeste.Mod.ConsistencyTracker
                 }
                 int index = manualId == null ? 0 : challengeSlider.Values.FindIndex(t => t.Item2 == manualId);
                 challengeSlider.Index = challengeSlider.PreviousIndex = Math.Max(0, index);
-                challengeSlider.Disabled = currentSegment == null || challengeSlider.Values.Count <= 2;
+                challengeSlider.Disabled = currentSegment == null || sync.IsCurrentMapVanilla || challengeSlider.Values.Count <= 2;
 
                 string currentChallenge;
                 int? effectiveId = sync.GetEffectiveChallengeId();
