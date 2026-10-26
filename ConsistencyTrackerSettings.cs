@@ -2361,6 +2361,19 @@ namespace Celeste.Mod.ConsistencyTracker
             subMenu.Add(authorizeButton);
             subMenu.AddDescription(menu, authorizeButton, Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE_HINT"));
 
+            TextMenu.Button importKeyButton = new TextMenu.Button(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_IMPORT_KEY")) {
+                OnPressed = () => {
+                    string text = TextInput.GetClipboardText()?.Trim();
+                    Mod.Log($"Goldberries sync: importing API key from clipboard...");
+                    if (string.IsNullOrEmpty(text)) {
+                        Mod.Log($"Goldberries sync: clipboard is empty, not importing");
+                        return;
+                    }
+                    sync.SetApiKey(text);
+                },
+            };
+            subMenu.Add(importKeyButton);
+
             DoubleConfirmButton revokeButton = new DoubleConfirmButton(Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE")) {
                 HighlightColor = Color.Red,
                 OnDoubleConfirmation = () => sync.RevokeAuthorization(),
@@ -2431,6 +2444,18 @@ namespace Celeste.Mod.ConsistencyTracker
                 bool hasKey = !string.IsNullOrEmpty(GoldberriesApiKey);
                 authorizeButton.Label = Dialog.Clean(hasKey ? "MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REAUTHORIZE" : "MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE");
                 revokeButton.Disabled = !hasKey;
+
+                bool showImportKey = sync.AuthState != GoldberriesSync.AuthStatus.Authorized;
+                if (importKeyButton.Visible != showImportKey) {
+                    // Move the cursor off the button before hiding it, e.g. right after a successful import
+                    if (!showImportKey && subMenu.Current == importKeyButton) {
+                        importKeyButton.OnLeave?.Invoke();
+                        subMenu.Selection = subMenu.IndexOf(authorizeButton);
+                        if (subMenu.Focused) authorizeButton.OnEnter?.Invoke();
+                    }
+                    importKeyButton.Visible = showImportKey;
+                    subMenu.RecalculateSize();
+                }
 
                 if (!inGame) {
                     currentChallengeHeader.Title = Dialog.Clean("MODOPTION_CCT_GOLDBERRIES_SYNC_CHALLENGE_NOT_IN_GAME_HINT");

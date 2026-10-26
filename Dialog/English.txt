@@ -401,6 +401,7 @@ MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_STATE_UNREACHABLE= Couldn't reach goldberrie
 MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE= Authorize
 MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REAUTHORIZE= Re-Authorize
 MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_AUTHORIZE_HINT= Opens goldberries.net in your browser. The API key is sent back to the game automatically.
+MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_IMPORT_KEY= Import API Key from Clipboard
 MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE= Revoke Authorization
 MODOPTION_CCT_GOLDBERRIES_SYNC_AUTH_REVOKE_HINT= Deletes the API key from the game. To invalidate it, also delete it in your goldberries.net account settings.
 MODOPTION_CCT_GOLDBERRIES_SYNC_GENERAL_TITLE= General
