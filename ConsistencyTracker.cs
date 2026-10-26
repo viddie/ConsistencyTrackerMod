@@ -533,6 +533,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// inherit from <see cref="Strawberry"/> (see <see cref="PlatinumBerrySupport"/>).
         /// </summary>
         public void OnBerryTouched(EntityID id, string typeName, bool golden, bool winged) {
+            if (IsSpeedBerry(typeName)) return;
+
             //to not spam the log
             if (TouchedBerries.Contains(id)) return;
             TouchedBerries.Add(id);
@@ -548,9 +550,8 @@ namespace Celeste.Mod.ConsistencyTracker {
             }
 
             GoldenType goldenType = GetGoldenType(typeName);
-            bool isSpeedBerry = typeName == "SpeedBerry";
 
-            if (golden && !isSpeedBerry && !IsInFgrMode) {
+            if (golden && !IsInFgrMode) {
                 CurrentChapterStats.GoldenBerryType = goldenType;
                 StartNewRun();
                 SaveChapterStats();
@@ -562,6 +563,11 @@ namespace Celeste.Mod.ConsistencyTracker {
         /// inherit from <see cref="Strawberry"/> (see <see cref="PlatinumBerrySupport"/>).
         /// </summary>
         public void OnBerryCollected(EntityID id, string typeName, bool golden, bool winged) {
+            if (IsSpeedBerry(typeName)) {
+                LogVerbose($"Ignoring speed berry collect.");
+                return;
+            }
+
             if (IgnoreBerryCollects.Contains(id)) {
                 LogVerbose($"Ignoring winged berry collect.");
                 return;
@@ -577,6 +583,13 @@ namespace Celeste.Mod.ConsistencyTracker {
                 SaveChapterStats();
                 EndRun(won:true);
             }
+        }
+
+        /// <summary>
+        /// Speed berries (CollabUtils2) are golden-flagged, but aren't golden runs and should be ignored entirely.
+        /// </summary>
+        private static bool IsSpeedBerry(string typeName) {
+            return typeName == "SpeedBerry";
         }
 
         private static GoldenType GetGoldenType(string typeName) {
@@ -1173,7 +1186,7 @@ namespace Celeste.Mod.ConsistencyTracker {
             return player.Leader.Followers.Any((f) => {
                 if (f.Entity.GetType().Name == "PlatinumBerry") {
                     return true;
-                } else if (f.Entity.GetType().Name == "SpeedBerry") {
+                } else if (IsSpeedBerry(f.Entity.GetType().Name)) {
                     return false;
                 }
                 
