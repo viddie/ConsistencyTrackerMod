@@ -222,6 +222,8 @@ namespace Celeste.Mod.ConsistencyTracker {
         public override void Unload() {
             Log($"Called Unload");
             UnHookStuff();
+            SpeedrunToolSupport.Unload();
+            PlatinumBerrySupport.Unload();
             
             if (PhysicsLogger.Settings.IsRecording) {
                 PhysicsLog.StopRecording();
@@ -337,6 +339,7 @@ namespace Celeste.Mod.ConsistencyTracker {
         {
             base.Initialize();
             SpeedrunToolSupport.Load();
+            PlatinumBerrySupport.Load();
         }
 
         #endregion
@@ -516,79 +519,74 @@ namespace Celeste.Mod.ConsistencyTracker {
         // - already collected
         // - disappeared on death
         private void Strawberry_OnPlayer(On.Celeste.Strawberry.orig_OnPlayer orig, Strawberry self, Player player) {
-            //to not spam the log
-            if (TouchedBerries.Contains(self.ID)) {
-                orig(self, player);
-                return;
-            }
-            TouchedBerries.Add(self.ID);
-
-            LogVerbose($"Strawberry on player | self.Type: {self.GetType().Name}, self.Golden: {self.Golden}");
-            SetRoomCompleted(resetOnDeath: true);
-            
-            if (self.Winged && !(CurrentChapterPath?.TrackWingedGolden ?? false)) {
-                if(!IgnoreBerryCollects.Contains(self.ID))
-                    IgnoreBerryCollects.Add(self.ID);
-                LogVerbose($"Ignoring winged berry pickup.");
-                orig(self, player);
-                return;
-            }
-            
-            GoldenType goldenType = GoldenType.Golden;
-            bool isSpeedBerry = false;
-            switch (self.GetType().Name) {
-                case "Strawberry":
-                    goldenType = GoldenType.Golden;
-                    break;
-                case "SilverBerry":
-                    goldenType = GoldenType.Silver;
-                    break;
-                case "PlatinumBerry":
-                    goldenType = GoldenType.Platinum;
-                    break;
-                case "SpeedBerry":
-                    isSpeedBerry = true;
-                    break;
-            }
-
-            if (self.Golden && !isSpeedBerry && !IsInFgrMode) {
-                CurrentChapterStats.GoldenBerryType = goldenType;
-                StartNewRun();
-                SaveChapterStats();
-                Events.Events.InvokeRunStarted();
-            }
-            
+            OnBerryTouched(self.ID, self.GetType().Name, self.Golden, self.Winged);
             orig(self, player);
         }
 
         private void On_Strawberry_OnCollect(On.Celeste.Strawberry.orig_OnCollect orig, Strawberry self) {
             orig(self);
+            OnBerryCollected(self.ID, self.GetType().Name, self.Golden, self.Winged);
+        }
 
-            if (IgnoreBerryCollects.Contains(self.ID)) {
+        /// <summary>
+        /// Handles the player touching a berry. Shared between vanilla strawberries and modded berries that don't
+        /// inherit from <see cref="Strawberry"/> (see <see cref="PlatinumBerrySupport"/>).
+        /// </summary>
+        public void OnBerryTouched(EntityID id, string typeName, bool golden, bool winged) {
+            //to not spam the log
+            if (TouchedBerries.Contains(id)) return;
+            TouchedBerries.Add(id);
+
+            LogVerbose($"Strawberry on player | self.Type: {typeName}, self.Golden: {golden}");
+            SetRoomCompleted(resetOnDeath: true);
+
+            if (winged && !(CurrentChapterPath?.TrackWingedGolden ?? false)) {
+                if(!IgnoreBerryCollects.Contains(id))
+                    IgnoreBerryCollects.Add(id);
+                LogVerbose($"Ignoring winged berry pickup.");
+                return;
+            }
+
+            GoldenType goldenType = GetGoldenType(typeName);
+            bool isSpeedBerry = typeName == "SpeedBerry";
+
+            if (golden && !isSpeedBerry && !IsInFgrMode) {
+                CurrentChapterStats.GoldenBerryType = goldenType;
+                StartNewRun();
+                SaveChapterStats();
+            }
+        }
+
+        /// <summary>
+        /// Handles the player collecting a berry. Shared between vanilla strawberries and modded berries that don't
+        /// inherit from <see cref="Strawberry"/> (see <see cref="PlatinumBerrySupport"/>).
+        /// </summary>
+        public void OnBerryCollected(EntityID id, string typeName, bool golden, bool winged) {
+            if (IgnoreBerryCollects.Contains(id)) {
                 LogVerbose($"Ignoring winged berry collect.");
                 return;
             }
 
-            Log($"Berry collected! Type Name: '{self.GetType().Name}', Golden: '{self.Golden}', Winged: '{self.Winged}'");
-            
-            GoldenType goldenType = GoldenType.Golden;
-            switch (self.GetType().Name) {
-                case "Strawberry":
-                    goldenType = GoldenType.Golden;
-                    break;
-                case "SilverBerry":
-                    goldenType = GoldenType.Silver;
-                    break;
-                case "PlatinumBerry":
-                    goldenType = GoldenType.Platinum;
-                    break;
-            }
+            Log($"Berry collected! Type Name: '{typeName}', Golden: '{golden}', Winged: '{winged}'");
 
-            if (self.Golden && SettingsTrackGoldens && !IsInFgrMode) { // In fgr mode, goldens dont exist, so they cant mark the end of the challenge.
+            GoldenType goldenType = GetGoldenType(typeName);
+
+            if (golden && SettingsTrackGoldens && !IsInFgrMode) { // In fgr mode, goldens dont exist, so they cant mark the end of the challenge.
                 Log($"Golden collected! GG :catpog:");
                 CurrentChapterStats.CollectedGolden(goldenType);
                 SaveChapterStats();
                 EndRun(won:true);
+            }
+        }
+
+        private static GoldenType GetGoldenType(string typeName) {
+            switch (typeName) {
+                case "SilverBerry":
+                    return GoldenType.Silver;
+                case "PlatinumBerry":
+                    return GoldenType.Platinum;
+                default:
+                    return GoldenType.Golden;
             }
         }
 
